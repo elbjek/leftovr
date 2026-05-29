@@ -8,4 +8,4 @@ export * from "./PageDots";
 export * from "./Screen";
 export * from "./SegmentedControl";
 export * from "./Text";
-
+export * from "./TextField";

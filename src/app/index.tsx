@@ -1,50 +1,58 @@
-import { View } from "react-native";
+import { Redirect } from "expo-router";
+import { ActivityIndicator, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import {
-  AliveFridgeIllustration,
-  Button,
-  ChoiceCard,
-  PageDots,
-  Screen,
-  Text,
-} from "@/components";
+import { Button, Screen, Text } from "@/components";
+import { useAuth } from "@/features";
 import { colors, spacing } from "@/theme";
 
 export default function IndexRoute() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { configured, loading, session, profile, activeHousehold, error, refresh } = useAuth();
 
-  return (
-    <Screen>
-      <View style={{ alignItems: "center", marginBottom: spacing.xxxl }}>
-        <PageDots count={5} current={0} />
-      </View>
+  if (loading) {
+    return (
+      <Screen>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.lg }}>
+          <ActivityIndicator color={colors.primary} />
+          <Text variant="small" muted>
+            {t("common.loading")}
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
 
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <AliveFridgeIllustration />
-      </View>
+  if (!configured) {
+    return (
+      <Screen>
+        <View style={{ flex: 1, justifyContent: "center", gap: spacing.lg }}>
+          <Text variant="display">{t("auth.configTitle")}</Text>
+          <Text variant="body" muted>
+            {t("auth.configBody")}
+          </Text>
+          {error ? (
+            <Text variant="small" color={colors.red}>
+              {error}
+            </Text>
+          ) : null}
+          <Button title={t("common.continue")} onPress={refresh} />
+        </View>
+      </Screen>
+    );
+  }
 
-      <View style={{ gap: spacing.lg }}>
-        <Text variant="micro" color={colors.accent} uppercase center>
-          {t("setup.eyebrow")}
-        </Text>
-        <Text variant="display" center>
-          {t("setup.title")}
-        </Text>
-        <Text variant="body" muted center>
-          {t("setup.body")}
-        </Text>
-        <ChoiceCard
-          title={t("setup.receiptTitle")}
-          subtitle={t("setup.receiptSubtitle")}
-          recommended
-          recommendedLabel={t("common.recommended")}
-        />
-        <Button
-          title={t("common.continue")}
-          onPress={() => i18n.changeLanguage(i18n.language === "sr" ? "en" : "sr")}
-        />
-      </View>
-    </Screen>
-  );
+  if (!session) {
+    return <Redirect href="/(auth)/sign-in" />;
+  }
+
+  if (!profile?.onboarding_completed_at) {
+    return <Redirect href="/(onboarding)" />;
+  }
+
+  if (!activeHousehold?.first_fill_completed_at) {
+    return <Redirect href="/(first-fill)" />;
+  }
+
+  return <Redirect href="/(tabs)/fridge" />;
 }
