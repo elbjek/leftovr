@@ -51,7 +51,7 @@ The Claude high-fidelity prototype is the visual source of truth, not loose insp
 
 Reference folder:
 
-`/Users/elbjek/Projects/chomp/Chomp - What's for dinner_`
+`/Users/elbjek/Projects/chomp/docs/Chomp - What's for dinner_`
 
 Implementation should closely follow the prototype's:
 
@@ -995,4 +995,3 @@ Anything not implemented in V1 should stay tracked here.
 - Add additional languages.
 - Refine translation tone for opportunity-framing in each language.
 - Keep implementation aligned with the prototype as new Claude design pages are added.
-

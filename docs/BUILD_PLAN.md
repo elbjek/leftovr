@@ -4,7 +4,7 @@ This plan implements `PRODUCT_SPEC.md` as a fully working Expo prototype with re
 
 ## Build Rules
 
-- Treat `/Users/elbjek/Projects/chomp/Chomp - What's for dinner_` as the visual source of truth.
+- Treat `/Users/elbjek/Projects/chomp/docs/Chomp - What's for dinner_` as the visual source of truth.
 - Rebuild natively in Expo; do not redesign from scratch.
 - Keep all user-facing copy behind i18n keys from the beginning.
 - Use English and Serbian translation files in V1.
@@ -872,4 +872,3 @@ Keep these TODOs visible during and after V1:
 - Additional languages.
 - Translation tone review for every supported language.
 - Continued alignment with new Claude design pages as they are added.
-
