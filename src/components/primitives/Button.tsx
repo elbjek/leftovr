@@ -1,6 +1,6 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
-import { colors, radii, shadows, spacing, typography } from "../../theme";
+import { colors, fonts, radii, shadows, spacing, typography } from "../../theme";
 import { Text } from "./Text";
 
 type ButtonVariant = "primary" | "ghost" | "text" | "accent";
@@ -114,9 +114,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.body.fontSize,
+    fontFamily: fonts.bodyBold,
   },
   textTitle: {
     color: colors.muted,
   },
 });
-

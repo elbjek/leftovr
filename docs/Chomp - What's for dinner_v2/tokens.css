@@ -1,0 +1,133 @@
+/* Chomp design tokens */
+:root {
+  --primary: #1B4332;
+  --primary-700: #163829;
+  --primary-50: rgba(27, 67, 50, 0.06);
+  --primary-100: rgba(27, 67, 50, 0.12);
+  --surface: #F8F4EE;
+  --surface-2: #F1ECE2;
+  --surface-3: #E8E1D3;
+  --accent: #D4A843;
+  --accent-soft: #F0DDA8;
+  --text: #1C1C1A;
+  --muted: #6B7A6D;
+  --muted-2: #9AA59C;
+  --green: #4F8A5B;
+  --yellow: #D4A843;
+  --red: #C76845;
+  --hairline: rgba(27, 67, 50, 0.10);
+  --hairline-strong: rgba(27, 67, 50, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', 'Nunito', -apple-system, system-ui, sans-serif;
+  background: #EFE9DD;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+}
+
+/* Type scale */
+.t-display {
+  font-family: 'Fraunces', 'Plus Jakarta Sans', serif;
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+.t-h1 { font-weight: 700; font-size: 28px; line-height: 1.15; letter-spacing: -0.02em; }
+.t-h2 { font-weight: 700; font-size: 22px; line-height: 1.2; letter-spacing: -0.015em; }
+.t-h3 { font-weight: 600; font-size: 17px; line-height: 1.25; letter-spacing: -0.01em; }
+.t-body { font-weight: 400; font-size: 15px; line-height: 1.45; }
+.t-small { font-weight: 500; font-size: 13px; line-height: 1.35; }
+.t-micro { font-weight: 600; font-size: 11px; line-height: 1.2; letter-spacing: 0.04em; text-transform: uppercase; }
+.t-label { font-weight: 600; font-size: 14px; line-height: 1.3; letter-spacing: -0.005em; }
+
+.muted { color: var(--muted); }
+
+/* Buttons */
+.btn-primary {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%;
+  height: 56px;
+  background: var(--primary);
+  color: var(--surface);
+  border-radius: 999px;
+  border: none;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 8px 24px rgba(27,67,50,0.18);
+}
+.btn-primary:active { transform: scale(0.985); background: var(--primary-700); }
+
+.btn-ghost {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%;
+  height: 56px;
+  background: transparent;
+  color: var(--primary);
+  border-radius: 999px;
+  border: 1.5px solid var(--hairline-strong);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-text {
+  background: none; border: none; color: var(--muted);
+  font-family: inherit; font-weight: 600; font-size: 14px;
+  cursor: pointer;
+}
+
+/* Cards */
+.card {
+  background: #FFFEFB;
+  border-radius: 18px;
+  border: 1px solid var(--hairline);
+}
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--primary-50);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Urgency dot */
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot-green { background: var(--green); }
+.dot-yellow { background: var(--yellow); }
+.dot-red { background: var(--red); }
+
+/* Page container */
+.screen {
+  background: var(--surface);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* Brand wordmark */
+.wordmark {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: -0.03em;
+  color: var(--primary);
+}

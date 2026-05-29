@@ -4,13 +4,16 @@ import { useTranslation } from "react-i18next";
 
 import { Button, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
+import { useFirstRunOnboardingGate } from "@/features/onboardingGate";
 import { colors, spacing } from "@/theme";
 
 export default function IndexRoute() {
   const { t } = useTranslation();
   const { configured, loading, session, profile, activeHousehold, error, refresh } = useAuth();
+  const { loading: onboardingGateLoading, hasPickedLanguage, hasSeenHook } =
+    useFirstRunOnboardingGate();
 
-  if (loading) {
+  if (loading || onboardingGateLoading) {
     return (
       <Screen>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.lg }}>
@@ -43,6 +46,14 @@ export default function IndexRoute() {
   }
 
   if (!session) {
+    if (!hasPickedLanguage) {
+      return <Redirect href="/(onboarding)/language" />;
+    }
+
+    if (!hasSeenHook) {
+      return <Redirect href="/(onboarding)/hook" />;
+    }
+
     return <Redirect href="/(auth)/sign-in" />;
   }
 

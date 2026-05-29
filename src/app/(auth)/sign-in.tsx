@@ -1,15 +1,21 @@
-import { Link, router } from "expo-router";
+import { Link, Redirect, router } from "expo-router";
 import { useState } from "react";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Button, Screen, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
+import { useFirstRunOnboardingGate } from "@/features/onboardingGate";
 import { colors, spacing } from "@/theme";
 
 export default function SignInRoute() {
   const { t } = useTranslation();
   const { signIn, loading, error } = useAuth();
+  const {
+    loading: onboardingGateLoading,
+    hasPickedLanguage,
+    hasSeenHook,
+  } = useFirstRunOnboardingGate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -23,6 +29,27 @@ export default function SignInRoute() {
     setFormError(null);
     await signIn({ email, password });
     router.replace("/");
+  }
+
+  if (onboardingGateLoading) {
+    return (
+      <Screen>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.lg }}>
+          <ActivityIndicator color={colors.primary} />
+          <Text variant="small" muted>
+            {t("common.loading")}
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
+
+  if (!hasPickedLanguage) {
+    return <Redirect href="/(onboarding)/language" />;
+  }
+
+  if (!hasSeenHook) {
+    return <Redirect href="/(onboarding)/hook" />;
   }
 
   return (
@@ -73,4 +100,3 @@ export default function SignInRoute() {
     </Screen>
   );
 }
-

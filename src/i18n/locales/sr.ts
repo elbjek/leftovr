@@ -28,8 +28,116 @@ export const sr = {
     genericError: "Nesto nije uspelo.",
   },
   onboarding: {
-    title: "Personalizacija je sledeca.",
-    body: "Faza 5 ce dodati ceo onboarding tok. Za sada auth rutiranje radi.",
+    title: "Podesi Chomp za sebe.",
+    body: "Par brzih dodira da recepti, podsetnici i porcije odgovaraju tvojoj kuhinji.",
+    language: {
+      title: "Izaberi ",
+      titleAccent: "jezik",
+      body: "Choose your language. Mozes da promenis ovo kasnije u podesavanjima.",
+      flagLabel: "{{language}} zastava",
+      choices: [
+        { value: "en", title: "English", subtitle: "English", flag: "🇬🇧" },
+        { value: "sr", title: "Srpski", subtitle: "Serbian", flag: "🇷🇸" },
+      ],
+    },
+    hook: {
+      cta: "Pocni — besplatno je",
+      slides: [
+        {
+          key: "waste",
+          title: "Koliko hrane si bacio ",
+          titleAccent: "prosle nedelje?",
+          body: "Prosecno domacinstvo baci 30% hrane koju kupi. To je oko $1,500 godisnje - pravo u kantu.",
+          illustration: "forgotten",
+        },
+        {
+          key: "memory",
+          title: "Tvoj frizider ima problem sa pamcenjem. ",
+          titleAccent: "Resili smo ga.",
+          body: "Slikaj racun. Chomp pamti svaku stavku, zna kada je najbolja i tiho vodi evidenciju.",
+          illustration: "receipt",
+        },
+        {
+          key: "scan",
+          title: "Skeniraj racun. ",
+          titleAccent: "Mi radimo ostalo.",
+          body: "",
+          illustration: "scanLoop",
+          steps: ["Slikaj", "Frizider se azurira", "Kuvaj veceras"],
+        },
+        {
+          key: "cook",
+          title: "Nikad vise ne otvaras frizider ",
+          titleAccent: "bez ideje.",
+          body: "Jedan dodir daje recept od tacno onoga sto imas - prvo ono sto treba pojesti.",
+          illustration: "socialProof",
+          quotes: [
+            { text: "\"Nisam bacila povrce mesec dana.\"", byline: "Maya, London" },
+            { text: "\"Konacno znam sta imam u frizideru.\"", byline: "Daniel, NYC" },
+          ],
+        },
+        {
+          key: "start",
+          title: "Hajde da jedes.",
+          body: "Besplatno. Bez kartice.",
+          illustration: "wordmark",
+          wordmarkKicker: "sta je za veceru?",
+        },
+      ],
+    },
+    personalization: {
+      finish: "Zavrsi podesavanje",
+      cookingFor: {
+        eyebrow: "Par brzih pitanja",
+        title: "Za koga kuvas?",
+        body: "Ovo podesava podrazumevane velicine porcija.",
+        choices: [
+          { label: "Samo za mene", subtitle: "1 porcija", value: "me", servings: 1 },
+          { label: "Za mene i partnera", subtitle: "2 porcije", value: "partner", servings: 2 },
+          { label: "Porodica (3 – 4)", subtitle: "4 porcije", value: "family", servings: 4 },
+          { label: "Vece domacinstvo", subtitle: "5+ porcija", value: "big", servings: 6 },
+        ],
+      },
+      shoppingStyle: {
+        eyebrow: "Kako kupujes",
+        title: "Kako obicno kupujes?",
+        body: "Da znamo koliko cesto da se javimo.",
+        choices: [
+          { label: "Jedna velika nedeljna kupovina", value: "weekly" },
+          { label: "Par puta nedeljno", value: "few" },
+          { label: "Kad mi nesto zatreba", value: "asneed" },
+        ],
+      },
+      primaryGoal: {
+        eyebrow: "Sta je vazno",
+        title: "Sta ti je najvaznije?",
+        body: "Prilagodicemo poruke onome sto tebi najvise znaci.",
+        choices: [
+          { label: "Manje bacanja hrane", value: "waste" },
+          { label: "Usteda novca", value: "money" },
+          { label: "Brze ideje za obrok", value: "quick" },
+          { label: "Sve navedeno", value: "all" },
+        ],
+      },
+      avoidances: {
+        eyebrow: "Ishrana",
+        title: "Ima li nesto sto nikad ne jedes?",
+        body: "Necemo to predlagati u receptima.",
+        skipLabel: "Nastavi",
+        choices: [
+          { label: "Meso", value: "meat" },
+          { label: "Riba i morski plodovi", value: "fish" },
+          { label: "Mlecno", value: "dairy" },
+          { label: "Gluten", value: "gluten" },
+          { label: "Orasasti plodovi", value: "nuts" },
+        ],
+      },
+      invite: {
+        title: "Ulazis u necije domacinstvo?",
+        body: "Opciono. Unesi invite code sada ili zadrzi samostalno domacinstvo.",
+        inputLabel: "Invite code",
+      },
+    },
   },
   firstFill: {
     title: "Hajde da napunimo frizider.",
