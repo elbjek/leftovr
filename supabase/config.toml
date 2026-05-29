@@ -1,0 +1,41 @@
+project_id = "chomp-local"
+
+[api]
+enabled = true
+port = 55321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 55322
+shadow_port = 55320
+major_version = 17
+
+[db.pooler]
+enabled = false
+port = 55329
+
+[studio]
+enabled = true
+port = 55323
+
+[inbucket]
+enabled = true
+port = 55324
+
+[auth]
+enabled = true
+site_url = "chomp://auth"
+additional_redirect_urls = ["exp://127.0.0.1:8081", "http://localhost:8081"]
+enable_signup = true
+
+[edge_runtime]
+enabled = true
+policy = "oneshot"
+inspector_port = 55325
+
+[analytics]
+enabled = true
+port = 55327
+backend = "postgres"
