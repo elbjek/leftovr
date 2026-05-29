@@ -26,6 +26,10 @@ export const colors = {
 export const fonts = {
   display: "Fraunces",
   body: "PlusJakartaSans",
+  displayItalic: "FrauncesItalic",
+  bodyMedium: "PlusJakartaSansMedium",
+  bodySemiBold: "PlusJakartaSansSemiBold",
+  bodyBold: "PlusJakartaSansBold",
   fallback: "System",
 } as const;
 
@@ -181,4 +185,3 @@ export const tokens = {
 export type ChompColor = keyof typeof colors;
 export type Urgency = keyof typeof urgencyColors;
 export type CategoryTone = keyof typeof categoryColors;
-

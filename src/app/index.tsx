@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 import {
   AliveFridgeIllustration,
@@ -11,6 +12,8 @@ import {
 import { colors, spacing } from "@/theme";
 
 export default function IndexRoute() {
+  const { t, i18n } = useTranslation();
+
   return (
     <Screen>
       <View style={{ alignItems: "center", marginBottom: spacing.xxxl }}>
@@ -23,23 +26,25 @@ export default function IndexRoute() {
 
       <View style={{ gap: spacing.lg }}>
         <Text variant="micro" color={colors.accent} uppercase center>
-          Chomp setup
+          {t("setup.eyebrow")}
         </Text>
         <Text variant="display" center>
-          Your fridge is getting its memory.
+          {t("setup.title")}
         </Text>
         <Text variant="body" muted center>
-          Expo Router is running, and the native design system is ready for the next build phase.
+          {t("setup.body")}
         </Text>
         <ChoiceCard
-          title="Scan a receipt"
-          subtitle="The core Chomp flow starts here."
+          title={t("setup.receiptTitle")}
+          subtitle={t("setup.receiptSubtitle")}
           recommended
-          recommendedLabel="Recommended"
+          recommendedLabel={t("common.recommended")}
         />
-        <Button title="Continue" />
+        <Button
+          title={t("common.continue")}
+          onPress={() => i18n.changeLanguage(i18n.language === "sr" ? "en" : "sr")}
+        />
       </View>
     </Screen>
   );
 }
-
