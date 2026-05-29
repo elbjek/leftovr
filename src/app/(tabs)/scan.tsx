@@ -12,13 +12,12 @@ export default function ScanRoute() {
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: spacing.lg }}>
         <ReceiptToFridgeIllustration />
         <Text variant="display" center>
-          {t("gate.scanTitle")}
+          {t("scan.title")}
         </Text>
         <Text variant="body" muted center>
-          {t("gate.scanBody")}
+          {t("scan.body")}
         </Text>
       </View>
     </Screen>
   );
 }
-

@@ -4,13 +4,7 @@ export const sr = {
     loading: "Ucitavanje",
     recommended: "Preporuceno",
     signOut: "Odjavi se",
-  },
-  setup: {
-    eyebrow: "Chomp podesavanje",
-    title: "Tvoj frizider dobija pamcenje.",
-    body: "Expo Router radi, a native dizajn sistem je spreman za sledecu fazu.",
-    receiptTitle: "Skeniraj racun",
-    receiptSubtitle: "Glavni Chomp tok pocinje ovde.",
+    unknownHousehold: "Samostalno domacinstvo",
   },
   auth: {
     configTitle: "Povezi Supabase",
@@ -30,21 +24,48 @@ export const sr = {
     google: "Nastavi uz Google",
     oauthPlaceholder: "Uskoro",
     missingFields: "Popuni sva polja za nastavak.",
+    missingSupabaseConfig: "Nedostaju Supabase environment variables.",
+    genericError: "Nesto nije uspelo.",
   },
-  gate: {
-    onboardingTitle: "Personalizacija je sledeca.",
-    onboardingBody: "Faza 5 ce dodati ceo onboarding tok. Za sada auth rutiranje radi.",
-    firstFillTitle: "Hajde da napunimo frizider.",
-    firstFillBody: "Faza 7 ce dodati racun, barkod i rucni unos. Ovaj ekran proverava session gate.",
-    fridgeTitle: "Hej, tvoj frizider.",
-    fridgeBody: "Prijavljen si i spreman za sledecu fazu.",
-    recipesTitle: "Recepti",
-    recipesBody: "Ovde ce ziveti recipe sessions.",
-    scanTitle: "Skeniranje",
-    scanBody: "Racun, barkod i rucni unos uskoro pocinju ovde.",
-    insightsTitle: "Uvidi",
-    insightsBody: "Premium recap pregledi ce biti ovde.",
-    settingsTitle: "Podesavanja",
-    settingsBody: "Nalog, domacinstvo, jezik i prototype controls ce biti ovde.",
+  onboarding: {
+    title: "Personalizacija je sledeca.",
+    body: "Faza 5 ce dodati ceo onboarding tok. Za sada auth rutiranje radi.",
+  },
+  firstFill: {
+    title: "Hajde da napunimo frizider.",
+    body: "Faza 7 ce dodati racun, barkod i rucni unos. Ovaj ekran proverava session gate.",
+  },
+  fridge: {
+    title: "Hej, tvoj frizider.",
+    titleWithName: "{{name}}, hej, tvoj frizider.",
+    body: "Prijavljen si i spreman za sledecu fazu.",
+  },
+  scan: {
+    title: "Skeniranje",
+    body: "Racun, barkod i rucni unos uskoro pocinju ovde.",
+  },
+  recipes: {
+    title: "Recepti",
+    body: "Ovde ce ziveti recipe sessions.",
+  },
+  settings: {
+    title: "Podesavanja",
+    body: "Nalog, domacinstvo, jezik i prototype controls ce biti ovde.",
+    languageTitle: "Jezik",
+    languageBody: "Prebaci prototype izmedju engleskog i srpskog.",
+    languages: {
+      en: "English",
+      sr: "Srpski",
+    },
+  },
+  insights: {
+    title: "Uvidi",
+    body: "Premium recap pregledi ce biti ovde.",
+  },
+  premium: {
+    title: "Chomp Premium",
+  },
+  retention: {
+    title: "Pre nego sto odes",
   },
 } as const;

@@ -18,12 +18,11 @@ export default function TabsLayout() {
         },
       }}
     >
-      <Tabs.Screen name="fridge" options={{ title: t("gate.fridgeTitle") }} />
-      <Tabs.Screen name="recipes" options={{ title: t("gate.recipesTitle") }} />
-      <Tabs.Screen name="scan" options={{ title: t("gate.scanTitle") }} />
-      <Tabs.Screen name="insights" options={{ title: t("gate.insightsTitle") }} />
-      <Tabs.Screen name="settings" options={{ title: t("gate.settingsTitle") }} />
+      <Tabs.Screen name="fridge" options={{ title: t("fridge.title") }} />
+      <Tabs.Screen name="recipes" options={{ title: t("recipes.title") }} />
+      <Tabs.Screen name="scan" options={{ title: t("scan.title") }} />
+      <Tabs.Screen name="insights" options={{ title: t("insights.title") }} />
+      <Tabs.Screen name="settings" options={{ title: t("settings.title") }} />
     </Tabs>
   );
 }
-

@@ -10,12 +10,11 @@ export default function RecipesRoute() {
   return (
     <Screen>
       <View style={{ flex: 1, justifyContent: "center", gap: spacing.md }}>
-        <Text variant="display">{t("gate.recipesTitle")}</Text>
+        <Text variant="display">{t("recipes.title")}</Text>
         <Text variant="body" muted>
-          {t("gate.recipesBody")}
+          {t("recipes.body")}
         </Text>
       </View>
     </Screen>
   );
 }
-
