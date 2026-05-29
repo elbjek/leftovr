@@ -1,5 +1,5 @@
 import React from "react";
-import Svg, { Circle, Line, Path, Rect, Text as SvgText } from "react-native-svg";
+import Svg, { Circle, Ellipse, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import { colors } from "../../theme";
 
 type SizeProps = {
@@ -78,3 +78,41 @@ export function ReceiptToFridgeIllustration({ width = 280, height = 200 }: SizeP
   );
 }
 
+export function ScanLoopIllustration({ width = 260, height = 160 }: SizeProps) {
+  return (
+    <Svg width={width} height={height} viewBox="0 0 260 160">
+      <Rect x="0" y="20" width="80" height="120" rx="10" fill={colors.paper} stroke={colors.hairlineStrong} />
+      <Path d="M10 30 L10 40 M10 30 L20 30" stroke={colors.accent} strokeWidth="2.5" strokeLinecap="round" />
+      <Path d="M70 30 L70 40 M70 30 L60 30" stroke={colors.accent} strokeWidth="2.5" strokeLinecap="round" />
+      <Path d="M10 130 L10 120 M10 130 L20 130" stroke={colors.accent} strokeWidth="2.5" strokeLinecap="round" />
+      <Path d="M70 130 L70 120 M70 130 L60 130" stroke={colors.accent} strokeWidth="2.5" strokeLinecap="round" />
+      <Rect x="20" y="50" width="40" height="2" rx="1" fill={colors.muted} />
+      <Rect x="20" y="60" width="32" height="2" rx="1" fill={colors.muted} />
+      <Rect x="20" y="70" width="44" height="2" rx="1" fill={colors.muted} />
+
+      <Path d="M88 80 L98 80 M92 76 L98 80 L92 84" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+      <Rect x="102" y="20" width="56" height="120" rx="8" fill={colors.surface2} stroke={colors.hairlineStrong} />
+      <Line x1="102" y1="70" x2="158" y2="70" stroke={colors.hairlineStrong} />
+      <Rect x="108" y="28" width="12" height="34" rx="2" fill={colors.green} opacity="0.7" />
+      <Rect x="124" y="28" width="12" height="34" rx="2" fill={colors.accent} opacity="0.85" />
+      <Rect x="140" y="28" width="12" height="34" rx="2" fill={colors.red} opacity="0.7" />
+      <Rect x="108" y="78" width="20" height="28" rx="2" fill={colors.green} opacity="0.5" />
+      <Rect x="132" y="78" width="20" height="28" rx="2" fill={colors.primary} opacity="0.5" />
+      <Rect x="108" y="114" width="44" height="20" rx="2" fill={colors.accent} opacity="0.45" />
+
+      <Path d="M166 80 L176 80 M170 76 L176 80 L170 84" stroke={colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+
+      <Rect x="180" y="20" width="80" height="120" rx="10" fill={colors.paper} stroke={colors.hairlineStrong} />
+      <Ellipse cx="220" cy="100" rx="28" ry="6" fill={colors.primary} opacity="0.1" />
+      <Ellipse cx="220" cy="94" rx="26" ry="14" fill={colors.paper} stroke={colors.hairlineStrong} />
+      <Ellipse cx="220" cy="90" rx="22" ry="10" fill={colors.accent} opacity="0.4" />
+      <Circle cx="212" cy="88" r="3" fill={colors.green} />
+      <Circle cx="226" cy="85" r="2.5" fill={colors.red} />
+      <Circle cx="220" cy="94" r="2" fill={colors.primary} opacity="0.6" />
+      <SvgText x="220" y="126" fontSize="9" fill={colors.primary} textAnchor="middle" fontWeight="600">
+        20 min
+      </SvgText>
+    </Svg>
+  );
+}
