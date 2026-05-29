@@ -1,5 +1,6 @@
 import React from "react";
-import { SafeAreaView, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { ScrollView, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, spacing } from "../../theme";
 
 type Props = {
@@ -67,4 +68,3 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
 });
-
