@@ -10,12 +10,11 @@ export default function InsightsRoute() {
   return (
     <Screen>
       <View style={{ flex: 1, justifyContent: "center", gap: spacing.md }}>
-        <Text variant="display">{t("gate.insightsTitle")}</Text>
+        <Text variant="display">{t("insights.title")}</Text>
         <Text variant="body" muted>
-          {t("gate.insightsBody")}
+          {t("insights.body")}
         </Text>
       </View>
     </Screen>
   );
 }
-

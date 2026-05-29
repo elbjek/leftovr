@@ -12,13 +12,12 @@ export default function OnboardingPlaceholderRoute() {
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: spacing.xl }}>
         <AliveFridgeIllustration />
         <Text variant="display" center>
-          {t("gate.onboardingTitle")}
+          {t("onboarding.title")}
         </Text>
         <Text variant="body" muted center>
-          {t("gate.onboardingBody")}
+          {t("onboarding.body")}
         </Text>
       </View>
     </Screen>
   );
 }
-

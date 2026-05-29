@@ -12,13 +12,12 @@ export default function FirstFillPlaceholderRoute() {
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: spacing.xl }}>
         <ReceiptToFridgeIllustration />
         <Text variant="display" center>
-          {t("gate.firstFillTitle")}
+          {t("firstFill.title")}
         </Text>
         <Text variant="body" muted center>
-          {t("gate.firstFillBody")}
+          {t("firstFill.body")}
         </Text>
       </View>
     </Screen>
   );
 }
-

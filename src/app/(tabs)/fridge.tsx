@@ -14,13 +14,12 @@ export default function FridgeRoute() {
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: spacing.lg }}>
         <AliveFridgeIllustration />
         <Text variant="display" center>
-          {profile?.display_name ? `${profile.display_name}, ${t("gate.fridgeTitle")}` : t("gate.fridgeTitle")}
+          {profile?.display_name ? t("fridge.titleWithName", { name: profile.display_name }) : t("fridge.title")}
         </Text>
         <Text variant="body" muted center>
-          {t("gate.fridgeBody")}
+          {t("fridge.body")}
         </Text>
       </View>
     </Screen>
   );
 }
-

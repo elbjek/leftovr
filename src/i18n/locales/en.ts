@@ -4,13 +4,7 @@ export const en = {
     loading: "Loading",
     recommended: "Recommended",
     signOut: "Sign out",
-  },
-  setup: {
-    eyebrow: "Chomp setup",
-    title: "Your fridge is getting its memory.",
-    body: "Expo Router is running, and the native design system is ready for the next build phase.",
-    receiptTitle: "Scan a receipt",
-    receiptSubtitle: "The core Chomp flow starts here.",
+    unknownHousehold: "Solo household",
   },
   auth: {
     configTitle: "Connect Supabase",
@@ -30,21 +24,48 @@ export const en = {
     google: "Continue with Google",
     oauthPlaceholder: "Coming soon",
     missingFields: "Fill in every field to continue.",
+    missingSupabaseConfig: "Missing Supabase environment variables.",
+    genericError: "Something went wrong.",
   },
-  gate: {
-    onboardingTitle: "Personalization comes next.",
-    onboardingBody: "Phase 5 will add the full one-question-at-a-time onboarding flow. For now, auth routing is working.",
-    firstFillTitle: "Let's fill your fridge.",
-    firstFillBody: "Phase 7 will add receipt, barcode, and manual first-fill flows. This placeholder proves the session gate.",
-    fridgeTitle: "Hey, your fridge.",
-    fridgeBody: "You are signed in and ready for the next build phase.",
-    recipesTitle: "Recipes",
-    recipesBody: "Recipe sessions will live here.",
-    scanTitle: "Scan",
-    scanBody: "Receipt, barcode, and manual entry start here soon.",
-    insightsTitle: "Insights",
-    insightsBody: "Premium recap previews will live here.",
-    settingsTitle: "Settings",
-    settingsBody: "Account, household, language, and prototype controls will live here.",
+  onboarding: {
+    title: "Personalization comes next.",
+    body: "Phase 5 will add the full one-question-at-a-time onboarding flow. For now, auth routing is working.",
+  },
+  firstFill: {
+    title: "Let's fill your fridge.",
+    body: "Phase 7 will add receipt, barcode, and manual first-fill flows. This placeholder proves the session gate.",
+  },
+  fridge: {
+    title: "Hey, your fridge.",
+    titleWithName: "{{name}}, hey, your fridge.",
+    body: "You are signed in and ready for the next build phase.",
+  },
+  scan: {
+    title: "Scan",
+    body: "Receipt, barcode, and manual entry start here soon.",
+  },
+  recipes: {
+    title: "Recipes",
+    body: "Recipe sessions will live here.",
+  },
+  settings: {
+    title: "Settings",
+    body: "Account, household, language, and prototype controls will live here.",
+    languageTitle: "Language",
+    languageBody: "Switch the prototype between English and Serbian.",
+    languages: {
+      en: "English",
+      sr: "Srpski",
+    },
+  },
+  insights: {
+    title: "Insights",
+    body: "Premium recap previews will live here.",
+  },
+  premium: {
+    title: "Chomp Premium",
+  },
+  retention: {
+    title: "Before you go",
   },
 } as const;

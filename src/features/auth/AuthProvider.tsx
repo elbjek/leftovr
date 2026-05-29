@@ -11,6 +11,7 @@ import React, {
 import { getCurrentProfile, getHouseholdById } from "@/repositories";
 import { signInWithEmail, signOut, signUpWithEmail } from "@/services";
 import { getSupabaseClient, hasSupabaseConfig } from "@/lib/supabase";
+import { i18n } from "@/i18n";
 
 import { AuthState, Household } from "./types";
 
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...initialState,
         configured: false,
         loading: false,
-        error: "Missing Supabase environment variables.",
+        error: i18n.t("auth.missingSupabaseConfig"),
       });
       return;
     }
@@ -94,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...current,
         configured: hasSupabaseConfig(),
         loading: false,
-        error: error instanceof Error ? error.message : "Something went wrong.",
+        error: error instanceof Error ? error.message : i18n.t("auth.genericError"),
       }));
     }
   }, []);
@@ -105,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...initialState,
         configured: false,
         loading: false,
-        error: "Missing Supabase environment variables.",
+        error: i18n.t("auth.missingSupabaseConfig"),
       });
       return;
     }
