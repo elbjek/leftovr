@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "@/i18n";
+import { AuthProvider } from "@/features";
 import { useChompFonts } from "@/lib";
 import { colors } from "@/theme";
 
@@ -25,8 +26,10 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.surface }}>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false }} />
+      <AuthProvider>
+        <StatusBar style="dark" />
+        <Stack screenOptions={{ headerShown: false }} />
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 }
