@@ -8,14 +8,14 @@ import Svg, { Circle, Line, Path } from "react-native-svg";
 import { Button, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
 import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
-import { completeHouseholdFirstFill, resetCurrentUserOnboardingForDev } from "@/repositories";
+import { resetCurrentUserOnboardingForDev } from "@/repositories";
 import { colors, radii, spacing } from "@/theme";
 
 type FillMode = "receipt" | "barcode" | "manual";
 
 export default function FirstFillRoute() {
   const { t } = useTranslation();
-  const { activeHousehold, refresh, signOut } = useAuth();
+  const { activeHousehold, signOut } = useAuth();
   const [selected, setSelected] = useState<FillMode>("receipt");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,23 +23,7 @@ export default function FirstFillRoute() {
   async function continueToApp(mode = selected) {
     if (!activeHousehold?.id) return;
 
-    if (mode === "receipt") {
-      router.replace("/(tabs)/scan");
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      await completeHouseholdFirstFill(activeHousehold.id);
-      await refresh();
-      router.replace("/(tabs)/fridge");
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : t("auth.genericError"));
-    } finally {
-      setSubmitting(false);
-    }
+    router.replace({ pathname: "/(tabs)/scan", params: { mode } });
   }
 
   async function resetOnboarding() {

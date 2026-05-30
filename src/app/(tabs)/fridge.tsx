@@ -183,7 +183,7 @@ function getActionLabels(t: ReturnType<typeof useTranslation>["t"]) {
 const styles = StyleSheet.create({
   content: {
     paddingTop: spacing.screenTop,
-    paddingBottom: spacing.screenBottom,
+    paddingBottom: spacing.tabBarClearance,
     gap: spacing.xl,
   },
   hero: {
