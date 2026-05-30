@@ -4,12 +4,31 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { Button, Card, HouseholdSection, PremiumSheet, Screen, SegmentedControl, Text } from "@/components";
+import {
+  BottomSheet,
+  Button,
+  Card,
+  ChoiceCard,
+  HouseholdSection,
+  PremiumSheet,
+  Screen,
+  SegmentedControl,
+  Text,
+  TextField,
+} from "@/components";
 import { useAuth } from "@/features";
 import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
-import { resetCurrentUserOnboardingForDev, setPreviewTier, setPrototypeDay, PlanTier } from "@/repositories";
+import {
+  resetCurrentUserOnboardingForDev,
+  setPreviewTier,
+  setPrototypeDay,
+  updateHouseholdDefaultServings,
+  updateProfileAvoidances,
+  updateProfileField,
+  PlanTier,
+} from "@/repositories";
 import { colors, radii, spacing } from "@/theme";
 
 const TIER_OPTIONS: { label: string; value: PlanTier; key: string }[] = [
@@ -19,6 +38,11 @@ const TIER_OPTIONS: { label: string; value: PlanTier; key: string }[] = [
 ];
 
 const PROTOTYPE_DAYS = [1, 2, 3, 4, 5, 6, 7];
+
+const PRIMARY_GOAL_OPTIONS = ["waste", "money", "quick", "all"] as const;
+const SHOPPING_STYLE_OPTIONS = ["weekly", "few", "asneed"] as const;
+const AVOIDANCE_OPTIONS = ["meat", "fish", "dairy", "gluten", "nuts"] as const;
+const SERVINGS_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
 
 export default function SettingsRoute() {
   const { t, i18n } = useTranslation();
@@ -32,6 +56,16 @@ export default function SettingsRoute() {
   const [tierLoading, setTierLoading] = useState(false);
   const [dayLoading, setDayLoading] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Editable state
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState(profile?.display_name ?? "");
+  const [editingGoal, setEditingGoal] = useState(false);
+  const [editingStyle, setEditingStyle] = useState(false);
+  const [editingAvoidances, setEditingAvoidances] = useState(false);
+  const [editingServings, setEditingServings] = useState(false);
+  const [localAvoidances, setLocalAvoidances] = useState<string[]>(profile?.avoidances ?? []);
 
   const household = useHousehold(activeHousehold?.id);
   const { lots } = useInventory(activeHousehold?.id);
@@ -76,8 +110,84 @@ export default function SettingsRoute() {
     }
   }
 
+  async function saveName() {
+    if (!nameValue.trim() || nameValue === profile?.display_name) {
+      setEditingName(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateProfileField("display_name", nameValue.trim());
+      await refresh();
+    } finally {
+      setSaving(false);
+      setEditingName(false);
+    }
+  }
+
+  async function saveGoal(value: string) {
+    setSaving(true);
+    try {
+      await updateProfileField("primary_goal", value);
+      await refresh();
+    } finally {
+      setSaving(false);
+      setEditingGoal(false);
+    }
+  }
+
+  async function saveStyle(value: string) {
+    setSaving(true);
+    try {
+      await updateProfileField("shopping_style", value);
+      await refresh();
+    } finally {
+      setSaving(false);
+      setEditingStyle(false);
+    }
+  }
+
+  async function saveAvoidances() {
+    setSaving(true);
+    try {
+      await updateProfileAvoidances(localAvoidances);
+      await refresh();
+    } finally {
+      setSaving(false);
+      setEditingAvoidances(false);
+    }
+  }
+
+  async function saveServings(count: number) {
+    if (!activeHousehold?.id) return;
+    setSaving(true);
+    try {
+      await updateHouseholdDefaultServings(activeHousehold.id, count);
+      await refresh();
+    } finally {
+      setSaving(false);
+      setEditingServings(false);
+    }
+  }
+
+  function toggleAvoidance(value: string) {
+    setLocalAvoidances((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+    );
+  }
+
   const currentTier = profile?.tier ?? "free";
   const currentDay = profile?.prototype_day ?? 1;
+
+  const goalLabel = profile?.primary_goal
+    ? t(`settings.primaryGoalChoices.${profile.primary_goal}` as any)
+    : "—";
+  const styleLabel = profile?.shopping_style
+    ? t(`settings.shoppingStyleChoices.${profile.shopping_style}` as any)
+    : "—";
+  const avoidancesLabel = (profile?.avoidances ?? []).length > 0
+    ? (profile?.avoidances ?? []).map((a) => t(`settings.avoidanceChoices.${a}` as any)).join(", ")
+    : "—";
 
   return (
     <Screen scroll contentContainerStyle={styles.content}>
@@ -89,10 +199,20 @@ export default function SettingsRoute() {
           </Text>
         </View>
 
+        {/* Profile card */}
         <Card>
           <View style={styles.cardInner}>
             <View style={styles.profileInfo}>
-              <Text variant="label">{profile?.display_name}</Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  setNameValue(profile?.display_name ?? "");
+                  setEditingName(true);
+                }}
+              >
+                <Text variant="label">{profile?.display_name}</Text>
+                <Text variant="micro" muted>{t("settings.displayNameLabel")}</Text>
+              </Pressable>
               <Text variant="small" muted>
                 {activeHousehold?.name ?? t("common.unknownHousehold")}
               </Text>
@@ -118,6 +238,7 @@ export default function SettingsRoute() {
           </View>
         </Card>
 
+        {/* Language */}
         <Card>
           <View style={styles.cardInner}>
             <View style={styles.sectionHeader}>
@@ -134,6 +255,64 @@ export default function SettingsRoute() {
           </View>
         </Card>
 
+        {/* Preferences */}
+        <Card>
+          <View style={styles.cardInner}>
+            <View style={styles.sectionHeader}>
+              <Text variant="label">{t("settings.preferencesTitle")}</Text>
+              <Text variant="small" muted>
+                {t("settings.preferencesBody")}
+              </Text>
+            </View>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setEditingGoal(true)}
+              style={styles.prefRow}
+            >
+              <Text variant="small">{t("settings.primaryGoalLabel")}</Text>
+              <Text variant="small" color={colors.primary}>{goalLabel}</Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setEditingStyle(true)}
+              style={styles.prefRow}
+            >
+              <Text variant="small">{t("settings.shoppingStyleLabel")}</Text>
+              <Text variant="small" color={colors.primary}>{styleLabel}</Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setLocalAvoidances(profile?.avoidances ?? []);
+                setEditingAvoidances(true);
+              }}
+              style={styles.prefRow}
+            >
+              <View style={styles.prefCopy}>
+                <Text variant="small">{t("settings.avoidancesLabel")}</Text>
+                <Text variant="micro" muted>{avoidancesLabel}</Text>
+              </View>
+            </Pressable>
+
+            {activeHousehold ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setEditingServings(true)}
+                style={styles.prefRow}
+              >
+                <Text variant="small">{t("settings.servingsTitle")}</Text>
+                <Text variant="small" color={colors.primary}>
+                  {t("settings.servingsLabel", { count: activeHousehold.default_servings })}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </Card>
+
+        {/* Household */}
         {profile && activeHousehold ? (
           <HouseholdSection
             householdName={activeHousehold.name}
@@ -152,6 +331,7 @@ export default function SettingsRoute() {
           />
         ) : null}
 
+        {/* Notifications */}
         <Card>
           <View style={styles.cardInner}>
             <View style={styles.sectionHeader}>
@@ -228,6 +408,7 @@ export default function SettingsRoute() {
           </View>
         </Card>
 
+        {/* Prototype controls */}
         <Card>
           <View style={styles.cardInner}>
             <View style={styles.sectionHeader}>
@@ -300,6 +481,104 @@ export default function SettingsRoute() {
           </View>
         </Card>
       </View>
+
+      {/* Edit name sheet */}
+      <BottomSheet visible={editingName} onDismiss={() => setEditingName(false)}>
+        <View style={styles.sheetContent}>
+          <Text variant="h2">{t("settings.displayNameLabel")}</Text>
+          <TextField
+            label={t("settings.displayNameLabel")}
+            placeholder={t("settings.displayNamePlaceholder")}
+            value={nameValue}
+            onChangeText={setNameValue}
+            autoFocus
+          />
+          <Button title={t("settings.save")} loading={saving} onPress={saveName} />
+        </View>
+      </BottomSheet>
+
+      {/* Edit primary goal sheet */}
+      <BottomSheet visible={editingGoal} onDismiss={() => setEditingGoal(false)}>
+        <View style={styles.sheetContent}>
+          <Text variant="h2">{t("settings.primaryGoalLabel")}</Text>
+          <View style={styles.choiceList}>
+            {PRIMARY_GOAL_OPTIONS.map((value) => (
+              <ChoiceCard
+                key={value}
+                title={t(`settings.primaryGoalChoices.${value}`)}
+                selected={profile?.primary_goal === value}
+                onPress={() => saveGoal(value)}
+              />
+            ))}
+          </View>
+        </View>
+      </BottomSheet>
+
+      {/* Edit shopping style sheet */}
+      <BottomSheet visible={editingStyle} onDismiss={() => setEditingStyle(false)}>
+        <View style={styles.sheetContent}>
+          <Text variant="h2">{t("settings.shoppingStyleLabel")}</Text>
+          <View style={styles.choiceList}>
+            {SHOPPING_STYLE_OPTIONS.map((value) => (
+              <ChoiceCard
+                key={value}
+                title={t(`settings.shoppingStyleChoices.${value}`)}
+                selected={profile?.shopping_style === value}
+                onPress={() => saveStyle(value)}
+              />
+            ))}
+          </View>
+        </View>
+      </BottomSheet>
+
+      {/* Edit avoidances sheet */}
+      <BottomSheet visible={editingAvoidances} onDismiss={() => setEditingAvoidances(false)}>
+        <View style={styles.sheetContent}>
+          <Text variant="h2">{t("settings.avoidancesLabel")}</Text>
+          <Text variant="small" muted>{t("settings.avoidancesBody")}</Text>
+          <View style={styles.choiceList}>
+            {AVOIDANCE_OPTIONS.map((value) => (
+              <ChoiceCard
+                key={value}
+                title={t(`settings.avoidanceChoices.${value}`)}
+                selected={localAvoidances.includes(value)}
+                onPress={() => toggleAvoidance(value)}
+              />
+            ))}
+          </View>
+          <Button title={t("settings.save")} loading={saving} onPress={saveAvoidances} />
+        </View>
+      </BottomSheet>
+
+      {/* Edit servings sheet */}
+      <BottomSheet visible={editingServings} onDismiss={() => setEditingServings(false)}>
+        <View style={styles.sheetContent}>
+          <Text variant="h2">{t("settings.servingsTitle")}</Text>
+          <Text variant="small" muted>{t("settings.servingsBody")}</Text>
+          <View style={styles.servingsGrid}>
+            {SERVINGS_OPTIONS.map((count) => (
+              <Pressable
+                key={count}
+                accessibilityRole="button"
+                accessibilityState={{ selected: activeHousehold?.default_servings === count }}
+                onPress={() => saveServings(count)}
+                style={[
+                  styles.servingsOption,
+                  activeHousehold?.default_servings === count && styles.servingsOptionActive,
+                ]}
+              >
+                <Text
+                  variant="small"
+                  color={activeHousehold?.default_servings === count ? colors.surface : colors.primary}
+                  center
+                >
+                  {count}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </BottomSheet>
 
       <PremiumSheet
         visible={showPremium}
@@ -382,6 +661,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
+  prefRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hairline,
+    gap: spacing.md,
+  },
+  prefCopy: {
+    flex: 1,
+    gap: spacing.xxs,
+  },
   settingRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -411,5 +703,29 @@ const styles = StyleSheet.create({
   },
   toggleThumbActive: {
     alignSelf: "flex-end",
+  },
+  sheetContent: {
+    gap: spacing.lg,
+  },
+  choiceList: {
+    gap: spacing.sm,
+  },
+  servingsGrid: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    flexWrap: "wrap",
+  },
+  servingsOption: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: colors.hairlineStrong,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  servingsOptionActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
 });
