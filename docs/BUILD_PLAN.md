@@ -562,7 +562,7 @@ Verification:
 - Confirm no paywall appears during session-one first magic moment.
 - Confirm Settings toggle changes tier state.
 
-## Phase 12 - Household Sharing
+## Phase 12 - Household Sharing - done
 
 Goal: make real invite-code sharing work between two local users.
 

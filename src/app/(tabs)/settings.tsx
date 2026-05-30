@@ -4,9 +4,10 @@ import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { Button, Card, Screen, SegmentedControl, Text } from "@/components";
+import { Button, Card, HouseholdSection, PremiumSheet, Screen, SegmentedControl, Text } from "@/components";
 import { useAuth } from "@/features";
 import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
+import { useHousehold, useInventory } from "@/hooks";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
 import { resetCurrentUserOnboardingForDev, setPreviewTier, setPrototypeDay, PlanTier } from "@/repositories";
 import { colors, radii, spacing } from "@/theme";
@@ -30,6 +31,11 @@ export default function SettingsRoute() {
 
   const [tierLoading, setTierLoading] = useState(false);
   const [dayLoading, setDayLoading] = useState(false);
+  const [showPremium, setShowPremium] = useState(false);
+
+  const household = useHousehold(activeHousehold?.id);
+  const { lots } = useInventory(activeHousehold?.id);
+  const isHouseholdPremium = profile?.tier === "household_premium";
 
   function handleLanguageChange(language: SupportedLanguage) {
     i18n.changeLanguage(language);
@@ -122,6 +128,24 @@ export default function SettingsRoute() {
           </View>
         </Card>
 
+        {profile && activeHousehold ? (
+          <HouseholdSection
+            householdName={activeHousehold.name}
+            members={household.members}
+            currentUserId={profile.id}
+            activeInvite={household.activeInvite}
+            isPremium={isHouseholdPremium}
+            currentItemCount={lots.length}
+            onCreateInvite={household.createInvite}
+            onLookupCode={household.lookupCode}
+            onJoin={async (code, moveItems) => {
+              await household.joinHousehold(code, moveItems);
+              await refresh();
+            }}
+            onPremiumGate={() => setShowPremium(true)}
+          />
+        ) : null}
+
         <Card>
           <View style={styles.cardInner}>
             <View style={styles.sectionHeader}>
@@ -194,6 +218,16 @@ export default function SettingsRoute() {
           </View>
         </Card>
       </View>
+
+      <PremiumSheet
+        visible={showPremium}
+        plan="household"
+        onPreview={async () => {
+          await setPreviewTier("household_premium");
+          await refresh();
+        }}
+        onDismiss={() => setShowPremium(false)}
+      />
     </Screen>
   );
 }

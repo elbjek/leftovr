@@ -268,6 +268,7 @@ function renderShelf(
           category: toUiCategory(group.category),
           meta: group.meta,
           urgency: toUiUrgency(group.urgency),
+          addedBy: group.lots[0]?.added_by_name ?? null,
         }))}
       />
       {groups.length === 0 && actions.emptyLabel ? (

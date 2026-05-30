@@ -80,23 +80,6 @@ export async function completeCurrentProfileOnboarding(
   }
 }
 
-export async function acceptHouseholdInvite(inviteCode: string) {
-  const supabase = getSupabaseClient();
-  const normalizedCode = inviteCode.trim().toUpperCase();
-
-  if (!normalizedCode) return null;
-
-  const { data, error } = await supabase.rpc("accept_household_invite", {
-    invite_code: normalizedCode,
-    move_existing_items: false,
-  });
-
-  if (error) {
-    throw error;
-  }
-
-  return data as string;
-}
 
 export async function completeHouseholdFirstFill(householdId: string) {
   const supabase = getSupabaseClient();

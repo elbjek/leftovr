@@ -3,15 +3,16 @@ import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, ChoiceCard, Screen, Text } from "@/components";
+import { Button, ChoiceCard, Screen, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import {
+  acceptHouseholdInvite,
   completeCurrentProfileOnboarding,
   OnboardingPersonalization,
 } from "@/repositories";
 import { colors } from "@/theme";
 
-type StepKey = "cookingFor" | "shoppingStyle" | "primaryGoal" | "avoidances";
+type StepKey = "cookingFor" | "shoppingStyle" | "primaryGoal" | "avoidances" | "invite";
 type Choice = {
   label: string;
   subtitle?: string;
@@ -20,7 +21,7 @@ type Choice = {
   emoji?: string;
 };
 
-const steps: StepKey[] = ["cookingFor", "shoppingStyle", "primaryGoal", "avoidances"];
+const steps: StepKey[] = ["cookingFor", "shoppingStyle", "primaryGoal", "avoidances", "invite"];
 const requiredStepCount = 4;
 
 export default function OnboardingRoute() {
@@ -32,6 +33,7 @@ export default function OnboardingRoute() {
   const [shoppingStyle, setShoppingStyle] = useState("weekly");
   const [primaryGoal, setPrimaryGoal] = useState("waste");
   const [avoidances, setAvoidances] = useState<string[]>(["fish"]);
+  const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +44,7 @@ export default function OnboardingRoute() {
     body?: string;
     choices?: Choice[];
     skipLabel?: string;
+    inputLabel?: string;
   };
   const canContinue = useMemo(() => {
     if (step === "cookingFor") return Boolean(cookingFor);
@@ -75,6 +78,14 @@ export default function OnboardingRoute() {
       };
 
       await completeCurrentProfileOnboarding(personalization);
+
+      if (inviteCode.trim()) {
+        try {
+          await acceptHouseholdInvite(inviteCode.trim(), false);
+        } catch {
+          // invite may be invalid — continue onboarding anyway
+        }
+      }
 
       await refresh();
       router.replace("/(first-fill)");
@@ -172,6 +183,16 @@ export default function OnboardingRoute() {
           </View>
         ) : null}
 
+        {step === "invite" ? (
+          <TextField
+            label={t("onboarding.personalization.invite.inputLabel")}
+            placeholder="CHOMP-XXXXXX"
+            value={inviteCode}
+            onChangeText={setInviteCode}
+            autoCapitalize="characters"
+          />
+        ) : null}
+
         {error ? (
           <View style={styles.errorBox}>
             <Text variant="small" color={colors.red} center>
@@ -191,7 +212,7 @@ export default function OnboardingRoute() {
             loading={submitting}
             onPress={goNext}
           />
-          {step === "avoidances" ? (
+          {step === "avoidances" || step === "invite" ? (
             <Button
               title={t("common.skipForNow")}
               variant="text"

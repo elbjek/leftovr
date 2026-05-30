@@ -10,6 +10,7 @@ export type ShelfItem = {
   category?: string;
   meta: string;
   urgency?: "safe" | "useSoon" | "urgent";
+  addedBy?: string | null;
 };
 
 type Props = {
@@ -42,6 +43,7 @@ export function ShelfRow({ name, count, tone = colors.surface3, items, onItemPre
             category={item.category}
             meta={item.meta}
             urgency={item.urgency}
+            addedBy={item.addedBy}
             onPress={() => onItemPress?.(item)}
           />
         ))}

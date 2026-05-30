@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Button, EmptyState, PremiumSheet, RecipeCard, SegmentedControl, Text } from "@/components";
 import { useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
-import { useInventory, useRecipes } from "@/hooks";
+import { useHousehold, useInventory, useRecipes } from "@/hooks";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
 import {
   formatComplexity,
@@ -21,9 +21,18 @@ export default function RecipesRoute() {
   const { t } = useTranslation();
   const { profile, activeHousehold, refresh } = useAuth();
   const { lots: inventory } = useInventory(activeHousehold?.id);
+  const { members, combinedAvoidances } = useHousehold(activeHousehold?.id);
   const isPremium = profile?.tier !== "free";
-  const avoidances = profile?.avoidances ?? [];
-  const servings = activeHousehold?.default_servings ?? profile?.default_servings ?? 2;
+  const userAvoidances = profile?.avoidances ?? [];
+  const [tab, setTab] = useState<RecipeTab>("all");
+  const [showPremium, setShowPremium] = useState(false);
+  const [cookingMode, setCookingMode] = useState<CookingMode>("household");
+
+  const showCookingMode = members.length >= 2;
+  const activeAvoidances = cookingMode === "household" ? combinedAvoidances : userAvoidances;
+  const servings = cookingMode === "household"
+    ? (activeHousehold?.default_servings ?? profile?.default_servings ?? 2)
+    : (profile?.default_servings ?? 2);
 
   const {
     loading,
@@ -35,14 +44,7 @@ export default function RecipesRoute() {
     freeLimit,
     generateSession,
     toggleFavorite,
-  } = useRecipes(activeHousehold?.id, { inventory, avoidances, isPremium, servings });
-
-  const [tab, setTab] = useState<RecipeTab>("all");
-  const [showPremium, setShowPremium] = useState(false);
-  const [cookingMode, setCookingMode] = useState<CookingMode>("household");
-
-  const householdMemberCount = 1;
-  const showCookingMode = householdMemberCount >= 2;
+  } = useRecipes(activeHousehold?.id, { inventory, avoidances: activeAvoidances, isPremium, servings });
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) {
