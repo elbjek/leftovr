@@ -21,7 +21,7 @@ export function TextField({ label, error, containerStyle, style, ...props }: Pro
   return (
     <View style={[styles.wrap, containerStyle]}>
       <Text variant="label" style={styles.label}>
-        {toCapitalCase(label)}
+        {label.toLocaleUpperCase()}
       </Text>
       <TextInput
         placeholderTextColor={colors.muted2}
@@ -37,12 +37,6 @@ export function TextField({ label, error, containerStyle, style, ...props }: Pro
       ) : null}
     </View>
   );
-}
-
-function toCapitalCase(value: string) {
-  return value
-    .toLocaleLowerCase()
-    .replace(/(^|\s|-)(\p{L}|\p{N})/gu, (match) => match.toLocaleUpperCase());
 }
 
 const styles = StyleSheet.create({
