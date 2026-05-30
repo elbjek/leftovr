@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -6,14 +7,15 @@ import Svg, { Circle, Line, Path } from "react-native-svg";
 
 import { Button, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
-import { completeHouseholdFirstFill } from "@/repositories";
+import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
+import { completeHouseholdFirstFill, resetCurrentUserOnboardingForDev } from "@/repositories";
 import { colors, radii, spacing } from "@/theme";
 
 type FillMode = "receipt" | "barcode" | "manual";
 
 export default function FirstFillRoute() {
   const { t } = useTranslation();
-  const { activeHousehold, refresh } = useAuth();
+  const { activeHousehold, refresh, signOut } = useAuth();
   const [selected, setSelected] = useState<FillMode>("receipt");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,22 @@ export default function FirstFillRoute() {
       router.replace(mode === "receipt" ? "/(tabs)/scan" : "/(tabs)/fridge");
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : t("auth.genericError"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function resetOnboarding() {
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await resetCurrentUserOnboardingForDev();
+      await AsyncStorage.multiRemove([HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY]);
+      await signOut();
+      router.replace("/");
+    } catch (resetError) {
+      setError(resetError instanceof Error ? resetError.message : t("auth.genericError"));
     } finally {
       setSubmitting(false);
     }
@@ -89,6 +107,14 @@ export default function FirstFillRoute() {
           loading={submitting}
           onPress={() => continueToApp()}
         />
+        {__DEV__ ? (
+          <Button
+            title={t("settings.resetOnboarding")}
+            variant="text"
+            disabled={submitting}
+            onPress={resetOnboarding}
+          />
+        ) : null}
       </View>
     </Screen>
   );
