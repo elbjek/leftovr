@@ -1,14 +1,15 @@
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { router } from "expo-router";
+import { BarcodeScanningResult, CameraView, useCameraPermissions } from "expo-camera";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { Button, Card, ReceiptToFridgeIllustration, Screen, Text } from "@/components";
+import { Button, Card, ReceiptToFridgeIllustration, Screen, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
-import { mockReceiptTemplates } from "@/mocks";
+import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
+  addInventoryItem,
   completeHouseholdFirstFill,
   findRecentReceiptDuplicate,
   getReceiptScanLimitStatus,
@@ -17,25 +18,64 @@ import {
   ReceiptScanResult,
   setNotificationPermissionPreview,
 } from "@/repositories";
-import { getMockReceiptTemplate } from "@/services";
+import {
+  demoFoodCatalog,
+  INVENTORY_CATEGORIES,
+  InventoryCategory,
+  lookupMockBarcode,
+  getMockReceiptTemplate,
+} from "@/services";
 import { colors, radii, spacing } from "@/theme";
 
-type ScanMode = "choice" | "camera" | "processing" | "duplicate" | "limit" | "success" | "notifications";
+type ScanMode =
+  | "choice"
+  | "camera"
+  | "barcodeCamera"
+  | "barcodeFallback"
+  | "manual"
+  | "processing"
+  | "duplicate"
+  | "limit"
+  | "success"
+  | "addSuccess"
+  | "notifications";
 type ScanChoice = "receipt" | "barcode" | "manual";
 
 export default function ScanRoute() {
   const { t } = useTranslation();
+  const params = useLocalSearchParams<{ mode?: string }>();
   const { activeHousehold, refresh } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
-  const [mode, setMode] = useState<ScanMode>("choice");
-  const [choice, setChoice] = useState<ScanChoice>("receipt");
+  const initialChoice = getInitialChoice(params.mode);
+  const [mode, setMode] = useState<ScanMode>(initialChoice === "manual" ? "manual" : initialChoice === "barcode" ? "barcodeCamera" : "choice");
+  const [choice, setChoice] = useState<ScanChoice>(initialChoice);
   const [templateKey, setTemplateKey] = useState(mockReceiptTemplates[0]?.key ?? "weekly-family");
   const [duplicate, setDuplicate] = useState<ReceiptDuplicate | null>(null);
   const [result, setResult] = useState<ReceiptScanResult | null>(null);
   const [limitCopy, setLimitCopy] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [manualQuery, setManualQuery] = useState("");
+  const [manualCategory, setManualCategory] = useState<InventoryCategory>("other");
+  const [lastAddedName, setLastAddedName] = useState("");
+  const [barcodeLocked, setBarcodeLocked] = useState(false);
 
   const selectedTemplate = useMemo(() => getMockReceiptTemplate(templateKey), [templateKey]);
+  const manualSuggestions = useMemo(() => {
+    const query = manualQuery.trim().toLowerCase();
+    const catalog = demoFoodCatalog.map((item) => ({
+      name: item.name,
+      category: item.category,
+      unit: item.unit ?? "item",
+    }));
+
+    if (!query) return catalog.slice(0, 6);
+
+    return catalog
+      .filter((item) => item.name.toLowerCase().includes(query))
+      .slice(0, 6);
+  }, [manualQuery]);
+  const showCustomManualAdd = manualQuery.trim().length > 0
+    && !manualSuggestions.some((item) => item.name.toLowerCase() === manualQuery.trim().toLowerCase());
 
   useEffect(() => {
     if (mode !== "choice" || !activeHousehold?.id) return;
@@ -56,13 +96,12 @@ export default function ScanRoute() {
     setChoice(nextChoice);
     setError(null);
 
-    if (nextChoice !== "receipt") {
-      setMode("choice");
-      setError(t("scan.phaseEight"));
+    if (nextChoice === "manual") {
+      setMode("manual");
       return;
     }
 
-    if (!permission?.granted) {
+    if ((nextChoice === "receipt" || nextChoice === "barcode") && !permission?.granted) {
       const nextPermission = await requestPermission();
       if (!nextPermission.granted) {
         setError(t("scan.cameraDenied"));
@@ -70,7 +109,12 @@ export default function ScanRoute() {
       }
     }
 
-    setMode("camera");
+    setMode(nextChoice === "barcode" ? "barcodeCamera" : "camera");
+  }
+
+  async function completeFirstFillIfNeeded() {
+    if (!activeHousehold?.id || activeHousehold.first_fill_completed_at) return;
+    await completeHouseholdFirstFill(activeHousehold.id);
   }
 
   async function captureReceipt(allowDuplicate = false) {
@@ -108,7 +152,7 @@ export default function ScanRoute() {
       });
 
       if (!activeHousehold.first_fill_completed_at) {
-        await completeHouseholdFirstFill(activeHousehold.id);
+        await completeFirstFillIfNeeded();
       }
 
       await refresh();
@@ -117,6 +161,78 @@ export default function ScanRoute() {
     } catch (scanError) {
       setError(scanError instanceof Error ? scanError.message : t("auth.genericError"));
       setMode("camera");
+    }
+  }
+
+  async function addInventoryFromBarcode(barcode: string) {
+    if (!activeHousehold?.id || barcodeLocked) return;
+
+    setBarcodeLocked(true);
+    setError(null);
+
+    const product = lookupMockBarcode(barcode);
+
+    if (!product) {
+      setManualQuery("");
+      setMode("barcodeFallback");
+      setBarcodeLocked(false);
+      return;
+    }
+
+    try {
+      await addInventoryItem({
+        householdId: activeHousehold.id,
+        name: product.name,
+        category: product.category,
+        quantity: product.quantity,
+        unit: product.unit,
+        source: "barcode",
+      });
+      await completeFirstFillIfNeeded();
+      await refresh();
+      setLastAddedName(product.name);
+      setMode("addSuccess");
+    } catch (addError) {
+      setError(addError instanceof Error ? addError.message : t("auth.genericError"));
+    } finally {
+      setBarcodeLocked(false);
+    }
+  }
+
+  function handleBarcodeScanned(result: BarcodeScanningResult) {
+    void addInventoryFromBarcode(result.data);
+  }
+
+  async function addManualItem(input: {
+    name: string;
+    category?: InventoryCategory;
+    unit?: string;
+  }) {
+    if (!activeHousehold?.id) return;
+
+    const name = input.name.trim();
+    if (!name) {
+      setError(t("scan.manual.missingName"));
+      return;
+    }
+
+    setError(null);
+
+    try {
+      await addInventoryItem({
+        householdId: activeHousehold.id,
+        name,
+        category: input.category ?? manualCategory,
+        unit: input.unit ?? "item",
+        source: "manual",
+      });
+      await completeFirstFillIfNeeded();
+      await refresh();
+      setLastAddedName(name);
+      setManualQuery("");
+      setMode("addSuccess");
+    } catch (addError) {
+      setError(addError instanceof Error ? addError.message : t("auth.genericError"));
     }
   }
 
@@ -207,6 +323,192 @@ export default function ScanRoute() {
     );
   }
 
+  if (mode === "barcodeCamera") {
+    if (!permission?.granted) {
+      return (
+        <Screen>
+          <View style={styles.center}>
+            <BarcodeIcon />
+            <Text variant="display" center>
+              {t("scan.barcodeCameraTitle")}
+            </Text>
+            <Text variant="body" muted center>
+              {t("scan.cameraDenied")}
+            </Text>
+            <Button title={t("common.continue")} onPress={requestPermission} />
+            <Button title={t("common.cancel")} variant="text" onPress={() => setMode("choice")} />
+          </View>
+        </Screen>
+      );
+    }
+
+    return (
+      <Screen padded={false} backgroundColor={colors.black}>
+        <View style={styles.cameraWrap}>
+          <CameraView
+            style={styles.camera}
+            facing="back"
+            barcodeScannerSettings={{
+              barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128"],
+            }}
+            onBarcodeScanned={barcodeLocked ? undefined : handleBarcodeScanned}
+          />
+          <View style={styles.cameraOverlay}>
+            <View style={styles.cameraTop}>
+              <Button
+                title={t("common.cancel")}
+                variant="text"
+                onPress={() => setMode("choice")}
+              />
+              <Text variant="label" color={colors.surface}>
+                {t("scan.barcodeCameraTitle")}
+              </Text>
+            </View>
+
+            <View style={styles.barcodeFrame}>
+              <View style={styles.scanLine} />
+            </View>
+
+            <View style={styles.coachCard}>
+              <Text variant="label">{t("scan.barcodeCoachTitle")}</Text>
+              <Text variant="small" muted>
+                {t("scan.barcodeCoachBody")}
+              </Text>
+            </View>
+
+            <View style={styles.templateRail}>
+              {mockBarcodeProducts.map((product) => (
+                <Pressable
+                  key={product.barcode}
+                  accessibilityRole="button"
+                  onPress={() => addInventoryFromBarcode(product.barcode)}
+                  style={styles.templateChip}
+                >
+                  <Text variant="small">{product.name}</Text>
+                </Pressable>
+              ))}
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => addInventoryFromBarcode("unknown-demo-code")}
+                style={styles.templateChip}
+              >
+                <Text variant="small">{t("scan.unknownBarcode")}</Text>
+              </Pressable>
+            </View>
+
+            {error ? (
+              <Text variant="small" color={colors.red} center>
+                {error}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+      </Screen>
+    );
+  }
+
+  if (mode === "barcodeFallback") {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <BarcodeIcon />
+          <Text variant="display" center>
+            {t("scan.unknownBarcodeTitle")}
+          </Text>
+          <Text variant="body" muted center>
+            {t("scan.unknownBarcodeBody")}
+          </Text>
+          <View style={styles.buttonStack}>
+            <Button title={t("scan.manual.title")} onPress={() => setMode("manual")} />
+            <Button title={t("scan.tryAnotherBarcode")} variant="ghost" onPress={() => setMode("barcodeCamera")} />
+          </View>
+        </View>
+      </Screen>
+    );
+  }
+
+  if (mode === "manual") {
+    return (
+      <Screen scroll contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Text variant="display">{t("scan.manual.title")}</Text>
+          <Text variant="body" muted>
+            {t("scan.manual.screenBody")}
+          </Text>
+        </View>
+
+        <TextField
+          label={t("scan.manual.searchLabel")}
+          value={manualQuery}
+          onChangeText={setManualQuery}
+          placeholder={t("scan.manual.placeholder")}
+          autoCapitalize="words"
+        />
+
+        <View style={styles.suggestions}>
+          {manualSuggestions.map((item) => (
+            <Pressable
+              key={item.name}
+              accessibilityRole="button"
+              onPress={() => addManualItem(item)}
+              style={({ pressed }) => [styles.suggestionRow, pressed && styles.pressed]}
+            >
+              <View>
+                <Text variant="label">{item.name}</Text>
+                <Text variant="small" muted>
+                  {t(`scan.categories.${item.category}`)}
+                </Text>
+              </View>
+              <Text variant="label" color={colors.primary}>
+                {t("scan.add")}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {showCustomManualAdd ? (
+          <Card style={styles.customAddCard}>
+            <Text variant="label">
+              {t("scan.manual.addCustom", { item: manualQuery.trim() })}
+            </Text>
+            <View style={styles.categoryGrid}>
+              {INVENTORY_CATEGORIES.map((category) => (
+                <Pressable
+                  key={category}
+                  accessibilityRole="button"
+                  onPress={() => setManualCategory(category)}
+                  style={[
+                    styles.categoryChip,
+                    manualCategory === category && styles.categoryChipSelected,
+                  ]}
+                >
+                  <Text
+                    variant="small"
+                    color={manualCategory === category ? colors.surface : colors.text}
+                  >
+                    {t(`scan.categories.${category}`)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            <Button
+              title={t("scan.manual.addCustom", { item: manualQuery.trim() })}
+              onPress={() => addManualItem({ name: manualQuery, category: manualCategory })}
+            />
+          </Card>
+        ) : null}
+
+        {error ? (
+          <Text variant="small" color={colors.red} center>
+            {error}
+          </Text>
+        ) : null}
+
+        <Button title={t("common.cancel")} variant="text" onPress={() => setMode("choice")} />
+      </Screen>
+    );
+  }
+
   if (mode === "processing") {
     return (
       <Screen>
@@ -279,6 +581,26 @@ export default function ScanRoute() {
             })}
           </Text>
           <Button title={t("common.continue")} onPress={() => setMode("notifications")} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (mode === "addSuccess") {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <AliveIcon />
+          <Text variant="display" center>
+            {t("scan.addSuccessTitle")}
+          </Text>
+          <Text variant="body" muted center>
+            {t("scan.addSuccessBody", { item: lastAddedName })}
+          </Text>
+          <View style={styles.buttonStack}>
+            <Button title={t("scan.addAnother")} onPress={() => setMode(choice === "barcode" ? "barcodeCamera" : "manual")} />
+            <Button title={t("common.continue")} variant="ghost" onPress={() => router.replace("/(tabs)/fridge")} />
+          </View>
         </View>
       </Screen>
     );
@@ -480,6 +802,11 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function getInitialChoice(mode?: string): ScanChoice {
+  if (mode === "barcode" || mode === "manual" || mode === "receipt") return mode;
+  return "receipt";
+}
+
 const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
@@ -565,6 +892,21 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     position: "relative",
   },
+  barcodeFrame: {
+    alignSelf: "center",
+    width: "88%",
+    height: 160,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    justifyContent: "center",
+    paddingHorizontal: spacing.xl,
+  },
+  scanLine: {
+    height: 3,
+    borderRadius: 3,
+    backgroundColor: colors.accent,
+  },
   corner: {
     position: "absolute",
     width: 38,
@@ -647,5 +989,41 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
+  },
+  suggestions: {
+    gap: spacing.sm,
+  },
+  suggestionRow: {
+    minHeight: 68,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.paper,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  customAddCard: {
+    gap: spacing.md,
+  },
+  categoryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  categoryChip: {
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.hairlineStrong,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.paper,
+  },
+  categoryChipSelected: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
 });

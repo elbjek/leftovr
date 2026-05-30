@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Button, Card, Screen, SegmentedControl, Text } from "@/components";
@@ -34,7 +34,7 @@ export default function SettingsRoute() {
   }
 
   return (
-    <Screen scroll>
+    <Screen scroll contentContainerStyle={styles.content}>
       <View style={{ gap: spacing.xl }}>
         <View style={{ gap: spacing.sm }}>
           <Text variant="display">{t("settings.title")}</Text>
@@ -82,3 +82,9 @@ export default function SettingsRoute() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  content: {
+    paddingBottom: spacing.tabBarClearance,
+  },
+});

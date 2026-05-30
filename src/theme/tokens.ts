@@ -111,6 +111,7 @@ export const spacing = {
   screenX: 24,
   screenTop: 64,
   screenBottom: 32,
+  tabBarClearance: 118,
 } as const;
 
 export const radii = {
