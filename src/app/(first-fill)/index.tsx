@@ -23,13 +23,18 @@ export default function FirstFillRoute() {
   async function continueToApp(mode = selected) {
     if (!activeHousehold?.id) return;
 
+    if (mode === "receipt") {
+      router.replace("/(tabs)/scan");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
     try {
       await completeHouseholdFirstFill(activeHousehold.id);
       await refresh();
-      router.replace(mode === "receipt" ? "/(tabs)/scan" : "/(tabs)/fridge");
+      router.replace("/(tabs)/fridge");
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : t("auth.genericError"));
     } finally {

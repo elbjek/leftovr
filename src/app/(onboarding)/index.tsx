@@ -25,7 +25,7 @@ const requiredStepCount = 4;
 
 export default function OnboardingRoute() {
   const { t } = useTranslation();
-  const { refresh, loading } = useAuth();
+  const { refresh } = useAuth();
   const [stepIndex, setStepIndex] = useState(0);
   const [cookingFor, setCookingFor] = useState("partner");
   const [servings, setServings] = useState(2);
@@ -77,7 +77,7 @@ export default function OnboardingRoute() {
       await completeCurrentProfileOnboarding(personalization);
 
       await refresh();
-      router.replace("/");
+      router.replace("/(first-fill)");
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : t("auth.genericError"),
@@ -173,9 +173,11 @@ export default function OnboardingRoute() {
         ) : null}
 
         {error ? (
-          <Text variant="small" color={colors.red} center>
-            {error}
-          </Text>
+          <View style={styles.errorBox}>
+            <Text variant="small" color={colors.red} center>
+              {error}
+            </Text>
+          </View>
         ) : null}
 
         <View style={styles.footer}>
@@ -186,14 +188,14 @@ export default function OnboardingRoute() {
                 : stepCopy.skipLabel ?? t("common.continue")
             }
             disabled={!canContinue}
-            loading={loading || submitting}
+            loading={submitting}
             onPress={goNext}
           />
           {step === "avoidances" ? (
             <Button
               title={t("common.skipForNow")}
               variant="text"
-              disabled={loading || submitting}
+              disabled={submitting}
               onPress={goNext}
             />
           ) : null}
@@ -273,5 +275,8 @@ const styles = StyleSheet.create({
   footer: {
     gap: 8,
     marginTop: 16,
+  },
+  errorBox: {
+    marginTop: 12,
   },
 });
