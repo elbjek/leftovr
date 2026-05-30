@@ -520,7 +520,7 @@ Verification:
 - Toggle Premium and confirm unlimited generation.
 - Cook a recipe and confirm inventory changes.
 
-## Phase 11 - Premium And Prototype Controls
+## Phase 11 - Premium And Prototype Controls - done last
 
 Goal: implement monetization references without payment.
 

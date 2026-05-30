@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { Button, Card, ReceiptToFridgeIllustration, Screen, Text, TextField } from "@/components";
+import { Button, Card, PremiumSheet, ReceiptToFridgeIllustration, Screen, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
@@ -57,6 +57,7 @@ export default function ScanRoute() {
   const [manualQuery, setManualQuery] = useState("");
   const [manualCategory, setManualCategory] = useState<InventoryCategory>("other");
   const [lastAddedName, setLastAddedName] = useState("");
+  const [scanPremiumVisible, setScanPremiumVisible] = useState(false);
   const [barcodeLocked, setBarcodeLocked] = useState(false);
 
   const selectedTemplate = useMemo(() => getMockReceiptTemplate(templateKey), [templateKey]);
@@ -560,8 +561,19 @@ export default function ScanRoute() {
           <Text variant="body" muted center>
             {t("scan.limitBody")}
           </Text>
-          <Button title={t("common.continue")} onPress={() => router.replace("/(tabs)/fridge")} />
+          <Button title={t("recipes.upgrade")} onPress={() => setScanPremiumVisible(true)} style={styles.limitUpgrade} />
+          <Button title={t("common.continue")} variant="text" onPress={() => router.replace("/(tabs)/fridge")} />
         </View>
+        <PremiumSheet
+          visible={scanPremiumVisible}
+          onPreview={async () => {
+            const { setPreviewTier: setTier } = await import("@/repositories");
+            await setTier("premium");
+            await refresh();
+            setMode("choice");
+          }}
+          onDismiss={() => setScanPremiumVisible(false)}
+        />
       </Screen>
     );
   }
@@ -1025,5 +1037,8 @@ const styles = StyleSheet.create({
   categoryChipSelected: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
+  },
+  limitUpgrade: {
+    marginBottom: spacing.sm,
   },
 });
