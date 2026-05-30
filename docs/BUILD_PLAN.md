@@ -640,7 +640,7 @@ Verification:
 - Toggle notification settings.
 - Use prototype day controls to inspect Day 1/3/5/7 behavior.
 
-## Phase 14 - Insights
+## Phase 14 - Insights - done 
 
 Goal: implement gated Premium insights with lightweight real stats.
 
@@ -678,7 +678,7 @@ Verification:
 - Confirm insights update.
 - Test each primary goal framing.
 
-## Phase 15 - Settings Completion
+## Phase 15 - Settings Completion - done
 
 Goal: centralize account, household, preferences, language, and dev controls.
 

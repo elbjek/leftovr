@@ -151,6 +151,60 @@ export async function setPreviewTier(tier: PlanTier) {
   }
 }
 
+export async function updateProfileField(
+  field: "display_name" | "primary_goal" | "shopping_style",
+  value: string,
+) {
+  const supabase = getSupabaseClient();
+  const profile = await getCurrentProfile();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ [field]: value })
+    .eq("id", profile.id);
+
+  if (error) throw error;
+
+  if (field === "display_name") {
+    const { error: initialsError } = await supabase.rpc("make_avatar_initials", {
+      display_name: value,
+    });
+    if (!initialsError) {
+      await supabase
+        .from("profiles")
+        .update({ avatar_initials: value.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2) })
+        .eq("id", profile.id);
+    }
+  }
+}
+
+export async function updateProfileAvoidances(avoidances: string[]) {
+  const supabase = getSupabaseClient();
+  const profile = await getCurrentProfile();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ avoidances })
+    .eq("id", profile.id);
+
+  if (error) throw error;
+}
+
+export async function updateHouseholdDefaultServings(
+  householdId: string,
+  servings: number,
+) {
+  const supabase = getSupabaseClient();
+  const clamped = Math.max(1, Math.min(12, servings));
+
+  const { error } = await supabase
+    .from("households")
+    .update({ default_servings: clamped })
+    .eq("id", householdId);
+
+  if (error) throw error;
+}
+
 export async function setPrototypeDay(day: number) {
   const supabase = getSupabaseClient();
   const profile = await getCurrentProfile();
