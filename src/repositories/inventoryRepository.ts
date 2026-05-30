@@ -29,18 +29,33 @@ export async function listActiveHouseholdInventory(householdId: string) {
   const { data, error } = await supabase
     .from("inventory_items")
     .select(
-      "id, household_id, name, normalized_name, category, quantity, unit, display_quantity, partial_state, urgency, shelf_life_range, source, added_at, removed_at",
+      "id, household_id, name, normalized_name, category, quantity, unit, display_quantity, partial_state, urgency, shelf_life_range, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
     )
     .eq("household_id", householdId)
     .is("removed_at", null)
-    .order("added_at", { ascending: false })
-    .returns<InventoryLot[]>();
+    .order("added_at", { ascending: false });
 
   if (error) {
     throw error;
   }
 
-  return data ?? [];
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    name: row.name,
+    normalized_name: row.normalized_name,
+    category: row.category,
+    quantity: row.quantity,
+    unit: row.unit,
+    display_quantity: row.display_quantity,
+    partial_state: row.partial_state,
+    urgency: row.urgency,
+    shelf_life_range: row.shelf_life_range,
+    source: row.source,
+    added_at: row.added_at,
+    removed_at: row.removed_at,
+    added_by: row.added_by,
+    added_by_name: row.profiles?.display_name ?? null,
+  })) as InventoryLot[];
 }
 
 export async function addInventoryItem(input: AddInventoryItemInput) {

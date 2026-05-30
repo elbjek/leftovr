@@ -10,6 +10,7 @@ type Props = {
   meta: string;
   urgency?: Urgency;
   size?: "small" | "large";
+  addedBy?: string | null;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
 };
@@ -20,6 +21,7 @@ export function FoodCard({
   meta,
   urgency = "safe",
   size = "small",
+  addedBy,
   onPress,
   style,
 }: Props) {
@@ -48,6 +50,11 @@ export function FoodCard({
         <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
           {meta}
         </Text>
+        {addedBy ? (
+          <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
+            {addedBy}
+          </Text>
+        ) : null}
       </View>
     </Pressable>
   );

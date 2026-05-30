@@ -41,6 +41,8 @@ export type InventoryLot = {
   source: InventorySource;
   added_at: string;
   removed_at: string | null;
+  added_by: string | null;
+  added_by_name: string | null;
 };
 
 export type InventoryGroup = {

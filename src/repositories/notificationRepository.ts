@@ -1,0 +1,105 @@
+import { getSupabaseClient } from "@/lib/supabase";
+
+export type NotificationPreferences = {
+  id: string;
+  user_id: string;
+  permission_status: "not_determined" | "granted" | "denied" | "provisional";
+  smart_suggestions_enabled: boolean;
+  push_token: string | null;
+  platform: string | null;
+};
+
+export type HouseholdNotificationSettings = {
+  id: string;
+  household_id: string;
+  daily_suggestion_enabled: boolean;
+  send_window_start: string;
+  send_window_end: string;
+  last_suggestion_at: string | null;
+  last_suggestion_payload: Record<string, unknown> | null;
+};
+
+export async function getNotificationPreferences(): Promise<NotificationPreferences> {
+  const supabase = getSupabaseClient();
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+
+  const { data, error } = await supabase
+    .from("notification_preferences")
+    .select("id, user_id, permission_status, smart_suggestions_enabled, push_token, platform")
+    .eq("user_id", userResult.user.id)
+    .single<NotificationPreferences>();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateNotificationPreferences(
+  updates: Partial<Pick<NotificationPreferences, "permission_status" | "smart_suggestions_enabled" | "push_token" | "platform">>,
+): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+
+  const { error } = await supabase
+    .from("notification_preferences")
+    .update(updates)
+    .eq("user_id", userResult.user.id);
+
+  if (error) throw error;
+}
+
+export async function getHouseholdNotificationSettings(
+  householdId: string,
+): Promise<HouseholdNotificationSettings> {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("household_notification_settings")
+    .select("id, household_id, daily_suggestion_enabled, send_window_start, send_window_end, last_suggestion_at, last_suggestion_payload")
+    .eq("household_id", householdId)
+    .single<HouseholdNotificationSettings>();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateHouseholdNotificationSettings(
+  householdId: string,
+  updates: Partial<Pick<HouseholdNotificationSettings, "daily_suggestion_enabled" | "send_window_start" | "send_window_end">>,
+): Promise<void> {
+  const supabase = getSupabaseClient();
+
+  const { error } = await supabase
+    .from("household_notification_settings")
+    .update(updates)
+    .eq("household_id", householdId);
+
+  if (error) throw error;
+}
+
+export async function getSuccessfulReceiptScanCount(householdId: string): Promise<number> {
+  const supabase = getSupabaseClient();
+
+  const { count, error } = await supabase
+    .from("receipt_scans")
+    .select("id", { count: "exact", head: true })
+    .eq("household_id", householdId)
+    .eq("status", "completed");
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function markCookedCoachmarkSeen(): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ cooked_coachmark_seen_at: new Date().toISOString() })
+    .eq("id", userResult.user.id);
+
+  if (error) throw error;
+}
