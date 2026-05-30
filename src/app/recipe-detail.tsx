@@ -1,0 +1,423 @@
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
+import Svg, { Path } from "react-native-svg";
+
+import { BottomSheet, Button, Text } from "@/components";
+import { useAuth } from "@/features";
+import { useInventory } from "@/hooks";
+import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
+import { toggleRecipeFavorite } from "@/repositories/recipeRepository";
+import { colors, radii, spacing } from "@/theme";
+
+type IngredientItem = {
+  name: string;
+  amount: string;
+  required: boolean;
+  countable: boolean;
+};
+
+export default function RecipeDetailRoute() {
+  const { t } = useTranslation();
+  const params = useLocalSearchParams<{
+    title: string;
+    description: string;
+    timeMinutes: string;
+    complexity: string;
+    servings: string;
+    ingredients: string;
+    steps: string;
+    usedInventoryItemIds: string;
+    recipeId: string;
+    isFavorite: string;
+    matchedUrgentItems: string;
+  }>();
+
+  const { activeHousehold } = useAuth();
+  const { refresh: refreshInventory } = useInventory(activeHousehold?.id);
+
+  const title = params.title ?? "";
+  const description = params.description ?? "";
+  const timeMinutes = Number(params.timeMinutes ?? 20);
+  const complexity = params.complexity ?? "simple";
+  const servings = Number(params.servings ?? 2);
+  const recipeId = params.recipeId ?? "";
+
+  const ingredients: IngredientItem[] = params.ingredients
+    ? JSON.parse(params.ingredients)
+    : [];
+  const steps: string[] = params.steps ? JSON.parse(params.steps) : [];
+  const usedInventoryItemIds: string[] = params.usedInventoryItemIds
+    ? JSON.parse(params.usedInventoryItemIds)
+    : [];
+  const matchedUrgentItems: string[] = params.matchedUrgentItems
+    ? JSON.parse(params.matchedUrgentItems)
+    : [];
+
+  const [showCooked, setShowCooked] = useState(false);
+  const [cookedItems, setCookedItems] = useState<{ name: string; amount: string; itemId: string | null; used: boolean }[]>([]);
+  const [cooking, setCooking] = useState(false);
+  const [favorite, setFavorite] = useState(params.isFavorite === "true");
+
+  const complexityLabel = complexity === "simple" ? "Simple" : complexity === "medium" ? "Medium" : "Involved";
+  const fridgeCount = usedInventoryItemIds.length;
+
+  function handleCookPress() {
+    const items = ingredients.map((ing, i) => {
+      const itemId = usedInventoryItemIds[i] ?? null;
+      return { name: ing.name, amount: ing.amount, itemId, used: itemId !== null };
+    });
+    setCookedItems(items);
+    setShowCooked(true);
+  }
+
+  function toggleCookedItem(index: number) {
+    setCookedItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, used: !item.used } : item)),
+    );
+  }
+
+  async function confirmCooked() {
+    if (!activeHousehold?.id) return;
+    setCooking(true);
+    try {
+      const itemsToRemove = cookedItems.filter((i) => i.used && i.itemId).map((i) => i.itemId!);
+      await recordCookedEventAndDepleteInventory({
+        householdId: activeHousehold.id,
+        recipeId: recipeId || null,
+        servings,
+        usedItemIds: itemsToRemove,
+      });
+      await refreshInventory();
+      setShowCooked(false);
+      router.back();
+    } catch {
+      setCooking(false);
+    }
+  }
+
+  async function handleFavoriteToggle() {
+    if (!recipeId) return;
+    const next = !favorite;
+    setFavorite(next);
+    try {
+      await toggleRecipeFavorite(recipeId, next);
+    } catch {
+      setFavorite(!next);
+    }
+  }
+
+  const removedCount = cookedItems.filter((i) => i.used).length;
+  const urgentBadge = matchedUrgentItems[0];
+
+  return (
+    <View style={styles.screen}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.hero}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("recipes.detail.backLabel")}
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Svg width={14} height={14} viewBox="0 0 14 14">
+              <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </Pressable>
+          <RecipeGlyph />
+          {urgentBadge ? (
+            <View style={styles.urgentChip}>
+              <Text variant="small" color={colors.primary}>
+                {t("recipes.saves", { item: urgentBadge })}
+              </Text>
+            </View>
+          ) : null}
+          {recipeId ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleFavoriteToggle}
+              style={styles.favoriteButton}
+            >
+              <Text variant="body">{favorite ? "★" : "☆"}</Text>
+            </Pressable>
+          ) : null}
+        </View>
+
+        <View style={styles.body}>
+          <Text variant="h1">{title}</Text>
+          <View style={styles.metaRow}>
+            <Text variant="small" muted>⏱ {timeMinutes} min</Text>
+            <Text variant="small" muted>·</Text>
+            <Text variant="small" muted>{t("recipes.detail.servings", { count: servings })}</Text>
+            <Text variant="small" muted>·</Text>
+            <Text variant="small" muted>{complexityLabel}</Text>
+          </View>
+
+          {fridgeCount > 0 ? (
+            <>
+              <Text variant="micro" muted style={styles.sectionLabel}>
+                {t("recipes.detail.fromFridgeCount", { count: fridgeCount })}
+              </Text>
+              <View style={styles.ingredientChips}>
+                {ingredients.map((ing, i) => {
+                  const inFridge = i < usedInventoryItemIds.length && usedInventoryItemIds[i];
+                  const isUrgent = matchedUrgentItems.includes(ing.name);
+                  return (
+                    <View key={i} style={styles.ingredientChip}>
+                      <View style={[styles.dot, { backgroundColor: isUrgent ? colors.red : inFridge ? colors.green : colors.muted2 }]} />
+                      <Text variant="small" style={styles.ingredientName}>{ing.name}</Text>
+                      <Text variant="small" muted>· {isUrgent ? t("recipes.detail.bestToday") : ing.amount}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          ) : null}
+
+          <Text variant="micro" muted style={styles.sectionLabel}>
+            {t("recipes.detail.howToCook")}
+          </Text>
+          <View style={styles.steps}>
+            {steps.map((step, i) => (
+              <View key={i} style={styles.stepRow}>
+                <View style={styles.stepNumber}>
+                  <Text variant="small" color={colors.surface} style={styles.stepNumberText}>{i + 1}</Text>
+                </View>
+                <Text variant="body" style={styles.stepText}>{step}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+
+      <View style={styles.bottomGradient}>
+        <Button
+          title={t("recipes.detail.cookCta")}
+          variant="accent"
+          onPress={handleCookPress}
+        />
+      </View>
+
+      <BottomSheet visible={showCooked} onDismiss={() => setShowCooked(false)}>
+        <Text variant="micro" color={colors.accent} style={styles.cookedEyebrow}>
+          {t("recipes.cooked.eyebrow")}
+        </Text>
+        <Text variant="h1" style={styles.cookedTitle}>{t("recipes.cooked.title")}</Text>
+        <Text variant="body" muted style={styles.cookedBody}>{t("recipes.cooked.body")}</Text>
+
+        <View style={styles.cookedList}>
+          {cookedItems.map((item, i) => (
+            <Pressable
+              key={i}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: item.used }}
+              onPress={() => toggleCookedItem(i)}
+              style={[styles.cookedItem, item.used && styles.cookedItemActive]}
+            >
+              <View style={[styles.checkbox, item.used && styles.checkboxActive]}>
+                {item.used ? (
+                  <Svg width={13} height={13} viewBox="0 0 13 13">
+                    <Path d="M3 7L5.5 9.5L10 4" stroke={colors.surface} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                ) : null}
+              </View>
+              <View style={styles.cookedItemCopy}>
+                <Text variant="body" style={[!item.used && styles.strikethrough]}>{item.name}</Text>
+                <Text variant="small" muted>{item.amount}</Text>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+
+        <Button
+          title={t("recipes.cooked.confirm", { count: removedCount })}
+          onPress={confirmCooked}
+          loading={cooking}
+          style={styles.cookedConfirm}
+        />
+      </BottomSheet>
+    </View>
+  );
+}
+
+function RecipeGlyph() {
+  return (
+    <Svg width={48} height={48} viewBox="0 0 48 48" fill="none" style={{ opacity: 0.85 }}>
+      <Path d="M12 28 Q16 22 24 22 Q32 22 36 28" stroke={colors.primary} strokeWidth={1.5} fill="none" />
+      <Path d="M8 28 A16 8 0 0 0 40 28 A16 8 0 0 0 8 28" stroke={colors.primary} strokeWidth={1.8} fill="none" />
+    </Svg>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: colors.surface,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 120,
+  },
+  hero: {
+    height: 280,
+    backgroundColor: "#C8D5C2",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  backButton: {
+    position: "absolute",
+    top: 60,
+    left: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  favoriteButton: {
+    position: "absolute",
+    top: 60,
+    right: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.85)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  urgentChip: {
+    position: "absolute",
+    bottom: 20,
+    left: 24,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    backgroundColor: "rgba(248,244,238,0.85)",
+    borderRadius: radii.pill,
+  },
+  body: {
+    padding: spacing.xxl,
+  },
+  metaRow: {
+    flexDirection: "row",
+    gap: spacing.md,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xxl,
+  },
+  sectionLabel: {
+    marginBottom: spacing.md,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  ingredientChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginBottom: spacing.xxl,
+  },
+  ingredientChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radii.pill,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  ingredientName: {
+    fontWeight: "600",
+  },
+  steps: {
+    gap: spacing.lg,
+  },
+  stepRow: {
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  stepNumber: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
+  stepNumberText: {
+    fontWeight: "700",
+    fontSize: 13,
+  },
+  stepText: {
+    flex: 1,
+  },
+  bottomGradient: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: 28,
+  },
+  cookedEyebrow: {
+    marginBottom: spacing.sm,
+  },
+  cookedTitle: {
+    marginBottom: spacing.sm,
+  },
+  cookedBody: {
+    marginBottom: spacing.xl,
+  },
+  cookedList: {
+    gap: spacing.sm,
+  },
+  cookedItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.paper,
+    borderWidth: 1.5,
+    borderColor: colors.hairline,
+    borderRadius: radii.lg,
+  },
+  cookedItemActive: {
+    backgroundColor: colors.primary50,
+    borderColor: "transparent",
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    borderWidth: 1.5,
+    borderColor: colors.hairlineStrong,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkboxActive: {
+    backgroundColor: colors.primary,
+    borderWidth: 0,
+  },
+  cookedItemCopy: {
+    flex: 1,
+  },
+  strikethrough: {
+    textDecorationLine: "line-through",
+    opacity: 0.6,
+  },
+  cookedConfirm: {
+    marginTop: spacing.lg,
+  },
+});

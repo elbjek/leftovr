@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, FoodCard, Screen, ShelfRow, Text } from "@/components";
+import { BottomSheet, Button, FoodCard, Screen, ShelfRow, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useInventory } from "@/hooks";
 import {
   demoFoodCatalog,
   InventoryGroup,
+  PartialState,
   toUiCategory,
   toUiUrgency,
 } from "@/services";
@@ -20,11 +22,14 @@ export default function FridgeRoute() {
     groups,
     error,
     addDemoItem,
+    addExpiringDemoItem,
     useFirstLot,
-    markFirstLotPartial,
+    setFirstLotPartialState,
     removeGroup,
     refresh,
   } = useInventory(activeHousehold?.id);
+  const [partialGroup, setPartialGroup] = useState<InventoryGroup | null>(null);
+  const [removeGroupTarget, setRemoveGroupTarget] = useState<InventoryGroup | null>(null);
   const urgentGroups = groups.filter((group) => group.urgency === "urgent");
   const useSoonGroups = groups.filter((group) => group.urgency === "use_soon");
   const safeGroups = groups.filter((group) => group.urgency === "safe");
@@ -58,6 +63,12 @@ export default function FridgeRoute() {
               style={styles.quickButton}
             />
           ))}
+          <Button
+            title={t("fridge.expiringDemo")}
+            variant="accent"
+            onPress={addExpiringDemoItem}
+            style={styles.quickButton}
+          />
         </View>
       </View>
 
@@ -99,26 +110,134 @@ export default function FridgeRoute() {
 
       {renderShelf(t("fridge.shelves.urgent"), urgentGroups, {
         tone: colors.red,
+        emptyLabel: t("fridge.expiringEmpty"),
+        alwaysShow: true,
         labels: getActionLabels(t),
         onUse: useFirstLot,
-        onPartial: markFirstLotPartial,
-        onRemove: removeGroup,
+        onPartial: async (group) => setPartialGroup(group),
+        onRemove: async (group) => setRemoveGroupTarget(group),
       })}
       {renderShelf(t("fridge.shelves.useSoon"), useSoonGroups, {
         tone: colors.yellow,
         labels: getActionLabels(t),
         onUse: useFirstLot,
-        onPartial: markFirstLotPartial,
-        onRemove: removeGroup,
+        onPartial: async (group) => setPartialGroup(group),
+        onRemove: async (group) => setRemoveGroupTarget(group),
       })}
       {renderShelf(t("fridge.shelves.safe"), safeGroups, {
         tone: colors.green,
         labels: getActionLabels(t),
         onUse: useFirstLot,
-        onPartial: markFirstLotPartial,
-        onRemove: removeGroup,
+        onPartial: async (group) => setPartialGroup(group),
+        onRemove: async (group) => setRemoveGroupTarget(group),
       })}
+
+      <PartialSheet
+        group={partialGroup}
+        labels={{
+          title: t("fridge.partialSheet.title"),
+          body: t("fridge.partialSheet.body"),
+          full: t("fridge.partialSheet.full"),
+          someUsed: t("fridge.partialSheet.someUsed"),
+          low: t("fridge.partialSheet.low"),
+          cancel: t("common.cancel"),
+        }}
+        onDismiss={() => setPartialGroup(null)}
+        onSelect={async (partialState) => {
+          if (!partialGroup) return;
+          await setFirstLotPartialState(partialGroup, partialState);
+          setPartialGroup(null);
+        }}
+      />
+
+      <RemoveSheet
+        group={removeGroupTarget}
+        labels={{
+          title: t("fridge.removeSheet.title"),
+          body: t("fridge.removeSheet.body"),
+          confirm: t("fridge.removeSheet.confirm"),
+          cancel: t("common.cancel"),
+        }}
+        onDismiss={() => setRemoveGroupTarget(null)}
+        onConfirm={async () => {
+          if (!removeGroupTarget) return;
+          await removeGroup(removeGroupTarget);
+          setRemoveGroupTarget(null);
+        }}
+      />
     </Screen>
+  );
+}
+
+function PartialSheet({
+  group,
+  labels,
+  onDismiss,
+  onSelect,
+}: {
+  group: InventoryGroup | null;
+  labels: {
+    title: string;
+    body: string;
+    full: string;
+    someUsed: string;
+    low: string;
+    cancel: string;
+  };
+  onDismiss: () => void;
+  onSelect: (partialState: PartialState) => Promise<void>;
+}) {
+  return (
+    <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
+      <View style={styles.sheetContent}>
+        <View style={styles.sheetCopy}>
+          <Text variant="h2">{labels.title}</Text>
+          <Text variant="body" muted>
+            {group ? labels.body.replace("{{item}}", group.name) : labels.body}
+          </Text>
+        </View>
+        <View style={styles.sheetButtons}>
+          <Button title={labels.full} variant="ghost" onPress={() => onSelect("full")} />
+          <Button title={labels.someUsed} variant="ghost" onPress={() => onSelect("some_used")} />
+          <Button title={labels.low} variant="accent" onPress={() => onSelect("low")} />
+          <Button title={labels.cancel} variant="text" onPress={onDismiss} />
+        </View>
+      </View>
+    </BottomSheet>
+  );
+}
+
+function RemoveSheet({
+  group,
+  labels,
+  onDismiss,
+  onConfirm,
+}: {
+  group: InventoryGroup | null;
+  labels: {
+    title: string;
+    body: string;
+    confirm: string;
+    cancel: string;
+  };
+  onDismiss: () => void;
+  onConfirm: () => Promise<void>;
+}) {
+  return (
+    <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
+      <View style={styles.sheetContent}>
+        <View style={styles.sheetCopy}>
+          <Text variant="h2">{labels.title}</Text>
+          <Text variant="body" muted>
+            {group ? labels.body.replace("{{item}}", group.name) : labels.body}
+          </Text>
+        </View>
+        <View style={styles.sheetButtons}>
+          <Button title={labels.confirm} onPress={onConfirm} />
+          <Button title={labels.cancel} variant="text" onPress={onDismiss} />
+        </View>
+      </View>
+    </BottomSheet>
   );
 }
 
@@ -131,9 +250,11 @@ function renderShelf(
     onUse: (group: InventoryGroup) => Promise<void>;
     onPartial: (group: InventoryGroup) => Promise<void>;
     onRemove: (group: InventoryGroup) => Promise<void>;
+    alwaysShow?: boolean;
+    emptyLabel?: string;
   },
 ) {
-  if (groups.length === 0) return null;
+  if (groups.length === 0 && !actions.alwaysShow) return null;
 
   return (
     <View style={styles.shelfWrap}>
@@ -149,6 +270,13 @@ function renderShelf(
           urgency: toUiUrgency(group.urgency),
         }))}
       />
+      {groups.length === 0 && actions.emptyLabel ? (
+        <View style={styles.emptyShelf}>
+          <Text variant="small" muted>
+            {actions.emptyLabel}
+          </Text>
+        </View>
+      ) : null}
       <View style={styles.actions}>
         {groups.map((group) => (
           <View key={group.key} style={styles.actionCard}>
@@ -229,6 +357,15 @@ const styles = StyleSheet.create({
   shelfWrap: {
     gap: spacing.sm,
   },
+  emptyShelf: {
+    marginHorizontal: spacing.screenX,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.paper,
+  },
   actions: {
     paddingHorizontal: spacing.screenX,
     gap: spacing.sm,
@@ -252,5 +389,14 @@ const styles = StyleSheet.create({
   smallButton: {
     minHeight: 38,
     paddingHorizontal: spacing.md,
+  },
+  sheetContent: {
+    gap: spacing.xl,
+  },
+  sheetCopy: {
+    gap: spacing.sm,
+  },
+  sheetButtons: {
+    gap: spacing.sm,
   },
 });

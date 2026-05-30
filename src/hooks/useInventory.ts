@@ -5,9 +5,10 @@ import {
   advanceInventoryPartialState,
   depleteInventoryLot,
   listActiveHouseholdInventory,
+  markInventoryPartialState,
   removeInventoryGroup,
 } from "@/repositories";
-import { groupInventoryLots, InventoryGroup, InventoryLot } from "@/services";
+import { groupInventoryLots, InventoryGroup, InventoryLot, PartialState } from "@/services";
 
 type InventoryState = {
   loading: boolean;
@@ -56,6 +57,13 @@ export function useInventory(householdId?: string | null) {
         await addInventoryItem({ householdId, name });
         await load();
       },
+      addExpiringDemoItem: async () => {
+        if (!householdId) return;
+        const addedAt = new Date();
+        addedAt.setDate(addedAt.getDate() - 5);
+        await addInventoryItem({ householdId, name: "Spinach", addedAt: addedAt.toISOString() });
+        await load();
+      },
       useFirstLot: async (group: InventoryGroup) => {
         const lot = group.lots[0];
         if (!lot) return;
@@ -66,6 +74,12 @@ export function useInventory(householdId?: string | null) {
         const lot = group.lots[0];
         if (!lot) return;
         await advanceInventoryPartialState(lot.id);
+        await load();
+      },
+      setFirstLotPartialState: async (group: InventoryGroup, partialState: PartialState) => {
+        const lot = group.lots[0];
+        if (!lot) return;
+        await markInventoryPartialState(lot.id, partialState);
         await load();
       },
       removeGroup: async (group: InventoryGroup) => {

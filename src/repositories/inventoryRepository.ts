@@ -20,6 +20,7 @@ export type AddInventoryItemInput = {
   quantity?: number;
   unit?: string;
   source?: InventorySource;
+  addedAt?: string;
 };
 
 export async function listActiveHouseholdInventory(householdId: string) {
@@ -59,7 +60,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
   const name = input.name.trim();
   const category = input.category ?? inferCategory(name);
   const catalogItem = getCatalogFood(name);
-  const addedAt = new Date().toISOString();
+  const addedAt = input.addedAt ?? new Date().toISOString();
   const urgency = computeUrgency({ name, category, addedAt });
   const quantity = input.quantity ?? 1;
   const unit = input.unit ?? catalogItem?.unit ?? "item";

@@ -61,8 +61,8 @@ This project uses Nx monorepo with React + Expo + Supabase.
 
 - Product requirements: ./docs/product_specs.md
 - Implementation plan: ./docs/build_plan.md
-- Additional: ./docs/superpowers
-- High level prototype: ./docs/dozy-app.html
+
+- High level prototype: ./docs/chomp - what's for dinner_v2
 
 ## Instructions
 
@@ -81,5 +81,5 @@ This project uses Nx monorepo with React + Expo + Supabase.
 - Shared logic must go in /libs
 - Do NOT make any commits to github before asking
 - Do NOT commit ANY code that you are not 95% sure that it works
-
-- USE docs/Chomp - What/s for dinner_v2 as the visual source of truth. Create new pages only by this design, and inspiration.
+- USE docs as general source of truth
+- USE docs/Chomp - What/s for dinner_v2 as the visual source of truth. Create new pages only by this design, and inspiration./log
