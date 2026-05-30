@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Button, Card, HouseholdSection, PremiumSheet, Screen, SegmentedControl, Text } from "@/components";
 import { useAuth } from "@/features";
 import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
-import { useHousehold, useInventory } from "@/hooks";
+import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
 import { resetCurrentUserOnboardingForDev, setPreviewTier, setPrototypeDay, PlanTier } from "@/repositories";
 import { colors, radii, spacing } from "@/theme";
@@ -35,6 +35,12 @@ export default function SettingsRoute() {
 
   const household = useHousehold(activeHousehold?.id);
   const { lots } = useInventory(activeHousehold?.id);
+  const {
+    preferences: notifPrefs,
+    householdSettings: notifHouseholdSettings,
+    toggleSmartSuggestions,
+    toggleDailySuggestion,
+  } = useNotifications(activeHousehold?.id);
   const isHouseholdPremium = profile?.tier === "household_premium";
 
   function handleLanguageChange(language: SupportedLanguage) {
@@ -145,6 +151,82 @@ export default function SettingsRoute() {
             onPremiumGate={() => setShowPremium(true)}
           />
         ) : null}
+
+        <Card>
+          <View style={styles.cardInner}>
+            <View style={styles.sectionHeader}>
+              <Text variant="label">{t("notifications.title")}</Text>
+              <Text variant="small" muted>
+                {t("notifications.body")}
+              </Text>
+            </View>
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingCopy}>
+                <Text variant="small">{t("notifications.smartSuggestions")}</Text>
+                <Text variant="micro" muted>{t("notifications.smartSuggestionsBody")}</Text>
+              </View>
+              <Pressable
+                accessibilityRole="switch"
+                accessibilityState={{ checked: notifPrefs?.smart_suggestions_enabled ?? false }}
+                onPress={() => toggleSmartSuggestions(!notifPrefs?.smart_suggestions_enabled)}
+                style={[
+                  styles.toggle,
+                  notifPrefs?.smart_suggestions_enabled && styles.toggleActive,
+                ]}
+              >
+                <View style={[
+                  styles.toggleThumb,
+                  notifPrefs?.smart_suggestions_enabled && styles.toggleThumbActive,
+                ]} />
+              </Pressable>
+            </View>
+
+            <View style={styles.settingRow}>
+              <View style={styles.settingCopy}>
+                <Text variant="small">{t("notifications.dailySuggestion")}</Text>
+                <Text variant="micro" muted>{t("notifications.dailySuggestionBody")}</Text>
+              </View>
+              <Pressable
+                accessibilityRole="switch"
+                accessibilityState={{ checked: notifHouseholdSettings?.daily_suggestion_enabled ?? false }}
+                onPress={() => toggleDailySuggestion(!notifHouseholdSettings?.daily_suggestion_enabled)}
+                style={[
+                  styles.toggle,
+                  notifHouseholdSettings?.daily_suggestion_enabled && styles.toggleActive,
+                ]}
+              >
+                <View style={[
+                  styles.toggleThumb,
+                  notifHouseholdSettings?.daily_suggestion_enabled && styles.toggleThumbActive,
+                ]} />
+              </Pressable>
+            </View>
+
+            {notifHouseholdSettings?.daily_suggestion_enabled ? (
+              <View style={styles.settingRow}>
+                <Text variant="small">{t("notifications.sendWindow")}</Text>
+                <Text variant="small" muted>
+                  {t("notifications.sendWindowValue", {
+                    start: notifHouseholdSettings.send_window_start?.slice(0, 5) ?? "13:00",
+                    end: notifHouseholdSettings.send_window_end?.slice(0, 5) ?? "14:00",
+                  })}
+                </Text>
+              </View>
+            ) : null}
+
+            <View style={styles.settingRow}>
+              <Text variant="small">{t("notifications.permissionStatus")}</Text>
+              <Text variant="small" muted>
+                {notifPrefs?.permission_status === "granted"
+                  ? t("notifications.permissionGranted")
+                  : notifPrefs?.permission_status === "denied"
+                    ? t("notifications.permissionDenied")
+                    : t("notifications.permissionNotDetermined")}
+              </Text>
+            </View>
+          </View>
+        </Card>
 
         <Card>
           <View style={styles.cardInner}>
@@ -299,5 +381,35 @@ const styles = StyleSheet.create({
   dayOptionActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
+  },
+  settingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  settingCopy: {
+    flex: 1,
+    gap: spacing.xxs,
+  },
+  toggle: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.hairlineStrong,
+    justifyContent: "center",
+    paddingHorizontal: 2,
+  },
+  toggleActive: {
+    backgroundColor: colors.primary,
+  },
+  toggleThumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+  },
+  toggleThumbActive: {
+    alignSelf: "flex-end",
   },
 });

@@ -4,10 +4,11 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, Text } from "@/components";
+import { BottomSheet, Button, Card, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useInventory } from "@/hooks";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
+import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite } from "@/repositories/recipeRepository";
 import { colors, radii, spacing } from "@/theme";
 
@@ -34,7 +35,7 @@ export default function RecipeDetailRoute() {
     matchedUrgentItems: string;
   }>();
 
-  const { activeHousehold } = useAuth();
+  const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
   const { refresh: refreshInventory } = useInventory(activeHousehold?.id);
 
   const title = params.title ?? "";
@@ -59,6 +60,20 @@ export default function RecipeDetailRoute() {
   const [cookedItems, setCookedItems] = useState<{ name: string; amount: string; itemId: string | null; used: boolean }[]>([]);
   const [cooking, setCooking] = useState(false);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
+
+  const showCookCoachMark =
+    (profile?.prototype_day ?? 1) >= 3 && !profile?.cooked_coachmark_seen_at;
+  const [coachVisible, setCoachVisible] = useState(showCookCoachMark);
+
+  async function dismissCoachMark() {
+    setCoachVisible(false);
+    try {
+      await markCookedCoachmarkSeen();
+      await refreshAuth();
+    } catch {
+      // Non-critical
+    }
+  }
 
   const complexityLabel = complexity === "simple" ? "Simple" : complexity === "medium" ? "Medium" : "Involved";
   const fridgeCount = usedInventoryItemIds.length;
@@ -192,6 +207,15 @@ export default function RecipeDetailRoute() {
       </ScrollView>
 
       <View style={styles.bottomGradient}>
+        {coachVisible ? (
+          <Card style={styles.coachMark}>
+            <View style={styles.coachContent}>
+              <Text variant="label">{t("retention.day3CoachTitle")}</Text>
+              <Text variant="small" muted>{t("retention.day3CoachBody")}</Text>
+              <Button title={t("retention.day3Dismiss")} variant="text" onPress={dismissCoachMark} />
+            </View>
+          </Card>
+        ) : null}
         <Button
           title={t("recipes.detail.cookCta")}
           variant="accent"
@@ -369,6 +393,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
     paddingBottom: 28,
+    gap: spacing.sm,
+  },
+  coachMark: {
+    backgroundColor: colors.primary50,
+    borderColor: colors.primary,
+    borderWidth: 1,
+  },
+  coachContent: {
+    gap: spacing.xs,
   },
   cookedEyebrow: {
     marginBottom: spacing.sm,

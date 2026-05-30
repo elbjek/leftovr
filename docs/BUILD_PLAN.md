@@ -601,7 +601,7 @@ Verification:
 - Add item as B and confirm A sees attribution.
 - Test join flow when B has existing items.
 
-## Phase 13 - Notifications Architecture And Retention
+## Phase 13 - Notifications Architecture And Retention - done
 
 Goal: implement notification UX, settings, and first-week retention simulation without real push delivery.
 
