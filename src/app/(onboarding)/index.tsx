@@ -3,24 +3,24 @@ import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, ChoiceCard, Screen, Text, TextField } from "@/components";
+import { Button, ChoiceCard, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
 import {
-  acceptHouseholdInvite,
   completeCurrentProfileOnboarding,
   OnboardingPersonalization,
 } from "@/repositories";
-import { colors, spacing } from "@/theme";
+import { colors } from "@/theme";
 
-type StepKey = "cookingFor" | "shoppingStyle" | "primaryGoal" | "avoidances" | "invite";
+type StepKey = "cookingFor" | "shoppingStyle" | "primaryGoal" | "avoidances";
 type Choice = {
   label: string;
   subtitle?: string;
   value: string;
   servings?: number;
+  emoji?: string;
 };
 
-const steps: StepKey[] = ["cookingFor", "shoppingStyle", "primaryGoal", "avoidances", "invite"];
+const steps: StepKey[] = ["cookingFor", "shoppingStyle", "primaryGoal", "avoidances"];
 const requiredStepCount = 4;
 
 export default function OnboardingRoute() {
@@ -32,7 +32,6 @@ export default function OnboardingRoute() {
   const [shoppingStyle, setShoppingStyle] = useState("weekly");
   const [primaryGoal, setPrimaryGoal] = useState("waste");
   const [avoidances, setAvoidances] = useState<string[]>(["fish"]);
-  const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,15 +74,7 @@ export default function OnboardingRoute() {
         avoidances,
       };
 
-      const hasInviteCode = Boolean(inviteCode.trim());
-
-      if (hasInviteCode) {
-        await acceptHouseholdInvite(inviteCode);
-      }
-
-      await completeCurrentProfileOnboarding(personalization, {
-        seedActiveHouseholdDefault: !hasInviteCode,
-      });
+      await completeCurrentProfileOnboarding(personalization);
 
       await refresh();
       router.replace("/");
@@ -105,7 +96,11 @@ export default function OnboardingRoute() {
   }
 
   return (
-    <Screen scroll>
+    <Screen
+      scroll
+      padded={false}
+      contentContainerStyle={styles.screenPad}
+    >
       <View style={styles.wrap}>
         <View style={styles.progressRow}>
           <View style={styles.progressTrack}>
@@ -177,33 +172,32 @@ export default function OnboardingRoute() {
           </View>
         ) : null}
 
-        {step === "invite" ? (
-          <View style={styles.choices}>
-            <TextField
-              label={t("onboarding.personalization.invite.inputLabel")}
-              value={inviteCode}
-              onChangeText={setInviteCode}
-              autoCapitalize="characters"
-            />
-          </View>
-        ) : null}
-
         {error ? (
           <Text variant="small" color={colors.red} center>
             {error}
           </Text>
         ) : null}
 
-        <Button
-          title={
-            stepIndex === steps.length - 1
-              ? t("onboarding.personalization.finish")
-              : stepCopy.skipLabel ?? t("common.continue")
-          }
-          disabled={!canContinue}
-          loading={loading || submitting}
-          onPress={goNext}
-        />
+        <View style={styles.footer}>
+          <Button
+            title={
+              stepIndex === steps.length - 1
+                ? t("common.continue")
+                : stepCopy.skipLabel ?? t("common.continue")
+            }
+            disabled={!canContinue}
+            loading={loading || submitting}
+            onPress={goNext}
+          />
+          {step === "avoidances" ? (
+            <Button
+              title={t("common.skipForNow")}
+              variant="text"
+              disabled={loading || submitting}
+              onPress={goNext}
+            />
+          ) : null}
+        </View>
       </View>
     </Screen>
   );
@@ -226,6 +220,7 @@ function ChoiceList({
           title={choice.label}
           subtitle={choice.subtitle}
           selected={selected === choice.value}
+          icon={choice.emoji ? <Text style={styles.choiceEmoji}>{choice.emoji}</Text> : undefined}
           onPress={() => onSelect(choice)}
         />
       ))}
@@ -234,19 +229,26 @@ function ChoiceList({
 }
 
 const styles = StyleSheet.create({
+  screenPad: {
+    flexGrow: 1,
+    paddingHorizontal: 28,
+    paddingTop: 68,
+    paddingBottom: 32,
+  },
   wrap: {
     flexGrow: 1,
     justifyContent: "flex-start",
-    gap: spacing.xl,
   },
   header: {
-    gap: spacing.md,
+    gap: 8,
     alignItems: "flex-start",
+    marginBottom: 24,
   },
   progressRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.md,
+    gap: 12,
+    marginBottom: 28,
   },
   progressTrack: {
     flex: 1,
@@ -262,6 +264,14 @@ const styles = StyleSheet.create({
   },
   choices: {
     flexGrow: 1,
-    gap: spacing.md,
+    gap: 10,
+  },
+  choiceEmoji: {
+    fontSize: 22,
+    lineHeight: 26,
+  },
+  footer: {
+    gap: 8,
+    marginTop: 16,
   },
 });

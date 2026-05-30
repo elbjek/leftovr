@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Button, ChoiceCard, Screen, Text } from "@/components";
 import { HAS_PICKED_LANGUAGE_KEY } from "@/features/onboardingGate";
 import { i18n } from "@/i18n";
-import { colors, spacing } from "@/theme";
+import { colors } from "@/theme";
 
 type LanguageChoice = {
   value: "en" | "sr";
@@ -32,7 +32,10 @@ export default function LanguageRoute() {
   }
 
   return (
-    <Screen>
+    <Screen
+      padded={false}
+      contentContainerStyle={styles.screenPad}
+    >
       <View style={styles.wrap}>
         <View style={styles.wordmarkWrap}>
           <Text variant="display" color={colors.primary} italic style={styles.wordmark}>
@@ -94,25 +97,30 @@ function Radio({ selected }: { selected: boolean }) {
 }
 
 const styles = StyleSheet.create({
+  screenPad: {
+    paddingHorizontal: 28,
+    paddingTop: 92,
+    paddingBottom: 32,
+  },
   wrap: {
     flex: 1,
-    gap: spacing.xl,
   },
   wordmarkWrap: {
     alignItems: "center",
-    marginBottom: spacing.xl,
+    marginBottom: 40,
   },
   wordmark: {
     fontSize: 32,
     lineHeight: 36,
   },
   copy: {
-    gap: spacing.md,
+    gap: 10,
     alignItems: "flex-start",
+    marginBottom: 24,
   },
   choices: {
     flex: 1,
-    gap: spacing.sm,
+    gap: 10,
   },
   flag: {
     fontSize: 24,

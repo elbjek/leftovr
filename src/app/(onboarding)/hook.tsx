@@ -94,7 +94,6 @@ export default function HookCarouselRoute() {
                   {item.title}
                   {item.titleAccent ? (
                     <Text variant="display" color={colors.primary} italic style={styles.hookTitle}>
-                      {"\n"}
                       {item.titleAccent}
                     </Text>
                   ) : null}
@@ -140,12 +139,12 @@ export default function HookCarouselRoute() {
 }
 
 function renderIllustration(slide: HookSlide) {
-  if (slide.illustration === "forgotten") return <ForgottenFridgeIllustration width={250} height={250} />;
-  if (slide.illustration === "scanLoop") return <ScanLoopIllustration width={300} height={185} />;
+  if (slide.illustration === "forgotten") return <ForgottenFridgeIllustration width={220} height={220} />;
+  if (slide.illustration === "scanLoop") return <ScanLoopIllustration width={260} height={160} />;
   if (slide.illustration === "socialProof") return <SocialProofIllustration quotes={slide.quotes ?? []} />;
   if (slide.illustration === "wordmark") return <WordmarkIllustration kicker={slide.wordmarkKicker} />;
-  if (slide.illustration === "receipt") return <ReceiptToFridgeIllustration width={300} height={220} />;
-  return <AliveFridgeIllustration width={250} height={250} />;
+  if (slide.illustration === "receipt") return <ReceiptToFridgeIllustration width={280} height={200} />;
+  return <AliveFridgeIllustration width={220} height={220} />;
 }
 
 function SocialProofIllustration({ quotes }: { quotes: { text: string; byline: string }[] }) {
@@ -210,26 +209,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   bottomBlock: {
-    gap: spacing.huge,
+    gap: 32,
   },
   copy: {
-    gap: 16,
     alignItems: "flex-start",
     justifyContent: "flex-start",
   },
   hookTitle: {
-    fontSize: 38,
-    lineHeight: 40,
+    fontSize: 40,
+    lineHeight: 42,
+    marginBottom: 16,
   },
   copyCentered: {
     alignItems: "center",
   },
   bodyText: {
     maxWidth: "90%",
+    marginBottom: 0,
   },
   steps: {
     gap: 12,
     marginTop: 4,
+    marginBottom: 0,
     alignSelf: "stretch",
     minWidth: 210,
   },
@@ -286,8 +287,8 @@ const styles = StyleSheet.create({
     minHeight: 220,
   },
   wordmark: {
-    fontSize: 52,
-    lineHeight: 58,
+    fontSize: 64,
+    lineHeight: 70,
   },
   wordmarkKicker: {
     marginTop: spacing.md,

@@ -4,6 +4,7 @@ export const en = {
     loading: "Loading",
     recommended: "Recommended",
     signOut: "Sign out",
+    skipForNow: "Skip for now",
     unknownHousehold: "Solo household",
   },
   auth: {
@@ -110,10 +111,10 @@ export const en = {
         title: "Who are you cooking for?",
         body: "This sets your default serving sizes.",
         choices: [
-          { label: "Just me", subtitle: "1 serving", value: "me", servings: 1 },
-          { label: "Me and a partner", subtitle: "2 servings", value: "partner", servings: 2 },
-          { label: "Family (3 – 4)", subtitle: "4 servings", value: "family", servings: 4 },
-          { label: "A bigger household", subtitle: "5+ servings", value: "big", servings: 6 },
+          { label: "Just me", subtitle: "1 serving", value: "me", servings: 1, emoji: "🍽️" },
+          { label: "Me and a partner", subtitle: "2 servings", value: "partner", servings: 2, emoji: "🍽️🍽️" },
+          { label: "Family (3 – 4)", subtitle: "4 servings", value: "family", servings: 4, emoji: "👨‍👩‍👧" },
+          { label: "A bigger household", subtitle: "5+ servings", value: "big", servings: 6, emoji: "🏠" },
         ],
       },
       shoppingStyle: {
@@ -208,6 +209,7 @@ export const en = {
     body: "Account, household, language, and prototype controls will live here.",
     languageTitle: "Language",
     languageBody: "Switch the prototype between English and Serbian.",
+    resetOnboarding: "Reset onboarding",
     languages: {
       en: "English",
       sr: "Srpski",

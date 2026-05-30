@@ -4,6 +4,7 @@ export const sr = {
     loading: "Ucitavanje",
     recommended: "Preporuceno",
     signOut: "Odjavi se",
+    skipForNow: "Preskoci za sada",
     unknownHousehold: "Samostalno domacinstvo",
   },
   auth: {
@@ -109,10 +110,10 @@ export const sr = {
         title: "Za koga kuvas?",
         body: "Ovo podesava podrazumevane velicine porcija.",
         choices: [
-          { label: "Samo za mene", subtitle: "1 porcija", value: "me", servings: 1 },
-          { label: "Za mene i partnera", subtitle: "2 porcije", value: "partner", servings: 2 },
-          { label: "Porodica (3 – 4)", subtitle: "4 porcije", value: "family", servings: 4 },
-          { label: "Vece domacinstvo", subtitle: "5+ porcija", value: "big", servings: 6 },
+          { label: "Samo za mene", subtitle: "1 porcija", value: "me", servings: 1, emoji: "🍽️" },
+          { label: "Za mene i partnera", subtitle: "2 porcije", value: "partner", servings: 2, emoji: "🍽️🍽️" },
+          { label: "Porodica (3 – 4)", subtitle: "4 porcije", value: "family", servings: 4, emoji: "👨‍👩‍👧" },
+          { label: "Vece domacinstvo", subtitle: "5+ porcija", value: "big", servings: 6, emoji: "🏠" },
         ],
       },
       shoppingStyle: {
@@ -207,6 +208,7 @@ export const sr = {
     body: "Nalog, domacinstvo, jezik i prototype controls ce biti ovde.",
     languageTitle: "Jezik",
     languageBody: "Prebaci prototype izmedju engleskog i srpskog.",
+    resetOnboarding: "Resetuj onboarding",
     languages: {
       en: "English",
       sr: "Srpski",
