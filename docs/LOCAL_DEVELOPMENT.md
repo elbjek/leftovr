@@ -53,3 +53,17 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-local-anon-key
 ```
 
 The app can boot without these values during early scaffolding, but auth/database flows need them.
+
+Email OTP sign-up uses local Mailpit:
+
+```bash
+open http://127.0.0.1:55324
+```
+
+If OTP says signups are not allowed after config changes, restart local Supabase and reset the database so Auth reloads `supabase/config.toml`:
+
+```bash
+supabase stop
+supabase start
+supabase db reset
+```

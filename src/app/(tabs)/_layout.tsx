@@ -1,10 +1,16 @@
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { useTranslation } from "react-i18next";
 
+import { useAuth } from "@/features";
 import { colors } from "@/theme";
 
 export default function TabsLayout() {
   const { t } = useTranslation();
+  const { loading, session } = useAuth();
+
+  if (!loading && !session) {
+    return <Redirect href="/(auth)/sign-in" />;
+  }
 
   return (
     <Tabs

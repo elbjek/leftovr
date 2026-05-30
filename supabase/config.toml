@@ -30,6 +30,10 @@ site_url = "chomp://auth"
 additional_redirect_urls = ["exp://127.0.0.1:8081", "http://localhost:8081"]
 enable_signup = true
 
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+
 [edge_runtime]
 enabled = true
 policy = "oneshot"

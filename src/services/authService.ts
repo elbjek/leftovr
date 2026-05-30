@@ -58,3 +58,44 @@ export async function signOut() {
   }
 }
 
+export async function sendEmailOtp({
+  email,
+  displayName,
+  shouldCreateUser,
+}: {
+  email: string;
+  displayName?: string;
+  shouldCreateUser: boolean;
+}) {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser,
+      data: displayName ? { display_name: displayName } : undefined,
+    },
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function verifyEmailOtp({ email, token }: { email: string; token: string }) {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "email",
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

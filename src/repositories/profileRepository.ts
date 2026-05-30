@@ -97,3 +97,16 @@ export async function acceptHouseholdInvite(inviteCode: string) {
 
   return data as string;
 }
+
+export async function completeHouseholdFirstFill(householdId: string) {
+  const supabase = getSupabaseClient();
+
+  const { error } = await supabase
+    .from("households")
+    .update({ first_fill_completed_at: new Date().toISOString() })
+    .eq("id", householdId);
+
+  if (error) {
+    throw error;
+  }
+}
