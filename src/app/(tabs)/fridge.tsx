@@ -2,9 +2,9 @@ import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { BottomSheet, Button, FoodCard, Screen, ShelfRow, Text } from "@/components";
+import { BottomSheet, Button, FoodCard, RetentionCard, Screen, ShelfRow, Text } from "@/components";
 import { useAuth } from "@/features";
-import { useInventory } from "@/hooks";
+import { useInventory, useRetention } from "@/hooks";
 import {
   demoFoodCatalog,
   InventoryGroup,
@@ -13,6 +13,7 @@ import {
   toUiUrgency,
 } from "@/services";
 import { colors, radii, spacing } from "@/theme";
+import { router } from "expo-router";
 
 export default function FridgeRoute() {
   const { t } = useTranslation();
@@ -28,6 +29,13 @@ export default function FridgeRoute() {
     removeGroup,
     refresh,
   } = useInventory(activeHousehold?.id);
+  const prototypeDay = profile?.prototype_day ?? 1;
+  const { day1Suggestion, showDay5Nudge, day7Recap } = useRetention(
+    prototypeDay,
+    activeHousehold?.id,
+    groups,
+    profile?.primary_goal ?? null,
+  );
   const [partialGroup, setPartialGroup] = useState<InventoryGroup | null>(null);
   const [removeGroupTarget, setRemoveGroupTarget] = useState<InventoryGroup | null>(null);
   const urgentGroups = groups.filter((group) => group.urgency === "urgent");
@@ -71,6 +79,45 @@ export default function FridgeRoute() {
           />
         </View>
       </View>
+
+      {day7Recap ? (
+        <View style={styles.retentionWrap}>
+          <RetentionCard
+            title={t("retention.day7Title")}
+            body={
+              profile?.primary_goal === "money"
+                ? t("retention.day7BodyMoney", { amount: day7Recap.estimatedMoneySaved.toFixed(0) })
+                : profile?.primary_goal === "quick"
+                  ? t("retention.day7BodyQuick", { count: day7Recap.estimatedItemsSaved })
+                  : profile?.primary_goal === "waste"
+                    ? t("retention.day7BodyWaste", { count: day7Recap.estimatedItemsSaved })
+                    : t("retention.day7BodyAll", { count: day7Recap.estimatedItemsSaved, amount: day7Recap.estimatedMoneySaved.toFixed(0) })
+            }
+          />
+        </View>
+      ) : null}
+
+      {showDay5Nudge && !day7Recap ? (
+        <View style={styles.retentionWrap}>
+          <RetentionCard
+            title={t("retention.day5Title")}
+            body={t("retention.day5Body")}
+            actionLabel={t("retention.day5Action")}
+            onAction={() => router.push({ pathname: "/(tabs)/scan", params: { mode: "receipt" } })}
+          />
+        </View>
+      ) : null}
+
+      {day1Suggestion && !showDay5Nudge && !day7Recap ? (
+        <View style={styles.retentionWrap}>
+          <RetentionCard
+            title={t("retention.day1Title")}
+            body={t("retention.day1Body", { body: day1Suggestion.body })}
+            actionLabel={t("retention.day1Action")}
+            onAction={() => router.push("/(tabs)/recipes")}
+          />
+        </View>
+      ) : null}
 
       {loading ? (
         <View style={styles.centerState}>
@@ -314,6 +361,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.screenTop,
     paddingBottom: spacing.tabBarClearance,
     gap: spacing.xl,
+  },
+  retentionWrap: {
+    paddingHorizontal: spacing.screenX,
   },
   hero: {
     paddingHorizontal: spacing.screenX,
