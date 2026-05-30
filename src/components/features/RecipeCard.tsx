@@ -1,5 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { colors, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
 import { Text } from "../primitives";
@@ -46,33 +47,46 @@ export function RecipeCard({
         ) : null}
       </View>
       <View style={styles.copy}>
-        <Text variant="h3">{title}</Text>
-        <Text variant="small" muted style={styles.meta}>
-          {timeLabel}
-          {metaSeparator}
-          {complexityLabel}
-        </Text>
-        <Text variant="small" color={colors.primary} style={styles.uses} numberOfLines={1}>
-          {usesLabel} {usedItems.slice(0, 3).join(", ")}
-        </Text>
+        <Text variant="h3" numberOfLines={1}>{title}</Text>
+        <View style={styles.metaRow}>
+          <Text variant="small" muted>
+            {timeLabel}
+            {metaSeparator}
+            {complexityLabel}
+          </Text>
+        </View>
+        {usedItems.length > 0 ? (
+          <Text variant="small" color={colors.primary} style={styles.uses} numberOfLines={1}>
+            {usesLabel} {usedItems.slice(0, 3).join(", ")}
+          </Text>
+        ) : null}
       </View>
+      <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+        <Path d="M5 3L9 7L5 11" stroke={colors.muted2} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    minHeight: 82,
     backgroundColor: colors.paper,
-    borderRadius: radii.xl,
+    borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.hairline,
-    overflow: "hidden",
+    padding: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
   },
   pressed: {
     transform: [{ scale: 0.99 }],
   },
   art: {
-    height: 128,
+    width: 60,
+    height: 60,
+    borderRadius: radii.sm,
     backgroundColor: colors.accentSoft,
     alignItems: "center",
     justifyContent: "center",
@@ -88,13 +102,14 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
   },
   copy: {
-    padding: spacing.lg,
+    flex: 1,
+    minWidth: 0,
   },
-  meta: {
-    marginTop: spacing.xs,
+  metaRow: {
+    marginTop: 4,
   },
   uses: {
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
     fontWeight: "600",
   },
 });

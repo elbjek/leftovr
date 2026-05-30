@@ -8,7 +8,7 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { colors, radii, spacing, typography } from "../../theme";
+import { colors, fonts, radii, spacing } from "../../theme";
 import { Text } from "./Text";
 
 type Props = TextInputProps & {
@@ -20,7 +20,7 @@ type Props = TextInputProps & {
 export function TextField({ label, error, containerStyle, style, ...props }: Props) {
   return (
     <View style={[styles.wrap, containerStyle]}>
-      <Text variant="label" style={styles.label}>
+      <Text variant="micro" muted uppercase style={styles.label}>
         {label.toLocaleUpperCase()}
       </Text>
       <TextInput
@@ -47,15 +47,16 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.xs,
   },
   input: {
-    minHeight: 54,
-    borderRadius: radii.xl,
-    borderWidth: 1,
+    minHeight: 60,
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
     borderColor: colors.hairlineStrong,
     backgroundColor: colors.paper,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 18,
     color: colors.text,
-    fontFamily: typography.body.fontFamily,
-    fontSize: typography.body.fontSize,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 18,
+    lineHeight: 22,
   },
   inputError: {
     borderColor: colors.red,

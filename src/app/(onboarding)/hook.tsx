@@ -6,6 +6,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   StyleSheet,
+  Platform,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -40,6 +41,7 @@ type HookSlide = {
 export default function HookCarouselRoute() {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
+  const slideWidth = Platform.OS === "web" ? Math.min(width, 430) : width;
   const listRef = useRef<FlatList<HookSlide>>(null);
   const [current, setCurrent] = useState(0);
 
@@ -74,7 +76,7 @@ export default function HookCarouselRoute() {
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
         renderItem={({ item }) => (
-          <View style={[styles.slide, { width }]}>
+          <View style={[styles.slide, { width: slideWidth }]}>
             <View style={styles.dotsTop}>
               <PageDots count={slides.length} current={current} />
             </View>

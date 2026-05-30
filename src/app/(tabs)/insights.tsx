@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import Svg, { Circle, Ellipse, Path } from "react-native-svg";
 
-import { Card, EmptyState, PremiumSheet, Screen, Text } from "@/components";
+import { EmptyState, PremiumSheet, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useInsights } from "@/hooks";
 import { setPreviewTier } from "@/repositories";
 import { formatCategoryLabel, InsightsSummary } from "@/services/insightsService";
-import { colors, spacing } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 export default function InsightsRoute() {
   const { t } = useTranslation();
   const { profile, activeHousehold, refresh } = useAuth();
   const isPremium = profile?.tier !== "free";
   const [showPremium, setShowPremium] = useState(false);
-  const { weeklySummary, monthlySummary, loading } = useInsights(
+  const { weeklySummary, loading } = useInsights(
     isPremium ? activeHousehold?.id : undefined,
   );
 
@@ -51,124 +52,167 @@ export default function InsightsRoute() {
     );
   }
 
-  const primaryGoal = profile?.primary_goal ?? "all";
+  const summary = weeklySummary ?? getEmptySummary();
 
   return (
-    <Screen scroll contentContainerStyle={styles.content}>
+    <Screen scroll padded={false} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text variant="micro" color={colors.accent} style={styles.premiumBadge}>
-          ★ {t("premium.title")}
+        <Text variant="micro" color={colors.accent} uppercase style={styles.premiumBadge}>
+          {t("insights.eyebrow", { week: formatWeekLabel() })}
         </Text>
-        <Text variant="display">{t("insights.premiumTitle")}</Text>
+        <Text variant="h1">{t("insights.premiumTitle")}</Text>
       </View>
 
-      {weeklySummary ? (
-        <SummaryBanner summary={weeklySummary} primaryGoal={primaryGoal} />
-      ) : null}
+      <View style={styles.stack}>
+        <HeroStat summary={summary} />
 
-      {weeklySummary ? (
-        <StatsCard
-          title={t("insights.weeklyTitle")}
-          summary={weeklySummary}
-        />
-      ) : null}
+        <View style={styles.miniGrid}>
+          <MiniStat
+            label={t("insights.recipesCooked")}
+            value={String(summary.cookedEvents)}
+            sub={t("insights.recipesCookedSub")}
+          />
+          <MiniStat
+            label={t("insights.eatFirstHits")}
+            value={getEatFirstHitRate(summary)}
+            sub={t("insights.eatFirstHitsSub")}
+          />
+        </View>
 
-      {monthlySummary ? (
-        <StatsCard
-          title={t("insights.monthlyTitle")}
-          summary={monthlySummary}
-        />
-      ) : null}
+        <PatternCard summary={summary} />
+        <MostCookedCard summary={summary} />
+      </View>
     </Screen>
   );
 }
 
-function SummaryBanner({
-  summary,
-  primaryGoal,
-}: {
-  summary: InsightsSummary;
-  primaryGoal: string;
-}) {
+function HeroStat({ summary }: { summary: InsightsSummary }) {
   const { t } = useTranslation();
+  const items = summary.estimatedItemsSaved;
+  const amount = summary.estimatedMoneySaved.toFixed(0);
 
-  if (summary.isSparse) {
-    return (
-      <Card style={styles.summaryCard}>
-        <Text variant="label">{t("insights.sparseTitle")}</Text>
-        <Text variant="small" muted style={styles.summaryBody}>
-          {t("insights.sparseBody")}
+  return (
+    <View style={styles.heroCard}>
+      <Text variant="micro" color={colors.accent} uppercase style={styles.heroEyebrow}>
+        {t("insights.itemsSavedThisWeek")}
+      </Text>
+      <View style={styles.heroValueRow}>
+        <Text style={styles.heroValue}>{items}</Text>
+        <Text variant="small" color="rgba(248,244,238,0.72)" style={styles.heroMeta}>
+          {t("insights.heroMeta", { count: items, amount })}
         </Text>
-      </Card>
-    );
-  }
-
-  const text =
-    primaryGoal === "waste"
-      ? t("insights.summaryWaste", { count: summary.estimatedItemsSaved })
-      : primaryGoal === "money"
-        ? t("insights.summaryMoney", { amount: summary.estimatedMoneySaved.toFixed(0) })
-        : primaryGoal === "quick"
-          ? t("insights.summaryQuick", { count: summary.cookedEvents })
-          : t("insights.summaryAll", {
-              count: summary.estimatedItemsSaved,
-              amount: summary.estimatedMoneySaved.toFixed(0),
-            });
-
-  return (
-    <Card style={styles.summaryCard}>
-      <Text variant="h3" color={colors.primary}>
-        {text}
-      </Text>
-    </Card>
-  );
-}
-
-function StatsCard({
-  title,
-  summary,
-}: {
-  title: string;
-  summary: InsightsSummary;
-}) {
-  const { t } = useTranslation();
-
-  const categoryLabel = summary.mostUsedCategory
-    ? formatCategoryLabel(summary.mostUsedCategory)
-    : t("insights.noCategory");
-
-  return (
-    <Card>
-      <Text variant="label" style={styles.cardTitle}>
-        {title}
-      </Text>
-      <View style={styles.statsGrid}>
-        <StatRow label={t("insights.scans")} value={String(summary.receiptScans)} />
-        <StatRow label={t("insights.itemsAdded")} value={String(summary.itemsAdded)} />
-        <StatRow label={t("insights.cookedEvents")} value={String(summary.cookedEvents)} />
-        <StatRow label={t("insights.removedItems")} value={String(summary.removedItems)} />
-        <StatRow label={t("insights.estimatedSaved")} value={String(summary.estimatedItemsSaved)} />
-        <StatRow
-          label={t("insights.estimatedMoneySaved")}
-          value={`$${summary.estimatedMoneySaved.toFixed(0)}`}
-        />
-        <StatRow label={t("insights.mostUsedCategory")} value={categoryLabel} />
       </View>
-    </Card>
-  );
-}
-
-function StatRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.statRow}>
-      <Text variant="small" muted style={styles.statLabel}>
-        {label}
-      </Text>
-      <Text variant="label" style={styles.statValue}>
-        {value}
+      <View style={styles.heroDivider} />
+      <Text variant="small" color="rgba(248,244,238,0.86)">
+        {summary.isSparse
+          ? t("insights.heroSparse")
+          : t("insights.heroTrend", { count: Math.max(1, Math.round(items / 3)) })}
       </Text>
     </View>
   );
+}
+
+function MiniStat({ label, value, sub }: { label: string; value: string; sub: string }) {
+  return (
+    <View style={styles.statCard}>
+      <Text variant="micro" muted uppercase style={styles.statLabel}>
+        {label}
+      </Text>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text variant="small" muted style={styles.statSub}>
+        {sub}
+      </Text>
+    </View>
+  );
+}
+
+function PatternCard({ summary }: { summary: InsightsSummary }) {
+  const { t } = useTranslation();
+  const category = summary.mostUsedCategory ? formatCategoryLabel(summary.mostUsedCategory) : null;
+
+  return (
+    <View style={styles.card}>
+      <Text variant="micro" muted uppercase style={styles.cardEyebrow}>
+        {t("insights.patternTitle")}
+      </Text>
+      <Text variant="body" style={styles.patternCopy}>
+        {category
+          ? t("insights.patternBody", { category })
+          : t("insights.patternSparseBody")}
+      </Text>
+    </View>
+  );
+}
+
+function MostCookedCard({ summary }: { summary: InsightsSummary }) {
+  const { t } = useTranslation();
+  const rows = summary.cookedRecipes.length > 0
+    ? summary.cookedRecipes
+    : [{ title: t("insights.noCookedYet"), count: 0 }];
+
+  return (
+    <View style={styles.card}>
+      <Text variant="micro" muted uppercase style={styles.cardEyebrow}>
+        {t("insights.mostCooked")}
+      </Text>
+      <View style={styles.recipeList}>
+        {rows.map((row) => (
+          <View key={row.title} style={styles.recipeRow}>
+            <View style={styles.recipeLeft}>
+              <View style={styles.recipeThumb}>
+                <RecipeGlyph />
+              </View>
+              <Text variant="label" numberOfLines={1} style={styles.recipeTitle}>
+                {row.title}
+              </Text>
+            </View>
+            <Text variant="small" muted>
+              {row.count > 0 ? t("insights.timesCooked", { count: row.count }) : t("insights.emptyTimesCooked")}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function RecipeGlyph() {
+  return (
+    <Svg width={34} height={34} viewBox="0 0 48 48" fill="none">
+      <Ellipse cx={24} cy={32} rx={18} ry={4} stroke={colors.primary} strokeOpacity={0.3} strokeWidth={1.5} />
+      <Ellipse cx={24} cy={28} rx={16} ry={8} stroke={colors.primary} strokeWidth={1.8} />
+      <Path d="M12 28 Q16 22 24 22 Q32 22 36 28" stroke={colors.primary} strokeWidth={1.5} />
+      <Circle cx={20} cy={26} r={1.5} fill={colors.primary} />
+      <Circle cx={28} cy={25} r={1.5} fill={colors.primary} />
+    </Svg>
+  );
+}
+
+function formatWeekLabel() {
+  const date = new Date();
+  const weekday = date.getDay();
+  const diff = date.getDate() - weekday + (weekday === 0 ? -6 : 1);
+  const monday = new Date(date.getFullYear(), date.getMonth(), diff);
+  return monday.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
+
+function getEatFirstHitRate(summary: InsightsSummary) {
+  if (summary.itemsAdded === 0) return "0%";
+  return `${Math.min(100, Math.round((summary.removedItems / summary.itemsAdded) * 100))}%`;
+}
+
+function getEmptySummary(): InsightsSummary {
+  return {
+    receiptScans: 0,
+    itemsAdded: 0,
+    cookedEvents: 0,
+    removedItems: 0,
+    estimatedItemsSaved: 0,
+    estimatedMoneySaved: 0,
+    mostUsedCategory: null,
+    isSparse: true,
+    cookedRecipes: [],
+  };
 }
 
 const styles = StyleSheet.create({
@@ -183,43 +227,112 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   content: {
+    paddingTop: spacing.screenTop,
     paddingBottom: spacing.tabBarClearance,
-    gap: spacing.lg,
   },
   header: {
-    gap: spacing.sm,
+    paddingHorizontal: spacing.screenX,
+    paddingBottom: spacing.sm,
   },
   premiumBadge: {
     fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
   },
-  summaryCard: {
-    backgroundColor: colors.primary50,
-    borderColor: colors.primary,
-    borderWidth: 1,
+  stack: {
+    paddingHorizontal: spacing.screenX,
+    paddingTop: spacing.xl,
+    gap: 14,
   },
-  summaryBody: {
-    marginTop: spacing.xs,
+  heroCard: {
+    backgroundColor: colors.primary,
+    borderRadius: 20,
+    padding: 22,
   },
-  cardTitle: {
-    marginBottom: spacing.md,
+  heroEyebrow: {
+    marginBottom: 10,
   },
-  statsGrid: {
-    gap: spacing.sm,
-  },
-  statRow: {
+  heroValueRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hairline,
+    alignItems: "baseline",
+    gap: 10,
   },
-  statLabel: {
+  heroValue: {
+    color: colors.surface,
+    fontSize: 64,
+    lineHeight: 61,
+    fontWeight: "700",
+  },
+  heroMeta: {
     flex: 1,
   },
+  heroDivider: {
+    height: 1,
+    backgroundColor: "rgba(248,244,238,0.15)",
+    marginVertical: 18,
+  },
+  miniGrid: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.paper,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    padding: spacing.lg,
+  },
+  statLabel: {
+    marginBottom: spacing.xs,
+  },
   statValue: {
-    textAlign: "right",
+    color: colors.text,
+    fontSize: 28,
+    lineHeight: 32,
+    fontWeight: "700",
+  },
+  statSub: {
+    marginTop: 2,
+  },
+  card: {
+    backgroundColor: colors.paper,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    padding: 18,
+  },
+  cardEyebrow: {
+    marginBottom: spacing.sm,
+  },
+  patternCopy: {
+    fontWeight: "500",
+  },
+  recipeList: {
+    gap: 10,
+  },
+  recipeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  recipeLeft: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  recipeThumb: {
+    width: 28,
+    height: 28,
+    borderRadius: 7,
+    backgroundColor: "#C8D5C2",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recipeTitle: {
+    flex: 1,
+    minWidth: 0,
   },
 });

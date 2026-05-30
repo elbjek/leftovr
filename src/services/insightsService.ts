@@ -9,6 +9,7 @@ export type InsightsSummary = {
   estimatedMoneySaved: number;
   mostUsedCategory: string | null;
   isSparse: boolean;
+  cookedRecipes: { title: string; count: number }[];
 };
 
 const ESTIMATED_VALUE_PER_ITEM = 1.5;
@@ -37,6 +38,7 @@ export function computeInsightsSummary(raw: InsightsRawData): InsightsSummary {
     estimatedMoneySaved,
     mostUsedCategory,
     isSparse,
+    cookedRecipes: raw.cookedRecipes,
   };
 }
 
