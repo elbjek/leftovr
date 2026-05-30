@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomSheet, Button, FoodCard, RetentionCard, Screen, ShelfRow, Text } from "@/components";
+import { BottomSheet, Button, EatFirstShelf, FoodCard, RetentionCard, Screen, ShelfRow, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useInventory, useRetention } from "@/hooks";
 import {
-  demoFoodCatalog,
   InventoryGroup,
   PartialState,
   toUiCategory,
@@ -23,8 +23,7 @@ export default function FridgeRoute() {
     groups,
     error,
     addDemoItem,
-    addExpiringDemoItem,
-    useFirstLot,
+    useFirstLot: consumeFirstLot,
     setFirstLotPartialState,
     removeGroup,
     refresh,
@@ -37,48 +36,51 @@ export default function FridgeRoute() {
     profile?.primary_goal ?? null,
   );
   const [partialGroup, setPartialGroup] = useState<InventoryGroup | null>(null);
+  const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   const [removeGroupTarget, setRemoveGroupTarget] = useState<InventoryGroup | null>(null);
   const urgentGroups = groups.filter((group) => group.urgency === "urgent");
   const useSoonGroups = groups.filter((group) => group.urgency === "use_soon");
-  const safeGroups = groups.filter((group) => group.urgency === "safe");
+  const isPremium = profile?.tier !== "free";
+  const eatFirstGroups = [...urgentGroups, ...useSoonGroups].slice(0, 3);
+  const categoryShelves = buildCategoryShelves(groups, t);
 
   return (
     <Screen scroll padded={false} contentContainerStyle={styles.content}>
-      <View style={styles.hero}>
-        <View style={styles.titleRow}>
-          <View style={styles.titleCopy}>
-            <Text variant="display">
-              {profile?.display_name ? t("fridge.titleWithName", { name: profile.display_name }) : t("fridge.title")}
-            </Text>
-            <Text variant="body" muted>
-              {t("fridge.body")}
-            </Text>
-          </View>
-          <Pressable accessibilityRole="button" onPress={refresh} style={styles.refreshButton}>
-            <Text variant="small" color={colors.primary}>
-              {t("fridge.refresh")}
-            </Text>
-          </Pressable>
+      <View style={styles.header}>
+        <View>
+          <Text variant="micro" muted uppercase>
+            {profile?.display_name ? t("fridge.greetingWithName", { name: profile.display_name }) : t("fridge.greeting")}
+          </Text>
+          <Text variant="h1" style={styles.headerTitle}>
+            {t("fridge.homeTitle")}
+          </Text>
         </View>
-
-        <View style={styles.quickAdd}>
-          {demoFoodCatalog.slice(0, 5).map((item) => (
-            <Button
-              key={item.name}
-              title={`+ ${item.name}`}
-              variant="ghost"
-              onPress={() => addDemoItem(item.name)}
-              style={styles.quickButton}
-            />
-          ))}
-          <Button
-            title={t("fridge.expiringDemo")}
-            variant="accent"
-            onPress={addExpiringDemoItem}
-            style={styles.quickButton}
-          />
+        <View style={styles.headerActions}>
+          <IconButton label={t("fridge.search")} icon={<SearchIcon />} />
+          <IconButton label={t("fridge.refresh")} icon={<RefreshIcon />} onPress={refresh} />
         </View>
       </View>
+
+      <EatFirstShelf
+        premium={isPremium}
+        items={eatFirstGroups.map((group) => ({
+          id: group.key,
+          name: group.name,
+          category: toUiCategory(group.category),
+          note: group.meta,
+          urgency: toUiUrgency(group.urgency),
+        }))}
+        labels={{
+          premium: t("fridge.eatFirstPremium"),
+          title: t("fridge.eatFirstTitle"),
+          itemCount: (count) => t("fridge.eatFirstCount", { count }),
+          previewTitle: t("fridge.eatFirstPreviewTitle"),
+          previewBody: t("fridge.eatFirstPreviewBody"),
+          unlockAction: t("fridge.eatFirstUnlock"),
+        }}
+        onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
+        onUpgradePress={() => router.push("/(tabs)/settings")}
+      />
 
       {day7Recap ? (
         <View style={styles.retentionWrap}>
@@ -160,24 +162,37 @@ export default function FridgeRoute() {
         emptyLabel: t("fridge.expiringEmpty"),
         alwaysShow: true,
         labels: getActionLabels(t),
-        onUse: useFirstLot,
+        onUse: consumeFirstLot,
         onPartial: async (group) => setPartialGroup(group),
         onRemove: async (group) => setRemoveGroupTarget(group),
-      })}
-      {renderShelf(t("fridge.shelves.useSoon"), useSoonGroups, {
-        tone: colors.yellow,
-        labels: getActionLabels(t),
-        onUse: useFirstLot,
-        onPartial: async (group) => setPartialGroup(group),
-        onRemove: async (group) => setRemoveGroupTarget(group),
-      })}
-      {renderShelf(t("fridge.shelves.safe"), safeGroups, {
-        tone: colors.green,
-        labels: getActionLabels(t),
-        onUse: useFirstLot,
-        onPartial: async (group) => setPartialGroup(group),
-        onRemove: async (group) => setRemoveGroupTarget(group),
-      })}
+      }, groups.length === 0)}
+
+      {categoryShelves.map((shelf) => (
+        <CategoryShelf
+          key={shelf.category}
+          name={shelf.name}
+          groups={shelf.groups}
+          onItemPress={(group) => setActionGroup(group)}
+        />
+      ))}
+
+      <ItemActionSheet
+        group={actionGroup}
+        labels={getActionLabels(t)}
+        onDismiss={() => setActionGroup(null)}
+        onUse={async (group) => {
+          await consumeFirstLot(group);
+          setActionGroup(null);
+        }}
+        onPartial={(group) => {
+          setActionGroup(null);
+          setPartialGroup(group);
+        }}
+        onRemove={(group) => {
+          setActionGroup(null);
+          setRemoveGroupTarget(group);
+        }}
+      />
 
       <PartialSheet
         group={partialGroup}
@@ -300,8 +315,9 @@ function renderShelf(
     alwaysShow?: boolean;
     emptyLabel?: string;
   },
+  emptyOnly = false,
 ) {
-  if (groups.length === 0 && !actions.alwaysShow) return null;
+  if (!emptyOnly || (groups.length === 0 && !actions.alwaysShow)) return null;
 
   return (
     <View style={styles.shelfWrap}>
@@ -348,6 +364,121 @@ function renderShelf(
   );
 }
 
+function CategoryShelf({
+  name,
+  groups,
+  onItemPress,
+}: {
+  name: string;
+  groups: InventoryGroup[];
+  onItemPress: (group: InventoryGroup) => void;
+}) {
+  return (
+    <ShelfRow
+      name={name}
+      count={groups.length}
+      layout="grid"
+      items={groups.map((group) => ({
+        id: group.key,
+        name: group.name,
+        category: toUiCategory(group.category),
+        meta: group.meta,
+        urgency: toUiUrgency(group.urgency),
+        addedBy: group.lots[0]?.added_by_name ?? null,
+      }))}
+      onItemPress={(item) => {
+        const group = groups.find((candidate) => candidate.key === item.id);
+        if (group) onItemPress(group);
+      }}
+    />
+  );
+}
+
+function ItemActionSheet({
+  group,
+  labels,
+  onDismiss,
+  onUse,
+  onPartial,
+  onRemove,
+}: {
+  group: InventoryGroup | null;
+  labels: { use: string; partial: string; remove: string };
+  onDismiss: () => void;
+  onUse: (group: InventoryGroup) => Promise<void>;
+  onPartial: (group: InventoryGroup) => void;
+  onRemove: (group: InventoryGroup) => void;
+}) {
+  return (
+    <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
+      <View style={styles.sheetContent}>
+        <View style={styles.sheetCopy}>
+          <Text variant="h2">{group?.name}</Text>
+          <Text variant="body" muted>
+            {group?.meta}
+          </Text>
+        </View>
+        <View style={styles.sheetButtons}>
+          <Button title={labels.use} variant="accent" onPress={() => group && onUse(group)} />
+          <Button title={labels.partial} variant="ghost" onPress={() => group && onPartial(group)} />
+          <Button title={labels.remove} variant="text" onPress={() => group && onRemove(group)} />
+        </View>
+      </View>
+    </BottomSheet>
+  );
+}
+
+function buildCategoryShelves(groups: InventoryGroup[], t: ReturnType<typeof useTranslation>["t"]) {
+  const order = [
+    "dairy_eggs",
+    "vegetables",
+    "meat",
+    "fish",
+    "fruit",
+    "bakery",
+    "pantry",
+    "frozen",
+    "drinks",
+    "snacks",
+    "other",
+  ];
+
+  return order
+    .map((category) => ({
+      category,
+      name: t(`scan.categories.${category}` as any),
+      groups: groups.filter((group) => group.category === category),
+    }))
+    .filter((shelf) => shelf.groups.length > 0);
+}
+
+function IconButton({ label, icon, onPress }: { label: string; icon: React.ReactNode; onPress?: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.iconButton}>
+      {icon}
+    </Pressable>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
+      <Circle cx={8} cy={8} r={5.5} stroke={colors.primary} strokeWidth={1.6} />
+      <Path d="M12.5 12.5L16 16" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function RefreshIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
+      <Path d="M14.5 8A5.5 5.5 0 0 0 4.9 4.4L3 6.2" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3.5 10A5.5 5.5 0 0 0 13.1 13.6L15 11.8" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3 2.8V6.2H6.4M15 15.2V11.8H11.6" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 function getActionLabels(t: ReturnType<typeof useTranslation>["t"]) {
   return {
     use: t("fridge.actions.use"),
@@ -365,18 +496,29 @@ const styles = StyleSheet.create({
   retentionWrap: {
     paddingHorizontal: spacing.screenX,
   },
-  hero: {
+  header: {
     paddingHorizontal: spacing.screenX,
-    gap: spacing.xl,
-  },
-  titleRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: spacing.md,
   },
-  titleCopy: {
-    flex: 1,
+  headerTitle: {
+    marginTop: spacing.xxs,
+  },
+  headerActions: {
+    flexDirection: "row",
     gap: spacing.sm,
+  },
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    alignItems: "center",
+    justifyContent: "center",
   },
   refreshButton: {
     minHeight: 38,
@@ -385,15 +527,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.hairlineStrong,
     justifyContent: "center",
-  },
-  quickAdd: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  quickButton: {
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
   },
   centerState: {
     paddingHorizontal: spacing.screenX,

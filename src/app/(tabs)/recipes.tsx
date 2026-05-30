@@ -135,19 +135,24 @@ export default function RecipesRoute() {
         ) : (
           <>
             <View style={styles.header}>
-              {hasSuggestions ? (
-                <>
-                  <Text variant="micro" muted>
-                    {t("recipes.suggestionsEyebrow", { count: suggestions.length })}
-                  </Text>
-                  <Text variant="h1" style={styles.headerTitle}>
-                    {t("recipes.suggestionsTitle")}
-                  </Text>
-                </>
-              ) : (
-                <Text variant="h1">{t("recipes.title")}</Text>
-              )}
+              <Text variant="micro" muted uppercase>
+                {t("recipes.countLabel", { count: savedRecipes.length + suggestions.length })}
+              </Text>
+              <Text variant="h1" style={styles.headerTitle}>
+                {t("recipes.title")}
+              </Text>
             </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterRail}
+            >
+              <FilterChip label={t("recipes.filters.fromFridge")} active count={String(suggestions.length || inventory.length)} />
+              <FilterChip label={t("recipes.filters.quick")} />
+              <FilterChip label={t("recipes.filters.simple")} />
+              <FilterChip label={t("recipes.filters.comfort")} />
+            </ScrollView>
 
             {showCookingMode ? (
               <View style={styles.cookingModeWrap}>
@@ -186,23 +191,28 @@ export default function RecipesRoute() {
             ) : null}
 
             {hasSuggestions ? (
-              <View style={styles.cardList}>
-                {suggestions.map((match) => {
-                  const savedRecipe = savedRecipes.find((r) => r.title === match.title && r.session_id);
-                  return (
-                    <RecipeCard
-                      key={match.key}
-                      title={match.title}
-                      timeLabel={formatTimeLabel(match.timeMinutes)}
-                      complexityLabel={formatComplexity(match.complexity)}
-                      usedItems={match.matchedItems.filter((m) => m.inFridge).map((m) => m.ingredientName)}
-                      usesLabel={t("recipes.uses")}
-                      favorite={savedRecipe?.is_favorite}
-                      favoriteLabel="★"
-                      onPress={() => navigateToDetail(match, savedRecipe?.id)}
-                    />
-                  );
-                })}
+              <View style={styles.sectionBlock}>
+                <Text variant="h3" style={styles.sectionTitle}>
+                  {t("recipes.fromFridgeTitle")}
+                </Text>
+                <View style={styles.cardList}>
+                  {suggestions.map((match) => {
+                    const savedRecipe = savedRecipes.find((r) => r.title === match.title && r.session_id);
+                    return (
+                      <RecipeCard
+                        key={match.key}
+                        title={match.title}
+                        timeLabel={formatTimeLabel(match.timeMinutes)}
+                        complexityLabel={formatComplexity(match.complexity)}
+                        usedItems={match.matchedItems.filter((m) => m.inFridge).map((m) => m.ingredientName)}
+                        usesLabel={t("recipes.uses")}
+                        favorite={savedRecipe?.is_favorite}
+                        favoriteLabel="★"
+                        onPress={() => navigateToDetail(match, savedRecipe?.id)}
+                      />
+                    );
+                  })}
+                </View>
               </View>
             ) : null}
 
@@ -272,6 +282,23 @@ export default function RecipesRoute() {
         }}
         onDismiss={() => setShowPremium(false)}
       />
+    </View>
+  );
+}
+
+function FilterChip({ label, active = false, count }: { label: string; active?: boolean; count?: string }) {
+  return (
+    <View style={[styles.filterChip, active && styles.filterChipActive]}>
+      <Text variant="small" color={active ? colors.surface : colors.text} style={styles.filterChipText}>
+        {label}
+      </Text>
+      {count ? (
+        <View style={[styles.filterCount, active && styles.filterCountActive]}>
+          <Text variant="micro" color={active ? colors.text : colors.primary}>
+            {count}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -347,7 +374,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.screenX,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   headerTitle: {
     marginTop: spacing.xxs,
@@ -355,6 +382,38 @@ const styles = StyleSheet.create({
   cookingModeWrap: {
     paddingHorizontal: spacing.screenX,
     marginBottom: spacing.lg,
+  },
+  filterRail: {
+    paddingHorizontal: spacing.screenX,
+    gap: spacing.sm,
+    paddingBottom: spacing.lg,
+  },
+  filterChip: {
+    minHeight: 36,
+    paddingHorizontal: 14,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.paper,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  filterChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterChipText: {
+    fontWeight: "600",
+  },
+  filterCount: {
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 1,
+    backgroundColor: colors.primary50,
+  },
+  filterCountActive: {
+    backgroundColor: colors.accent,
   },
   cookingModeLabel: {
     marginBottom: spacing.sm,
@@ -383,9 +442,14 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
   },
   cardList: {
-    paddingHorizontal: spacing.screenX,
     gap: spacing.md,
+  },
+  sectionBlock: {
+    paddingHorizontal: spacing.screenX,
     marginBottom: spacing.xxl,
+  },
+  sectionTitle: {
+    marginBottom: spacing.md,
   },
   section: {
     marginTop: spacing.sm,

@@ -1,6 +1,6 @@
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-import { colors, spacing } from "../../theme";
+import { StyleSheet, View } from "react-native";
+import { colors, radii, spacing } from "../../theme";
 import { FoodCard } from "./FoodCard";
 import { Button, Card, Text } from "../primitives";
 
@@ -64,7 +64,7 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onU
           {labels.itemCount(items.length)}
         </Text>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+      <View style={styles.panel}>
         {items.map((item) => (
           <FoodCard
             key={item.id}
@@ -72,11 +72,11 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onU
             category={item.category}
             meta={item.note}
             urgency={item.urgency}
-            size="large"
+            style={styles.eatFirstCard}
             onPress={() => onItemPress?.(item)}
           />
         ))}
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -96,6 +96,19 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     fontFamily: "Fraunces",
     fontWeight: "500",
+  },
+  panel: {
+    marginHorizontal: spacing.screenX,
+    padding: 14,
+    borderRadius: radii.xl,
+    backgroundColor: colors.primary,
+    flexDirection: "row",
+    gap: 10,
+  },
+  eatFirstCard: {
+    flex: 1,
+    width: undefined,
+    backgroundColor: "rgba(248,244,238,0.95)",
   },
   row: {
     paddingHorizontal: spacing.screenX,
