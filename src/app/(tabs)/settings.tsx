@@ -30,10 +30,15 @@ export default function SettingsRoute() {
         </View>
 
         <Card>
-          <Text variant="label">{profile?.display_name}</Text>
-          <Text variant="small" muted>
-            {activeHousehold?.name ?? t("common.unknownHousehold")}
-          </Text>
+          <View style={{ gap: spacing.md }}>
+            <View style={{ gap: spacing.xs }}>
+              <Text variant="label">{profile?.display_name}</Text>
+              <Text variant="small" muted>
+                {activeHousehold?.name ?? t("common.unknownHousehold")}
+              </Text>
+            </View>
+            <Button title={t("common.signOut")} loading={loading} onPress={signOut} />
+          </View>
         </Card>
 
         <Card>
@@ -51,7 +56,6 @@ export default function SettingsRoute() {
             />
           </View>
         </Card>
-        <Button title={t("common.signOut")} loading={loading} onPress={signOut} />
       </View>
     </Screen>
   );

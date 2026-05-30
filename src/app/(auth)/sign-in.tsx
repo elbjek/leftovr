@@ -3,33 +3,20 @@ import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, Screen, Text, TextField } from "@/components";
+import { AuthLanding, Button, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useFirstRunOnboardingGate } from "@/features/onboardingGate";
 import { colors, spacing } from "@/theme";
 
 export default function SignInRoute() {
   const { t } = useTranslation();
-  const { signIn, loading, error } = useAuth();
+  const { error } = useAuth();
   const {
     loading: onboardingGateLoading,
     hasPickedLanguage,
     hasSeenHook,
   } = useFirstRunOnboardingGate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
-
-  async function handleSubmit() {
-    if (!email || !password) {
-      setFormError(t("auth.missingFields"));
-      return;
-    }
-
-    setFormError(null);
-    await signIn({ email, password });
-    router.replace("/");
-  }
 
   if (onboardingGateLoading) {
     return (
@@ -53,50 +40,29 @@ export default function SignInRoute() {
   }
 
   return (
-    <Screen scroll>
-      <View style={{ flex: 1, gap: spacing.xl, justifyContent: "center" }}>
-        <View style={{ gap: spacing.sm }}>
-          <Text variant="display">{t("auth.signInTitle")}</Text>
-          <Text variant="body" muted>
-            {t("auth.signInBody")}
+    <Screen padded={false}>
+      <AuthLanding
+        body={t("auth.designBody")}
+        appleLabel={t("auth.apple")}
+        googleLabel={t("auth.google")}
+        emailLabel={t("auth.emailContinue")}
+        termsCopy={t("auth.termsCopy")}
+        termsLabel={t("auth.terms")}
+        privacyLabel={t("auth.privacy")}
+        onApple={() => setFormError(t("auth.oauthPlaceholder"))}
+        onGoogle={() => setFormError(t("auth.oauthPlaceholder"))}
+        onEmail={() => router.push({ pathname: "/(auth)/otp", params: { mode: "sign-in" } })}
+      />
+      {formError || error ? (
+        <View style={{ paddingHorizontal: spacing.screenX, paddingBottom: spacing.md }}>
+          <Text variant="small" color={colors.red} center>
+            {formError ?? error}
           </Text>
         </View>
-
-        <View style={{ gap: spacing.md }}>
-          <Button title={t("auth.apple")} variant="ghost" disabled />
-          <Button title={t("auth.google")} variant="ghost" disabled />
-          <Text variant="micro" muted center uppercase>
-            {t("auth.oauthPlaceholder")}
-          </Text>
-        </View>
-
-        <View style={{ gap: spacing.lg }}>
-          <TextField
-            label={t("auth.email")}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            textContentType="emailAddress"
-          />
-          <TextField
-            label={t("auth.password")}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            textContentType="password"
-          />
-          {formError || error ? (
-            <Text variant="small" color={colors.red}>
-              {formError ?? error}
-            </Text>
-          ) : null}
-          <Button title={t("auth.signIn")} loading={loading} onPress={handleSubmit} />
-        </View>
-
-        <Link href="/(auth)/sign-up" asChild>
-          <Button title={t("auth.goToSignUp")} variant="text" />
-        </Link>
-      </View>
+      ) : null}
+      <Link href="/(auth)/sign-up" asChild>
+        <Button title={t("auth.goToSignUp")} variant="text" />
+      </Link>
     </Screen>
   );
 }

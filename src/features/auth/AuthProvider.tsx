@@ -9,7 +9,7 @@ import React, {
 } from "react";
 
 import { getCurrentProfile, getHouseholdById } from "@/repositories";
-import { signInWithEmail, signOut, signUpWithEmail } from "@/services";
+import { sendEmailOtp, signInWithEmail, signOut, signUpWithEmail, verifyEmailOtp } from "@/services";
 import { getSupabaseClient, hasSupabaseConfig } from "@/lib/supabase";
 import { i18n } from "@/i18n";
 
@@ -17,6 +17,8 @@ import { AuthState, Household } from "./types";
 
 type AuthContextValue = AuthState & {
   refresh: () => Promise<void>;
+  sendOtp: (input: { email: string; displayName?: string; shouldCreateUser: boolean }) => Promise<void>;
+  verifyOtp: (input: { email: string; token: string }) => Promise<void>;
   signIn: (input: { email: string; password: string }) => Promise<void>;
   signUp: (input: { displayName: string; email: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
@@ -129,6 +131,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ...state,
       refresh: () => loadSessionProfile(),
+      sendOtp: async (input) => {
+        setState((current) => ({ ...current, loading: true, error: null }));
+        await sendEmailOtp(input);
+        setState((current) => ({ ...current, loading: false, error: null }));
+      },
+      verifyOtp: async (input) => {
+        setState((current) => ({ ...current, loading: true, error: null }));
+        await verifyEmailOtp(input);
+        await loadSessionProfile();
+      },
       signIn: async (input) => {
         setState((current) => ({ ...current, loading: true, error: null }));
         await signInWithEmail(input);
