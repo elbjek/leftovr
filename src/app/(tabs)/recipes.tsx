@@ -3,8 +3,9 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { Button, EmptyState, RecipeCard, SegmentedControl, Text } from "@/components";
+import { Button, EmptyState, PremiumSheet, RecipeCard, SegmentedControl, Text } from "@/components";
 import { useAuth } from "@/features";
+import { setPreviewTier } from "@/repositories";
 import { useInventory, useRecipes } from "@/hooks";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
 import {
@@ -18,7 +19,7 @@ type RecipeTab = "all" | "saved" | "cooked";
 
 export default function RecipesRoute() {
   const { t } = useTranslation();
-  const { profile, activeHousehold } = useAuth();
+  const { profile, activeHousehold, refresh } = useAuth();
   const { lots: inventory } = useInventory(activeHousehold?.id);
   const isPremium = profile?.tier !== "free";
   const avoidances = profile?.avoidances ?? [];
@@ -261,7 +262,14 @@ export default function RecipesRoute() {
         />
       </View>
 
-      {/* Premium sheet placeholder — full implementation in Phase 11 */}
+      <PremiumSheet
+        visible={showPremium}
+        onPreview={async () => {
+          await setPreviewTier("premium");
+          await refresh();
+        }}
+        onDismiss={() => setShowPremium(false)}
+      />
     </View>
   );
 }

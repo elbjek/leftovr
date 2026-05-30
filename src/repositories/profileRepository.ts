@@ -143,3 +143,40 @@ export async function resetCurrentUserOnboardingForDev() {
     throw householdError;
   }
 }
+
+export type PlanTier = "free" | "premium" | "household_premium";
+
+export async function setPreviewTier(tier: PlanTier) {
+  const supabase = getSupabaseClient();
+  const profile = await getCurrentProfile();
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ tier })
+    .eq("id", profile.id);
+
+  if (profileError) throw profileError;
+
+  if (profile.active_household_id) {
+    const householdTier = tier === "household_premium" ? "household_premium" : tier;
+    const { error: householdError } = await supabase
+      .from("households")
+      .update({ plan_tier: householdTier })
+      .eq("id", profile.active_household_id);
+
+    if (householdError) throw householdError;
+  }
+}
+
+export async function setPrototypeDay(day: number) {
+  const supabase = getSupabaseClient();
+  const profile = await getCurrentProfile();
+  const clampedDay = Math.max(1, Math.min(7, day));
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ prototype_day: clampedDay })
+    .eq("id", profile.id);
+
+  if (error) throw error;
+}
