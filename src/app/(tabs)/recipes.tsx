@@ -13,9 +13,12 @@ import {
   formatTimeLabel,
   RecipeMatch,
 } from "@/services/recipeService";
+import { normalizeFoodName } from "@/services";
 import { colors, radii, spacing } from "@/theme";
 
 type RecipeTab = "all" | "saved" | "cooked";
+type RecipeIngredientParam = { name: string };
+type UsedInventoryItemParam = { ingredientName: string; itemId: string };
 
 export default function RecipesRoute() {
   const { t } = useTranslation();
@@ -56,9 +59,8 @@ export default function RecipesRoute() {
 
   const navigateToDetail = useCallback(
     (match: RecipeMatch, recipeId?: string) => {
-      const usedIds = match.matchedItems
-        .filter((m) => m.inFridge && m.inventoryLot)
-        .map((m) => m.inventoryLot!.id);
+      const usedInventoryItems = buildUsedInventoryItemsFromMatch(match);
+      const usedIds = usedInventoryItems.map((item) => item.itemId);
       const urgentNames = match.matchedItems
         .filter((m) => m.isUrgent)
         .map((m) => m.ingredientName);
@@ -74,6 +76,7 @@ export default function RecipesRoute() {
           ingredients: JSON.stringify(match.ingredients),
           steps: JSON.stringify(match.steps),
           usedInventoryItemIds: JSON.stringify(usedIds),
+          usedInventoryItems: JSON.stringify(usedInventoryItems),
           recipeId: recipeId ?? "",
           isFavorite: "false",
           matchedUrgentItems: JSON.stringify(urgentNames),
@@ -84,6 +87,12 @@ export default function RecipesRoute() {
   );
 
   const navigateToSavedDetail = useCallback((recipe: RecipeRow) => {
+    const usedInventoryItems = buildUsedInventoryItemsForSavedRecipe(
+      recipe.ingredients,
+      recipe.used_inventory_item_ids,
+      inventory,
+    );
+
     router.push({
       pathname: "/recipe-detail",
       params: {
@@ -95,12 +104,13 @@ export default function RecipesRoute() {
         ingredients: JSON.stringify(recipe.ingredients),
         steps: JSON.stringify(recipe.steps),
         usedInventoryItemIds: JSON.stringify(recipe.used_inventory_item_ids),
+        usedInventoryItems: JSON.stringify(usedInventoryItems),
         recipeId: recipe.id,
         isFavorite: String(recipe.is_favorite),
         matchedUrgentItems: "[]",
       },
     });
-  }, []);
+  }, [inventory]);
 
   const favoriteRecipes = savedRecipes.filter((r) => r.is_favorite);
   const cookedRecipes = savedRecipes;
@@ -284,6 +294,40 @@ export default function RecipesRoute() {
       />
     </View>
   );
+}
+
+function buildUsedInventoryItemsFromMatch(match: RecipeMatch): UsedInventoryItemParam[] {
+  return match.matchedItems
+    .filter((item) => item.inFridge && item.inventoryLot)
+    .map((item) => ({
+      ingredientName: item.ingredientName,
+      itemId: item.inventoryLot!.id,
+    }));
+}
+
+function buildUsedInventoryItemsForSavedRecipe(
+  ingredients: unknown,
+  usedInventoryItemIds: string[],
+  inventory: { id: string; normalized_name: string }[],
+): UsedInventoryItemParam[] {
+  const activeSavedIds = new Set(usedInventoryItemIds);
+  const inventoryByName = new Map(inventory.map((lot) => [lot.normalized_name, lot]));
+
+  return parseRecipeIngredients(ingredients).flatMap((ingredient) => {
+    const lot = inventoryByName.get(normalizeFoodName(ingredient.name));
+    if (!lot || !activeSavedIds.has(lot.id)) return [];
+    return [{ ingredientName: ingredient.name, itemId: lot.id }];
+  });
+}
+
+function parseRecipeIngredients(ingredients: unknown): RecipeIngredientParam[] {
+  if (!Array.isArray(ingredients)) return [];
+  return ingredients.filter((ingredient): ingredient is RecipeIngredientParam => (
+    typeof ingredient === "object" &&
+    ingredient !== null &&
+    "name" in ingredient &&
+    typeof ingredient.name === "string"
+  ));
 }
 
 function FilterChip({ label, active = false, count }: { label: string; active?: boolean; count?: string }) {

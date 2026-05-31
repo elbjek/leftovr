@@ -141,7 +141,7 @@ export async function processMockReceiptScan(input: {
         unit: item.unit,
         display_quantity: formatDisplayQuantity(item.quantity, item.unit),
         partial_state: "full",
-        urgency: computeUrgency({ name: item.name, category: item.category, addedAt: now }),
+        urgency: item.urgency ?? computeUrgency({ name: item.name, category: item.category, addedAt: now }),
         shelf_life_range: getShelfLifeRange(item.name, item.category),
         source: "receipt",
         source_scan_id: scan.id,
@@ -224,4 +224,3 @@ function formatDisplayQuantity(quantity: number, unit: string) {
   const roughQuantity = Number.isInteger(quantity) ? quantity : Number(quantity.toFixed(1));
   return `${roughQuantity} ${unit}`;
 }
-

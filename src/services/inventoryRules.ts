@@ -134,9 +134,10 @@ export function getNextPartialState(state: PartialState) {
   return "low";
 }
 
-export function getDepletionUpdate(lot: Pick<InventoryLot, "quantity" | "partial_state">) {
+export function getDepletionUpdate(lot: Pick<InventoryLot, "quantity" | "partial_state">, amount = 1) {
   if (lot.quantity > 1) {
-    return { quantity: Math.max(0, lot.quantity - 1), partialState: lot.partial_state, shouldRemove: lot.quantity - 1 <= 0 };
+    const nextQuantity = Math.max(0, lot.quantity - Math.max(1, amount));
+    return { quantity: nextQuantity, partialState: lot.partial_state, shouldRemove: nextQuantity <= 0 };
   }
 
   if (lot.partial_state === "full") {
