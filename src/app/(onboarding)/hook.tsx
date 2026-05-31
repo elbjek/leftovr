@@ -48,15 +48,22 @@ export default function HookCarouselRoute() {
   const slides = t("onboarding.hook.slides", { returnObjects: true }) as HookSlide[];
   const last = current === slides.length - 1;
 
+  const currentRef = useRef(0);
+
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    const width = event.nativeEvent.layoutMeasurement.width;
-    const page = Math.round(event.nativeEvent.contentOffset.x / width);
-    setCurrent(page);
+    const page = Math.round(event.nativeEvent.contentOffset.x / slideWidth);
+    if (page !== currentRef.current) {
+      currentRef.current = page;
+      setCurrent(page);
+    }
   }
 
   async function handleContinue() {
     if (!last) {
-      listRef.current?.scrollToIndex({ index: current + 1, animated: true });
+      const next = current + 1;
+      listRef.current?.scrollToOffset({ offset: next * slideWidth, animated: true });
+      currentRef.current = next;
+      setCurrent(next);
       return;
     }
 
@@ -74,7 +81,9 @@ export default function HookCarouselRoute() {
         pagingEnabled
         bounces={false}
         showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={handleScroll}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        getItemLayout={(_, index) => ({ length: slideWidth, offset: slideWidth * index, index })}
         renderItem={({ item }) => (
           <View style={[styles.slide, { width: slideWidth }]}>
             <View style={styles.dotsTop}>

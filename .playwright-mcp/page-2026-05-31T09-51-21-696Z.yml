@@ -1,0 +1,61 @@
+- generic [ref=e13]:
+  - generic [ref=e16]:
+    - img [ref=e23]:
+      - generic [ref=e32]: "?"
+      - generic [ref=e33]: "?"
+    - generic:
+      - generic:
+        - generic [ref=e34]: How much food did you throw away last week?
+        - generic: The average household tosses 30% of what they buy. That's about $1,500 a year — straight into the bin.
+      - button "Continue" [ref=e35] [cursor=pointer]:
+        - generic [ref=e37]: Continue
+  - generic [ref=e40]:
+    - img [ref=e47]
+    - generic:
+      - generic:
+        - generic [ref=e67]: Your fridge has a memory problem. We fixed it.
+        - generic: Snap your receipt. Chomp remembers every item, knows when each one's at its best, and quietly keeps track.
+      - button "Continue" [ref=e68] [cursor=pointer]:
+        - generic [ref=e70]: Continue
+  - generic [ref=e73]:
+    - img [ref=e80]:
+      - generic [ref=e105]: 20 min
+    - generic:
+      - generic:
+        - generic [ref=e106]: Scan your receipt. We do the rest.
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - generic [ref=e110]: "1"
+            - generic [ref=e111]: Snap
+          - generic [ref=e112]:
+            - generic [ref=e114]: "2"
+            - generic [ref=e115]: Fridge updates
+          - generic [ref=e116]:
+            - generic [ref=e118]: "3"
+            - generic [ref=e119]: Cook tonight
+      - button "Continue" [ref=e120] [cursor=pointer]:
+        - generic [ref=e122]: Continue
+  - generic [ref=e125]:
+    - generic [ref=e132]:
+      - generic [ref=e133]:
+        - generic [ref=e134]: "\"I haven't binned a vegetable in a month.\""
+        - generic [ref=e135]: Maya, London
+      - generic [ref=e136]:
+        - generic [ref=e137]: "\"Finally know what's in my own fridge.\""
+        - generic [ref=e138]: Daniel, NYC
+    - generic:
+      - generic:
+        - generic [ref=e139]: Never open the fridge wondering again.
+        - generic: One tap gives you a recipe built from exactly what you've got — prioritised by what to eat first.
+      - button "Continue" [ref=e140] [cursor=pointer]:
+        - generic [ref=e142]: Continue
+  - generic [ref=e145]:
+    - generic [ref=e152]:
+      - generic [ref=e153]: chomp.
+      - generic [ref=e154]: what's for dinner?
+    - generic:
+      - generic:
+        - generic [ref=e155]: Let's get you fed.
+        - generic [ref=e156]: Free. No card needed.
+      - button "Continue" [ref=e157] [cursor=pointer]:
+        - generic [ref=e159]: Continue

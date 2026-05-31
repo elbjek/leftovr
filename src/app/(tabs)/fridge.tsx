@@ -152,12 +152,12 @@ export default function FridgeRoute() {
             {t("fridge.emptyBody")}
           </Text>
           <FoodCard
-            name="Greek yogurt"
+            name={t("fridge.demoItemName")}
             category="dairy-eggs"
             meta={t("fridge.emptyMeta")}
             urgency="useSoon"
             size="large"
-            onPress={() => addDemoItem("Greek yogurt")}
+            onPress={() => addDemoItem(t("fridge.demoItemName"))}
           />
         </View>
       ) : null}
