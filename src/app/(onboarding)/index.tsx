@@ -186,7 +186,7 @@ export default function OnboardingRoute() {
         {step === "invite" ? (
           <TextField
             label={t("onboarding.personalization.invite.inputLabel")}
-            placeholder="CHOMP-XXXXXX"
+            placeholder={t("onboarding.personalization.invite.placeholder")}
             value={inviteCode}
             onChangeText={setInviteCode}
             autoCapitalize="characters"
