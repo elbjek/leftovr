@@ -1,3 +1,5 @@
+import { i18n } from "@/i18n";
+
 export const INVENTORY_CATEGORIES = [
   "dairy_eggs",
   "meat",
@@ -198,15 +200,13 @@ export function groupInventoryLots(lots: InventoryLot[]): InventoryGroup[] {
 }
 
 export function formatUrgency(urgency: UrgencyBand) {
-  if (urgency === "urgent") return "Eat first";
-  if (urgency === "use_soon") return "Use soon";
-  return "Keeps well";
+  const key = urgency === "urgent" ? "urgent" : urgency === "use_soon" ? "useSoon" : "safe";
+  return i18n.t(`fridge.meta.${key}`);
 }
 
 export function formatPartialState(state: PartialState) {
-  if (state === "some_used") return "Some used";
-  if (state === "low") return "Low";
-  return "Full";
+  const key = state === "some_used" ? "someUsed" : state === "low" ? "low" : "full";
+  return i18n.t(`fridge.meta.${key}`);
 }
 
 export function toUiUrgency(urgency: UrgencyBand) {
@@ -219,7 +219,7 @@ export function toUiCategory(category: InventoryCategory) {
 
 function formatGroupMeta(group: Pick<InventoryGroup, "quantity" | "unit" | "lotCount" | "urgencyLabel" | "partialLabel">) {
   const quantity = Number.isInteger(group.quantity) ? group.quantity : Number(group.quantity.toFixed(1));
-  const lotCopy = group.lotCount > 1 ? `, ${group.lotCount} lots` : "";
+  const lotCopy = group.lotCount > 1 ? `, ${i18n.t("fridge.meta.lots", { count: group.lotCount })}` : "";
   return `${quantity} ${group.unit}${lotCopy} · ${group.urgencyLabel} · ${group.partialLabel}`;
 }
 

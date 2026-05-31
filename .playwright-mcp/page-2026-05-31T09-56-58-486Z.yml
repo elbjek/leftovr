@@ -1,0 +1,29 @@
+- generic [ref=e154]:
+  - generic [ref=e158]: 1/4
+  - generic [ref=e159]:
+    - generic [ref=e160]: A few quick questions
+    - generic [ref=e161]: Who are you cooking for?
+    - generic [ref=e162]: This sets your default serving sizes.
+  - generic [ref=e163]:
+    - button "🍽️ Just me 1 serving" [ref=e164] [cursor=pointer]:
+      - generic [ref=e166]: 🍽️
+      - generic [ref=e167]:
+        - generic [ref=e169]: Just me
+        - generic [ref=e170]: 1 serving
+    - button "🍽️🍽️ Me and a partner 2 servings" [ref=e171] [cursor=pointer]:
+      - generic [ref=e173]: 🍽️🍽️
+      - generic [ref=e174]:
+        - generic [ref=e176]: Me and a partner
+        - generic [ref=e177]: 2 servings
+    - button "👨‍👩‍👧 Family (3 – 4) 4 servings" [ref=e178] [cursor=pointer]:
+      - generic [ref=e180]: 👨‍👩‍👧
+      - generic [ref=e181]:
+        - generic [ref=e183]: Family (3 – 4)
+        - generic [ref=e184]: 4 servings
+    - button "🏠 A bigger household 5+ servings" [ref=e185] [cursor=pointer]:
+      - generic [ref=e187]: 🏠
+      - generic [ref=e188]:
+        - generic [ref=e190]: A bigger household
+        - generic [ref=e191]: 5+ servings
+  - button "Continue" [ref=e193] [cursor=pointer]:
+    - generic [ref=e195]: Continue
