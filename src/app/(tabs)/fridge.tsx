@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -13,7 +13,7 @@ import {
   toUiUrgency,
 } from "@/services";
 import { colors, radii, spacing } from "@/theme";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 
 export default function FridgeRoute() {
   const { t } = useTranslation();
@@ -39,10 +39,15 @@ export default function FridgeRoute() {
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   const [removeGroupTarget, setRemoveGroupTarget] = useState<InventoryGroup | null>(null);
   const urgentGroups = groups.filter((group) => group.urgency === "urgent");
-  const useSoonGroups = groups.filter((group) => group.urgency === "use_soon");
   const isPremium = profile?.tier !== "free";
-  const eatFirstGroups = [...urgentGroups, ...useSoonGroups].slice(0, 3);
+  const eatFirstGroups = getEatFirstGroups(groups);
   const categoryShelves = buildCategoryShelves(groups, t);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
 
   return (
     <Screen scroll padded={false} contentContainerStyle={styles.content}>
@@ -450,6 +455,22 @@ function buildCategoryShelves(groups: InventoryGroup[], t: ReturnType<typeof use
       groups: groups.filter((group) => group.category === category),
     }))
     .filter((shelf) => shelf.groups.length > 0);
+}
+
+function getEatFirstGroups(groups: InventoryGroup[]) {
+  const urgentOrSoon = groups.filter((group) => group.urgency === "urgent" || group.urgency === "use_soon");
+  if (urgentOrSoon.length > 0) return urgentOrSoon.slice(0, 3);
+
+  const lowRiskCategories = new Set(["pantry", "frozen", "drinks"]);
+  return groups
+    .filter((group) => !lowRiskCategories.has(group.category))
+    .sort((a, b) => shelfLifeStart(a.shelfLifeRange) - shelfLifeStart(b.shelfLifeRange))
+    .slice(0, 3);
+}
+
+function shelfLifeStart(range: string) {
+  const firstNumber = Number(range.match(/\d+/)?.[0]);
+  return Number.isFinite(firstNumber) ? firstNumber : 999;
 }
 
 function IconButton({ label, icon, onPress }: { label: string; icon: React.ReactNode; onPress?: () => void }) {

@@ -170,7 +170,7 @@ export async function markInventoryPartialState(itemId: string, partialState: Pa
   }
 }
 
-export async function depleteInventoryLot(itemId: string) {
+export async function depleteInventoryLot(itemId: string, amount = 1) {
   const supabase = getSupabaseClient();
   const { data: lot, error: lotError } = await supabase
     .from("inventory_items")
@@ -183,7 +183,7 @@ export async function depleteInventoryLot(itemId: string) {
     throw lotError;
   }
 
-  const depletion = getDepletionUpdate(lot);
+  const depletion = getDepletionUpdate(lot, amount);
 
   if (depletion.shouldRemove) {
     await removeInventoryLot(itemId, "cooked");
@@ -225,6 +225,7 @@ export async function recordCookedEventAndDepleteInventory(input: {
   recipeId?: string | null;
   servings?: number | null;
   usedItemIds: string[];
+  usedItems?: { id: string; amount?: number | null }[];
 }) {
   const supabase = getSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();
@@ -239,14 +240,16 @@ export async function recordCookedEventAndDepleteInventory(input: {
     throw new Error("No signed-in user.");
   }
 
-  await Promise.all(input.usedItemIds.map((itemId) => depleteInventoryLot(itemId)));
+  const usedItems: { id: string; amount?: number | null }[] =
+    input.usedItems ?? input.usedItemIds.map((id) => ({ id }));
+  await Promise.all(usedItems.map((item) => depleteInventoryLot(item.id, item.amount ?? 1)));
 
   const { error } = await supabase.from("cooked_events").insert({
     household_id: input.householdId,
     recipe_id: input.recipeId ?? null,
     cooked_by: userId,
     servings: input.servings ?? null,
-    used_items: input.usedItemIds.map((id) => ({ id })),
+    used_items: usedItems,
     removed_item_ids: input.usedItemIds,
   });
 

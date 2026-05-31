@@ -1,6 +1,6 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from "expo-camera";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
@@ -46,7 +46,7 @@ export default function ScanRoute() {
   const params = useLocalSearchParams<{ mode?: string }>();
   const { activeHousehold, refresh } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
-  const initialChoice = getInitialChoice(params.mode);
+  const initialChoice = getParamChoice(params.mode) ?? "receipt";
   const [mode, setMode] = useState<ScanMode>(initialChoice === "manual" ? "manual" : initialChoice === "barcode" ? "barcodeCamera" : "choice");
   const [choice, setChoice] = useState<ScanChoice>(initialChoice);
   const [templateKey, setTemplateKey] = useState(mockReceiptTemplates[0]?.key ?? "weekly-family");
@@ -59,6 +59,7 @@ export default function ScanRoute() {
   const [lastAddedName, setLastAddedName] = useState("");
   const [scanPremiumVisible, setScanPremiumVisible] = useState(false);
   const [barcodeLocked, setBarcodeLocked] = useState(false);
+  const consumedModeRef = useRef<string | null>(null);
 
   const selectedTemplate = useMemo(() => getMockReceiptTemplate(templateKey), [templateKey]);
   const manualSuggestions = useMemo(() => {
@@ -93,7 +94,9 @@ export default function ScanRoute() {
       .catch(() => undefined);
   }, [activeHousehold?.id, mode, t]);
 
-  async function openSelectedChoice(nextChoice = choice) {
+  const openSelectedChoice = useCallback(async (nextChoice = choice) => {
+    consumedModeRef.current = nextChoice;
+    router.setParams({ mode: nextChoice });
     setChoice(nextChoice);
     setError(null);
 
@@ -105,12 +108,35 @@ export default function ScanRoute() {
     if ((nextChoice === "receipt" || nextChoice === "barcode") && !permission?.granted) {
       const nextPermission = await requestPermission();
       if (!nextPermission.granted) {
+        consumedModeRef.current = "choice";
+        router.setParams({ mode: "choice" });
+        setMode("choice");
         setError(t("scan.cameraDenied"));
         return;
       }
     }
 
     setMode(nextChoice === "barcode" ? "barcodeCamera" : "camera");
+  }, [choice, permission?.granted, requestPermission, t]);
+
+  useEffect(() => {
+    const paramMode = params.mode;
+    const nextChoice = getParamChoice(paramMode);
+    if (!paramMode || consumedModeRef.current === paramMode) return;
+    if (!nextChoice) return;
+
+    consumedModeRef.current = paramMode;
+    const timeout = setTimeout(() => {
+      void openSelectedChoice(nextChoice);
+    }, 0);
+
+    return () => clearTimeout(timeout);
+  }, [openSelectedChoice, params.mode]);
+
+  function returnToChoice() {
+    consumedModeRef.current = "choice";
+    router.setParams({ mode: "choice" });
+    setMode("choice");
   }
 
   async function completeFirstFillIfNeeded() {
@@ -262,7 +288,7 @@ export default function ScanRoute() {
               <Button
                 title={t("common.cancel")}
                 variant="text"
-                onPress={() => setMode("choice")}
+                onPress={returnToChoice}
               />
               <Text variant="label" color={colors.surface}>
                 {t("scan.cameraTitle")}
@@ -337,7 +363,7 @@ export default function ScanRoute() {
               {t("scan.cameraDenied")}
             </Text>
             <Button title={t("common.continue")} onPress={requestPermission} />
-            <Button title={t("common.cancel")} variant="text" onPress={() => setMode("choice")} />
+            <Button title={t("common.cancel")} variant="text" onPress={returnToChoice} />
           </View>
         </Screen>
       );
@@ -359,7 +385,7 @@ export default function ScanRoute() {
               <Button
                 title={t("common.cancel")}
                 variant="text"
-                onPress={() => setMode("choice")}
+                onPress={returnToChoice}
               />
               <Text variant="label" color={colors.surface}>
                 {t("scan.barcodeCameraTitle")}
@@ -505,7 +531,7 @@ export default function ScanRoute() {
           </Text>
         ) : null}
 
-        <Button title={t("common.cancel")} variant="text" onPress={() => setMode("choice")} />
+        <Button title={t("common.cancel")} variant="text" onPress={returnToChoice} />
       </Screen>
     );
   }
@@ -539,7 +565,7 @@ export default function ScanRoute() {
           </Text>
           <View style={styles.buttonStack}>
             <Button title={t("scan.addAnyway")} onPress={() => captureReceipt(true)} />
-            <Button title={t("common.cancel")} variant="ghost" onPress={() => setMode("choice")} />
+            <Button title={t("common.cancel")} variant="ghost" onPress={returnToChoice} />
           </View>
           {duplicate ? (
             <Text variant="small" muted center>
@@ -570,7 +596,7 @@ export default function ScanRoute() {
             const { setPreviewTier: setTier } = await import("@/repositories");
             await setTier("premium");
             await refresh();
-            setMode("choice");
+            returnToChoice();
           }}
           onDismiss={() => setScanPremiumVisible(false)}
         />
@@ -814,9 +840,9 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function getInitialChoice(mode?: string): ScanChoice {
+function getParamChoice(mode?: string): ScanChoice | null {
   if (mode === "barcode" || mode === "manual" || mode === "receipt") return mode;
-  return "receipt";
+  return null;
 }
 
 const styles = StyleSheet.create({

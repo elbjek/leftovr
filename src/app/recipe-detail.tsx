@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
@@ -19,6 +19,11 @@ type IngredientItem = {
   countable: boolean;
 };
 
+type UsedInventoryItemParam = {
+  ingredientName: string;
+  itemId: string;
+};
+
 export default function RecipeDetailRoute() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{
@@ -30,6 +35,7 @@ export default function RecipeDetailRoute() {
     ingredients: string;
     steps: string;
     usedInventoryItemIds: string;
+    usedInventoryItems: string;
     recipeId: string;
     isFavorite: string;
     matchedUrgentItems: string;
@@ -52,12 +58,23 @@ export default function RecipeDetailRoute() {
   const usedInventoryItemIds: string[] = params.usedInventoryItemIds
     ? JSON.parse(params.usedInventoryItemIds)
     : [];
+  const usedInventoryItems = parseUsedInventoryItems(params.usedInventoryItems);
+  const hasMappedUsedItems = usedInventoryItems.length > 0;
+  const usedInventoryItemMap = new Map(
+    usedInventoryItems.map((item) => [item.ingredientName, item.itemId]),
+  );
   const matchedUrgentItems: string[] = params.matchedUrgentItems
     ? JSON.parse(params.matchedUrgentItems)
     : [];
 
   const [showCooked, setShowCooked] = useState(false);
-  const [cookedItems, setCookedItems] = useState<{ name: string; amount: string; itemId: string | null; used: boolean }[]>([]);
+  const [cookedItems, setCookedItems] = useState<{
+    name: string;
+    amount: string;
+    itemId: string | null;
+    quantityToUse: number;
+    used: boolean;
+  }[]>([]);
   const [cooking, setCooking] = useState(false);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
 
@@ -76,12 +93,22 @@ export default function RecipeDetailRoute() {
   }
 
   const complexityLabel = complexity === "simple" ? "Simple" : complexity === "medium" ? "Medium" : "Involved";
-  const fridgeCount = usedInventoryItemIds.length;
+  const fridgeCount = hasMappedUsedItems ? usedInventoryItems.length : usedInventoryItemIds.length;
+
+  function getUsedItemId(ingredientName: string, index: number) {
+    return usedInventoryItemMap.get(ingredientName) ?? (!hasMappedUsedItems ? usedInventoryItemIds[index] : null) ?? null;
+  }
 
   function handleCookPress() {
     const items = ingredients.map((ing, i) => {
-      const itemId = usedInventoryItemIds[i] ?? null;
-      return { name: ing.name, amount: ing.amount, itemId, used: itemId !== null };
+      const itemId = getUsedItemId(ing.name, i);
+      return {
+        name: ing.name,
+        amount: ing.amount,
+        itemId,
+        quantityToUse: ing.countable ? parseIngredientQuantity(ing.amount) : 1,
+        used: itemId !== null,
+      };
     });
     setCookedItems(items);
     setShowCooked(true);
@@ -98,16 +125,24 @@ export default function RecipeDetailRoute() {
     setCooking(true);
     try {
       const itemsToRemove = cookedItems.filter((i) => i.used && i.itemId).map((i) => i.itemId!);
+      const usedItems = cookedItems
+        .filter((i) => i.used && i.itemId)
+        .map((i) => ({ id: i.itemId!, amount: i.quantityToUse }));
       await recordCookedEventAndDepleteInventory({
         householdId: activeHousehold.id,
         recipeId: recipeId || null,
         servings,
         usedItemIds: itemsToRemove,
+        usedItems,
       });
       await refreshInventory();
       setShowCooked(false);
-      router.back();
-    } catch {
+      router.replace("/(tabs)/fridge");
+    } catch (error) {
+      Alert.alert(
+        t("common.error"),
+        error instanceof Error ? error.message : t("common.fridgeUpdateError"),
+      );
       setCooking(false);
     }
   }
@@ -161,6 +196,11 @@ export default function RecipeDetailRoute() {
 
         <View style={styles.body}>
           <Text variant="h1">{title}</Text>
+          {description ? (
+            <Text variant="body" muted style={styles.description}>
+              {description}
+            </Text>
+          ) : null}
           <View style={styles.metaRow}>
             <Text variant="small" muted>⏱ {timeMinutes} min</Text>
             <Text variant="small" muted>·</Text>
@@ -176,7 +216,7 @@ export default function RecipeDetailRoute() {
               </Text>
               <View style={styles.ingredientChips}>
                 {ingredients.map((ing, i) => {
-                  const inFridge = i < usedInventoryItemIds.length && usedInventoryItemIds[i];
+                  const inFridge = Boolean(getUsedItemId(ing.name, i));
                   const isUrgent = matchedUrgentItems.includes(ing.name);
                   return (
                     <View key={i} style={styles.ingredientChip}>
@@ -265,6 +305,29 @@ export default function RecipeDetailRoute() {
   );
 }
 
+function parseIngredientQuantity(amount: string) {
+  const quantity = Number(amount.match(/\d+(\.\d+)?/)?.[0]);
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+}
+
+function parseUsedInventoryItems(input?: string): UsedInventoryItemParam[] {
+  if (!input) return [];
+  try {
+    const parsed: unknown = JSON.parse(input);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is UsedInventoryItemParam => (
+      typeof item === "object" &&
+      item !== null &&
+      "ingredientName" in item &&
+      "itemId" in item &&
+      typeof item.ingredientName === "string" &&
+      typeof item.itemId === "string"
+    ));
+  } catch {
+    return [];
+  }
+}
+
 function RecipeGlyph() {
   return (
     <Svg width={48} height={48} viewBox="0 0 48 48" fill="none" style={{ opacity: 0.85 }}>
@@ -331,6 +394,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     marginTop: spacing.sm,
     marginBottom: spacing.xxl,
+  },
+  description: {
+    marginTop: spacing.sm,
   },
   sectionLabel: {
     marginBottom: spacing.md,

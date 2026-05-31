@@ -1,4 +1,4 @@
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, Tabs, useLocalSearchParams } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
@@ -80,6 +80,12 @@ export default function TabsLayout() {
 
 function ChompTabBar({ state, navigation }: TabBarProps) {
   const { t } = useTranslation();
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const activeRoute = state.routes[state.index]?.name;
+  const hideForScanCamera =
+    activeRoute === "scan" && (params.mode === "receipt" || params.mode === "barcode");
+
+  if (hideForScanCamera) return null;
 
   return (
     <View style={styles.dock}>

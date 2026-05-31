@@ -3,6 +3,8 @@ export const en = {
     continue: "Continue",
     loading: "Loading",
     cancel: "Cancel",
+    error: "Something went wrong",
+    fridgeUpdateError: "Could not update your fridge.",
     recommended: "Recommended",
     signOut: "Sign out",
     skipForNow: "Skip for now",
