@@ -1,0 +1,120 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e29]:
+    - generic [ref=e30]:
+      - generic [ref=e31]: Enter your code.
+      - generic [ref=e32]: We sent a 6-digit code to bjekoviclena@gmail.com.
+    - generic [ref=e33]:
+      - generic [ref=e34]:
+        - generic [ref=e35]: EMAIL
+        - textbox [ref=e36]: bjekoviclena@gmail.com
+      - generic [ref=e43]:
+        - generic [ref=e44]: 6-DIGIT CODE
+        - textbox [ref=e45]: "188524"
+      - button [disabled]:
+        - progressbar [ref=e52]:
+          - img [ref=e54]
+      - button [disabled]:
+        - progressbar [ref=e57]:
+          - img [ref=e59]
+    - button "Back to sign in options" [ref=e40] [cursor=pointer]:
+      - generic [ref=e42]: Back to sign in options
+  - button "! Token has expired or is invalid" [ref=e63] [cursor=pointer]:
+    - generic [ref=e65]: "!"
+    - generic [ref=e66]: Token has expired or is invalid
+    - button [ref=e67]:
+      - img [ref=e69]
+  - generic [ref=e74]:
+    - generic [ref=e76]:
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - button "Dismiss error" [ref=e79] [cursor=pointer]:
+            - img [ref=e80]
+          - button "Minimize errors" [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+        - generic [ref=e86]:
+          - button "Previous error" [disabled] [ref=e87]:
+            - img [ref=e88]
+          - generic [ref=e90]: 1/1
+          - button "Next error" [disabled] [ref=e91]:
+            - img [ref=e92]
+      - generic [ref=e94]:
+        - button "Reload application" [ref=e95] [cursor=pointer]:
+          - img [ref=e96]
+        - button "Copy error" [ref=e98] [cursor=pointer]:
+          - img [ref=e99]
+        - generic [ref=e104]:
+          - img [ref=e105]
+          - generic [ref=e107]: Expo 56.0.0
+    - generic [ref=e108]:
+      - generic [ref=e109]:
+        - generic [ref=e111]: Uncaught Error
+        - generic [ref=e112]: Token has expired or is invalid
+      - generic [ref=e113]:
+        - generic [ref=e114]:
+          - banner [ref=e115]:
+            - generic [ref=e117]:
+              - img [ref=e119]
+              - generic [ref=e121]: src/services/authService.ts (90:27)
+            - button "Copy content" [ref=e122] [cursor=pointer]:
+              - paragraph [ref=e123]: Open
+              - img [ref=e124]
+          - generic [ref=e127]:
+            - generic [ref=e128]:
+              - generic [ref=e130]: 88 |
+              - generic [ref=e132]: const
+              - generic [ref=e133]: supabase
+              - generic [ref=e134]: =
+              - generic [ref=e135]: getSupabaseClient()
+              - generic [ref=e136]: ;
+            - generic [ref=e139]: 89 |
+            - generic [ref=e140]:
+              - generic [ref=e141]: ">"
+              - generic [ref=e142]: 90 |
+              - generic [ref=e144]: const
+              - generic [ref=e145]: "{ data"
+              - generic [ref=e146]: ","
+              - generic [ref=e147]: "error }"
+              - generic [ref=e148]: =
+              - generic [ref=e150]: await
+              - generic [ref=e151]: supabase
+              - generic [ref=e152]: .
+              - generic [ref=e153]: auth
+              - generic [ref=e154]: .
+              - generic [ref=e155]: "verifyOtp({"
+            - generic [ref=e156]:
+              - generic [ref=e158]: "|"
+              - generic [ref=e160]: ^
+            - generic [ref=e161]:
+              - generic [ref=e163]: 91 |
+              - generic [ref=e164]: email
+              - generic [ref=e165]: ","
+            - generic [ref=e166]:
+              - generic [ref=e168]: 92 |
+              - generic [ref=e169]: token
+              - generic [ref=e170]: ","
+            - generic [ref=e171]:
+              - generic [ref=e173]: 93 |
+              - generic [ref=e174]: type
+              - generic [ref=e175]: ":"
+              - generic [ref=e177]: "\"email\""
+              - generic [ref=e178]: ","
+        - generic [ref=e179]:
+          - generic [ref=e180]:
+            - generic [ref=e181]:
+              - img [ref=e182]
+              - heading "Call Stack" [level=3] [ref=e184]
+              - generic [ref=e185]: "7"
+            - button "Show 4 ignored-listed frames" [ref=e186] [cursor=pointer]:
+              - generic "Show 4 ignored-listed frames" [ref=e187]:
+                - generic [ref=e188]: Show 4 ignored-listed frames
+                - img [ref=e189]
+          - generic [ref=e193]:
+            - generic [ref=e195] [cursor=pointer]:
+              - code [ref=e196]: verifyEmailOtp
+              - code [ref=e197]: src/services/authService.ts:90:27
+            - generic [ref=e199] [cursor=pointer]:
+              - code [ref=e200]: verifyOtp
+              - code [ref=e201]: src/features/auth/AuthProvider.tsx:141:9
+            - generic [ref=e203] [cursor=pointer]:
+              - code [ref=e204]: handleVerify
+              - code [ref=e205]: src/app/(auth)/otp.tsx:56:5

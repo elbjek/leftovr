@@ -1,0 +1,15 @@
+- generic [ref=e154]:
+  - generic [ref=e158]: 2/4
+  - generic [ref=e159]:
+    - generic [ref=e160]: How you shop
+    - generic [ref=e161]: How do you usually shop?
+    - generic [ref=e162]: So we know how often to check in.
+  - generic [ref=e196]:
+    - button "One big weekly shop" [ref=e197] [cursor=pointer]:
+      - generic [ref=e200]: One big weekly shop
+    - button "A few times a week" [ref=e201] [cursor=pointer]:
+      - generic [ref=e204]: A few times a week
+    - button "Whenever I need something" [ref=e205] [cursor=pointer]:
+      - generic [ref=e208]: Whenever I need something
+  - button "Continue" [active] [ref=e193] [cursor=pointer]:
+    - generic [ref=e195]: Continue

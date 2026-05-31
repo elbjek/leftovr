@@ -206,6 +206,15 @@ export const sr = {
       useSoon: "Uskoro iskoristi",
       safe: "Jos je dobro",
     },
+    meta: {
+      urgent: "Pojedi prvo",
+      useSoon: "Uskoro iskoristi",
+      safe: "Jos je dobro",
+      full: "Puno",
+      someUsed: "Delimicno potroseno",
+      low: "Pri kraju",
+      lots: "{{count}} lotova",
+    },
     actions: {
       use: "Trosi",
       partial: "Delimicno",
@@ -352,10 +361,10 @@ export const sr = {
   },
   settings: {
     title: "Podesavanja",
-    body: "Nalog, domacinstvo, jezik i prototype controls ce biti ovde.",
+    body: "Nalog, domacinstvo, jezik i kontrole prototipa ce biti ovde.",
     languageTitle: "Jezik",
     languageBody: "Prebaci prototype izmedju engleskog i srpskog.",
-    resetOnboarding: "Resetuj onboarding",
+    resetOnboarding: "Resetuj uvodjenje",
     languages: {
       en: "English",
       sr: "Srpski",
@@ -397,7 +406,7 @@ export const sr = {
     tierPremium: "Premium",
     tierHouseholdPremium: "Household Premium",
     prototypeDayLabel: "Prototype dan",
-    prototypeDayBody: "Simuliraj onboarding dan (1–7).",
+    prototypeDayBody: "Simuliraj dan uvodjenja (1–7).",
     tierUpdated: "Tier azuriran.",
     dayUpdated: "Prototype dan azuriran.",
     household: {

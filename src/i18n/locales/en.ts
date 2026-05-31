@@ -207,6 +207,15 @@ export const en = {
       useSoon: "Use soon",
       safe: "Keeps well",
     },
+    meta: {
+      urgent: "Eat first",
+      useSoon: "Use soon",
+      safe: "Keeps well",
+      full: "Full",
+      someUsed: "Some used",
+      low: "Low",
+      lots: "{{count}} lots",
+    },
     actions: {
       use: "Use",
       partial: "Partial",
