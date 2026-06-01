@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingTop: spacing.screenTop,
-    paddingBottom: spacing.tabBarClearance + 70,
+    paddingBottom: spacing.tabBarClearance,
   },
   emptyWrap: {
     flex: 1,

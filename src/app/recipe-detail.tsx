@@ -6,7 +6,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { BottomSheet, Button, Card, RecipeGlyph, Text } from "@/components";
 import { useAuth } from "@/features";
-import { notifyInventoryChanged } from "@/hooks";
+import { notifyInventoryChanged, useInventory } from "@/hooks";
 import { normalizeFoodName } from "@/services";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
@@ -43,6 +43,7 @@ export default function RecipeDetailRoute() {
   }>();
 
   const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
+  const { groups: inventoryGroups } = useInventory(activeHousehold?.id);
 
   const title = params.title ?? "";
   const description = params.description ?? "";
@@ -101,6 +102,9 @@ export default function RecipeDetailRoute() {
   }
 
   function handleCookPress() {
+    // Pre-tick every ingredient currently in the fridge (live by name),
+    // not just the ones matched when the recipe was generated.
+    const fridgeNames = new Set(inventoryGroups.map((group) => group.normalizedName));
     const items = ingredients.map((ing, i) => {
       const itemId = getUsedItemId(ing.name, i);
       const parsed = parseIngredientAmount(ing.amount);
@@ -110,7 +114,7 @@ export default function RecipeDetailRoute() {
         itemId,
         quantityToUse: ing.countable ? parsed.value : (parsed.unit ? parsed.value : 1),
         unit: ing.countable ? "item" : (parsed.unit ?? "item"),
-        used: itemId !== null,
+        used: fridgeNames.has(normalizeFoodName(ing.name)),
       };
     });
     setCookedItems(items);
