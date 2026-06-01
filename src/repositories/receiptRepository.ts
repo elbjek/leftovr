@@ -2,6 +2,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import { normalizeMockReceipt } from "@/services";
 import {
   computeUrgency,
+  getCatalogNet,
   getShelfLifeRange,
   normalizeFoodName,
 } from "@/services/inventoryRules";
@@ -132,13 +133,17 @@ export async function processMockReceiptScan(input: {
 
   if (normalized.highConfidenceItems.length > 0) {
     const { error: inventoryError } = await supabase.from("inventory_items").insert(
-      normalized.highConfidenceItems.map((item) => ({
+      normalized.highConfidenceItems.map((item) => {
+        const catalogNet = getCatalogNet(item.name);
+        return {
         household_id: input.householdId,
         name: item.name,
         normalized_name: normalizeFoodName(item.name),
         category: item.category,
         quantity: item.quantity,
         unit: item.unit,
+        net_amount: catalogNet ? catalogNet.netAmount * item.quantity : null,
+        net_unit: catalogNet?.netUnit ?? null,
         display_quantity: formatDisplayQuantity(item.quantity, item.unit),
         partial_state: "full",
         urgency: item.urgency ?? computeUrgency({ name: item.name, category: item.category, addedAt: now }),
@@ -148,7 +153,8 @@ export async function processMockReceiptScan(input: {
         confidence: item.confidence,
         added_by: userId,
         added_at: now,
-      })),
+        };
+      }),
     );
 
     if (inventoryError) {
