@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -431,10 +431,12 @@ function ItemActionSheet({
   onOverrideNet: (itemId: string, netAmount: number) => Promise<void>;
 }) {
   const [netInput, setNetInput] = useState("");
-  useEffect(() => {
+  const [lastKey, setLastKey] = useState(group?.key);
+  if (group?.key !== lastKey) {
+    setLastKey(group?.key);
     const firstLotNet = group?.lots[0]?.net_amount;
     setNetInput(firstLotNet != null ? String(firstLotNet) : "");
-  }, [group?.key]);
+  }
 
   const isPrecise = group?.netAmount != null && group.netUnit != null;
 
