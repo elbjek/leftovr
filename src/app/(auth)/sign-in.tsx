@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Link, Redirect, router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -63,6 +64,15 @@ export default function SignInRoute() {
       <Link href="/(auth)/sign-up" asChild>
         <Button title={t("auth.goToSignUp")} variant="text" />
       </Link>
+      {/* TODO: Remove this dev-only reset button before production */}
+      <Button
+        title="DEV: Reset Onboarding"
+        variant="text"
+        onPress={async () => {
+          await AsyncStorage.clear();
+          router.replace("/");
+        }}
+      />
     </Screen>
   );
 }

@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomSheet, Button, EatFirstShelf, FoodCard, RetentionCard, Screen, ShelfRow, Text } from "@/components";
+import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ShelfRow, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useInventory, useRetention } from "@/hooks";
 import {
@@ -61,8 +61,8 @@ export default function FridgeRoute() {
           </Text>
         </View>
         <View style={styles.headerActions}>
-          <IconButton label={t("fridge.search")} icon={<SearchIcon />} />
-          <IconButton label={t("fridge.refresh")} icon={<RefreshIcon />} onPress={refresh} />
+          <IconButton label={t("fridge.search")}><SearchIcon /></IconButton>
+          <IconButton label={t("fridge.refresh")} onPress={refresh}><RefreshIcon /></IconButton>
         </View>
       </View>
 
@@ -473,13 +473,6 @@ function shelfLifeStart(range: string) {
   return Number.isFinite(firstNumber) ? firstNumber : 999;
 }
 
-function IconButton({ label, icon, onPress }: { label: string; icon: React.ReactNode; onPress?: () => void }) {
-  return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.iconButton}>
-      {icon}
-    </Pressable>
-  );
-}
 
 function SearchIcon() {
   return (
@@ -530,16 +523,6 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: "row",
     gap: spacing.sm,
-  },
-  iconButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    alignItems: "center",
-    justifyContent: "center",
   },
   refreshButton: {
     minHeight: 38,

@@ -62,7 +62,7 @@ export const sr = {
       ],
     },
     hook: {
-      cta: "Pocni — besplatno je",
+      cta: "Pocni",
       slides: [
         {
           key: "waste",
@@ -100,7 +100,7 @@ export const sr = {
         {
           key: "start",
           title: "Hajde da jedes.",
-          body: "Besplatno. Bez kartice.",
+          body: "Tvoja najpametnija kuhinjska navika pocinje ovde.",
           illustration: "wordmark",
           wordmarkKicker: "sta je za veceru?",
         },
