@@ -14,6 +14,7 @@ type Props = {
   metaSeparator?: string;
   favoriteLabel?: string;
   favorite?: boolean;
+  cookedLabel?: string;
   onPress?: () => void;
 };
 
@@ -26,6 +27,7 @@ export function RecipeCard({
   metaSeparator = " - ",
   favoriteLabel,
   favorite = false,
+  cookedLabel,
   onPress,
 }: Props) {
   const leadItem = usedItems[0] ?? title;
@@ -54,6 +56,11 @@ export function RecipeCard({
             {metaSeparator}
             {complexityLabel}
           </Text>
+          {cookedLabel ? (
+            <View style={styles.cookedBadge}>
+              <Text variant="micro" color={colors.primary}>{cookedLabel}</Text>
+            </View>
+          ) : null}
         </View>
         {usedItems.length > 0 ? (
           <Text variant="small" color={colors.primary} style={styles.uses} numberOfLines={1}>
@@ -107,9 +114,18 @@ const styles = StyleSheet.create({
   },
   metaRow: {
     marginTop: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   uses: {
     marginTop: spacing.xs,
     fontWeight: "600",
+  },
+  cookedBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    backgroundColor: colors.primary50,
+    borderRadius: radii.pill,
   },
 });

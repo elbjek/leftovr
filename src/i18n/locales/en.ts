@@ -372,6 +372,7 @@ export const en = {
       fromFridgeCount: "From your fridge · {{count}} items",
       howToCook: "How to cook",
       cookCta: "I cooked this",
+      cookAgainCta: "Cook again",
       bestToday: "best today",
       servings: "{{count}} servings",
     },
@@ -381,6 +382,7 @@ export const en = {
       body: "We'll remove these from your fridge. Untick anything you didn't use.",
       confirm: "Remove {{count}} items from fridge",
       done: "Done! Fridge updated.",
+      count: "Cooked {{count}}×",
     },
     tabs: {
       all: "All",

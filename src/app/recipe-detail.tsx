@@ -39,6 +39,7 @@ export default function RecipeDetailRoute() {
     usedInventoryItems: string;
     recipeId: string;
     isFavorite: string;
+    cookedCount: string;
     matchedUrgentItems: string;
   }>();
 
@@ -51,6 +52,8 @@ export default function RecipeDetailRoute() {
   const complexity = params.complexity ?? "simple";
   const servings = Number(params.servings ?? 2);
   const recipeId = params.recipeId ?? "";
+  const cookedCount = Number(params.cookedCount ?? 0);
+  const hasCooked = cookedCount > 0;
 
   const ingredients: IngredientItem[] = params.ingredients
     ? JSON.parse(params.ingredients)
@@ -79,6 +82,8 @@ export default function RecipeDetailRoute() {
   }[]>([]);
   const [cooking, setCooking] = useState(false);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
+  const [stepsViewportHeight, setStepsViewportHeight] = useState(0);
+  const [stepsContentHeight, setStepsContentHeight] = useState(0);
 
   const showCookCoachMark =
     (profile?.prototype_day ?? 1) >= 3 && !profile?.cooked_coachmark_seen_at;
@@ -180,89 +185,99 @@ export default function RecipeDetailRoute() {
 
   const removedCount = cookedItems.filter((i) => i.used).length;
   const urgentBadge = matchedUrgentItems[0];
+  const stepsOverflow = stepsContentHeight > stepsViewportHeight + 1;
 
   return (
     <View style={styles.screen}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.hero}>
+      <View style={styles.hero}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("recipes.detail.backLabel")}
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Svg width={14} height={14} viewBox="0 0 14 14">
+            <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        </Pressable>
+        <RecipeGlyph size={48} />
+        {urgentBadge ? (
+          <View style={styles.urgentChip}>
+            <Text variant="small" color={colors.primary}>
+              {t("recipes.saves", { item: urgentBadge })}
+            </Text>
+          </View>
+        ) : null}
+        {recipeId ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={t("recipes.detail.backLabel")}
-            onPress={() => router.back()}
-            style={styles.backButton}
+            onPress={handleFavoriteToggle}
+            style={styles.favoriteButton}
           >
-            <Svg width={14} height={14} viewBox="0 0 14 14">
-              <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
+            <Text variant="body">{favorite ? "★" : "☆"}</Text>
           </Pressable>
-          <RecipeGlyph size={48} />
-          {urgentBadge ? (
-            <View style={styles.urgentChip}>
-              <Text variant="small" color={colors.primary}>
-                {t("recipes.saves", { item: urgentBadge })}
-              </Text>
-            </View>
-          ) : null}
-          {recipeId ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={handleFavoriteToggle}
-              style={styles.favoriteButton}
-            >
-              <Text variant="body">{favorite ? "★" : "☆"}</Text>
-            </Pressable>
-          ) : null}
+        ) : null}
+      </View>
+
+      <View style={styles.body}>
+        <Text variant="h1">{title}</Text>
+        {description ? (
+          <Text variant="body" muted style={styles.description}>
+            {description}
+          </Text>
+        ) : null}
+        <View style={styles.metaRow}>
+          <Text variant="small" muted>⏱ {timeMinutes} min</Text>
+          <Text variant="small" muted>·</Text>
+          <Text variant="small" muted>{t("recipes.detail.servings", { count: servings })}</Text>
+          <Text variant="small" muted>·</Text>
+          <Text variant="small" muted>{complexityLabel}</Text>
         </View>
 
-        <View style={styles.body}>
-          <Text variant="h1">{title}</Text>
-          {description ? (
-            <Text variant="body" muted style={styles.description}>
-              {description}
+        {fridgeCount > 0 ? (
+          <>
+            <Text variant="micro" muted style={styles.sectionLabel}>
+              {t("recipes.detail.fromFridgeCount", { count: fridgeCount })}
             </Text>
-          ) : null}
-          <View style={styles.metaRow}>
-            <Text variant="small" muted>⏱ {timeMinutes} min</Text>
-            <Text variant="small" muted>·</Text>
-            <Text variant="small" muted>{t("recipes.detail.servings", { count: servings })}</Text>
-            <Text variant="small" muted>·</Text>
-            <Text variant="small" muted>{complexityLabel}</Text>
-          </View>
+            <View style={styles.ingredientChips}>
+              {ingredients.map((ing, i) => {
+                const inFridge = Boolean(getUsedItemId(ing.name, i));
+                const isUrgent = matchedUrgentItems.includes(ing.name);
+                return (
+                  <View key={i} style={styles.ingredientChip}>
+                    <View style={[styles.dot, { backgroundColor: isUrgent ? colors.red : inFridge ? colors.green : colors.muted2 }]} />
+                    <Text variant="small" style={styles.ingredientName}>{ing.name}</Text>
+                    <Text variant="small" muted>· {isUrgent ? t("recipes.detail.bestToday") : ing.amount}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </>
+        ) : null}
 
-          {fridgeCount > 0 ? (
-            <>
-              <Text variant="micro" muted style={styles.sectionLabel}>
-                {t("recipes.detail.fromFridgeCount", { count: fridgeCount })}
-              </Text>
-              <View style={styles.ingredientChips}>
-                {ingredients.map((ing, i) => {
-                  const inFridge = Boolean(getUsedItemId(ing.name, i));
-                  const isUrgent = matchedUrgentItems.includes(ing.name);
-                  return (
-                    <View key={i} style={styles.ingredientChip}>
-                      <View style={[styles.dot, { backgroundColor: isUrgent ? colors.red : inFridge ? colors.green : colors.muted2 }]} />
-                      <Text variant="small" style={styles.ingredientName}>{ing.name}</Text>
-                      <Text variant="small" muted>· {isUrgent ? t("recipes.detail.bestToday") : ing.amount}</Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </>
-          ) : null}
+        <Text variant="micro" muted style={styles.sectionLabel}>
+          {t("recipes.detail.howToCook")}
+        </Text>
+      </View>
 
-          <Text variant="micro" muted style={styles.sectionLabel}>
-            {t("recipes.detail.howToCook")}
-          </Text>
-          <View style={styles.steps}>
-            {steps.map((step, i) => (
-              <View key={i} style={styles.stepRow}>
-                <View style={styles.stepNumber}>
-                  <Text variant="small" color={colors.surface} style={styles.stepNumberText}>{i + 1}</Text>
-                </View>
-                <Text variant="body" style={styles.stepText}>{step}</Text>
+      <ScrollView
+        style={styles.stepsScroll}
+        contentContainerStyle={styles.stepsContent}
+        scrollEnabled={stepsOverflow}
+        bounces={stepsOverflow}
+        showsVerticalScrollIndicator={stepsOverflow}
+        onLayout={(event) => setStepsViewportHeight(event.nativeEvent.layout.height)}
+        onContentSizeChange={(_width, height) => setStepsContentHeight(height)}
+      >
+        <View style={styles.steps}>
+          {steps.map((step, i) => (
+            <View key={i} style={styles.stepRow}>
+              <View style={styles.stepNumber}>
+                <Text variant="small" color={colors.surface} style={styles.stepNumberText}>{i + 1}</Text>
               </View>
-            ))}
-          </View>
+              <Text variant="body" style={styles.stepText}>{step}</Text>
+            </View>
+          ))}
         </View>
       </ScrollView>
 
@@ -277,7 +292,7 @@ export default function RecipeDetailRoute() {
           </Card>
         ) : null}
         <Button
-          title={t("recipes.detail.cookCta")}
+          title={hasCooked ? t("recipes.detail.cookAgainCta") : t("recipes.detail.cookCta")}
           variant="accent"
           onPress={handleCookPress}
         />
@@ -360,10 +375,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.surface,
   },
-  scroll: {
+  stepsScroll: {
     flex: 1,
   },
-  scrollContent: {
+  stepsContent: {
+    paddingHorizontal: spacing.xxl,
     paddingBottom: 120,
   },
   hero: {
@@ -405,7 +421,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
   },
   body: {
-    padding: spacing.xxl,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.xxl,
   },
   metaRow: {
     flexDirection: "row",
@@ -425,7 +442,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.sm,
-    marginBottom: spacing.xxl,
+    marginBottom: spacing.lg,
   },
   ingredientChip: {
     flexDirection: "row",
