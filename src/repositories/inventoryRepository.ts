@@ -2,6 +2,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import {
   computeUrgency,
   getCatalogFood,
+  getCatalogNet,
   getDepletionUpdate,
   getNextPartialState,
   getShelfLifeRange,
@@ -29,7 +30,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
   const { data, error } = await supabase
     .from("inventory_items")
     .select(
-      "id, household_id, name, normalized_name, category, quantity, unit, display_quantity, partial_state, urgency, shelf_life_range, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
+      "id, household_id, name, normalized_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
     )
     .eq("household_id", householdId)
     .is("removed_at", null)
@@ -46,6 +47,8 @@ export async function listActiveHouseholdInventory(householdId: string) {
     category: row.category,
     quantity: row.quantity,
     unit: row.unit,
+    net_amount: row.net_amount ?? null,
+    net_unit: row.net_unit ?? null,
     display_quantity: row.display_quantity,
     partial_state: row.partial_state,
     urgency: row.urgency,
@@ -79,6 +82,9 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
   const urgency = computeUrgency({ name, category, addedAt });
   const quantity = input.quantity ?? 1;
   const unit = input.unit ?? catalogItem?.unit ?? "item";
+  const catalogNet = getCatalogNet(name);
+  const netUnit = catalogNet?.netUnit ?? null;
+  const netAmount = catalogNet ? catalogNet.netAmount * quantity : null;
 
   const { data, error } = await supabase
     .from("inventory_items")
@@ -89,6 +95,8 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       category,
       quantity,
       unit,
+      net_amount: netAmount,
+      net_unit: netUnit,
       display_quantity: formatDisplayQuantity(quantity, unit),
       partial_state: "full" satisfies PartialState,
       urgency,
@@ -98,7 +106,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       added_at: addedAt,
     })
     .select(
-      "id, household_id, name, normalized_name, category, quantity, unit, display_quantity, partial_state, urgency, shelf_life_range, source, added_at, removed_at",
+      "id, household_id, name, normalized_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, source, added_at, removed_at",
     )
     .single<InventoryLot>();
 
