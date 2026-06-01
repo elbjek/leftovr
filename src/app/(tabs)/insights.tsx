@@ -196,6 +196,7 @@ function getEmptySummary(): InsightsSummary {
     itemsAdded: 0,
     cookedEvents: 0,
     removedItems: 0,
+    itemsSaved: 0,
     estimatedItemsSaved: 0,
     estimatedMoneySaved: 0,
     mostUsedCategory: null,

@@ -9,6 +9,7 @@ type EatFirstItem = {
   name: string;
   category?: string;
   note: string;
+  bestBy?: string;
   urgency?: "safe" | "useSoon" | "urgent";
 };
 
@@ -77,6 +78,7 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onU
               name={item.name}
               category={item.category}
               meta={item.note}
+              bestBy={item.bestBy}
               urgency={item.urgency}
               style={styles.eatFirstCard}
               onPress={() => onItemPress?.(item)}

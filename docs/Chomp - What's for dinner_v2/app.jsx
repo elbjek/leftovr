@@ -34,6 +34,7 @@ const SCREENS = [
   { id: 'insights',   label: 'Insights (premium)',       group: 'App' },
   { id: 'paywall',    label: 'Premium paywall',          group: 'App' },
   { id: 'profile',    label: 'Profile',                  group: 'Account' },
+  { id: 'editprofile',label: 'Edit profile',             group: 'Account' },
   { id: 'settings',   label: 'Settings',                 group: 'Account' },
   { id: 'household',  label: 'Household',                group: 'Account' },
   { id: 'invite',     label: 'Invite to household',      group: 'Account' },
@@ -55,7 +56,7 @@ function App() {
   const screen = SCREENS[idx];
   const { LanguagePick, Hook1, Hook2, Hook3, Hook4, Hook5, Signup, NameScreen, PQ1, PQ2, PQ3, PQ4 } = window.OnboardingScreens;
   const { FillFridge, CameraScan, Processing, Celebrate, QuickCheck, Notif, Home, Recipes, RecipeDetail, CookedThis, Insights, Paywall, ScanChoice } = window.AppScreens;
-  const { Profile, Settings, Household, Invite } = window.AcctScreens;
+  const { Profile, EditProfile, Settings, Household, Invite } = window.AcctScreens;
   const { RecipesList } = window.RecipesListScreen;
 
   const screenMap = {
@@ -86,6 +87,7 @@ function App() {
     paywall:    <Paywall next={next} />,
     scanchoice: <ScanChoice nav={goId} back={() => goId(scanReturn)} />,
     profile:    <Profile next={next} tier={t.tier} nav={goId} onScan={openScan('profile')} />,
+    editprofile:<EditProfile nav={goId} />,
     settings:   <Settings next={next} nav={goId} onScan={openScan('settings')} />,
     household:  <Household next={next} tier={t.tier} nav={goId} onScan={openScan('household')} />,
     invite:     <Invite next={() => setIdx(0)} />,

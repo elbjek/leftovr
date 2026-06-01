@@ -7,6 +7,7 @@ import Svg, { Path } from "react-native-svg";
 import { BottomSheet, Button, Card, RecipeGlyph, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useInventory } from "@/hooks";
+import { normalizeFoodName } from "@/services";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite } from "@/repositories/recipeRepository";
@@ -124,15 +125,23 @@ export default function RecipeDetailRoute() {
     if (!activeHousehold?.id) return;
     setCooking(true);
     try {
-      const itemsToRemove = cookedItems.filter((i) => i.used && i.itemId).map((i) => i.itemId!);
-      const usedItems = cookedItems
-        .filter((i) => i.used && i.itemId)
-        .map((i) => ({ id: i.itemId!, amount: i.quantityToUse }));
+      // Deplete by item name against current inventory (spilling across lots,
+      // soonest-expiry first) instead of stale snapshot lot ids. Sum duplicate
+      // ingredients so each item is depleted by its total amount once.
+      const amountByName = new Map<string, number>();
+      for (const item of cookedItems) {
+        if (!item.used) continue;
+        const key = normalizeFoodName(item.name);
+        amountByName.set(key, (amountByName.get(key) ?? 0) + item.quantityToUse);
+      }
+      const usedItems = [...amountByName.entries()].map(([normalizedName, amount]) => ({
+        normalizedName,
+        amount,
+      }));
       await recordCookedEventAndDepleteInventory({
         householdId: activeHousehold.id,
         recipeId: recipeId || null,
         servings,
-        usedItemIds: itemsToRemove,
         usedItems,
       });
       await refreshInventory();

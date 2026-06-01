@@ -132,7 +132,7 @@ function Profile({ next, tier, nav, onScan }) {
             <Row
               icon={<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="5" r="3" stroke="#1B4332" strokeWidth="1.6" fill="none" /><path d="M2 14c0-3 2.5-5 6-5s6 2 6 5" stroke="#1B4332" strokeWidth="1.6" fill="none" strokeLinecap="round" /></svg>}
               label="Edit profile"
-              onClick={() => {}} />
+              onClick={() => nav && nav('editprofile')} />
             
             <Row
               icon={<svg width="16" height="16" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="#1B4332" strokeWidth="1.6" fill="none" /><path d="M2 5l6 4 6-4" stroke="#1B4332" strokeWidth="1.6" fill="none" strokeLinecap="round" /></svg>}
@@ -204,6 +204,119 @@ function ProfileStat({ value, label, last }) {
     }}>
       <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--primary)' }}>{value}</div>
       <div className="t-micro" style={{ color: 'var(--muted)', marginTop: 4 }}>{label}</div>
+    </div>);
+
+}
+
+// ─────────────────────────────────────────────────────────────
+// EDIT PROFILE
+// ─────────────────────────────────────────────────────────────
+function EditProfile({ nav }) {
+  const back = () => nav && nav('profile');
+  const [form, setForm] = React.useState({
+    first: 'Maya', last: 'Chen',
+    email: 'maya@example.com',
+    phone: '',
+    bio: 'Weeknight cook trying to waste less.'
+  });
+  const [focus, setFocus] = React.useState(null);
+  const set = (k) => (e) => setForm((s) => ({ ...s, [k]: e.target.value }));
+  const fullName = `${form.first} ${form.last}`.trim() || 'Your name';
+
+  return (
+    <div className="screen">
+      {/* Header with inline Save */}
+      <div style={{ padding: '56px 20px 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <button onClick={back} style={{
+          width: 38, height: 38, borderRadius: 999, background: '#FFFEFB',
+          border: '1px solid var(--hairline)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+        }}>
+          <svg width="14" height="14" viewBox="0 0 14 14">
+            <path d="M9 2L3 7L9 12" stroke="#1C1C1A" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <h1 className="t-h2" style={{ margin: '0 auto 0 8px' }}>Edit profile</h1>
+        <button onClick={back} style={{
+          padding: '9px 16px', borderRadius: 999, border: 'none', cursor: 'pointer',
+          background: 'var(--primary)', color: 'var(--surface)',
+          fontFamily: 'inherit', fontWeight: 700, fontSize: 14
+        }}>Save</button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 32 }}>
+        {/* Avatar + change photo */}
+        <div style={{ padding: '14px 24px 26px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+          <div style={{ position: 'relative' }}>
+            <Avatar name={fullName} size={92} />
+            <button style={{
+              position: 'absolute', right: -2, bottom: -2,
+              width: 32, height: 32, borderRadius: 999,
+              background: 'var(--accent)', border: '3px solid var(--surface)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+            }}>
+              <svg width="14" height="14" viewBox="0 0 16 16"><path d="M3 6h2l1-1.5h4L11 6h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1V7a1 1 0 011-1z" stroke="#1C1C1A" strokeWidth="1.4" fill="none" /><circle cx="8" cy="9.5" r="2" stroke="#1C1C1A" strokeWidth="1.4" fill="none" /></svg>
+            </button>
+          </div>
+          <button style={{
+            background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            color: 'var(--primary)', fontWeight: 700, fontSize: 14
+          }}>Change photo</button>
+        </div>
+
+        <div style={{ padding: '0 24px' }}>
+          <Group label="Name">
+            <Field label="First name" value={form.first} onChange={set('first')}
+              focused={focus === 'first'} onFocus={() => setFocus('first')} onBlur={() => setFocus(null)} />
+            <Field label="Last name" value={form.last} onChange={set('last')}
+              focused={focus === 'last'} onFocus={() => setFocus('last')} onBlur={() => setFocus(null)} last />
+          </Group>
+
+          <Group label="Contact">
+            <Field label="Email" value={form.email} onChange={set('email')} type="email"
+              focused={focus === 'email'} onFocus={() => setFocus('email')} onBlur={() => setFocus(null)} />
+            <Field label="Phone" value={form.phone} onChange={set('phone')} placeholder="Add a number" type="tel"
+              focused={focus === 'phone'} onFocus={() => setFocus('phone')} onBlur={() => setFocus(null)} last />
+          </Group>
+
+          <Group label="About">
+            <Field label="Short bio" value={form.bio} onChange={set('bio')} multiline placeholder="Tell us about how you cook"
+              focused={focus === 'bio'} onFocus={() => setFocus('bio')} onBlur={() => setFocus(null)} last />
+          </Group>
+
+          <button onClick={back} style={{
+            width: '100%', padding: 15, background: 'none',
+            border: '1px solid var(--hairline-strong)', borderRadius: 14, cursor: 'pointer',
+            fontFamily: 'inherit', fontWeight: 600, fontSize: 15, color: 'var(--muted)', marginBottom: 8
+          }}>Cancel</button>
+        </div>
+      </div>
+    </div>);
+
+}
+
+// Labeled text field used inside a Group, matching the row aesthetic
+function Field({ label, value, onChange, placeholder, type = 'text', multiline, last, focused, onFocus, onBlur }) {
+  const common = {
+    value, onChange, placeholder, onFocus, onBlur,
+    style: {
+      width: '100%', border: 'none', outline: 'none', background: 'transparent',
+      fontFamily: 'inherit', fontWeight: 600, fontSize: 15, color: 'var(--text)',
+      padding: 0, resize: 'none'
+    }
+  };
+  return (
+    <div style={{
+      padding: '11px 16px',
+      borderBottom: last ? 'none' : '1px solid var(--hairline)',
+      boxShadow: focused ? 'inset 3px 0 0 var(--primary)' : 'none',
+      transition: 'box-shadow 0.15s'
+    }}>
+      <div className="t-micro" style={{ color: focused ? 'var(--primary)' : 'var(--muted)', marginBottom: 5, transition: 'color 0.15s' }}>{label}</div>
+      {multiline ?
+      <textarea {...common} rows={2} /> :
+      <input {...common} type={type} />
+      }
     </div>);
 
 }
@@ -638,4 +751,4 @@ function FakeQR() {
 
 }
 
-window.AcctScreens = { Profile, Settings, Household, Invite };
+window.AcctScreens = { Profile, EditProfile, Settings, Household, Invite };

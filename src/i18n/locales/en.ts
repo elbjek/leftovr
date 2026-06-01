@@ -202,6 +202,11 @@ export const en = {
     eatFirstPreviewTitle: "Eat First preview",
     eatFirstPreviewBody: "Unlock a ranked shelf of what is best eaten soon.",
     eatFirstUnlock: "Unlock",
+    bestBy: {
+      today: "Best today",
+      tomorrow: "Best tomorrow",
+      inDays: "In {{count}} days",
+    },
     statsStrip: {
       title: "Avoided wasting ~{{count}} items this week",
       premiumSub: "About ${{amount}} saved · Tap for insights",

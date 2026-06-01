@@ -903,8 +903,8 @@ function Home({ next, tier, nav, onScan }) {
           </div>
         </div>
 
-        {/* Eat First shelf — Premium */}
-        {isPremium && <EatFirstShelf />}
+        {/* Eat First shelf — what to use today */}
+        <EatFirstShelf isPremium={isPremium} nav={nav} />
 
         {/* Stats strip — week summary (free at day 7) */}
         <div style={{ margin: '8px 24px 20px', padding: '14px 16px', background: 'var(--primary-50)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -981,7 +981,7 @@ function IconBtn({ icon }) {
 
 }
 
-function EatFirstShelf() {
+function EatFirstShelf({ isPremium, nav }) {
   const items = [
   { name: 'Baby spinach', category: 'veg', days: 'Best today', urgency: 'red' },
   { name: 'Free range eggs', category: 'dairy', days: 'Best today', urgency: 'red' },
@@ -991,10 +991,13 @@ function EatFirstShelf() {
     <div style={{ margin: '8px 24px 24px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
         <div>
-          <div className="t-micro" style={{ color: 'var(--accent)' }}>★ Premium</div>
+          <div className="t-micro" style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span className="dot dot-red" style={{ width: 7, height: 7 }} />
+            Use today
+          </div>
           <h2 className="t-h2" style={{ margin: '4px 0 0' }}>Eat first</h2>
         </div>
-        <span className="t-small muted">3 items</span>
+        <span className="t-small muted">{items.length} items</span>
       </div>
       <div style={{
         background: 'linear-gradient(135deg, var(--primary) 0%, #1F4E39 100%)',
@@ -1005,6 +1008,15 @@ function EatFirstShelf() {
           <EatFirstCard key={it.name} {...it} />
           )}
         </div>
+        <button onClick={() => nav && nav('recipes')} style={{
+          width: '100%', marginTop: 12, padding: '12px 14px', borderRadius: 12,
+          background: 'rgba(248,244,238,0.14)', border: '1px solid rgba(248,244,238,0.22)',
+          color: 'var(--surface)', fontFamily: 'inherit', fontWeight: 700, fontSize: 14,
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+        }}>
+          Cook with these first
+          <svg width="15" height="15" viewBox="0 0 15 15"><path d="M5 3l5 4.5-5 4.5" stroke="var(--surface)" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
       </div>
     </div>);
 

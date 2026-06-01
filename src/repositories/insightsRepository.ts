@@ -5,6 +5,7 @@ export type InsightsRawData = {
   itemsAdded: number;
   cookedEvents: number;
   removedItems: number;
+  itemsSaved: number;
   categoryBreakdown: Record<string, number>;
   cookedRecipes: { title: string; count: number }[];
 };
@@ -15,7 +16,7 @@ export async function getInsightsData(
 ): Promise<InsightsRawData> {
   const supabase = getSupabaseClient();
 
-  const [scans, items, cooked, cookedRecipeRows, removed] = await Promise.all([
+  const [scans, items, cooked, cookedRecipeRows, removed, saved] = await Promise.all([
     supabase
       .from("receipt_scans")
       .select("id", { count: "exact", head: true })
@@ -47,6 +48,13 @@ export async function getInsightsData(
       .eq("household_id", householdId)
       .not("removed_at", "is", null)
       .gte("removed_at", since),
+
+    supabase
+      .from("inventory_items")
+      .select("id", { count: "exact", head: true })
+      .eq("household_id", householdId)
+      .eq("removal_reason", "cooked")
+      .gte("removed_at", since),
   ]);
 
   if (scans.error) throw scans.error;
@@ -54,6 +62,7 @@ export async function getInsightsData(
   if (cooked.error) throw cooked.error;
   if (cookedRecipeRows.error) throw cookedRecipeRows.error;
   if (removed.error) throw removed.error;
+  if (saved.error) throw saved.error;
 
   const categoryBreakdown: Record<string, number> = {};
   if (items.data) {
@@ -80,6 +89,7 @@ export async function getInsightsData(
     itemsAdded: items.count ?? 0,
     cookedEvents: cooked.count ?? 0,
     removedItems: removed.count ?? 0,
+    itemsSaved: saved.count ?? 0,
     categoryBreakdown,
     cookedRecipes,
   };

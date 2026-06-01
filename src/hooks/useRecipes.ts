@@ -157,7 +157,7 @@ export function useRecipes(
 
       cookRecipe: async (input: {
         recipeId: string;
-        usedItemIds: string[];
+        usedItems: { normalizedName: string; amount?: number }[];
         servings?: number;
       }) => {
         if (!householdId) return;
@@ -165,7 +165,7 @@ export function useRecipes(
           householdId,
           recipeId: input.recipeId,
           servings: input.servings ?? null,
-          usedItemIds: input.usedItemIds,
+          usedItems: input.usedItems,
         });
       },
     }),

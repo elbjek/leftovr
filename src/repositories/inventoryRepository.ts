@@ -170,37 +170,94 @@ export async function markInventoryPartialState(itemId: string, partialState: Pa
   }
 }
 
-export async function depleteInventoryLot(itemId: string, amount = 1) {
+function urgencyDepletionRank(urgency: "safe" | "use_soon" | "urgent" | null) {
+  if (urgency === "urgent") return 3;
+  if (urgency === "use_soon") return 2;
+  return 1;
+}
+
+/**
+ * Deplete `amount` units of an item across all of its active lots, consuming the
+ * soonest-to-expire lots first (urgent → use_soon → safe, then oldest added).
+ * Used when cooking a recipe or marking an item used from the fridge, so the
+ * count drops correctly even when the item is split across multiple lots.
+ */
+export async function depleteItemQuantity(
+  householdId: string,
+  normalizedName: string,
+  amount = 1,
+) {
   const supabase = getSupabaseClient();
-  const { data: lot, error: lotError } = await supabase
+
+  const { data, error } = await supabase
     .from("inventory_items")
-    .select("id, quantity, partial_state, unit")
-    .eq("id", itemId)
-    .is("removed_at", null)
-    .single<Pick<InventoryLot, "id" | "quantity" | "partial_state" | "unit">>();
-
-  if (lotError) {
-    throw lotError;
-  }
-
-  const depletion = getDepletionUpdate(lot, amount);
-
-  if (depletion.shouldRemove) {
-    await removeInventoryLot(itemId, "cooked");
-    return;
-  }
-
-  const { error } = await supabase
-    .from("inventory_items")
-    .update({
-      quantity: depletion.quantity,
-      partial_state: depletion.partialState,
-      display_quantity: formatDisplayQuantity(depletion.quantity, lot.unit),
-    })
-    .eq("id", itemId);
+    .select("id, quantity, partial_state, unit, urgency, added_at")
+    .eq("household_id", householdId)
+    .eq("normalized_name", normalizedName)
+    .is("removed_at", null);
 
   if (error) {
     throw error;
+  }
+
+  const lots = (data ?? []) as {
+    id: string;
+    quantity: number;
+    partial_state: PartialState;
+    unit: string;
+    urgency: "safe" | "use_soon" | "urgent" | null;
+    added_at: string;
+  }[];
+
+  lots.sort((a, b) => {
+    const rank = urgencyDepletionRank(b.urgency) - urgencyDepletionRank(a.urgency);
+    if (rank !== 0) return rank;
+    return a.added_at.localeCompare(b.added_at);
+  });
+
+  let remaining = Math.max(1, amount);
+
+  for (const lot of lots) {
+    if (remaining <= 0) break;
+
+    if (lot.quantity > 1) {
+      const consume = Math.min(lot.quantity, remaining);
+      const nextQuantity = lot.quantity - consume;
+      if (nextQuantity <= 0) {
+        await removeInventoryLot(lot.id, "cooked");
+      } else {
+        const { error: updateError } = await supabase
+          .from("inventory_items")
+          .update({
+            quantity: nextQuantity,
+            display_quantity: formatDisplayQuantity(nextQuantity, lot.unit),
+          })
+          .eq("id", lot.id);
+        if (updateError) {
+          throw updateError;
+        }
+      }
+      remaining -= consume;
+    } else {
+      // Single-unit lot: advance partial state (or remove). Counts as one unit.
+      const depletion = getDepletionUpdate(lot, 1);
+      if (depletion.shouldRemove) {
+        await removeInventoryLot(lot.id, "cooked");
+      } else {
+        const { error: updateError } = await supabase
+          .from("inventory_items")
+          .update({
+            quantity: depletion.quantity,
+            partial_state: depletion.partialState,
+            display_quantity: formatDisplayQuantity(depletion.quantity, lot.unit),
+          })
+          .eq("id", lot.id);
+        if (updateError) {
+          throw updateError;
+        }
+      }
+      remaining -= 1;
+    }
   }
 }
 
@@ -224,8 +281,7 @@ export async function recordCookedEventAndDepleteInventory(input: {
   householdId: string;
   recipeId?: string | null;
   servings?: number | null;
-  usedItemIds: string[];
-  usedItems?: { id: string; amount?: number | null }[];
+  usedItems: { normalizedName: string; amount?: number | null }[];
 }) {
   const supabase = getSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();
@@ -240,17 +296,17 @@ export async function recordCookedEventAndDepleteInventory(input: {
     throw new Error("No signed-in user.");
   }
 
-  const usedItems: { id: string; amount?: number | null }[] =
-    input.usedItems ?? input.usedItemIds.map((id) => ({ id }));
-  await Promise.all(usedItems.map((item) => depleteInventoryLot(item.id, item.amount ?? 1)));
+  // Deplete sequentially so concurrent updates to the same lot can't race.
+  for (const item of input.usedItems) {
+    await depleteItemQuantity(input.householdId, item.normalizedName, item.amount ?? 1);
+  }
 
   const { error } = await supabase.from("cooked_events").insert({
     household_id: input.householdId,
     recipe_id: input.recipeId ?? null,
     cooked_by: userId,
     servings: input.servings ?? null,
-    used_items: usedItems,
-    removed_item_ids: input.usedItemIds,
+    used_items: input.usedItems,
   });
 
   if (error) {

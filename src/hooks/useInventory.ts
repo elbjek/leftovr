@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   addInventoryItem,
   advanceInventoryPartialState,
-  depleteInventoryLot,
+  depleteItemQuantity,
   listActiveHouseholdInventory,
   markInventoryPartialState,
   removeInventoryGroup,
@@ -65,9 +65,8 @@ export function useInventory(householdId?: string | null) {
         await load();
       },
       useFirstLot: async (group: InventoryGroup) => {
-        const lot = group.lots[0];
-        if (!lot) return;
-        await depleteInventoryLot(lot.id);
+        if (!householdId || !group.lots[0]) return;
+        await depleteItemQuantity(householdId, group.normalizedName, 1);
         await load();
       },
       markFirstLotPartial: async (group: InventoryGroup) => {
