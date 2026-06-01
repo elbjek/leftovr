@@ -1,0 +1,12 @@
+- generic [ref=e56]:
+  - generic [ref=e57]:
+    - generic [ref=e58]: Enter your code.
+    - generic [ref=e59]: We will send a 6-digit code to your email.
+  - generic [ref=e60]:
+    - generic [ref=e61]:
+      - generic [ref=e62]: EMAIL
+      - textbox [ref=e63]
+    - button "Send code" [ref=e64] [cursor=pointer]:
+      - generic [ref=e66]: Send code
+  - button "Back to sign in options" [ref=e67] [cursor=pointer]:
+    - generic [ref=e69]: Back to sign in options

@@ -8,6 +8,7 @@ type Props = {
   name: string;
   category?: CategoryTone | string;
   meta: string;
+  bestBy?: string;
   urgency?: Urgency;
   size?: "small" | "large";
   addedBy?: string | null;
@@ -19,6 +20,7 @@ export function FoodCard({
   name,
   category = "other",
   meta,
+  bestBy,
   urgency = "safe",
   size = "small",
   addedBy,
@@ -47,9 +49,15 @@ export function FoodCard({
         <Text variant="label" numberOfLines={2} style={isLarge && styles.largeTitle}>
           {name}
         </Text>
-        <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
-          {meta}
-        </Text>
+        {bestBy ? (
+          <Text variant="micro" color={urgencyColors[urgency]} style={styles.meta} numberOfLines={1}>
+            {bestBy}
+          </Text>
+        ) : (
+          <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
+            {meta}
+          </Text>
+        )}
         {addedBy ? (
           <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
             {addedBy}

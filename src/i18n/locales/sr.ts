@@ -201,6 +201,11 @@ export const sr = {
     eatFirstPreviewTitle: "Pregled za prvo pojesti",
     eatFirstPreviewBody: "Otkljucaj rangiranu policu stvari koje su najbolje uskoro.",
     eatFirstUnlock: "Otkljucaj",
+    bestBy: {
+      today: "Najbolje danas",
+      tomorrow: "Najbolje sutra",
+      inDays: "Za {{count}} dana",
+    },
     statsStrip: {
       title: "Spreceno bacanje ~{{count}} stavki ove nedelje",
       premiumSub: "Oko ${{amount}} ustedeno · Dodirni za uvide",

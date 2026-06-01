@@ -7,6 +7,7 @@ import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard
 import { useAuth } from "@/features";
 import { useInsights, useInventory, useRetention } from "@/hooks";
 import {
+  getCatalogFood,
   InventoryGroup,
   PartialState,
   toUiCategory,
@@ -67,6 +68,23 @@ export default function FridgeRoute() {
         </View>
       </View>
 
+      {weeklySummary && weeklySummary.itemsSaved > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          style={styles.statsStrip}
+          onPress={isPremium ? () => router.push("/(tabs)/insights") : undefined}
+        >
+          <View style={styles.statsIcon}>
+            <Svg width={22} height={22} viewBox="0 0 16 16" fill="none">
+              <Path d="M2 12 L6 7 L10 9 L14 3" stroke={colors.surface} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </View>
+          <Text variant="label" color={colors.primary}>
+            {t("fridge.statsStrip.title", { count: weeklySummary.itemsSaved })}
+          </Text>
+        </Pressable>
+      ) : null}
+
       <EatFirstShelf
         premium={isPremium}
         items={eatFirstGroups.map((group) => ({
@@ -74,6 +92,7 @@ export default function FridgeRoute() {
           name: group.name,
           category: toUiCategory(group.category),
           note: group.meta,
+          bestBy: computeBestByLabel(group, t),
           urgency: toUiUrgency(group.urgency),
         }))}
         labels={{
@@ -87,47 +106,6 @@ export default function FridgeRoute() {
         onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
         onUpgradePress={() => router.push("/(tabs)/settings")}
       />
-
-      {weeklySummary && weeklySummary.estimatedItemsSaved > 0 ? (
-        <Pressable
-          accessibilityRole="button"
-          style={styles.statsStrip}
-          onPress={isPremium ? () => router.push("/(tabs)/insights") : undefined}
-        >
-          <View style={styles.statsIcon}>
-            <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-              <Path d="M2 12 L6 7 L10 9 L14 3" stroke={colors.surface} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </View>
-          <View style={styles.statsCopy}>
-            <Text variant="label" color={colors.primary}>
-              {t("fridge.statsStrip.title", { count: weeklySummary.estimatedItemsSaved })}
-            </Text>
-            {isPremium ? (
-              <Text variant="small" muted style={styles.statsSubtext}>
-                {t("fridge.statsStrip.premiumSub", { amount: weeklySummary.estimatedMoneySaved.toFixed(0) })}
-              </Text>
-            ) : null}
-          </View>
-        </Pressable>
-      ) : null}
-
-      {day7Recap ? (
-        <View style={styles.retentionWrap}>
-          <RetentionCard
-            title={t("retention.day7Title")}
-            body={
-              profile?.primary_goal === "money"
-                ? t("retention.day7BodyMoney", { amount: day7Recap.estimatedMoneySaved.toFixed(0) })
-                : profile?.primary_goal === "quick"
-                  ? t("retention.day7BodyQuick", { count: day7Recap.estimatedItemsSaved })
-                  : profile?.primary_goal === "waste"
-                    ? t("retention.day7BodyWaste", { count: day7Recap.estimatedItemsSaved })
-                    : t("retention.day7BodyAll", { count: day7Recap.estimatedItemsSaved, amount: day7Recap.estimatedMoneySaved.toFixed(0) })
-            }
-          />
-        </View>
-      ) : null}
 
       {showDay5Nudge && !day7Recap ? (
         <View style={styles.retentionWrap}>
@@ -498,6 +476,19 @@ function shelfLifeStart(range: string) {
   return Number.isFinite(firstNumber) ? firstNumber : 999;
 }
 
+function computeBestByLabel(group: InventoryGroup, t: ReturnType<typeof useTranslation>["t"]): string {
+  const oldestLot = group.lots.reduce((oldest, lot) =>
+    new Date(lot.added_at) < new Date(oldest.added_at) ? lot : oldest,
+  );
+  const catalog = getCatalogFood(group.name);
+  const maxDays = catalog?.shelfLifeDays[1] ?? shelfLifeStart(group.shelfLifeRange);
+  const ageDays = Math.floor((Date.now() - new Date(oldestLot.added_at).getTime()) / 86_400_000);
+  const remaining = Math.max(0, maxDays - ageDays);
+
+  if (remaining <= 0) return t("fridge.bestBy.today");
+  if (remaining === 1) return t("fridge.bestBy.tomorrow");
+  return t("fridge.bestBy.inDays", { count: remaining });
+}
 
 function SearchIcon() {
   return (
@@ -537,26 +528,21 @@ const styles = StyleSheet.create({
   },
   statsStrip: {
     marginHorizontal: spacing.screenX,
-    padding: 14,
-    backgroundColor: colors.primary50,
-    borderRadius: 14,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.surface2,
+    borderRadius: radii.xl,
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: spacing.lg,
   },
   statsIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-  },
-  statsCopy: {
-    flex: 1,
-  },
-  statsSubtext: {
-    marginTop: 2,
   },
   header: {
     paddingHorizontal: spacing.screenX,

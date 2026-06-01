@@ -1,0 +1,61 @@
+- generic [ref=e64]:
+  - generic [ref=e67]:
+    - img [ref=e76]:
+      - generic [ref=e85]: "?"
+      - generic [ref=e86]: "?"
+    - generic [ref=e87]:
+      - generic [ref=e88]:
+        - generic [ref=e89]: How much food did you throw away last week?
+        - generic [ref=e90]: The average household tosses 30% of what they buy. That's about $1,500 a year — straight into the bin.
+      - button "Continue" [ref=e91] [cursor=pointer]:
+        - generic [ref=e93]: Continue
+  - generic [ref=e96]:
+    - img [ref=e105]
+    - generic [ref=e125]:
+      - generic [ref=e126]:
+        - generic [ref=e127]: Your fridge has a memory problem. We fixed it.
+        - generic [ref=e128]: Snap your receipt. Chomp remembers every item, knows when each one's at its best, and quietly keeps track.
+      - button "Continue" [ref=e129] [cursor=pointer]:
+        - generic [ref=e131]: Continue
+  - generic [ref=e134]:
+    - img [ref=e143]:
+      - generic [ref=e168]: 20 min
+    - generic [ref=e169]:
+      - generic [ref=e170]:
+        - generic [ref=e171]: Scan your receipt. We do the rest.
+        - generic [ref=e172]:
+          - generic [ref=e173]:
+            - generic [ref=e175]: "1"
+            - generic [ref=e176]: Snap
+          - generic [ref=e177]:
+            - generic [ref=e179]: "2"
+            - generic [ref=e180]: Fridge updates
+          - generic [ref=e181]:
+            - generic [ref=e183]: "3"
+            - generic [ref=e184]: Cook tonight
+      - button "Continue" [ref=e185] [cursor=pointer]:
+        - generic [ref=e187]: Continue
+  - generic [ref=e190]:
+    - generic [ref=e199]:
+      - generic [ref=e200]:
+        - generic [ref=e201]: "\"I haven't binned a vegetable in a month.\""
+        - generic [ref=e202]: Maya, London
+      - generic [ref=e203]:
+        - generic [ref=e204]: "\"Finally know what's in my own fridge.\""
+        - generic [ref=e205]: Daniel, NYC
+    - generic [ref=e206]:
+      - generic [ref=e207]:
+        - generic [ref=e208]: Never open the fridge wondering again.
+        - generic [ref=e209]: One tap gives you a recipe built from exactly what you've got — prioritised by what to eat first.
+      - button "Continue" [ref=e210] [cursor=pointer]:
+        - generic [ref=e212]: Continue
+  - generic [ref=e215]:
+    - generic [ref=e224]:
+      - generic [ref=e225]: chomp.
+      - generic [ref=e226]: what's for dinner?
+    - generic [ref=e227]:
+      - generic [ref=e228]:
+        - generic [ref=e229]: Let's get you fed.
+        - generic [ref=e230]: Your smartest kitchen habit starts here.
+      - button "Continue" [ref=e231] [cursor=pointer]:
+        - generic [ref=e233]: Continue

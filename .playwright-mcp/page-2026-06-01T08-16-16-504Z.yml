@@ -1,0 +1,20 @@
+- generic [ref=e28]:
+  - generic [ref=e30]: chomp.
+  - generic [ref=e31]:
+    - generic [ref=e32]:
+      - text: Choose your
+      - generic [ref=e33]: language
+    - generic [ref=e34]: Izaberite jezik. You can change this anytime in Settings.
+  - generic [ref=e35]:
+    - button "English flag English English" [active] [ref=e36] [cursor=pointer]:
+      - generic "English flag" [ref=e38]: 🇬🇧
+      - generic [ref=e39]:
+        - generic [ref=e41]: English
+        - generic [ref=e42]: English
+    - button "Srpski flag Srpski Serbian" [ref=e46] [cursor=pointer]:
+      - generic "Srpski flag" [ref=e48]: 🇷🇸
+      - generic [ref=e49]:
+        - generic [ref=e51]: Srpski
+        - generic [ref=e52]: Serbian
+  - button "Continue" [ref=e55] [cursor=pointer]:
+    - generic [ref=e57]: Continue

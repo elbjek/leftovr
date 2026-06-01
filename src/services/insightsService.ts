@@ -5,6 +5,7 @@ export type InsightsSummary = {
   itemsAdded: number;
   cookedEvents: number;
   removedItems: number;
+  itemsSaved: number;
   estimatedItemsSaved: number;
   estimatedMoneySaved: number;
   mostUsedCategory: string | null;
@@ -34,6 +35,7 @@ export function computeInsightsSummary(raw: InsightsRawData): InsightsSummary {
     itemsAdded: raw.itemsAdded,
     cookedEvents: raw.cookedEvents,
     removedItems: raw.removedItems,
+    itemsSaved: raw.itemsSaved,
     estimatedItemsSaved,
     estimatedMoneySaved,
     mostUsedCategory,
