@@ -5,6 +5,7 @@ import {
   createRecipeSession,
   CookingMode,
   FREE_WEEKLY_SESSION_LIMIT,
+  listCookedRecipes,
   getWeeklySessionCount,
   listHouseholdRecipes,
   RecipeRow,
@@ -23,6 +24,7 @@ type RecipesState = {
   generating: boolean;
   suggestions: RecipeMatch[];
   savedRecipes: RecipeRow[];
+  cookedRecipes: RecipeRow[];
   weeklyCount: number;
   error: string | null;
 };
@@ -43,24 +45,40 @@ export function useRecipes(
     generating: false,
     suggestions: [],
     savedRecipes: [],
+    cookedRecipes: [],
     weeklyCount: 0,
     error: null,
   });
 
   const load = useCallback(async () => {
     if (!householdId) {
-      setState({ loading: false, generating: false, suggestions: [], savedRecipes: [], weeklyCount: 0, error: null });
+      setState({
+        loading: false,
+        generating: false,
+        suggestions: [],
+        savedRecipes: [],
+        cookedRecipes: [],
+        weeklyCount: 0,
+        error: null,
+      });
       return;
     }
 
     setState((s) => ({ ...s, loading: true, error: null }));
 
     try {
-      const [recipes, count] = await Promise.all([
+      const [recipes, cookedRecipes, count] = await Promise.all([
         listHouseholdRecipes(householdId),
+        listCookedRecipes(householdId),
         getWeeklySessionCount(householdId),
       ]);
-      setState((s) => ({ ...s, loading: false, savedRecipes: recipes, weeklyCount: count }));
+      setState((s) => ({
+        ...s,
+        loading: false,
+        savedRecipes: recipes,
+        cookedRecipes,
+        weeklyCount: count,
+      }));
     } catch (err) {
       setState((s) => ({
         ...s,
@@ -158,6 +176,9 @@ export function useRecipes(
         setState((s) => ({
           ...s,
           savedRecipes: s.savedRecipes.map((r) =>
+            r.id === recipeId ? { ...r, is_favorite: !current } : r,
+          ),
+          cookedRecipes: s.cookedRecipes.map((r) =>
             r.id === recipeId ? { ...r, is_favorite: !current } : r,
           ),
         }));

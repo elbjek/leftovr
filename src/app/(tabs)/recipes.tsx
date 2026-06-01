@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { BottomDock, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, SegmentedControl, Text } from "@/components";
@@ -47,12 +47,20 @@ export default function RecipesRoute() {
     generating,
     suggestions,
     savedRecipes,
+    cookedRecipes,
     canGenerate,
     remainingSessions,
     freeLimit,
+    refresh: refreshRecipes,
     generateSession,
     toggleFavorite,
   } = useRecipes(activeHousehold?.id, { inventory, avoidances: activeAvoidances, isPremium, servings });
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshRecipes();
+    }, [refreshRecipes]),
+  );
 
   const openCookPrompt = useCallback(() => {
     if (!canGenerate) {
@@ -94,12 +102,13 @@ export default function RecipesRoute() {
           usedInventoryItemIds: JSON.stringify(usedIds),
           usedInventoryItems: JSON.stringify(usedInventoryItems),
           recipeId: recipeId ?? "",
-          isFavorite: "false",
+          isFavorite: String(recipeId ? (savedRecipes.find((r) => r.id === recipeId)?.is_favorite ?? false) : false),
+          cookedCount: String(recipeId ? (savedRecipes.find((r) => r.id === recipeId)?.cooked_count ?? 0) : 0),
           matchedUrgentItems: JSON.stringify(urgentNames),
         },
       });
     },
-    [],
+    [savedRecipes],
   );
 
   const navigateToSavedDetail = useCallback((recipe: RecipeRow) => {
@@ -123,13 +132,20 @@ export default function RecipesRoute() {
         usedInventoryItems: JSON.stringify(usedInventoryItems),
         recipeId: recipe.id,
         isFavorite: String(recipe.is_favorite),
+        cookedCount: String(recipe.cooked_count ?? 0),
         matchedUrgentItems: "[]",
       },
     });
   }, [inventory]);
 
   const favoriteRecipes = savedRecipes.filter((r) => r.is_favorite);
-  const cookedRecipes = savedRecipes;
+  const tabRecipes =
+    tab === "all"
+      ? savedRecipes
+      : tab === "saved"
+        ? favoriteRecipes
+        : cookedRecipes;
+  const cookedEventCount = cookedRecipes.reduce((sum, recipe) => sum + (recipe.cooked_count ?? 0), 0);
 
   const hasSuggestions = suggestions.length > 0;
   const categories = [
@@ -140,6 +156,9 @@ export default function RecipesRoute() {
   ].sort();
   const filteredSuggestions =
     filter === "fridge" ? suggestions : suggestions.filter((match) => match.tags.includes(filter));
+  const filteredTabRecipes =
+    filter === "fridge" ? tabRecipes : tabRecipes.filter((recipe) => (recipe.tags ?? []).includes(filter));
+  const fromFridgeRecipeCount = suggestions.length + tabRecipes.length;
   const isEmpty = !hasSuggestions && savedRecipes.length === 0 && !loading;
 
   if (loading) {
@@ -152,22 +171,18 @@ export default function RecipesRoute() {
 
   return (
     <View style={styles.screen}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {isEmpty ? (
-          <View style={styles.emptyWrap}>
-            <EmptyState
-              title={t("recipes.emptyTitle")}
-              body={t("recipes.emptyBody")}
-              actionLabel={t("recipes.emptyAction")}
-              onAction={openCookPrompt}
-            />
-          </View>
-        ) : (
-          <>
+      {isEmpty ? (
+        <View style={styles.emptyWrap}>
+          <EmptyState
+            title={t("recipes.emptyTitle")}
+            body={t("recipes.emptyBody")}
+            actionLabel={t("recipes.emptyAction")}
+            onAction={openCookPrompt}
+          />
+        </View>
+      ) : (
+        <>
+          <View style={styles.fixedContent}>
             <View style={styles.header}>
               <Text variant="micro" muted uppercase>
                 {t("recipes.countLabel", { count: savedRecipes.length + suggestions.length })}
@@ -185,7 +200,7 @@ export default function RecipesRoute() {
               <FilterChip
                 label={t("recipes.filters.fromFridge")}
                 active={filter === "fridge"}
-                count={String(suggestions.length || inventory.length)}
+                count={String(fromFridgeRecipeCount)}
                 onPress={() => setFilter("fridge")}
               />
               {categories.map((tag) => (
@@ -234,6 +249,41 @@ export default function RecipesRoute() {
               </View>
             ) : null}
 
+            {savedRecipes.length > 0 ? (
+              <View style={styles.tabBar}>
+                {(["all", "saved", "cooked"] as RecipeTab[]).map((t_) => {
+                  const label =
+                    t_ === "all"
+                        ? t("recipes.tabs.all")
+                        : t_ === "saved"
+                          ? `${t("recipes.tabs.saved")} · ${favoriteRecipes.length}`
+                        : `${t("recipes.tabs.cooked")} · ${cookedEventCount}`;
+                  return (
+                    <Pressable
+                      key={t_}
+                      accessibilityRole="tab"
+                      accessibilityState={{ selected: tab === t_ }}
+                      onPress={() => setTab(t_)}
+                      style={[styles.tabItem, tab === t_ && styles.tabItemActive]}
+                    >
+                      <Text
+                        variant="label"
+                        color={tab === t_ ? colors.primary : colors.muted}
+                      >
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+          </View>
+
+          <ScrollView
+            style={styles.listScroll}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          >
             {hasSuggestions ? (
               <View style={styles.sectionBlock}>
                 <Text variant="h3" style={styles.sectionTitle}>
@@ -257,6 +307,7 @@ export default function RecipesRoute() {
                           usesLabel={t("recipes.uses")}
                           favorite={savedRecipe?.is_favorite}
                           favoriteLabel="★"
+                          cookedLabel={savedRecipe?.cooked_count ? t("recipes.cooked.count", { count: savedRecipe.cooked_count }) : undefined}
                           onPress={() => navigateToDetail(match, savedRecipe?.id)}
                         />
                       );
@@ -267,56 +318,21 @@ export default function RecipesRoute() {
             ) : null}
 
             {savedRecipes.length > 0 ? (
-              <View style={styles.section}>
-                <View style={styles.tabBar}>
-                  {(["all", "saved", "cooked"] as RecipeTab[]).map((t_) => {
-                    const label =
-                      t_ === "all"
-                        ? t("recipes.tabs.all")
-                        : t_ === "saved"
-                          ? `${t("recipes.tabs.saved")} · ${favoriteRecipes.length}`
-                          : `${t("recipes.tabs.cooked")} · ${cookedRecipes.length}`;
-                    return (
-                      <Pressable
-                        key={t_}
-                        accessibilityRole="tab"
-                        accessibilityState={{ selected: tab === t_ }}
-                        onPress={() => setTab(t_)}
-                        style={[styles.tabItem, tab === t_ && styles.tabItemActive]}
-                      >
-                        <Text
-                          variant="label"
-                          color={tab === t_ ? colors.primary : colors.muted}
-                        >
-                          {label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-
-                <View style={styles.savedList}>
-                  {(tab === "all"
-                    ? savedRecipes
-                    : tab === "saved"
-                      ? favoriteRecipes
-                      : cookedRecipes
-                  )
-                    .filter((recipe) => filter === "fridge" || (recipe.tags ?? []).includes(filter))
-                    .map((recipe) => (
-                      <SavedRecipeRow
-                        key={recipe.id}
-                        recipe={recipe}
-                        onPress={() => navigateToSavedDetail(recipe)}
-                        onFavorite={() => toggleFavorite(recipe.id, recipe.is_favorite)}
-                      />
-                    ))}
-                </View>
+              <View style={styles.savedList}>
+                {filteredTabRecipes.map((recipe) => (
+                  <SavedRecipeRow
+                    key={recipe.id}
+                    recipe={recipe}
+                    onPress={() => navigateToSavedDetail(recipe)}
+                    onFavorite={() => toggleFavorite(recipe.id, recipe.is_favorite)}
+                    cookedLabel={recipe.cooked_count ? t("recipes.cooked.count", { count: recipe.cooked_count }) : undefined}
+                  />
+                ))}
               </View>
             ) : null}
-          </>
-        )}
-      </ScrollView>
+          </ScrollView>
+        </>
+      )}
 
       <BottomDock>
         <Button
@@ -414,10 +430,12 @@ function SavedRecipeRow({
   recipe,
   onPress,
   onFavorite,
+  cookedLabel,
 }: {
   recipe: RecipeRow;
   onPress: () => void;
   onFavorite: () => void;
+  cookedLabel?: string;
 }) {
   const time = recipe.time_minutes ? `${recipe.time_minutes} min` : "";
 
@@ -439,6 +457,11 @@ function SavedRecipeRow({
               <Text variant="small" color={colors.accent}>★</Text>
             </Pressable>
           ) : null}
+          {cookedLabel ? (
+            <View style={styles.cookedBadge}>
+              <Text variant="micro" color={colors.primary}>{cookedLabel}</Text>
+            </View>
+          ) : null}
         </View>
       </View>
     </Pressable>
@@ -457,11 +480,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.surface,
   },
-  scroll: {
+  fixedContent: {
+    paddingTop: spacing.screenTop,
+  },
+  listScroll: {
     flex: 1,
   },
-  scrollContent: {
-    paddingTop: spacing.screenTop,
+  listContent: {
+    paddingTop: spacing.lg,
     paddingBottom: spacing.tabBarClearance,
   },
   emptyWrap: {
@@ -525,16 +551,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginBottom: spacing.md,
   },
-  section: {
-    marginTop: spacing.sm,
-  },
   tabBar: {
     flexDirection: "row",
     paddingHorizontal: spacing.screenX,
     borderBottomWidth: 1,
     borderBottomColor: colors.hairline,
     gap: spacing.xl,
-    marginBottom: spacing.lg,
   },
   tabItem: {
     paddingVertical: spacing.md,
@@ -578,5 +600,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     marginTop: spacing.xxs,
+  },
+  cookedBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    backgroundColor: colors.primary50,
+    borderRadius: radii.pill,
   },
 });

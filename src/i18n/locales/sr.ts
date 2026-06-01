@@ -371,6 +371,7 @@ export const sr = {
       fromFridgeCount: "Iz vaseg frizidera · {{count}} stavki",
       howToCook: "Kako kuvati",
       cookCta: "Skuvao sam ovo",
+      cookAgainCta: "Kuvaj ponovo",
       bestToday: "najbolje danas",
       servings: "{{count}} porcija",
     },
@@ -380,6 +381,7 @@ export const sr = {
       body: "Uklanjamo ovo iz vaseg frizidera. Odznacite ono sto niste koristili.",
       confirm: "Ukloni {{count}} stavki iz frizidera",
       done: "Gotovo! Frizider azuriran.",
+      count: "Kuvano {{count}}×",
     },
     tabs: {
       all: "Sve",

@@ -31,6 +31,7 @@ export type RecipeRow = {
   is_favorite: boolean;
   generated_by: string;
   created_at: string;
+  cooked_count?: number;
 };
 
 export type CreateRecipeSessionInput = {
@@ -137,7 +138,37 @@ export async function listHouseholdRecipes(householdId: string) {
     .returns<RecipeRow[]>();
 
   if (error) throw error;
-  return data ?? [];
+  return withCookedCounts(householdId, data ?? []);
+}
+
+export async function listCookedRecipes(householdId: string) {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("cooked_events")
+    .select("recipes(*)")
+    .eq("household_id", householdId)
+    .not("recipe_id", "is", null)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  const recipes: RecipeRow[] = [];
+  const counts = new Map<string, number>();
+  const seen = new Set<string>();
+  for (const row of data ?? []) {
+    const recipe = Array.isArray(row.recipes) ? row.recipes[0] : row.recipes;
+    if (!recipe) continue;
+    counts.set(recipe.id, (counts.get(recipe.id) ?? 0) + 1);
+    if (seen.has(recipe.id)) continue;
+    recipes.push({ ...(recipe as RecipeRow), cooked_count: 0 });
+    seen.add(recipe.id);
+  }
+
+  return recipes.map((recipe) => ({
+    ...recipe,
+    cooked_count: counts.get(recipe.id) ?? 0,
+  }));
 }
 
 export async function listFavoriteRecipes(householdId: string) {
@@ -188,6 +219,31 @@ function getCalendarWeekStart() {
   monday.setDate(now.getDate() - diff);
   monday.setHours(0, 0, 0, 0);
   return monday;
+}
+
+async function withCookedCounts(householdId: string, recipes: RecipeRow[]) {
+  if (recipes.length === 0) return recipes;
+
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("cooked_events")
+    .select("recipe_id")
+    .eq("household_id", householdId)
+    .not("recipe_id", "is", null);
+
+  if (error) throw error;
+
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    const recipeId = row.recipe_id;
+    if (typeof recipeId !== "string") continue;
+    counts.set(recipeId, (counts.get(recipeId) ?? 0) + 1);
+  }
+
+  return recipes.map((recipe) => ({
+    ...recipe,
+    cooked_count: counts.get(recipe.id) ?? 0,
+  }));
 }
 
 export const FREE_WEEKLY_SESSION_LIMIT = 3;
