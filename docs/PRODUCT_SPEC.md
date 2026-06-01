@@ -690,6 +690,19 @@ Premium rule:
 - complexity filters
 - serving controls
 
+### Cook Prompt
+
+Tapping "What should I cook?" opens an optional prompt sheet before generating:
+
+- meal type: breakfast, lunch, dinner, or snack
+- time available
+- vibe/category, using recipe tags
+
+A "Surprise me" action skips choices and generates instantly, preserving the
+original one-tap behavior. The prompt is available to all users; the weekly
+session limit remains the free/premium gate. Chomp always chooses ingredients
+from the fridge inventory itself; users do not manually pick what to use.
+
 ### Avoidances
 
 Avoidances are hard recipe exclusions.

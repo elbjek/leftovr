@@ -11,6 +11,7 @@ import {
   formatAmount,
   getCatalogFood,
   InventoryGroup,
+  isMetricAmountRunningLow,
   PartialState,
   toUiCategory,
   toUiUrgency,
@@ -46,6 +47,7 @@ export default function FridgeRoute() {
   const isPremium = profile?.tier !== "free";
   const { weeklySummary } = useInsights(activeHousehold?.id);
   const eatFirstGroups = getEatFirstGroups(groups);
+  const runningLowGroups = groups.filter(isMetricAmountRunningLow);
   const categoryShelves = buildCategoryShelves(groups, t);
 
   useFocusEffect(
@@ -177,6 +179,14 @@ export default function FridgeRoute() {
         onPartial: async (group) => setPartialGroup(group),
         onRemove: async (group) => setRemoveGroupTarget(group),
       }, groups.length === 0)}
+
+      {runningLowGroups.length > 0 ? (
+        <CategoryShelf
+          name={t("fridge.shelves.runningLow")}
+          groups={runningLowGroups}
+          onItemPress={(group) => setActionGroup(group)}
+        />
+      ) : null}
 
       {categoryShelves.map((shelf) => (
         <CategoryShelf

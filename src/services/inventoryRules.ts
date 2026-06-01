@@ -224,6 +224,18 @@ export function groupInventoryLots(
   });
 }
 
+export function isMetricAmountRunningLow(
+  group: Pick<InventoryGroup, "normalizedName" | "quantity" | "netAmount" | "netUnit">,
+) {
+  if (group.netAmount == null || group.netUnit == null) return false;
+
+  const catalogNet = getCatalogNet(group.normalizedName);
+  if (!catalogNet || catalogNet.netUnit !== group.netUnit) return false;
+
+  const fullAmount = catalogNet.netAmount * Math.max(1, group.quantity);
+  return group.netAmount <= fullAmount * 0.25;
+}
+
 export function formatUrgency(urgency: UrgencyBand) {
   const key = urgency === "urgent" ? "urgent" : urgency === "use_soon" ? "useSoon" : "safe";
   return i18n.t(`fridge.meta.${key}`);
