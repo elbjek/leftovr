@@ -216,12 +216,16 @@ export const en = {
       runningLow: "Running low",
       more: "More",
       useSoon: "Use soon",
-      safe: "Keeps well",
+      safe: "Fresh",
+    },
+    filter: {
+      title: "Filter",
+      all: "All foods",
     },
     meta: {
       urgent: "Eat first",
       useSoon: "Use soon",
-      safe: "Keeps well",
+      safe: "Fresh",
       full: "Full",
       someUsed: "Some used",
       low: "Low",

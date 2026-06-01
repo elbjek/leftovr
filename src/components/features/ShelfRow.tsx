@@ -9,6 +9,7 @@ export type ShelfItem = {
   name: string;
   category?: string;
   meta: string;
+  metaLines?: string[];
   urgency?: "safe" | "useSoon" | "urgent";
   addedBy?: string | null;
 };
@@ -68,6 +69,7 @@ export function ShelfRow({
               name={item.name}
               category={item.category}
               meta={item.meta}
+              metaLines={item.metaLines}
               urgency={item.urgency}
               addedBy={item.addedBy}
               onPress={() => onItemPress?.(item)}
@@ -101,6 +103,7 @@ export function ShelfRow({
               name={item.name}
               category={item.category}
               meta={item.meta}
+              metaLines={item.metaLines}
               urgency={item.urgency}
               addedBy={item.addedBy}
               onPress={() => onItemPress?.(item)}

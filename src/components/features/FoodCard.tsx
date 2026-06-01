@@ -8,6 +8,7 @@ type Props = {
   name: string;
   category?: CategoryTone | string;
   meta: string;
+  metaLines?: string[];
   bestBy?: string;
   urgency?: Urgency;
   size?: "small" | "large";
@@ -20,6 +21,7 @@ export function FoodCard({
   name,
   category = "other",
   meta,
+  metaLines,
   bestBy,
   urgency = "safe",
   size = "small",
@@ -29,6 +31,8 @@ export function FoodCard({
 }: Props) {
   const isLarge = size === "large";
   const tone = categoryColors[(category as CategoryTone)] ?? categoryColors.other;
+  const visibleMetaLines = metaLines?.length ? metaLines : [meta];
+  const displayMeta = visibleMetaLines.join(" · ");
 
   return (
     <Pressable
@@ -46,22 +50,29 @@ export function FoodCard({
         <View style={[styles.dot, { backgroundColor: urgencyColors[urgency] }]} />
       </View>
       <View style={styles.copy}>
-        <Text variant="label" numberOfLines={2} style={isLarge && styles.largeTitle}>
-          {name}
-        </Text>
-        {bestBy ? (
-          <Text variant="micro" color={urgencyColors[urgency]} style={styles.meta} numberOfLines={1}>
-            {bestBy}
+        <View>
+          <Text variant="label" numberOfLines={2} style={isLarge && styles.largeTitle}>
+            {name}
           </Text>
-        ) : (
-          <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
-            {meta}
-          </Text>
-        )}
-        {addedBy ? (
-          <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
-            {addedBy}
-          </Text>
+          {bestBy ? null : (
+            <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
+              {displayMeta}
+            </Text>
+          )}
+        </View>
+        {bestBy || addedBy ? (
+          <View style={styles.bottomMeta}>
+            {bestBy ? (
+            <Text variant="micro" color={urgencyColors[urgency]} style={styles.meta} numberOfLines={1}>
+              {bestBy}
+            </Text>
+            ) : null}
+            {addedBy ? (
+              <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
+                {addedBy}
+              </Text>
+            ) : null}
+          </View>
         ) : null}
       </View>
     </Pressable>
@@ -114,10 +125,12 @@ const styles = StyleSheet.create({
   largeTitle: {
     fontSize: 14,
   },
+  bottomMeta: {
+    marginTop: spacing.xs,
+  },
   meta: {
     marginTop: 2,
     textTransform: "none",
     letterSpacing: 0,
   },
 });
-
