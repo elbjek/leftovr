@@ -159,6 +159,13 @@ export default function RecipesRoute() {
   const filteredTabRecipes =
     filter === "fridge" ? tabRecipes : tabRecipes.filter((recipe) => (recipe.tags ?? []).includes(filter));
   const fromFridgeRecipeCount = suggestions.length + tabRecipes.length;
+  const tagRecipeCounts = new Map(
+    categories.map((tag) => [
+      tag,
+      suggestions.filter((match) => match.tags.includes(tag)).length +
+        tabRecipes.filter((recipe) => (recipe.tags ?? []).includes(tag)).length,
+    ]),
+  );
   const isEmpty = !hasSuggestions && savedRecipes.length === 0 && !loading;
 
   if (loading) {
@@ -208,6 +215,7 @@ export default function RecipesRoute() {
                   key={tag}
                   label={formatCategory(tag)}
                   active={filter === tag}
+                  count={String(tagRecipeCounts.get(tag) ?? 0)}
                   onPress={() => setFilter((f) => (f === tag ? "fridge" : tag))}
                 />
               ))}
