@@ -872,3 +872,6 @@ Keep these TODOs visible during and after V1:
 - Additional languages.
 - Translation tone review for every supported language.
 - Continued alignment with new Claude design pages as they are added.
+
+
+--todo dice roll, what should i cook with options

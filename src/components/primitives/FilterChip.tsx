@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Text } from "./Text";
 import { colors, radii, spacing } from "../../theme";
 
@@ -6,11 +6,17 @@ type Props = {
   label: string;
   active?: boolean;
   count?: string;
+  onPress?: () => void;
 };
 
-export function FilterChip({ label, active = false, count }: Props) {
+export function FilterChip({ label, active = false, count, onPress }: Props) {
   return (
-    <View style={[styles.chip, active && styles.chipActive]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={[styles.chip, active && styles.chipActive]}
+    >
       <Text variant="small" color={active ? colors.surface : colors.text} style={styles.chipText}>
         {label}
       </Text>
@@ -21,7 +27,7 @@ export function FilterChip({ label, active = false, count }: Props) {
           </Text>
         </View>
       ) : null}
-    </View>
+    </Pressable>
   );
 }
 

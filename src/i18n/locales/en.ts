@@ -325,6 +325,7 @@ export const en = {
       simple: "Simple",
       comfort: "Comfort",
     },
+    filterEmpty: "No recipes match this filter.",
     emptyTitle: "No recipes yet",
     emptyBody: "Tap below to get recipe ideas based on what's in your fridge.",
     emptyAction: "What should I cook?",
