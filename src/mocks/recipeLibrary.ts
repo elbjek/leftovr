@@ -13,6 +13,7 @@ export type MockRecipe = {
   complexity: "simple" | "medium" | "involved";
   servingsBaseline: number;
   category: string;
+  mealType: "breakfast" | "lunch" | "dinner" | "snack";
   tags: string[];
   avoidanceTags: string[];
   ingredients: MockIngredient[];
@@ -28,6 +29,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "simple",
     servingsBaseline: 2,
     category: "pasta",
+    mealType: "dinner",
     tags: ["quick", "veggie", "comfort"],
     avoidanceTags: ["dairy", "gluten"],
     ingredients: [
@@ -52,6 +54,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "medium",
     servingsBaseline: 2,
     category: "bowl",
+    mealType: "lunch",
     tags: ["protein", "healthy"],
     avoidanceTags: ["dairy", "meat"],
     ingredients: [
@@ -76,6 +79,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "simple",
     servingsBaseline: 1,
     category: "breakfast",
+    mealType: "breakfast",
     tags: ["quick", "breakfast", "comfort"],
     avoidanceTags: ["dairy", "gluten"],
     ingredients: [
@@ -97,6 +101,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "involved",
     servingsBaseline: 4,
     category: "baking",
+    mealType: "dinner",
     tags: ["veggie", "weekend"],
     avoidanceTags: ["dairy", "gluten"],
     ingredients: [
@@ -119,6 +124,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "medium",
     servingsBaseline: 2,
     category: "breakfast",
+    mealType: "breakfast",
     tags: ["veggie", "healthy", "brunch"],
     avoidanceTags: ["dairy"],
     ingredients: [
@@ -142,6 +148,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "medium",
     servingsBaseline: 2,
     category: "bowl",
+    mealType: "dinner",
     tags: ["protein", "healthy", "fish"],
     avoidanceTags: ["fish"],
     ingredients: [
@@ -164,6 +171,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "simple",
     servingsBaseline: 2,
     category: "breakfast",
+    mealType: "breakfast",
     tags: ["quick", "breakfast", "veggie"],
     avoidanceTags: ["gluten"],
     ingredients: [
@@ -186,6 +194,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "simple",
     servingsBaseline: 4,
     category: "curry",
+    mealType: "dinner",
     tags: ["veggie", "comfort", "batch"],
     avoidanceTags: ["dairy"],
     ingredients: [
@@ -208,6 +217,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "simple",
     servingsBaseline: 2,
     category: "stir-fry",
+    mealType: "dinner",
     tags: ["quick", "protein", "healthy"],
     avoidanceTags: ["meat"],
     ingredients: [
@@ -230,6 +240,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "simple",
     servingsBaseline: 1,
     category: "breakfast",
+    mealType: "snack",
     tags: ["quick", "breakfast", "healthy", "no-cook"],
     avoidanceTags: ["dairy"],
     ingredients: [
@@ -250,6 +261,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "simple",
     servingsBaseline: 2,
     category: "rice",
+    mealType: "lunch",
     tags: ["quick", "comfort", "veggie"],
     avoidanceTags: [],
     ingredients: [
@@ -273,6 +285,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     complexity: "simple",
     servingsBaseline: 1,
     category: "wrap",
+    mealType: "lunch",
     tags: ["quick", "veggie", "no-cook", "healthy"],
     avoidanceTags: ["gluten", "nuts"],
     ingredients: [
