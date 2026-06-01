@@ -544,6 +544,8 @@ Inventory item fields should support:
 - quantity
 - unit
 - display quantity
+- net amount (optional, canonical metric)
+- net unit (optional: ml | g)
 - partial state: full / some_used / low
 - added at
 - added by
@@ -648,8 +650,15 @@ Flow:
 Depletion rules:
 
 - countable items decrement quantity
-- partial-use items move full -> some used -> low -> removed
+- measured items with a known metric magnitude (net amount / net unit) subtract the
+  recipe amount converted to metric (e.g. 1L milk, cook 200ml -> 800ml left), spilling
+  across lots soonest-expiry first
+- when no magnitude is known, or the recipe unit cannot be converted, fall back to
+  partial-use: full -> some used -> low -> removed
 - if item is already low, next confirmed use removes it
+
+Amounts are stored in canonical metric (ml | g). A per-user metric/imperial toggle
+controls display only; nothing imperial is persisted.
 
 This writes a cooked event and feeds future recommendations.
 
