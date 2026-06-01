@@ -213,6 +213,7 @@ export const en = {
     },
     shelves: {
       urgent: "About to expire",
+      runningLow: "Running low",
       useSoon: "Use soon",
       safe: "Keeps well",
     },
@@ -339,6 +340,32 @@ export const en = {
     haveAll: "Have it all",
     usesCount: "Uses {{count}} from fridge",
     fromFridge: "From your fridge",
+    cookPrompt: {
+      title: "What should I cook?",
+      meal: "Meal",
+      mealOptions: {
+        any: "Any",
+        breakfast: "Breakfast",
+        lunch: "Lunch",
+        dinner: "Dinner",
+        snack: "Snack",
+      },
+      time: "Time",
+      timeOptions: {
+        any: "Any",
+        "20": "≤ 20 min",
+        "45": "≤ 45 min",
+      },
+      vibe: "Vibe",
+      vibeOptions: {
+        comfort: "Comfort",
+        healthy: "Healthy",
+        veggie: "Veggie",
+        quick: "Quick",
+      },
+      surprise: "Surprise me",
+      generate: "Generate",
+    },
     detail: {
       backLabel: "Back",
       fromFridgeCount: "From your fridge · {{count}} items",

@@ -212,6 +212,7 @@ export const sr = {
     },
     shelves: {
       urgent: "Uskoro istice",
+      runningLow: "Pri kraju",
       useSoon: "Uskoro iskoristi",
       safe: "Jos je dobro",
     },
@@ -338,6 +339,32 @@ export const sr = {
     haveAll: "Imate sve",
     usesCount: "Koristi {{count}} iz frizidera",
     fromFridge: "Iz vaseg frizidera",
+    cookPrompt: {
+      title: "Sta da kuvam?",
+      meal: "Obrok",
+      mealOptions: {
+        any: "Bilo sta",
+        breakfast: "Dorucak",
+        lunch: "Rucak",
+        dinner: "Vecera",
+        snack: "Uzina",
+      },
+      time: "Vreme",
+      timeOptions: {
+        any: "Bilo koje",
+        "20": "≤ 20 min",
+        "45": "≤ 45 min",
+      },
+      vibe: "Stil",
+      vibeOptions: {
+        comfort: "Utesno",
+        healthy: "Zdravo",
+        veggie: "Povrce",
+        quick: "Brzo",
+      },
+      surprise: "Iznenadi me",
+      generate: "Generisi",
+    },
     detail: {
       backLabel: "Nazad",
       fromFridgeCount: "Iz vaseg frizidera · {{count}} stavki",

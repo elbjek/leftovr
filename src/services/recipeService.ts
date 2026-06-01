@@ -1,5 +1,5 @@
 import { MockRecipe, RECIPE_LIBRARY } from "@/mocks/recipeLibrary";
-import { InventoryLot, normalizeFoodName, UrgencyBand } from "./inventoryRules";
+import { InventoryLot, normalizeFoodName } from "./inventoryRules";
 
 export type RecipeMatch = MockRecipe & {
   matchedItems: MatchedItem[];
@@ -20,6 +20,11 @@ export type RecipeMatcherInput = {
   avoidances: string[];
   isPremium: boolean;
   servings?: number;
+  filters?: {
+    mealType?: "breakfast" | "lunch" | "dinner" | "snack";
+    maxMinutes?: number;
+    vibe?: string;
+  };
 };
 
 export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
@@ -31,8 +36,13 @@ export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
     }
   }
 
+  const filters = input.filters;
   const filtered = RECIPE_LIBRARY.filter((recipe) => {
-    return !recipe.avoidanceTags.some((tag) => avoidances.includes(tag));
+    if (recipe.avoidanceTags.some((tag) => avoidances.includes(tag))) return false;
+    if (filters?.mealType && recipe.mealType !== filters.mealType) return false;
+    if (filters?.maxMinutes != null && recipe.timeMinutes > filters.maxMinutes) return false;
+    if (filters?.vibe && !recipe.tags.includes(filters.vibe)) return false;
+    return true;
   });
 
   const scored = filtered.map((recipe) => {

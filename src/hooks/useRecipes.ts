@@ -14,6 +14,7 @@ import {
   matchRecipes,
   RecipeMatch,
 } from "@/services/recipeService";
+import { generateRecipeMatches, RecipeGenerationFilters } from "@/services/recipeGenerationService";
 import { InventoryLot } from "@/services/inventoryRules";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 
@@ -80,13 +81,20 @@ export function useRecipes(
     () => ({
       refresh: load,
 
-      generateSession: async (cookingMode: CookingMode) => {
+      generateSession: async (cookingMode: CookingMode, filters?: RecipeGenerationFilters) => {
         if (!householdId) return null;
 
         setState((s) => ({ ...s, generating: true, error: null }));
 
         try {
-          const matches = matchRecipes({ inventory, avoidances, isPremium, servings });
+          const { matches } = await generateRecipeMatches({
+            inventory,
+            avoidances,
+            isPremium,
+            servings,
+            cookingMode,
+            filters,
+          });
           const top = matches.slice(0, 3);
 
           const session = await createRecipeSession({

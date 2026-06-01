@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { BottomDock, Button, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, SegmentedControl, Text } from "@/components";
+import { BottomDock, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, SegmentedControl, Text } from "@/components";
 import { useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
@@ -32,6 +32,8 @@ export default function RecipesRoute() {
   const [tab, setTab] = useState<RecipeTab>("all");
   const [filter, setFilter] = useState<RecipeFilter>("fridge");
   const [showPremium, setShowPremium] = useState(false);
+  const [showCookPrompt, setShowCookPrompt] = useState(false);
+  const [cookPromptKey, setCookPromptKey] = useState(0);
   const [cookingMode, setCookingMode] = useState<CookingMode>("household");
 
   const showCookingMode = members.length >= 2;
@@ -52,12 +54,23 @@ export default function RecipesRoute() {
     toggleFavorite,
   } = useRecipes(activeHousehold?.id, { inventory, avoidances: activeAvoidances, isPremium, servings });
 
-  const handleGenerate = useCallback(async () => {
+  const openCookPrompt = useCallback(() => {
     if (!canGenerate) {
       setShowPremium(true);
       return;
     }
-    await generateSession(cookingMode);
+    setCookPromptKey((key) => key + 1);
+    setShowCookPrompt(true);
+  }, [canGenerate]);
+
+  const handleGenerate = useCallback(async (filters?: CookFilters) => {
+    if (!canGenerate) {
+      setShowCookPrompt(false);
+      setShowPremium(true);
+      return;
+    }
+    setShowCookPrompt(false);
+    await generateSession(cookingMode, filters);
   }, [canGenerate, cookingMode, generateSession]);
 
   const navigateToDetail = useCallback(
@@ -150,7 +163,7 @@ export default function RecipesRoute() {
               title={t("recipes.emptyTitle")}
               body={t("recipes.emptyBody")}
               actionLabel={t("recipes.emptyAction")}
-              onAction={handleGenerate}
+              onAction={openCookPrompt}
             />
           </View>
         ) : (
@@ -308,10 +321,43 @@ export default function RecipesRoute() {
       <BottomDock>
         <Button
           title={t("recipes.generateCta")}
-          onPress={handleGenerate}
+          onPress={openCookPrompt}
           loading={generating}
         />
       </BottomDock>
+
+      <CookPromptSheet
+        key={cookPromptKey}
+        visible={showCookPrompt}
+        labels={{
+          title: t("recipes.cookPrompt.title"),
+          meal: t("recipes.cookPrompt.meal"),
+          mealOptions: {
+            any: t("recipes.cookPrompt.mealOptions.any"),
+            breakfast: t("recipes.cookPrompt.mealOptions.breakfast"),
+            lunch: t("recipes.cookPrompt.mealOptions.lunch"),
+            dinner: t("recipes.cookPrompt.mealOptions.dinner"),
+            snack: t("recipes.cookPrompt.mealOptions.snack"),
+          },
+          time: t("recipes.cookPrompt.time"),
+          timeOptions: {
+            any: t("recipes.cookPrompt.timeOptions.any"),
+            "20": t("recipes.cookPrompt.timeOptions.20"),
+            "45": t("recipes.cookPrompt.timeOptions.45"),
+          },
+          vibe: t("recipes.cookPrompt.vibe"),
+          vibeOptions: {
+            comfort: t("recipes.cookPrompt.vibeOptions.comfort"),
+            healthy: t("recipes.cookPrompt.vibeOptions.healthy"),
+            veggie: t("recipes.cookPrompt.vibeOptions.veggie"),
+            quick: t("recipes.cookPrompt.vibeOptions.quick"),
+          },
+          surprise: t("recipes.cookPrompt.surprise"),
+          generate: t("recipes.cookPrompt.generate"),
+        }}
+        onDismiss={() => setShowCookPrompt(false)}
+        onGenerate={handleGenerate}
+      />
 
       <PremiumSheet
         visible={showPremium}
