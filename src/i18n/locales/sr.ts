@@ -324,6 +324,7 @@ export const sr = {
       simple: "Jednostavno",
       comfort: "Utesno",
     },
+    filterEmpty: "Nijedan recept ne odgovara filteru.",
     emptyTitle: "Nema recepata",
     emptyBody: "Dodirnite dugme ispod da dobijete ideje na osnovu onoga sto imate u frideru.",
     emptyAction: "Sta da kuvam?",

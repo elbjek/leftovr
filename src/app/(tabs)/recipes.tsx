@@ -17,6 +17,8 @@ import { normalizeFoodName } from "@/services";
 import { colors, radii, spacing } from "@/theme";
 
 type RecipeTab = "all" | "saved" | "cooked";
+// "fridge" = show all fridge suggestions; any other value is a recipe tag/category.
+type RecipeFilter = "fridge" | (string & {});
 type RecipeIngredientParam = { name: string };
 type UsedInventoryItemParam = { ingredientName: string; itemId: string };
 
@@ -28,6 +30,7 @@ export default function RecipesRoute() {
   const isPremium = profile?.tier !== "free";
   const userAvoidances = profile?.avoidances ?? [];
   const [tab, setTab] = useState<RecipeTab>("all");
+  const [filter, setFilter] = useState<RecipeFilter>("fridge");
   const [showPremium, setShowPremium] = useState(false);
   const [cookingMode, setCookingMode] = useState<CookingMode>("household");
 
@@ -116,6 +119,14 @@ export default function RecipesRoute() {
   const cookedRecipes = savedRecipes;
 
   const hasSuggestions = suggestions.length > 0;
+  const categories = [
+    ...new Set([
+      ...suggestions.flatMap((match) => match.tags),
+      ...savedRecipes.flatMap((recipe) => recipe.tags ?? []),
+    ]),
+  ].sort();
+  const filteredSuggestions =
+    filter === "fridge" ? suggestions : suggestions.filter((match) => match.tags.includes(filter));
   const isEmpty = !hasSuggestions && savedRecipes.length === 0 && !loading;
 
   if (loading) {
@@ -158,10 +169,20 @@ export default function RecipesRoute() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.filterRail}
             >
-              <FilterChip label={t("recipes.filters.fromFridge")} active count={String(suggestions.length || inventory.length)} />
-              <FilterChip label={t("recipes.filters.quick")} />
-              <FilterChip label={t("recipes.filters.simple")} />
-              <FilterChip label={t("recipes.filters.comfort")} />
+              <FilterChip
+                label={t("recipes.filters.fromFridge")}
+                active={filter === "fridge"}
+                count={String(suggestions.length || inventory.length)}
+                onPress={() => setFilter("fridge")}
+              />
+              {categories.map((tag) => (
+                <FilterChip
+                  key={tag}
+                  label={formatCategory(tag)}
+                  active={filter === tag}
+                  onPress={() => setFilter((f) => (f === tag ? "fridge" : tag))}
+                />
+              ))}
             </ScrollView>
 
             {showCookingMode ? (
@@ -206,22 +227,28 @@ export default function RecipesRoute() {
                   {t("recipes.fromFridgeTitle")}
                 </Text>
                 <View style={styles.cardList}>
-                  {suggestions.map((match) => {
-                    const savedRecipe = savedRecipes.find((r) => r.title === match.title && r.session_id);
-                    return (
-                      <RecipeCard
-                        key={match.key}
-                        title={match.title}
-                        timeLabel={formatTimeLabel(match.timeMinutes)}
-                        complexityLabel={formatComplexity(match.complexity)}
-                        usedItems={match.matchedItems.filter((m) => m.inFridge).map((m) => m.ingredientName)}
-                        usesLabel={t("recipes.uses")}
-                        favorite={savedRecipe?.is_favorite}
-                        favoriteLabel="★"
-                        onPress={() => navigateToDetail(match, savedRecipe?.id)}
-                      />
-                    );
-                  })}
+                  {filteredSuggestions.length === 0 ? (
+                    <Text variant="small" muted style={styles.filterEmpty}>
+                      {t("recipes.filterEmpty")}
+                    </Text>
+                  ) : (
+                    filteredSuggestions.map((match) => {
+                      const savedRecipe = savedRecipes.find((r) => r.title === match.title && r.session_id);
+                      return (
+                        <RecipeCard
+                          key={match.key}
+                          title={match.title}
+                          timeLabel={formatTimeLabel(match.timeMinutes)}
+                          complexityLabel={formatComplexity(match.complexity)}
+                          usedItems={match.matchedItems.filter((m) => m.inFridge).map((m) => m.ingredientName)}
+                          usesLabel={t("recipes.uses")}
+                          favorite={savedRecipe?.is_favorite}
+                          favoriteLabel="★"
+                          onPress={() => navigateToDetail(match, savedRecipe?.id)}
+                        />
+                      );
+                    })
+                  )}
                 </View>
               </View>
             ) : null}
@@ -261,14 +288,16 @@ export default function RecipesRoute() {
                     : tab === "saved"
                       ? favoriteRecipes
                       : cookedRecipes
-                  ).map((recipe) => (
-                    <SavedRecipeRow
-                      key={recipe.id}
-                      recipe={recipe}
-                      onPress={() => navigateToSavedDetail(recipe)}
-                      onFavorite={() => toggleFavorite(recipe.id, recipe.is_favorite)}
-                    />
-                  ))}
+                  )
+                    .filter((recipe) => filter === "fridge" || (recipe.tags ?? []).includes(filter))
+                    .map((recipe) => (
+                      <SavedRecipeRow
+                        key={recipe.id}
+                        recipe={recipe}
+                        onPress={() => navigateToSavedDetail(recipe)}
+                        onFavorite={() => toggleFavorite(recipe.id, recipe.is_favorite)}
+                      />
+                    ))}
                 </View>
               </View>
             ) : null}
@@ -303,6 +332,10 @@ function buildUsedInventoryItemsFromMatch(match: RecipeMatch): UsedInventoryItem
       ingredientName: item.ingredientName,
       itemId: item.inventoryLot!.id,
     }));
+}
+
+function formatCategory(tag: string): string {
+  return tag.charAt(0).toUpperCase() + tag.slice(1);
 }
 
 function buildUsedInventoryItemsForSavedRecipe(
@@ -406,6 +439,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
     gap: spacing.sm,
     paddingBottom: spacing.lg,
+  },
+  filterEmpty: {
+    paddingVertical: spacing.lg,
   },
   cookingModeLabel: {
     marginBottom: spacing.sm,
