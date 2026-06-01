@@ -27,6 +27,8 @@ export type CatalogFood = {
   category: InventoryCategory;
   shelfLifeDays: [number, number];
   unit?: string;
+  netAmount?: number;
+  netUnit?: "ml" | "g";
 };
 
 export type InventoryLot = {
@@ -36,6 +38,8 @@ export type InventoryLot = {
   category: InventoryCategory;
   quantity: number;
   unit: string;
+  net_amount: number | null;
+  net_unit: "ml" | "g" | null;
   display_quantity: string | null;
   partial_state: PartialState;
   urgency: UrgencyBand | null;
@@ -57,6 +61,8 @@ export type InventoryGroup = {
   shelfLifeRange: string;
   quantity: number;
   unit: string;
+  netAmount: number | null;
+  netUnit: "ml" | "g" | null;
   partialState: PartialState;
   partialLabel: string;
   lotCount: number;
@@ -80,18 +86,19 @@ const categoryDefaults: Record<InventoryCategory, [number, number]> = {
 
 export const demoFoodCatalog: CatalogFood[] = [
   { name: "Eggs", category: "dairy_eggs", shelfLifeDays: [14, 21], unit: "egg" },
-  { name: "Greek yogurt", category: "dairy_eggs", shelfLifeDays: [5, 8], unit: "tub" },
-  { name: "Milk", category: "dairy_eggs", shelfLifeDays: [4, 7], unit: "carton" },
-  { name: "Chicken breast", category: "meat", shelfLifeDays: [1, 2], unit: "pack" },
+  { name: "Greek yogurt", category: "dairy_eggs", shelfLifeDays: [5, 8], unit: "tub", netAmount: 500, netUnit: "g" },
+  { name: "Milk", category: "dairy_eggs", shelfLifeDays: [4, 7], unit: "carton", netAmount: 1000, netUnit: "ml" },
+  { name: "Chicken breast", category: "meat", shelfLifeDays: [1, 2], unit: "pack", netAmount: 400, netUnit: "g" },
   { name: "Salmon", category: "fish", shelfLifeDays: [1, 2], unit: "fillet" },
-  { name: "Spinach", category: "vegetables", shelfLifeDays: [2, 4], unit: "bag" },
+  { name: "Spinach", category: "vegetables", shelfLifeDays: [2, 4], unit: "bag", netAmount: 200, netUnit: "g" },
   { name: "Tomatoes", category: "vegetables", shelfLifeDays: [4, 7], unit: "item" },
   { name: "Bananas", category: "fruit", shelfLifeDays: [3, 5], unit: "item" },
   { name: "Sourdough", category: "bakery", shelfLifeDays: [2, 4], unit: "loaf" },
-  { name: "Rice", category: "pantry", shelfLifeDays: [60, 180], unit: "bag" },
-  { name: "Frozen peas", category: "frozen", shelfLifeDays: [60, 120], unit: "bag" },
-  { name: "Orange juice", category: "drinks", shelfLifeDays: [5, 10], unit: "bottle" },
-  { name: "Hummus", category: "snacks", shelfLifeDays: [4, 7], unit: "tub" },
+  { name: "Rice", category: "pantry", shelfLifeDays: [60, 180], unit: "bag", netAmount: 1000, netUnit: "g" },
+  { name: "Frozen peas", category: "frozen", shelfLifeDays: [60, 120], unit: "bag", netAmount: 500, netUnit: "g" },
+  { name: "Orange juice", category: "drinks", shelfLifeDays: [5, 10], unit: "bottle", netAmount: 1000, netUnit: "ml" },
+  { name: "Hummus", category: "snacks", shelfLifeDays: [4, 7], unit: "tub", netAmount: 200, netUnit: "g" },
+  { name: "Cheddar", category: "dairy_eggs", shelfLifeDays: [14, 30], unit: "block", netAmount: 200, netUnit: "g" },
 ];
 
 const catalogByName = new Map(demoFoodCatalog.map((item) => [normalizeFoodName(item.name), item]));
@@ -102,6 +109,14 @@ export function normalizeFoodName(name: string) {
 
 export function getCatalogFood(name: string) {
   return catalogByName.get(normalizeFoodName(name));
+}
+
+export function getCatalogNet(name: string): { netAmount: number; netUnit: "ml" | "g" } | null {
+  const food = getCatalogFood(name);
+  if (food?.netAmount && food.netUnit) {
+    return { netAmount: food.netAmount, netUnit: food.netUnit };
+  }
+  return null;
 }
 
 export function inferCategory(name: string): InventoryCategory {
@@ -163,6 +178,10 @@ export function groupInventoryLots(lots: InventoryLot[]): InventoryGroup[] {
 
     if (existing) {
       existing.quantity += Number(lot.quantity);
+      if (lot.net_amount != null) {
+        existing.netAmount = (existing.netAmount ?? 0) + lot.net_amount;
+        existing.netUnit = lot.net_unit;
+      }
       existing.lotCount += 1;
       existing.lots.push(lot);
       existing.partialState = mergePartialState(existing.partialState, lot.partial_state);
@@ -181,6 +200,8 @@ export function groupInventoryLots(lots: InventoryLot[]): InventoryGroup[] {
       shelfLifeRange: lot.shelf_life_range ?? getShelfLifeRange(lot.name, lot.category),
       quantity: Number(lot.quantity),
       unit: lot.unit,
+      netAmount: lot.net_amount,
+      netUnit: lot.net_unit,
       partialState: lot.partial_state,
       partialLabel: formatPartialState(lot.partial_state),
       lotCount: 1,
