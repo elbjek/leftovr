@@ -17,6 +17,17 @@ type InventoryState = {
   error: string | null;
 };
 
+// Each useInventory() call holds its own state, so a mutation in one screen
+// (e.g. cooking a recipe) wouldn't refresh the fridge tab's copy. Mounted
+// instances subscribe here and re-fetch whenever inventory changes anywhere.
+const inventoryListeners = new Set<() => void>();
+
+export function notifyInventoryChanged(except?: () => void) {
+  for (const listener of inventoryListeners) {
+    if (listener !== except) listener();
+  }
+}
+
 export function useInventory(householdId?: string | null) {
   const [state, setState] = useState<InventoryState>({
     loading: Boolean(householdId),
@@ -47,6 +58,16 @@ export function useInventory(householdId?: string | null) {
 
   useEffect(() => {
     load();
+    inventoryListeners.add(load);
+    return () => {
+      inventoryListeners.delete(load);
+    };
+  }, [load]);
+
+  // Refresh this instance, then tell every other mounted instance to refresh.
+  const reloadAndBroadcast = useCallback(async () => {
+    await load();
+    notifyInventoryChanged(load);
   }, [load]);
 
   const actions = useMemo(
@@ -55,38 +76,38 @@ export function useInventory(householdId?: string | null) {
       addDemoItem: async (name: string) => {
         if (!householdId) return;
         await addInventoryItem({ householdId, name });
-        await load();
+        await reloadAndBroadcast();
       },
       addExpiringDemoItem: async () => {
         if (!householdId) return;
         const addedAt = new Date();
         addedAt.setDate(addedAt.getDate() - 5);
         await addInventoryItem({ householdId, name: "Spinach", addedAt: addedAt.toISOString() });
-        await load();
+        await reloadAndBroadcast();
       },
       useFirstLot: async (group: InventoryGroup) => {
         if (!householdId || !group.lots[0]) return;
         await depleteItemQuantity(householdId, group.normalizedName, 1);
-        await load();
+        await reloadAndBroadcast();
       },
       markFirstLotPartial: async (group: InventoryGroup) => {
         const lot = group.lots[0];
         if (!lot) return;
         await advanceInventoryPartialState(lot.id);
-        await load();
+        await reloadAndBroadcast();
       },
       setFirstLotPartialState: async (group: InventoryGroup, partialState: PartialState) => {
         const lot = group.lots[0];
         if (!lot) return;
         await markInventoryPartialState(lot.id, partialState);
-        await load();
+        await reloadAndBroadcast();
       },
       removeGroup: async (group: InventoryGroup) => {
         await removeInventoryGroup(group.lots.map((lot) => lot.id));
-        await load();
+        await reloadAndBroadcast();
       },
     }),
-    [householdId, load],
+    [householdId, load, reloadAndBroadcast],
   );
 
   return { ...state, ...actions };
