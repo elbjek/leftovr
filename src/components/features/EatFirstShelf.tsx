@@ -65,13 +65,13 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onU
           {labels.itemCount(items.length)}
         </Text>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.panelScroll}
-        style={styles.panelOuter}
-      >
-        <View style={styles.panel}>
+      <View style={styles.panelOuter}>
+        <ScrollView
+          horizontal
+          scrollEnabled={items.length > 3}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.panelScroll}
+        >
           {items.map((item) => (
             <FoodCard
               key={item.id}
@@ -84,8 +84,8 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onU
               onPress={() => onItemPress?.(item)}
             />
           ))}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -108,20 +108,17 @@ const styles = StyleSheet.create({
   },
   panelOuter: {
     marginHorizontal: spacing.screenX,
-  },
-  panelScroll: {
-    flexGrow: 1,
-  },
-  panel: {
-    flex: 1,
     padding: 14,
     borderRadius: radii.xl,
     backgroundColor: colors.primary,
+    overflow: "hidden",
+  },
+  panelScroll: {
     flexDirection: "row",
     gap: 10,
   },
   eatFirstCard: {
-    width: 118,
+    width: 112,
     backgroundColor: "rgba(248,244,238,0.95)",
   },
   row: {
