@@ -3,7 +3,6 @@ import {
   computeUrgency,
   getCatalogFood,
   getCatalogNet,
-  getDepletionUpdate,
   getNextPartialState,
   getShelfLifeRange,
   inferCategory,
@@ -12,6 +11,7 @@ import {
   InventorySource,
   normalizeFoodName,
   PartialState,
+  planDepletion,
 } from "@/services";
 
 export type AddInventoryItemInput = {
@@ -184,29 +184,22 @@ function urgencyDepletionRank(urgency: "safe" | "use_soon" | "urgent" | null) {
   return 1;
 }
 
-/**
- * Deplete `amount` units of an item across all of its active lots, consuming the
- * soonest-to-expire lots first (urgent → use_soon → safe, then oldest added).
- * Used when cooking a recipe or marking an item used from the fridge, so the
- * count drops correctly even when the item is split across multiple lots.
- */
 export async function depleteItemQuantity(
   householdId: string,
   normalizedName: string,
   amount = 1,
+  unit = "item",
 ) {
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
     .from("inventory_items")
-    .select("id, quantity, partial_state, unit, urgency, added_at")
+    .select("id, quantity, partial_state, unit, urgency, added_at, net_amount, net_unit")
     .eq("household_id", householdId)
     .eq("normalized_name", normalizedName)
     .is("removed_at", null);
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   const lots = (data ?? []) as {
     id: string;
@@ -215,6 +208,8 @@ export async function depleteItemQuantity(
     unit: string;
     urgency: "safe" | "use_soon" | "urgent" | null;
     added_at: string;
+    net_amount: number | null;
+    net_unit: "ml" | "g" | null;
   }[];
 
   lots.sort((a, b) => {
@@ -223,49 +218,29 @@ export async function depleteItemQuantity(
     return a.added_at.localeCompare(b.added_at);
   });
 
-  let remaining = Math.max(1, amount);
+  const ops = planDepletion(lots, { amount, unit });
 
-  for (const lot of lots) {
-    if (remaining <= 0) break;
-
-    if (lot.quantity > 1) {
-      const consume = Math.min(lot.quantity, remaining);
-      const nextQuantity = lot.quantity - consume;
-      if (nextQuantity <= 0) {
-        await removeInventoryLot(lot.id, "cooked");
-      } else {
-        const { error: updateError } = await supabase
-          .from("inventory_items")
-          .update({
-            quantity: nextQuantity,
-            display_quantity: formatDisplayQuantity(nextQuantity, lot.unit),
-          })
-          .eq("id", lot.id);
-        if (updateError) {
-          throw updateError;
-        }
-      }
-      remaining -= consume;
-    } else {
-      // Single-unit lot: advance partial state (or remove). Counts as one unit.
-      const depletion = getDepletionUpdate(lot, 1);
-      if (depletion.shouldRemove) {
-        await removeInventoryLot(lot.id, "cooked");
-      } else {
-        const { error: updateError } = await supabase
-          .from("inventory_items")
-          .update({
-            quantity: depletion.quantity,
-            partial_state: depletion.partialState,
-            display_quantity: formatDisplayQuantity(depletion.quantity, lot.unit),
-          })
-          .eq("id", lot.id);
-        if (updateError) {
-          throw updateError;
-        }
-      }
-      remaining -= 1;
+  for (const op of ops) {
+    if (op.kind === "remove") {
+      await removeInventoryLot(op.id, "cooked");
+      continue;
     }
+    const lot = lots.find((l) => l.id === op.id)!;
+    const update: Record<string, unknown> = {};
+    if (op.kind === "setNet") {
+      update.net_amount = op.netAmount;
+      update.display_quantity = formatDisplayQuantity(op.netAmount, lot.net_unit ?? lot.unit);
+    } else if (op.kind === "setQuantity") {
+      update.quantity = op.quantity;
+      update.display_quantity = formatDisplayQuantity(op.quantity, lot.unit);
+    } else {
+      update.partial_state = op.partialState;
+    }
+    const { error: updateError } = await supabase
+      .from("inventory_items")
+      .update(update)
+      .eq("id", op.id);
+    if (updateError) throw updateError;
   }
 }
 
@@ -289,7 +264,7 @@ export async function recordCookedEventAndDepleteInventory(input: {
   householdId: string;
   recipeId?: string | null;
   servings?: number | null;
-  usedItems: { normalizedName: string; amount?: number | null }[];
+  usedItems: { normalizedName: string; amount?: number | null; unit?: string | null }[];
 }) {
   const supabase = getSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();
@@ -306,7 +281,12 @@ export async function recordCookedEventAndDepleteInventory(input: {
 
   // Deplete sequentially so concurrent updates to the same lot can't race.
   for (const item of input.usedItems) {
-    await depleteItemQuantity(input.householdId, item.normalizedName, item.amount ?? 1);
+    await depleteItemQuantity(
+      input.householdId,
+      item.normalizedName,
+      item.amount ?? 1,
+      item.unit ?? "item",
+    );
   }
 
   const { error } = await supabase.from("cooked_events").insert({
