@@ -214,6 +214,7 @@ export const en = {
     shelves: {
       urgent: "About to expire",
       runningLow: "Running low",
+      more: "More",
       useSoon: "Use soon",
       safe: "Keeps well",
     },
