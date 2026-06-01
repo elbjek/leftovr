@@ -6,7 +6,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { BottomSheet, Button, Card, RecipeGlyph, Text } from "@/components";
 import { useAuth } from "@/features";
-import { useInventory } from "@/hooks";
+import { notifyInventoryChanged } from "@/hooks";
 import { normalizeFoodName } from "@/services";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
@@ -43,7 +43,6 @@ export default function RecipeDetailRoute() {
   }>();
 
   const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
-  const { refresh: refreshInventory } = useInventory(activeHousehold?.id);
 
   const title = params.title ?? "";
   const description = params.description ?? "";
@@ -144,7 +143,7 @@ export default function RecipeDetailRoute() {
         servings,
         usedItems,
       });
-      await refreshInventory();
+      notifyInventoryChanged();
       setShowCooked(false);
       router.replace("/(tabs)/fridge");
     } catch (error) {
