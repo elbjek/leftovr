@@ -73,6 +73,7 @@ export default function RecipeDetailRoute() {
     amount: string;
     itemId: string | null;
     quantityToUse: number;
+    unit: string;
     used: boolean;
   }[]>([]);
   const [cooking, setCooking] = useState(false);
@@ -102,11 +103,13 @@ export default function RecipeDetailRoute() {
   function handleCookPress() {
     const items = ingredients.map((ing, i) => {
       const itemId = getUsedItemId(ing.name, i);
+      const parsed = parseIngredientAmount(ing.amount);
       return {
         name: ing.name,
         amount: ing.amount,
         itemId,
-        quantityToUse: ing.countable ? parseIngredientQuantity(ing.amount) : 1,
+        quantityToUse: ing.countable ? parsed.value : (parsed.unit ? parsed.value : 1),
+        unit: ing.countable ? "item" : (parsed.unit ?? "item"),
         used: itemId !== null,
       };
     });
@@ -127,15 +130,20 @@ export default function RecipeDetailRoute() {
       // Deplete by item name against current inventory (spilling across lots,
       // soonest-expiry first) instead of stale snapshot lot ids. Sum duplicate
       // ingredients so each item is depleted by its total amount once.
-      const amountByName = new Map<string, number>();
+      const byName = new Map<string, { amount: number; unit: string }>();
       for (const item of cookedItems) {
         if (!item.used) continue;
         const key = normalizeFoodName(item.name);
-        amountByName.set(key, (amountByName.get(key) ?? 0) + item.quantityToUse);
+        const existing = byName.get(key);
+        byName.set(key, {
+          amount: (existing?.amount ?? 0) + item.quantityToUse,
+          unit: existing?.unit ?? item.unit,
+        });
       }
-      const usedItems = [...amountByName.entries()].map(([normalizedName, amount]) => ({
+      const usedItems = [...byName.entries()].map(([normalizedName, v]) => ({
         normalizedName,
-        amount,
+        amount: v.amount,
+        unit: v.unit,
       }));
       await recordCookedEventAndDepleteInventory({
         householdId: activeHousehold.id,
@@ -313,9 +321,14 @@ export default function RecipeDetailRoute() {
   );
 }
 
-function parseIngredientQuantity(amount: string) {
-  const quantity = Number(amount.match(/\d+(\.\d+)?/)?.[0]);
-  return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+function parseIngredientAmount(amount: string): { value: number; unit: string | null } {
+  const match = amount.match(/(\d+(?:\.\d+)?)\s*([a-zA-Z]+)?/);
+  const value = match ? Number(match[1]) : NaN;
+  const unit = match?.[2]?.toLowerCase() ?? null;
+  return {
+    value: Number.isFinite(value) && value > 0 ? value : 1,
+    unit,
+  };
 }
 
 function parseUsedInventoryItems(input?: string): UsedInventoryItemParam[] {

@@ -228,6 +228,8 @@ export const sr = {
       use: "Trosi",
       partial: "Delimicno",
       remove: "Ukloni",
+      netLabel: "Preostalo",
+      saveNet: "Sačuvaj",
     },
     partialSheet: {
       title: "Koliko je ostalo?",
@@ -373,6 +375,12 @@ export const sr = {
     body: "Nalog, domacinstvo, jezik i kontrole prototipa ce biti ovde.",
     languageTitle: "Jezik",
     languageBody: "Prebaci prototype izmedju engleskog i srpskog.",
+    unitsTitle: "Jedinice",
+    unitsBody: "Izaberite kako se prikazuju količine.",
+    units: {
+      metric: "Metrički",
+      imperial: "Imperijalni",
+    },
     resetOnboarding: "Resetuj uvodjenje",
     languages: {
       en: "English",

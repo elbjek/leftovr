@@ -244,6 +244,25 @@ export async function depleteItemQuantity(
   }
 }
 
+export async function updateInventoryNetAmount(itemId: string, netAmount: number) {
+  if (!(netAmount > 0)) throw new Error("net amount must be positive");
+  const supabase = getSupabaseClient();
+  const { data: lot, error: readError } = await supabase
+    .from("inventory_items")
+    .select("net_unit, unit")
+    .eq("id", itemId)
+    .single<{ net_unit: string | null; unit: string }>();
+  if (readError) throw readError;
+  const { error } = await supabase
+    .from("inventory_items")
+    .update({
+      net_amount: netAmount,
+      display_quantity: formatDisplayQuantity(netAmount, lot.net_unit ?? lot.unit),
+    })
+    .eq("id", itemId);
+  if (error) throw error;
+}
+
 export async function advanceInventoryPartialState(itemId: string) {
   const supabase = getSupabaseClient();
 

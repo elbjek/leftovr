@@ -229,6 +229,8 @@ export const en = {
       use: "Use",
       partial: "Partial",
       remove: "Remove",
+      netLabel: "Amount left",
+      saveNet: "Save",
     },
     partialSheet: {
       title: "How much is left?",
@@ -374,6 +376,12 @@ export const en = {
     body: "Account, household, language, and prototype controls will live here.",
     languageTitle: "Language",
     languageBody: "Switch the prototype between English and Serbian.",
+    unitsTitle: "Units",
+    unitsBody: "Choose how amounts are shown.",
+    units: {
+      metric: "Metric",
+      imperial: "Imperial",
+    },
     resetOnboarding: "Reset onboarding",
     languages: {
       en: "English",
