@@ -62,7 +62,7 @@ export const en = {
       ],
     },
     hook: {
-      cta: "Get started — it's free",
+      cta: "Get started",
       slides: [
         {
           key: "waste",
@@ -101,7 +101,7 @@ export const en = {
         {
           key: "start",
           title: "Let's get you fed.",
-          body: "Free. No card needed.",
+          body: "Your smartest kitchen habit starts here.",
           illustration: "wordmark",
           wordmarkKicker: "what's for dinner?",
         },

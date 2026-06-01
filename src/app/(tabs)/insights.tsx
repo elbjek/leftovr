@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import Svg, { Circle, Ellipse, Path } from "react-native-svg";
 
-import { EmptyState, PremiumSheet, Screen, Text } from "@/components";
+
+import { EmptyState, PremiumSheet, RecipeGlyph, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useInsights } from "@/hooks";
 import { setPreviewTier } from "@/repositories";
@@ -176,17 +176,6 @@ function MostCookedCard({ summary }: { summary: InsightsSummary }) {
   );
 }
 
-function RecipeGlyph() {
-  return (
-    <Svg width={34} height={34} viewBox="0 0 48 48" fill="none">
-      <Ellipse cx={24} cy={32} rx={18} ry={4} stroke={colors.primary} strokeOpacity={0.3} strokeWidth={1.5} />
-      <Ellipse cx={24} cy={28} rx={16} ry={8} stroke={colors.primary} strokeWidth={1.8} />
-      <Path d="M12 28 Q16 22 24 22 Q32 22 36 28" stroke={colors.primary} strokeWidth={1.5} />
-      <Circle cx={20} cy={26} r={1.5} fill={colors.primary} />
-      <Circle cx={28} cy={25} r={1.5} fill={colors.primary} />
-    </Svg>
-  );
-}
 
 function formatWeekLabel() {
   const date = new Date();

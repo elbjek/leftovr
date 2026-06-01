@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { Button, EmptyState, PremiumSheet, RecipeCard, SegmentedControl, Text } from "@/components";
+import { BottomDock, Button, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, SegmentedControl, Text } from "@/components";
 import { useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
@@ -276,13 +276,13 @@ export default function RecipesRoute() {
         )}
       </ScrollView>
 
-      <View style={styles.bottomDock}>
+      <BottomDock>
         <Button
           title={t("recipes.generateCta")}
           onPress={handleGenerate}
           loading={generating}
         />
-      </View>
+      </BottomDock>
 
       <PremiumSheet
         visible={showPremium}
@@ -330,22 +330,6 @@ function parseRecipeIngredients(ingredients: unknown): RecipeIngredientParam[] {
   ));
 }
 
-function FilterChip({ label, active = false, count }: { label: string; active?: boolean; count?: string }) {
-  return (
-    <View style={[styles.filterChip, active && styles.filterChipActive]}>
-      <Text variant="small" color={active ? colors.surface : colors.text} style={styles.filterChipText}>
-        {label}
-      </Text>
-      {count ? (
-        <View style={[styles.filterCount, active && styles.filterCountActive]}>
-          <Text variant="micro" color={active ? colors.text : colors.primary}>
-            {count}
-          </Text>
-        </View>
-      ) : null}
-    </View>
-  );
-}
 
 function SavedRecipeRow({
   recipe,
@@ -365,7 +349,7 @@ function SavedRecipeRow({
       style={({ pressed }) => [styles.savedRow, pressed && styles.savedRowPressed]}
     >
       <View style={styles.savedRowThumb}>
-        <RecipeGlyphSmall />
+        <RecipeGlyph size={34} variant="simple" />
       </View>
       <View style={styles.savedRowCopy}>
         <Text variant="h3" numberOfLines={1}>{recipe.title}</Text>
@@ -382,15 +366,6 @@ function SavedRecipeRow({
   );
 }
 
-function RecipeGlyphSmall() {
-  return (
-    <View style={styles.glyphWrap}>
-      <View style={styles.glyphBowl} />
-      <View style={styles.glyphDot1} />
-      <View style={styles.glyphDot2} />
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   screen: {
@@ -431,33 +406,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
     gap: spacing.sm,
     paddingBottom: spacing.lg,
-  },
-  filterChip: {
-    minHeight: 36,
-    paddingHorizontal: 14,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.paper,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  filterChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  filterChipText: {
-    fontWeight: "600",
-  },
-  filterCount: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 1,
-    backgroundColor: colors.primary50,
-  },
-  filterCountActive: {
-    backgroundColor: colors.accent,
   },
   cookingModeLabel: {
     marginBottom: spacing.sm,
@@ -548,49 +496,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     marginTop: spacing.xxs,
-  },
-  glyphWrap: {
-    width: 34,
-    height: 34,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  glyphBowl: {
-    width: 28,
-    height: 14,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    borderRadius: 14,
-    borderTopWidth: 0,
-  },
-  glyphDot1: {
-    position: "absolute",
-    top: 10,
-    left: 9,
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: colors.primary,
-  },
-  glyphDot2: {
-    position: "absolute",
-    top: 9,
-    right: 8,
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: colors.primary,
-  },
-  bottomDock: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.tabBarClearance,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
   },
 });

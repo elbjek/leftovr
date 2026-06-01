@@ -5,5 +5,6 @@ export * from "./FoodCard";
 export * from "./InventoryReviewCard";
 export * from "./PremiumSheet";
 export * from "./RecipeCard";
+export * from "./RecipeGlyph";
 export * from "./RetentionCard";
 export * from "./ShelfRow";

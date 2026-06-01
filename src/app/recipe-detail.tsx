@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, Card, Text } from "@/components";
+import { BottomSheet, Button, Card, RecipeGlyph, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useInventory } from "@/hooks";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
@@ -175,7 +175,7 @@ export default function RecipeDetailRoute() {
               <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           </Pressable>
-          <RecipeGlyph />
+          <RecipeGlyph size={48} />
           {urgentBadge ? (
             <View style={styles.urgentChip}>
               <Text variant="small" color={colors.primary}>
@@ -328,14 +328,7 @@ function parseUsedInventoryItems(input?: string): UsedInventoryItemParam[] {
   }
 }
 
-function RecipeGlyph() {
-  return (
-    <Svg width={48} height={48} viewBox="0 0 48 48" fill="none" style={{ opacity: 0.85 }}>
-      <Path d="M12 28 Q16 22 24 22 Q32 22 36 28" stroke={colors.primary} strokeWidth={1.5} fill="none" />
-      <Path d="M8 28 A16 8 0 0 0 40 28 A16 8 0 0 0 8 28" stroke={colors.primary} strokeWidth={1.8} fill="none" />
-    </Svg>
-  );
-}
+
 
 const styles = StyleSheet.create({
   screen: {
