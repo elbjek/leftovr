@@ -5,7 +5,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 
 import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ShelfRow, Text } from "@/components";
 import { useAuth } from "@/features";
-import { useInventory, useRetention } from "@/hooks";
+import { useInsights, useInventory, useRetention } from "@/hooks";
 import {
   InventoryGroup,
   PartialState,
@@ -40,6 +40,7 @@ export default function FridgeRoute() {
   const [removeGroupTarget, setRemoveGroupTarget] = useState<InventoryGroup | null>(null);
   const urgentGroups = groups.filter((group) => group.urgency === "urgent");
   const isPremium = profile?.tier !== "free";
+  const { weeklySummary } = useInsights(activeHousehold?.id);
   const eatFirstGroups = getEatFirstGroups(groups);
   const categoryShelves = buildCategoryShelves(groups, t);
 
@@ -86,6 +87,30 @@ export default function FridgeRoute() {
         onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
         onUpgradePress={() => router.push("/(tabs)/settings")}
       />
+
+      {weeklySummary && weeklySummary.estimatedItemsSaved > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          style={styles.statsStrip}
+          onPress={isPremium ? () => router.push("/(tabs)/insights") : undefined}
+        >
+          <View style={styles.statsIcon}>
+            <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+              <Path d="M2 12 L6 7 L10 9 L14 3" stroke={colors.surface} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </View>
+          <View style={styles.statsCopy}>
+            <Text variant="label" color={colors.primary}>
+              {t("fridge.statsStrip.title", { count: weeklySummary.estimatedItemsSaved })}
+            </Text>
+            {isPremium ? (
+              <Text variant="small" muted style={styles.statsSubtext}>
+                {t("fridge.statsStrip.premiumSub", { amount: weeklySummary.estimatedMoneySaved.toFixed(0) })}
+              </Text>
+            ) : null}
+          </View>
+        </Pressable>
+      ) : null}
 
       {day7Recap ? (
         <View style={styles.retentionWrap}>
@@ -509,6 +534,29 @@ const styles = StyleSheet.create({
   },
   retentionWrap: {
     paddingHorizontal: spacing.screenX,
+  },
+  statsStrip: {
+    marginHorizontal: spacing.screenX,
+    padding: 14,
+    backgroundColor: colors.primary50,
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  statsIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statsCopy: {
+    flex: 1,
+  },
+  statsSubtext: {
+    marginTop: 2,
   },
   header: {
     paddingHorizontal: spacing.screenX,
