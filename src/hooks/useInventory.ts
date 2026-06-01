@@ -9,6 +9,7 @@ import {
   removeInventoryGroup,
 } from "@/repositories";
 import { groupInventoryLots, InventoryGroup, InventoryLot, PartialState } from "@/services";
+import { useMeasurementSystem } from "@/features/settings/useMeasurementSystem";
 
 type InventoryState = {
   loading: boolean;
@@ -36,6 +37,8 @@ export function useInventory(householdId?: string | null) {
     error: null,
   });
 
+  const { system } = useMeasurementSystem();
+
   const load = useCallback(async () => {
     if (!householdId) {
       setState({ loading: false, lots: [], groups: [], error: null });
@@ -46,7 +49,7 @@ export function useInventory(householdId?: string | null) {
 
     try {
       const lots = await listActiveHouseholdInventory(householdId);
-      setState({ loading: false, lots, groups: groupInventoryLots(lots), error: null });
+      setState({ loading: false, lots, groups: [], error: null });
     } catch (error) {
       setState((current) => ({
         ...current,
@@ -110,5 +113,9 @@ export function useInventory(householdId?: string | null) {
     [householdId, load, reloadAndBroadcast],
   );
 
-  return { ...state, ...actions };
+  // Group at render so the metric/imperial toggle re-formats labels live,
+  // without re-fetching inventory.
+  const groups = useMemo(() => groupInventoryLots(state.lots, system), [state.lots, system]);
+
+  return { ...state, groups, ...actions };
 }

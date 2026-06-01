@@ -1,4 +1,5 @@
 import { i18n } from "@/i18n";
+import { formatAmount, MeasurementSystem } from "./units";
 
 export const INVENTORY_CATEGORIES = [
   "dairy_eggs",
@@ -168,7 +169,10 @@ export function getDepletionUpdate(lot: Pick<InventoryLot, "quantity" | "partial
   return { quantity: 0, partialState: lot.partial_state, shouldRemove: true };
 }
 
-export function groupInventoryLots(lots: InventoryLot[]): InventoryGroup[] {
+export function groupInventoryLots(
+  lots: InventoryLot[],
+  system: MeasurementSystem = "metric",
+): InventoryGroup[] {
   const groups = new Map<string, InventoryGroup>();
 
   lots.forEach((lot) => {
@@ -186,7 +190,7 @@ export function groupInventoryLots(lots: InventoryLot[]): InventoryGroup[] {
       existing.lots.push(lot);
       existing.partialState = mergePartialState(existing.partialState, lot.partial_state);
       existing.partialLabel = formatPartialState(existing.partialState);
-      existing.meta = formatGroupMeta(existing);
+      existing.meta = formatGroupMeta(existing, system);
       return;
     }
 
@@ -209,7 +213,7 @@ export function groupInventoryLots(lots: InventoryLot[]): InventoryGroup[] {
       meta: "",
     };
 
-    group.meta = formatGroupMeta(group);
+    group.meta = formatGroupMeta(group, system);
     groups.set(key, group);
   });
 
@@ -238,10 +242,17 @@ export function toUiCategory(category: InventoryCategory) {
   return category.replace("_", "-");
 }
 
-function formatGroupMeta(group: Pick<InventoryGroup, "quantity" | "unit" | "lotCount" | "urgencyLabel" | "partialLabel">) {
+function formatGroupMeta(
+  group: Pick<InventoryGroup, "quantity" | "unit" | "lotCount" | "urgencyLabel" | "partialLabel" | "netAmount" | "netUnit">,
+  system: MeasurementSystem = "metric",
+) {
   const quantity = Number.isInteger(group.quantity) ? group.quantity : Number(group.quantity.toFixed(1));
+  const amount =
+    group.netAmount != null && group.netUnit
+      ? formatAmount(group.netAmount, group.netUnit, system)
+      : `${quantity} ${group.unit}`;
   const lotCopy = group.lotCount > 1 ? `, ${i18n.t("fridge.meta.lots", { count: group.lotCount })}` : "";
-  return `${quantity} ${group.unit}${lotCopy} · ${group.urgencyLabel} · ${group.partialLabel}`;
+  return `${amount}${lotCopy} · ${group.urgencyLabel} · ${group.partialLabel}`;
 }
 
 function mergePartialState(a: PartialState, b: PartialState): PartialState {
