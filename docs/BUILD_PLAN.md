@@ -874,4 +874,14 @@ Keep these TODOs visible during and after V1:
 - Continued alignment with new Claude design pages as they are added.
 
 
---todo dice roll, what should i cook with options
+--todo dice roll, what should i cook with options, tiktok recipes, rate meals, meal rating, custom recipe addition with an option to create "my cook book" and make it shareable on instagram with a watermark or something, make recipes shareable,
+
+i make a recipe, i share it with a friend, open up app store to download app and make user register, and allow them to see the recipe someone shared.
+make a shared recipes list. 
+
+1. dice roll
+2. rate meals
+share recipes on instagram
+3. share recipes with friends
+4. custom recipe adding with cookbook
+5. make the cookbook shareable on isntagram via watermark

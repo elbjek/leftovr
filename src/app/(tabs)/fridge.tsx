@@ -6,7 +6,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ShelfRow, Text, TextField } from "@/components";
 import { useAuth, useMeasurementSystem } from "@/features";
 import { updateInventoryNetAmount } from "@/repositories";
-import { useInsights, useInventory, useRetention } from "@/hooks";
+import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
 import {
   formatAmount,
   getCatalogFood,
@@ -18,6 +18,22 @@ import {
 } from "@/services";
 import { colors, radii, spacing } from "@/theme";
 import { router, useFocusEffect } from "expo-router";
+
+const CATEGORY_ORDER = [
+  "dairy_eggs",
+  "vegetables",
+  "meat",
+  "fish",
+  "fruit",
+  "bakery",
+  "pantry",
+  "frozen",
+  "drinks",
+  "snacks",
+  "other",
+] as const;
+
+type CategoryFilter = "all" | (typeof CATEGORY_ORDER)[number];
 
 export default function FridgeRoute() {
   const { t } = useTranslation();
@@ -44,12 +60,17 @@ export default function FridgeRoute() {
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   const [removeGroupTarget, setRemoveGroupTarget] = useState<InventoryGroup | null>(null);
   const [expandedShelf, setExpandedShelf] = useState<{ name: string; groups: InventoryGroup[] } | null>(null);
-  const urgentGroups = groups.filter((group) => group.urgency === "urgent");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const filteredGroups = categoryFilter === "all" ? groups : groups.filter((group) => group.category === categoryFilter);
+  const urgentGroups = filteredGroups.filter((group) => group.urgency === "urgent");
   const isPremium = profile?.tier !== "free";
   const { weeklySummary } = useInsights(activeHousehold?.id);
-  const eatFirstGroups = getEatFirstGroups(groups);
-  const runningLowGroups = groups.filter(isMetricAmountRunningLow);
-  const categoryShelves = buildCategoryShelves(groups, t);
+  const eatFirstGroups = getEatFirstGroups(filteredGroups);
+  const runningLowGroups = filteredGroups.filter(isMetricAmountRunningLow);
+  const categoryShelves = buildCategoryShelves(filteredGroups, t);
+  const { members } = useHousehold(activeHousehold?.id);
+  const showAddedBy = members.length > 1;
 
   useFocusEffect(
     useCallback(() => {
@@ -70,6 +91,7 @@ export default function FridgeRoute() {
         </View>
         <View style={styles.headerActions}>
           <IconButton label={t("fridge.search")}><SearchIcon /></IconButton>
+          <IconButton label={t("fridge.filter.title")} onPress={() => setFilterOpen(true)}><FilterIcon active={categoryFilter !== "all"} /></IconButton>
           <IconButton label={t("fridge.refresh")} onPress={refresh}><RefreshIcon /></IconButton>
         </View>
       </View>
@@ -179,13 +201,14 @@ export default function FridgeRoute() {
         onUse: consumeFirstLot,
         onPartial: async (group) => setPartialGroup(group),
         onRemove: async (group) => setRemoveGroupTarget(group),
-      }, groups.length === 0)}
+      }, groups.length === 0, showAddedBy)}
 
       {runningLowGroups.length > 0 ? (
         <CategoryShelf
           name={t("fridge.shelves.runningLow")}
           groups={runningLowGroups}
           moreLabel={t("fridge.shelves.more")}
+          showAddedBy={showAddedBy}
           onItemPress={(group) => setActionGroup(group)}
           onMorePress={() => setExpandedShelf({ name: t("fridge.shelves.runningLow"), groups: runningLowGroups })}
         />
@@ -197,6 +220,7 @@ export default function FridgeRoute() {
           name={shelf.name}
           groups={shelf.groups}
           moreLabel={t("fridge.shelves.more")}
+          showAddedBy={showAddedBy}
           onItemPress={(group) => setActionGroup(group)}
           onMorePress={() => setExpandedShelf({ name: shelf.name, groups: shelf.groups })}
         />
@@ -262,11 +286,28 @@ export default function FridgeRoute() {
 
       <FullShelfSheet
         shelf={expandedShelf}
+        showAddedBy={showAddedBy}
         onDismiss={() => setExpandedShelf(null)}
         onItemPress={(group) => {
           setExpandedShelf(null);
           setActionGroup(group);
         }}
+      />
+
+      <CategoryFilterSheet
+        visible={filterOpen}
+        selected={categoryFilter}
+        groups={groups}
+        labels={{
+          title: t("fridge.filter.title"),
+          all: t("fridge.filter.all"),
+        }}
+        t={t}
+        onSelect={(category) => {
+          setCategoryFilter(category);
+          setFilterOpen(false);
+        }}
+        onDismiss={() => setFilterOpen(false)}
       />
     </Screen>
   );
@@ -357,6 +398,7 @@ function renderShelf(
     emptyLabel?: string;
   },
   emptyOnly = false,
+  showAddedBy = false,
 ) {
   if (!emptyOnly || (groups.length === 0 && !actions.alwaysShow)) return null;
 
@@ -371,8 +413,9 @@ function renderShelf(
           name: group.name,
           category: toUiCategory(group.category),
           meta: group.meta,
+          metaLines: getCardMetaLines(group.meta),
           urgency: toUiUrgency(group.urgency),
-          addedBy: group.lots[0]?.added_by_name ?? null,
+          addedBy: showAddedBy ? group.lots[0]?.added_by_name ?? null : null,
         }))}
       />
       {groups.length === 0 && actions.emptyLabel ? (
@@ -409,12 +452,14 @@ function CategoryShelf({
   name,
   groups,
   moreLabel,
+  showAddedBy,
   onItemPress,
   onMorePress,
 }: {
   name: string;
   groups: InventoryGroup[];
   moreLabel: string;
+  showAddedBy: boolean;
   onItemPress: (group: InventoryGroup) => void;
   onMorePress: () => void;
 }) {
@@ -430,8 +475,9 @@ function CategoryShelf({
         name: group.name,
         category: toUiCategory(group.category),
         meta: group.meta,
+        metaLines: getCardMetaLines(group.meta),
         urgency: toUiUrgency(group.urgency),
-        addedBy: group.lots[0]?.added_by_name ?? null,
+        addedBy: showAddedBy ? group.lots[0]?.added_by_name ?? null : null,
       }))}
       onItemPress={(item) => {
         const group = groups.find((candidate) => candidate.key === item.id);
@@ -444,10 +490,12 @@ function CategoryShelf({
 
 function FullShelfSheet({
   shelf,
+  showAddedBy,
   onDismiss,
   onItemPress,
 }: {
   shelf: { name: string; groups: InventoryGroup[] } | null;
+  showAddedBy: boolean;
   onDismiss: () => void;
   onItemPress: (group: InventoryGroup) => void;
 }) {
@@ -462,8 +510,9 @@ function FullShelfSheet({
               name={group.name}
               category={toUiCategory(group.category)}
               meta={group.meta}
+              metaLines={getCardMetaLines(group.meta)}
               urgency={toUiUrgency(group.urgency)}
-              addedBy={group.lots[0]?.added_by_name ?? null}
+              addedBy={showAddedBy ? group.lots[0]?.added_by_name ?? null : null}
               onPress={() => onItemPress(group)}
               style={styles.fullShelfCard}
             />
@@ -548,27 +597,84 @@ function ItemActionSheet({
 }
 
 function buildCategoryShelves(groups: InventoryGroup[], t: ReturnType<typeof useTranslation>["t"]) {
-  const order = [
-    "dairy_eggs",
-    "vegetables",
-    "meat",
-    "fish",
-    "fruit",
-    "bakery",
-    "pantry",
-    "frozen",
-    "drinks",
-    "snacks",
-    "other",
-  ];
-
-  return order
+  return CATEGORY_ORDER
     .map((category) => ({
       category,
       name: t(`scan.categories.${category}` as any),
       groups: groups.filter((group) => group.category === category),
     }))
     .filter((shelf) => shelf.groups.length > 0);
+}
+
+function CategoryFilterSheet({
+  visible,
+  selected,
+  groups,
+  labels,
+  t,
+  onSelect,
+  onDismiss,
+}: {
+  visible: boolean;
+  selected: CategoryFilter;
+  groups: InventoryGroup[];
+  labels: {
+    title: string;
+    all: string;
+  };
+  t: ReturnType<typeof useTranslation>["t"];
+  onSelect: (category: CategoryFilter) => void;
+  onDismiss: () => void;
+}) {
+  const counts = new Map<CategoryFilter, number>([["all", groups.length]]);
+  for (const group of groups) {
+    counts.set(group.category as CategoryFilter, (counts.get(group.category as CategoryFilter) ?? 0) + 1);
+  }
+
+  const options: { key: CategoryFilter; label: string; count: number }[] = [
+    { key: "all", label: labels.all, count: groups.length },
+    ...CATEGORY_ORDER.map((category) => ({
+      key: category,
+      label: t(`scan.categories.${category}` as any),
+      count: counts.get(category) ?? 0,
+    })).filter((option) => option.count > 0),
+  ];
+
+  return (
+    <BottomSheet visible={visible} onDismiss={onDismiss}>
+      <View style={styles.sheetContent}>
+        <Text variant="h2">{labels.title}</Text>
+        <View style={styles.filterGrid}>
+          {options.map((option) => {
+            const active = option.key === selected;
+            return (
+              <Pressable
+                key={option.key}
+                accessibilityRole="button"
+                onPress={() => onSelect(option.key)}
+                style={({ pressed }) => [
+                  styles.filterChoice,
+                  active && styles.filterChoiceActive,
+                  pressed && styles.filterChoicePressed,
+                ]}
+              >
+                <Text variant="label" color={active ? colors.surface : colors.primary}>
+                  {option.label}
+                </Text>
+                <Text variant="micro" color={active ? colors.surface : colors.muted}>
+                  {option.count}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+    </BottomSheet>
+  );
+}
+
+function getCardMetaLines(meta: string) {
+  return meta.split(" · ").slice(0, 2);
 }
 
 function getEatFirstGroups(groups: InventoryGroup[]) {
@@ -616,6 +722,15 @@ function RefreshIcon() {
       <Path d="M14.5 8A5.5 5.5 0 0 0 4.9 4.4L3 6.2" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
       <Path d="M3.5 10A5.5 5.5 0 0 0 13.1 13.6L15 11.8" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
       <Path d="M3 2.8V6.2H6.4M15 15.2V11.8H11.6" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function FilterIcon({ active }: { active: boolean }) {
+  const color = active ? colors.accent : colors.primary;
+  return (
+    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
+      <Path d="M3 4.5H15M5.5 9H12.5M7.5 13.5H10.5" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -733,6 +848,32 @@ const styles = StyleSheet.create({
   },
   sheetButtons: {
     gap: spacing.sm,
+  },
+  filterGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  filterChoice: {
+    width: "48%",
+    minHeight: 52,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.paper,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  filterChoiceActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  filterChoicePressed: {
+    opacity: 0.78,
   },
   fullShelfScroll: {
     maxHeight: 520,

@@ -215,12 +215,16 @@ export const sr = {
       runningLow: "Pri kraju",
       more: "Jos",
       useSoon: "Uskoro iskoristi",
-      safe: "Jos je dobro",
+      safe: "Sveze",
+    },
+    filter: {
+      title: "Filter",
+      all: "Sve namirnice",
     },
     meta: {
       urgent: "Pojedi prvo",
       useSoon: "Uskoro iskoristi",
-      safe: "Jos je dobro",
+      safe: "Sveze",
       full: "Puno",
       someUsed: "Delimicno potroseno",
       low: "Pri kraju",
