@@ -1,12 +1,14 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ShelfRow, Text } from "@/components";
-import { useAuth } from "@/features";
+import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ShelfRow, Text, TextField } from "@/components";
+import { useAuth, useMeasurementSystem } from "@/features";
+import { updateInventoryNetAmount } from "@/repositories";
 import { useInsights, useInventory, useRetention } from "@/hooks";
 import {
+  formatAmount,
   getCatalogFood,
   InventoryGroup,
   PartialState,
@@ -19,6 +21,7 @@ import { router, useFocusEffect } from "expo-router";
 export default function FridgeRoute() {
   const { t } = useTranslation();
   const { profile, activeHousehold } = useAuth();
+  const { system } = useMeasurementSystem();
   const {
     loading,
     groups,
@@ -187,6 +190,7 @@ export default function FridgeRoute() {
       <ItemActionSheet
         group={actionGroup}
         labels={getActionLabels(t)}
+        system={system}
         onDismiss={() => setActionGroup(null)}
         onUse={async (group) => {
           await consumeFirstLot(group);
@@ -199,6 +203,11 @@ export default function FridgeRoute() {
         onRemove={(group) => {
           setActionGroup(null);
           setRemoveGroupTarget(group);
+        }}
+        onOverrideNet={async (itemId, netAmount) => {
+          await updateInventoryNetAmount(itemId, netAmount);
+          await refresh();
+          setActionGroup(null);
         }}
       />
 
@@ -405,18 +414,30 @@ function CategoryShelf({
 function ItemActionSheet({
   group,
   labels,
+  system,
   onDismiss,
   onUse,
   onPartial,
   onRemove,
+  onOverrideNet,
 }: {
   group: InventoryGroup | null;
-  labels: { use: string; partial: string; remove: string };
+  labels: { use: string; partial: string; remove: string; netLabel: string; saveNet: string };
+  system: "metric" | "imperial";
   onDismiss: () => void;
   onUse: (group: InventoryGroup) => Promise<void>;
   onPartial: (group: InventoryGroup) => void;
   onRemove: (group: InventoryGroup) => void;
+  onOverrideNet: (itemId: string, netAmount: number) => Promise<void>;
 }) {
+  const [netInput, setNetInput] = useState("");
+  useEffect(() => {
+    const firstLotNet = group?.lots[0]?.net_amount;
+    setNetInput(firstLotNet != null ? String(firstLotNet) : "");
+  }, [group?.key]);
+
+  const isPrecise = group?.netAmount != null && group.netUnit != null;
+
   return (
     <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
       <View style={styles.sheetContent}>
@@ -425,7 +446,32 @@ function ItemActionSheet({
           <Text variant="body" muted>
             {group?.meta}
           </Text>
+          {isPrecise && group ? (
+            <Text variant="small" muted>
+              {formatAmount(group.netAmount as number, group.netUnit as "ml" | "g", system)}
+            </Text>
+          ) : null}
         </View>
+        {isPrecise && group ? (
+          <View style={styles.netRow}>
+            <TextField
+              label={labels.netLabel}
+              keyboardType="number-pad"
+              value={netInput}
+              onChangeText={setNetInput}
+              containerStyle={styles.netField}
+            />
+            <Button
+              title={labels.saveNet}
+              variant="ghost"
+              onPress={async () => {
+                const value = Number(netInput);
+                if (!group.lots[0] || !(value > 0)) return;
+                await onOverrideNet(group.lots[0].id, value);
+              }}
+            />
+          </View>
+        ) : null}
         <View style={styles.sheetButtons}>
           <Button title={labels.use} variant="accent" onPress={() => group && onUse(group)} />
           <Button title={labels.partial} variant="ghost" onPress={() => group && onPartial(group)} />
@@ -514,6 +560,8 @@ function getActionLabels(t: ReturnType<typeof useTranslation>["t"]) {
     use: t("fridge.actions.use"),
     partial: t("fridge.actions.partial"),
     remove: t("fridge.actions.remove"),
+    netLabel: t("fridge.actions.netLabel"),
+    saveNet: t("fridge.actions.saveNet"),
   };
 }
 
@@ -620,5 +668,13 @@ const styles = StyleSheet.create({
   },
   sheetButtons: {
     gap: spacing.sm,
+  },
+  netRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: spacing.sm,
+  },
+  netField: {
+    flex: 1,
   },
 });

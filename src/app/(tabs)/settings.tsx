@@ -16,7 +16,7 @@ import {
   Text,
   TextField,
 } from "@/components";
-import { useAuth } from "@/features";
+import { useAuth, useMeasurementSystem } from "@/features";
 import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
@@ -47,6 +47,7 @@ const SERVINGS_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
 export default function SettingsRoute() {
   const { t, i18n } = useTranslation();
   const { profile, activeHousehold, session, signOut, loading, refresh } = useAuth();
+  const { system, setMeasurementSystem } = useMeasurementSystem();
   const currentLanguage = isSupportedLanguage(i18n.language) ? i18n.language : "en";
   const languageOptions = supportedLanguages.map((language) => ({
     label: t(`settings.languages.${language}`),
@@ -251,6 +252,26 @@ export default function SettingsRoute() {
               options={languageOptions}
               value={currentLanguage}
               onChange={handleLanguageChange}
+            />
+          </View>
+        </Card>
+
+        {/* Units */}
+        <Card>
+          <View style={styles.cardInner}>
+            <View style={styles.sectionHeader}>
+              <Text variant="label">{t("settings.unitsTitle")}</Text>
+              <Text variant="small" muted>
+                {t("settings.unitsBody")}
+              </Text>
+            </View>
+            <SegmentedControl
+              options={[
+                { label: t("settings.units.metric"), value: "metric" },
+                { label: t("settings.units.imperial"), value: "imperial" },
+              ]}
+              value={system}
+              onChange={(value) => setMeasurementSystem(value as "metric" | "imperial")}
             />
           </View>
         </Card>
