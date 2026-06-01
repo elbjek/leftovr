@@ -87,7 +87,7 @@ export function useInventory(householdId?: string | null) {
       },
       useFirstLot: async (group: InventoryGroup) => {
         if (!householdId || !group.lots[0]) return;
-        await depleteItemQuantity(householdId, group.normalizedName, 1);
+        await depleteItemQuantity(householdId, group.normalizedName, 1, group.unit);
         await reloadAndBroadcast();
       },
       markFirstLotPartial: async (group: InventoryGroup) => {

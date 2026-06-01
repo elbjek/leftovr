@@ -6,3 +6,4 @@ export * from "./notificationService";
 export * from "./receiptService";
 export * from "./recipeService";
 export * from "./units";
+export * from "./depletionPlan";
