@@ -213,6 +213,7 @@ export const sr = {
     shelves: {
       urgent: "Uskoro istice",
       runningLow: "Pri kraju",
+      more: "Jos",
       useSoon: "Uskoro iskoristi",
       safe: "Jos je dobro",
     },

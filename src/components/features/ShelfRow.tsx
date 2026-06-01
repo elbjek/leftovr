@@ -1,6 +1,6 @@
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-import { spacing } from "../../theme";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { colors, radii, spacing } from "../../theme";
 import { FoodCard } from "./FoodCard";
 import { Text } from "../primitives";
 
@@ -19,8 +19,11 @@ type Props = {
   tone?: string;
   items: ShelfItem[];
   layout?: "horizontal" | "grid";
+  maxVisibleItems?: number;
+  moreLabel?: string;
   seeAllLabel?: string;
   onItemPress?: (item: ShelfItem) => void;
+  onMorePress?: () => void;
 };
 
 export function ShelfRow({
@@ -29,10 +32,15 @@ export function ShelfRow({
   tone,
   items,
   layout = "horizontal",
+  maxVisibleItems,
+  moreLabel,
   seeAllLabel,
   onItemPress,
+  onMorePress,
 }: Props) {
   const grid = layout === "grid";
+  const showMore = grid && maxVisibleItems != null && items.length > maxVisibleItems;
+  const visibleItems = showMore ? items.slice(0, Math.max(0, maxVisibleItems - 1)) : items;
 
   return (
     <View style={styles.wrap}>
@@ -54,7 +62,7 @@ export function ShelfRow({
       </View>
       {grid ? (
         <View style={styles.grid}>
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <FoodCard
               key={item.id}
               name={item.name}
@@ -66,6 +74,20 @@ export function ShelfRow({
               style={styles.gridCard}
             />
           ))}
+          {showMore ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onMorePress}
+              style={({ pressed }) => [styles.moreCard, pressed && styles.morePressed]}
+            >
+              <Text variant="h2" color={colors.primary}>
+                +
+              </Text>
+              <Text variant="label" color={colors.primary}>
+                {moreLabel}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : (
         <ScrollView
@@ -130,6 +152,21 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   gridCard: {
-    width: "23.4%",
+    width: "31.5%",
+  },
+  moreCard: {
+    width: "31.5%",
+    minHeight: 170,
+    backgroundColor: colors.paper,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    padding: spacing.sm,
+  },
+  morePressed: {
+    transform: [{ scale: 0.99 }],
   },
 });

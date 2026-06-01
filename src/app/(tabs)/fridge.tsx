@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
@@ -43,6 +43,7 @@ export default function FridgeRoute() {
   const [partialGroup, setPartialGroup] = useState<InventoryGroup | null>(null);
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   const [removeGroupTarget, setRemoveGroupTarget] = useState<InventoryGroup | null>(null);
+  const [expandedShelf, setExpandedShelf] = useState<{ name: string; groups: InventoryGroup[] } | null>(null);
   const urgentGroups = groups.filter((group) => group.urgency === "urgent");
   const isPremium = profile?.tier !== "free";
   const { weeklySummary } = useInsights(activeHousehold?.id);
@@ -184,7 +185,9 @@ export default function FridgeRoute() {
         <CategoryShelf
           name={t("fridge.shelves.runningLow")}
           groups={runningLowGroups}
+          moreLabel={t("fridge.shelves.more")}
           onItemPress={(group) => setActionGroup(group)}
+          onMorePress={() => setExpandedShelf({ name: t("fridge.shelves.runningLow"), groups: runningLowGroups })}
         />
       ) : null}
 
@@ -193,7 +196,9 @@ export default function FridgeRoute() {
           key={shelf.category}
           name={shelf.name}
           groups={shelf.groups}
+          moreLabel={t("fridge.shelves.more")}
           onItemPress={(group) => setActionGroup(group)}
+          onMorePress={() => setExpandedShelf({ name: shelf.name, groups: shelf.groups })}
         />
       ))}
 
@@ -252,6 +257,15 @@ export default function FridgeRoute() {
           if (!removeGroupTarget) return;
           await removeGroup(removeGroupTarget);
           setRemoveGroupTarget(null);
+        }}
+      />
+
+      <FullShelfSheet
+        shelf={expandedShelf}
+        onDismiss={() => setExpandedShelf(null)}
+        onItemPress={(group) => {
+          setExpandedShelf(null);
+          setActionGroup(group);
         }}
       />
     </Screen>
@@ -394,17 +408,23 @@ function renderShelf(
 function CategoryShelf({
   name,
   groups,
+  moreLabel,
   onItemPress,
+  onMorePress,
 }: {
   name: string;
   groups: InventoryGroup[];
+  moreLabel: string;
   onItemPress: (group: InventoryGroup) => void;
+  onMorePress: () => void;
 }) {
   return (
     <ShelfRow
       name={name}
       count={groups.length}
       layout="grid"
+      maxVisibleItems={6}
+      moreLabel={moreLabel}
       items={groups.map((group) => ({
         id: group.key,
         name: group.name,
@@ -417,7 +437,40 @@ function CategoryShelf({
         const group = groups.find((candidate) => candidate.key === item.id);
         if (group) onItemPress(group);
       }}
+      onMorePress={onMorePress}
     />
+  );
+}
+
+function FullShelfSheet({
+  shelf,
+  onDismiss,
+  onItemPress,
+}: {
+  shelf: { name: string; groups: InventoryGroup[] } | null;
+  onDismiss: () => void;
+  onItemPress: (group: InventoryGroup) => void;
+}) {
+  return (
+    <BottomSheet visible={Boolean(shelf)} onDismiss={onDismiss}>
+      <View style={styles.sheetContent}>
+        <Text variant="h2">{shelf?.name}</Text>
+        <ScrollView style={styles.fullShelfScroll} contentContainerStyle={styles.fullShelfGrid}>
+          {shelf?.groups.map((group) => (
+            <FoodCard
+              key={group.key}
+              name={group.name}
+              category={toUiCategory(group.category)}
+              meta={group.meta}
+              urgency={toUiUrgency(group.urgency)}
+              addedBy={group.lots[0]?.added_by_name ?? null}
+              onPress={() => onItemPress(group)}
+              style={styles.fullShelfCard}
+            />
+          ))}
+        </ScrollView>
+      </View>
+    </BottomSheet>
   );
 }
 
@@ -680,6 +733,18 @@ const styles = StyleSheet.create({
   },
   sheetButtons: {
     gap: spacing.sm,
+  },
+  fullShelfScroll: {
+    maxHeight: 520,
+  },
+  fullShelfGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    paddingBottom: spacing.lg,
+  },
+  fullShelfCard: {
+    width: "31.5%",
   },
   netRow: {
     flexDirection: "row",
