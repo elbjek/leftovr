@@ -10,6 +10,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "supabase:start": "supabase start",
     "supabase:reset": "supabase db reset",
     "supabase:status": "supabase status"
@@ -52,6 +54,7 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.39.4",
     "eslint-config-expo": "~56.0.4",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^3.2.6"
   }
 }
