@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 
@@ -55,7 +55,7 @@ export default function InsightsRoute() {
   const summary = weeklySummary ?? getEmptySummary();
 
   return (
-    <Screen scroll padded={false} contentContainerStyle={styles.content}>
+    <Screen padded={false} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text variant="micro" color={colors.accent} uppercase style={styles.premiumBadge}>
           {t("insights.eyebrow", { week: formatWeekLabel() })}
@@ -63,9 +63,15 @@ export default function InsightsRoute() {
         <Text variant="h1">{t("insights.premiumTitle")}</Text>
       </View>
 
-      <View style={styles.stack}>
+      <View style={styles.heroWrap}>
         <HeroStat summary={summary} />
+      </View>
 
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.miniGrid}>
           <MiniStat
             label={t("insights.recipesCooked")}
@@ -81,7 +87,7 @@ export default function InsightsRoute() {
 
         <PatternCard summary={summary} />
         <MostCookedCard summary={summary} />
-      </View>
+      </ScrollView>
     </Screen>
   );
 }
@@ -217,8 +223,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   content: {
+    flex: 1,
     paddingTop: spacing.screenTop,
-    paddingBottom: spacing.tabBarClearance,
   },
   header: {
     paddingHorizontal: spacing.screenX,
@@ -228,9 +234,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: spacing.xs,
   },
-  stack: {
+  heroWrap: {
     paddingHorizontal: spacing.screenX,
     paddingTop: spacing.xl,
+    paddingBottom: 14,
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: spacing.screenX,
+    paddingBottom: spacing.tabBarClearance,
     gap: 14,
   },
   heroCard: {
