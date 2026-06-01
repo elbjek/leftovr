@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { colors, radii, spacing } from "../../theme";
 import { FoodCard } from "./FoodCard";
 import { Button, Card, Text } from "../primitives";
@@ -64,19 +64,26 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onU
           {labels.itemCount(items.length)}
         </Text>
       </View>
-      <View style={styles.panel}>
-        {items.map((item) => (
-          <FoodCard
-            key={item.id}
-            name={item.name}
-            category={item.category}
-            meta={item.note}
-            urgency={item.urgency}
-            style={styles.eatFirstCard}
-            onPress={() => onItemPress?.(item)}
-          />
-        ))}
-      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.panelScroll}
+        style={styles.panelOuter}
+      >
+        <View style={styles.panel}>
+          {items.map((item) => (
+            <FoodCard
+              key={item.id}
+              name={item.name}
+              category={item.category}
+              meta={item.note}
+              urgency={item.urgency}
+              style={styles.eatFirstCard}
+              onPress={() => onItemPress?.(item)}
+            />
+          ))}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -97,8 +104,14 @@ const styles = StyleSheet.create({
     fontFamily: "Fraunces",
     fontWeight: "500",
   },
-  panel: {
+  panelOuter: {
     marginHorizontal: spacing.screenX,
+  },
+  panelScroll: {
+    flexGrow: 1,
+  },
+  panel: {
+    flex: 1,
     padding: 14,
     borderRadius: radii.xl,
     backgroundColor: colors.primary,
@@ -106,8 +119,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   eatFirstCard: {
-    flex: 1,
-    width: undefined,
+    width: 118,
     backgroundColor: "rgba(248,244,238,0.95)",
   },
   row: {

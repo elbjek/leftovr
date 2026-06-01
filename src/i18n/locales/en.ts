@@ -202,6 +202,10 @@ export const en = {
     eatFirstPreviewTitle: "Eat First preview",
     eatFirstPreviewBody: "Unlock a ranked shelf of what is best eaten soon.",
     eatFirstUnlock: "Unlock",
+    statsStrip: {
+      title: "Avoided wasting ~{{count}} items this week",
+      premiumSub: "About ${{amount}} saved · Tap for insights",
+    },
     shelves: {
       urgent: "About to expire",
       useSoon: "Use soon",
