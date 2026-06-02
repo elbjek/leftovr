@@ -9,10 +9,11 @@ import {
   acceptHouseholdInvite,
   completeCurrentProfileOnboarding,
   OnboardingPersonalization,
+  updateProfileField,
 } from "@/repositories";
 import { colors } from "@/theme";
 
-type StepKey = "cookingFor" | "shoppingStyle" | "primaryGoal" | "avoidances" | "invite";
+type StepKey = "name" | "cookingFor" | "shoppingStyle" | "primaryGoal" | "avoidances" | "invite";
 type Choice = {
   label: string;
   subtitle?: string;
@@ -21,13 +22,14 @@ type Choice = {
   emoji?: string;
 };
 
-const steps: StepKey[] = ["cookingFor", "shoppingStyle", "primaryGoal", "avoidances", "invite"];
-const requiredStepCount = 4;
+const steps: StepKey[] = ["name", "cookingFor", "shoppingStyle", "primaryGoal", "avoidances", "invite"];
+const requiredStepCount = 5;
 
 export default function OnboardingRoute() {
   const { t } = useTranslation();
   const { refresh } = useAuth();
   const [stepIndex, setStepIndex] = useState(0);
+  const [displayName, setDisplayName] = useState("");
   const [cookingFor, setCookingFor] = useState("partner");
   const [servings, setServings] = useState(2);
   const [shoppingStyle, setShoppingStyle] = useState("weekly");
@@ -47,11 +49,12 @@ export default function OnboardingRoute() {
     inputLabel?: string;
   };
   const canContinue = useMemo(() => {
+    if (step === "name") return displayName.trim().length > 0;
     if (step === "cookingFor") return Boolean(cookingFor);
     if (step === "shoppingStyle") return Boolean(shoppingStyle);
     if (step === "primaryGoal") return Boolean(primaryGoal);
     return true;
-  }, [cookingFor, primaryGoal, shoppingStyle, step]);
+  }, [cookingFor, displayName, primaryGoal, shoppingStyle, step]);
 
   function goNext() {
     setError(null);
@@ -76,6 +79,8 @@ export default function OnboardingRoute() {
         primaryGoal,
         avoidances,
       };
+
+      await updateProfileField("display_name", displayName.trim());
 
       await completeCurrentProfileOnboarding(personalization);
 
@@ -142,6 +147,18 @@ export default function OnboardingRoute() {
             </Text>
           ) : null}
         </View>
+
+        {step === "name" ? (
+          <TextField
+            label={t("onboarding.personalization.name.inputLabel")}
+            placeholder={t("onboarding.personalization.name.placeholder")}
+            value={displayName}
+            onChangeText={setDisplayName}
+            autoCapitalize="words"
+            textContentType="name"
+            autoFocus
+          />
+        ) : null}
 
         {step === "cookingFor" ? (
           <ChoiceList

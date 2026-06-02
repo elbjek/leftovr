@@ -111,6 +111,13 @@ export const sr = {
     },
     personalization: {
       finish: "Zavrsi podesavanje",
+      name: {
+        eyebrow: "Prvo da se upoznamo",
+        title: "Kako da te zovemo?",
+        body: "Koristicemo ovo da te pozdravimo u aplikaciji.",
+        inputLabel: "Ime",
+        placeholder: "Tvoje ime",
+      },
       cookingFor: {
         eyebrow: "Par brzih pitanja",
         title: "Za koga kuvas?",

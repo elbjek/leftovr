@@ -174,7 +174,7 @@ Verification:
 
 ## Phase 3 - Auth And App Session
 
-Goal: implement real email/password auth and route gating.
+Goal: implement real passwordless email auth and route gating.
 
 Tasks:
 
@@ -185,23 +185,24 @@ Tasks:
   - logged in but personalization incomplete -> onboarding
   - logged in but household first-fill incomplete -> first-fill flow
   - complete -> tabs
-- Implement signup:
-  - display name
-  - email
-  - password
-- Implement login:
-  - email
-  - password
+- Implement single passwordless email flow (email-first OTP):
+  - screen 1: email only (`shouldCreateUser: true` so unknown emails create an account)
+  - screen 2: 6-digit code -> verify
+  - no display name and no password at this stage
+- New vs existing users are not detected up front; routing after verify
+  decides by profile state:
+  - new user (no `onboarding_completed_at`) -> onboarding (display name captured there)
+  - existing onboarded user -> tabs
 - Show Apple/Google buttons as UI-only placeholders.
 - Do not block on email verification.
-- Create profile and solo household on signup.
+- Create profile and solo household on first verify.
 - Store active household state.
 - Add sign out.
 
 Definition of done:
 
-- A user can register, sign in, sign out, and return.
-- Signup creates a profile and household of one.
+- A user can register, sign in, sign out, and return via email code only.
+- First verify creates a profile and household of one.
 - No email verification wall appears.
 - Apple/Google buttons are visible but not wired.
 
@@ -258,11 +259,12 @@ Tasks:
   - local `hasSeenHook` persistence
 - Implement auth transition.
 - Implement personalization screens:
+  - display name (new users only; first step)
   - cooking for
   - shopping style
   - primary goal
   - avoidances
-- Store profile personalization.
+- Store profile personalization and display name.
 - Seed household default servings from Q1.
 - Store user-level onboarding completion.
 - Add invite-code entry path for invited users.

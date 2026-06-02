@@ -20,7 +20,6 @@ export default function OtpRoute() {
     hasPickedLanguage,
     hasSeenHook,
   } = useFirstRunOnboardingGate();
-  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
   const [sent, setSent] = useState(false);
@@ -32,7 +31,7 @@ export default function OtpRoute() {
   const normalizedToken = useMemo(() => token.replace(/\D/g, "").slice(0, 6), [token]);
 
   async function handleSend() {
-    if (!email || (isSignUp && !displayName)) {
+    if (!email) {
       setFormError(t("auth.missingFields"));
       return;
     }
@@ -41,7 +40,6 @@ export default function OtpRoute() {
     try {
       await sendOtp({
         email: email.trim(),
-        displayName: displayName.trim() || undefined,
         shouldCreateUser: true,
       });
       setSent(true);
@@ -97,15 +95,6 @@ export default function OtpRoute() {
         </View>
 
         <View style={styles.form}>
-          {isSignUp && !sent ? (
-            <TextField
-              label={t("auth.displayName")}
-              value={displayName}
-              onChangeText={setDisplayName}
-              textContentType="name"
-              autoCapitalize="words"
-            />
-          ) : null}
           <TextField
             label={t("auth.email")}
             value={email}
