@@ -99,6 +99,7 @@ Schema is unchanged — the tier fields already exist. New work is small:
 1. `public.is_premium()` helper (security definer).
 2. A `household_premium` check inside `create_household_invite`.
 3. Gate receipt-scan and barcode-scan entry points behind `is_premium()`; route blocked taps to the Premium sheet.
+   - Server backstop: restrictive RLS INSERT policies allow inserts only when `is_premium()` OR the household's `first_fill_completed_at` is null (onboarding) — on `receipt_scans` (all inserts) and on `inventory_items` (only `source = 'barcode'`; manual/receipt/moved inserts are unaffected).
 4. Wire the two preview toggles to write `profiles.tier` / `households.plan_tier`.
 
 ## 9. Future work (out of scope)
