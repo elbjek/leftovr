@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 
 import { EmptyState, PremiumSheet, RecipeGlyph, Screen, Text } from "@/components";
-import { useAuth } from "@/features";
+import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useInsights } from "@/hooks";
 import { setPreviewTier } from "@/repositories";
 import { formatCategoryLabel, InsightsSummary } from "@/services/insightsService";
@@ -13,7 +13,7 @@ import { colors, radii, spacing } from "@/theme";
 export default function InsightsRoute() {
   const { t } = useTranslation();
   const { profile, activeHousehold, refresh } = useAuth();
-  const isPremium = profile?.tier !== "free";
+  const isPremium = resolvePremium(profile, activeHousehold);
   const [showPremium, setShowPremium] = useState(false);
   const { weeklySummary, loading } = useInsights(
     isPremium ? activeHousehold?.id : undefined,

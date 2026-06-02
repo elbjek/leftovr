@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ShelfRow, Text, TextField } from "@/components";
-import { useAuth, useMeasurementSystem } from "@/features";
+import { isPremium as resolvePremium, useAuth, useMeasurementSystem } from "@/features";
 import { updateInventoryNetAmount } from "@/repositories";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
 import {
@@ -64,7 +64,7 @@ export default function FridgeRoute() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const filteredGroups = categoryFilter === "all" ? groups : groups.filter((group) => group.category === categoryFilter);
   const urgentGroups = filteredGroups.filter((group) => group.urgency === "urgent");
-  const isPremium = profile?.tier !== "free";
+  const isPremium = resolvePremium(profile, activeHousehold);
   const { weeklySummary } = useInsights(activeHousehold?.id);
   const eatFirstGroups = getEatFirstGroups(filteredGroups);
   const runningLowGroups = filteredGroups.filter(isMetricAmountRunningLow);
