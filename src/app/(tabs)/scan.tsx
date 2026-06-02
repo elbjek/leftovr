@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { Button, Card, IconButton, PremiumSheet, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, Text, TextField } from "@/components";
+import { BackButton, Button, Card, PremiumSheet, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
@@ -512,11 +512,7 @@ export default function ScanRoute() {
     return (
       <Screen scroll contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <IconButton label={t("common.back")} onPress={returnToChoice} style={styles.backButton}>
-            <Svg width={16} height={16} viewBox="0 0 14 14">
-              <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </IconButton>
+          <BackButton onPress={returnToChoice} style={styles.backButton} />
           <Text variant="display">{t("scan.manual.title")}</Text>
           <Text variant="body" muted>
             {t("scan.manual.screenBody")}
@@ -701,7 +697,7 @@ export default function ScanRoute() {
   }
 
   return (
-    <Screen scroll contentContainerStyle={styles.content}>
+    <Screen contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text variant="display">{t("scan.title")}</Text>
         <Text variant="body" muted>
