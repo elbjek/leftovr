@@ -115,6 +115,13 @@ export function useRecipes(
           });
           const top = matches.slice(0, 3);
 
+          // Nothing makeable from the current fridge: don't create a session
+          // (so it doesn't burn a weekly count) and signal the empty result.
+          if (top.length === 0) {
+            setState((s) => ({ ...s, generating: false }));
+            return { recipes: [], matches: [] };
+          }
+
           const session = await createRecipeSession({
             householdId,
             cookingMode,
@@ -154,7 +161,7 @@ export function useRecipes(
             savedRecipes: [...savedRecipes, ...s.savedRecipes],
           }));
 
-          return { session, matches: top, recipes: savedRecipes };
+          return { recipes: savedRecipes, matches: top };
         } catch (err) {
           setState((s) => ({
             ...s,

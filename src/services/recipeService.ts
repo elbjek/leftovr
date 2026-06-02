@@ -6,7 +6,22 @@ export type RecipeMatch = MockRecipe & {
   matchCount: number;
   totalRequired: number;
   urgentItemCount: number;
+  /** Share of required, non-staple ingredients present in the fridge (0..1). */
+  coverage: number;
 };
+
+/**
+ * Ingredients assumed to be on hand, so they don't count against a recipe's
+ * fridge coverage (you wouldn't avoid a recipe just because it needs salt).
+ */
+export const STAPLE_INGREDIENTS = new Set<string>([
+  "olive oil",
+  "garlic",
+  "salt",
+  "pepper",
+  "butter",
+  "water",
+]);
 
 export type MatchedItem = {
   ingredientName: string;
@@ -62,7 +77,20 @@ export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
     const totalRequired = recipe.ingredients.filter((i) => i.required).length;
     const urgentItemCount = matchedItems.filter((m) => m.isUrgent).length;
 
-    return { ...recipe, matchedItems, matchCount, totalRequired, urgentItemCount };
+    const requiredNonStaple = recipe.ingredients.filter(
+      (i) => i.required && !STAPLE_INGREDIENTS.has(normalizeFoodName(i.name)),
+    );
+    const matchedRequiredNonStaple = requiredNonStaple.filter((i) =>
+      inventoryByNorm.has(normalizeFoodName(i.name)),
+    ).length;
+    const coverage =
+      requiredNonStaple.length === 0
+        ? matchCount > 0
+          ? 1
+          : 0
+        : matchedRequiredNonStaple / requiredNonStaple.length;
+
+    return { ...recipe, matchedItems, matchCount, totalRequired, urgentItemCount, coverage };
   });
 
   scored.sort((a, b) => {
@@ -76,6 +104,32 @@ export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
   });
 
   return scored;
+}
+
+/**
+ * Keep only recipes you can mostly cook from the fridge (>= minCoverage of the
+ * required non-staple ingredients, and at least one fridge item), best first.
+ */
+export function selectMakeableRecipes(
+  matches: RecipeMatch[],
+  opts: { isPremium: boolean; minCoverage?: number },
+): RecipeMatch[] {
+  const minCoverage = opts.minCoverage ?? 0.5;
+  const makeable = matches.filter((m) => m.matchCount >= 1 && m.coverage >= minCoverage);
+
+  makeable.sort((a, b) => {
+    if (opts.isPremium) {
+      const urgDiff = b.urgentItemCount - a.urgentItemCount;
+      if (urgDiff !== 0) return urgDiff;
+    }
+    const covDiff = b.coverage - a.coverage;
+    if (covDiff !== 0) return covDiff;
+    const matchDiff = b.matchCount - a.matchCount;
+    if (matchDiff !== 0) return matchDiff;
+    return a.timeMinutes - b.timeMinutes;
+  });
+
+  return makeable;
 }
 
 export function getRecipeFridgeLabel(match: RecipeMatch): string {

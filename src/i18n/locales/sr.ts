@@ -342,6 +342,7 @@ export const sr = {
     filterEmpty: "Nijedan recept ne odgovara filteru.",
     emptyTitle: "Nema recepata",
     emptyBody: "Dodirnite dugme ispod da dobijete ideje na osnovu onoga sto imate u frideru.",
+    noMakeable: "Jos nema sta da se skuva iz frizidera. Skeniraj racun ili dodaj par stavki, pa pokusaj ponovo.",
     emptyAction: "Sta da kuvam?",
     generateCta: "Sta da kuvam?",
     weeklyLimit: "{{remaining}} od {{limit}} nedeljnih recepata preostalo",
