@@ -210,7 +210,14 @@ export default function ScanRoute() {
       setResult(nextResult);
       setMode("success");
     } catch (scanError) {
-      setError(scanError instanceof Error ? scanError.message : t("auth.genericError"));
+      // RLS rejection AND the client agrees the user isn't entitled = upsell.
+      // (A 42501 while canScan is true means a different problem, e.g. stale household.)
+      if (isPremiumGateError(scanError) && !canScan) {
+        setMode("choice");
+        setScanPremiumVisible(true);
+        return;
+      }
+      setError(errorMessage(scanError, t("auth.genericError")));
       setMode("camera");
     }
   }
@@ -244,7 +251,12 @@ export default function ScanRoute() {
       setLastAddedName(product.name);
       setMode("addSuccess");
     } catch (addError) {
-      setError(addError instanceof Error ? addError.message : t("auth.genericError"));
+      if (isPremiumGateError(addError) && !canScan) {
+        setMode("choice");
+        setScanPremiumVisible(true);
+        return;
+      }
+      setError(errorMessage(addError, t("auth.genericError")));
     } finally {
       setBarcodeLocked(false);
     }
@@ -766,6 +778,19 @@ function BellIcon() {
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Postgres row-level-security rejection (insufficient_privilege).
+function isPremiumGateError(err: unknown): boolean {
+  return typeof err === "object" && err !== null && (err as { code?: string }).code === "42501";
+}
+
+function errorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "object" && err !== null && typeof (err as { message?: unknown }).message === "string") {
+    return (err as { message: string }).message;
+  }
+  return fallback;
 }
 
 function getParamChoice(mode?: string): ScanChoice | null {

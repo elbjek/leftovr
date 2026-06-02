@@ -15,6 +15,19 @@ import { i18n } from "@/i18n";
 
 import { AuthState, Household } from "./types";
 
+function resolveErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message.length > 0) {
+      return message;
+    }
+  }
+  return i18n.t("auth.genericError");
+}
+
 type AuthContextValue = AuthState & {
   refresh: () => Promise<void>;
   sendOtp: (input: { email: string; displayName?: string; shouldCreateUser: boolean }) => Promise<void>;
@@ -93,11 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error: null,
       });
     } catch (error) {
+      console.error("[auth] loadSessionProfile failed", error);
       setState((current) => ({
         ...current,
         configured: hasSupabaseConfig(),
         loading: false,
-        error: error instanceof Error ? error.message : i18n.t("auth.genericError"),
+        error: resolveErrorMessage(error),
       }));
     }
   }, []);
@@ -137,10 +151,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await sendEmailOtp(input);
           setState((current) => ({ ...current, loading: false, error: null }));
         } catch (error) {
+          console.error("[auth] sendOtp failed", error);
           setState((current) => ({
             ...current,
             loading: false,
-            error: error instanceof Error ? error.message : i18n.t("auth.genericError"),
+            error: resolveErrorMessage(error),
           }));
           throw error;
         }
@@ -151,10 +166,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await verifyEmailOtp(input);
           await loadSessionProfile();
         } catch (error) {
+          console.error("[auth] verifyOtp failed", error);
           setState((current) => ({
             ...current,
             loading: false,
-            error: error instanceof Error ? error.message : i18n.t("auth.genericError"),
+            error: resolveErrorMessage(error),
           }));
           throw error;
         }
