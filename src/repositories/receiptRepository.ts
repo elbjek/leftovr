@@ -96,10 +96,6 @@ export async function processMockReceiptScan(input: {
 
   const limit = await getReceiptScanLimitStatus(input.householdId);
 
-  if (limit.remaining <= 0) {
-    throw new Error("Receipt limit reached for this month.");
-  }
-
   const normalized = normalizeMockReceipt(input.templateKey);
   const duplicate = await findRecentReceiptDuplicate(
     input.householdId,

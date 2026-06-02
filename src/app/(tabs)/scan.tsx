@@ -12,7 +12,6 @@ import {
   addInventoryItem,
   completeHouseholdFirstFill,
   findRecentReceiptDuplicate,
-  getReceiptScanLimitStatus,
   processMockReceiptScan,
   ReceiptDuplicate,
   ReceiptScanResult,
@@ -36,7 +35,6 @@ type ScanMode =
   | "manual"
   | "processing"
   | "duplicate"
-  | "limit"
   | "success"
   | "addSuccess"
   | "notifications";
@@ -53,7 +51,6 @@ export default function ScanRoute() {
   const [templateKey, setTemplateKey] = useState(mockReceiptTemplates[0]?.key ?? "weekly-family");
   const [duplicate, setDuplicate] = useState<ReceiptDuplicate | null>(null);
   const [result, setResult] = useState<ReceiptScanResult | null>(null);
-  const [limitCopy, setLimitCopy] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [manualQuery, setManualQuery] = useState("");
   const [manualCategory, setManualCategory] = useState<InventoryCategory>("other");
@@ -80,21 +77,6 @@ export default function ScanRoute() {
   }, [manualQuery]);
   const showCustomManualAdd = manualQuery.trim().length > 0
     && !manualSuggestions.some((item) => item.name.toLowerCase() === manualQuery.trim().toLowerCase());
-
-  useEffect(() => {
-    if (mode !== "choice" || !activeHousehold?.id) return;
-
-    getReceiptScanLimitStatus(activeHousehold.id)
-      .then((limit) => {
-        setLimitCopy(
-          t("scan.limitStatus", {
-            remaining: limit.remaining,
-            limit: limit.limit,
-          }),
-        );
-      })
-      .catch(() => undefined);
-  }, [activeHousehold?.id, mode, t]);
 
   const openSelectedChoice = useCallback(async (nextChoice = choice, options?: { skipGate?: boolean }) => {
     consumedModeRef.current = nextChoice;
@@ -158,13 +140,6 @@ export default function ScanRoute() {
     setError(null);
 
     try {
-      const limit = await getReceiptScanLimitStatus(activeHousehold.id);
-
-      if (limit.remaining <= 0) {
-        setMode("limit");
-        return;
-      }
-
       if (!allowDuplicate) {
         const existing = await findRecentReceiptDuplicate(
           activeHousehold.id,
@@ -584,33 +559,6 @@ export default function ScanRoute() {
     );
   }
 
-  if (mode === "limit") {
-    return (
-      <Screen>
-        <View style={styles.center}>
-          <Text variant="display" center>
-            {t("scan.limitTitle")}
-          </Text>
-          <Text variant="body" muted center>
-            {t("scan.limitBody")}
-          </Text>
-          <Button title={t("recipes.upgrade")} onPress={() => setScanPremiumVisible(true)} style={styles.limitUpgrade} />
-          <Button title={t("common.continue")} variant="text" onPress={() => router.replace("/(tabs)/fridge")} />
-        </View>
-        <PremiumSheet
-          visible={scanPremiumVisible}
-          onPreview={async () => {
-            const { setPreviewTier: setTier } = await import("@/repositories");
-            await setTier("premium");
-            await refresh();
-            returnToChoice();
-          }}
-          onDismiss={() => setScanPremiumVisible(false)}
-        />
-      </Screen>
-    );
-  }
-
   if (mode === "success") {
     return (
       <Screen>
@@ -684,11 +632,6 @@ export default function ScanRoute() {
         <Text variant="body" muted>
           {t("scan.body")}
         </Text>
-        {limitCopy ? (
-          <Text variant="small" muted>
-            {limitCopy}
-          </Text>
-        ) : null}
       </View>
 
       <View style={styles.choices}>
@@ -1081,8 +1024,5 @@ const styles = StyleSheet.create({
   categoryChipSelected: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
-  },
-  limitUpgrade: {
-    marginBottom: spacing.sm,
   },
 });
