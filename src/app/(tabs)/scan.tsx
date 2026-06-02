@@ -1,5 +1,5 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from "expo-camera";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -59,6 +59,18 @@ export default function ScanRoute() {
   const [barcodeLocked, setBarcodeLocked] = useState(false);
   const consumedModeRef = useRef<string | null>(null);
   const canScan = resolvePremium(profile, activeHousehold);
+
+  // Returning to the Scan tab should show the choice screen, not a leftover
+  // post-scan terminal screen (success / notifications) from a previous flow.
+  useFocusEffect(
+    useCallback(() => {
+      setMode((current) =>
+        current === "success" || current === "addSuccess" || current === "notifications"
+          ? "choice"
+          : current,
+      );
+    }, []),
+  );
 
   const selectedTemplate = useMemo(() => getMockReceiptTemplate(templateKey), [templateKey]);
   const manualSuggestions = useMemo(() => {
