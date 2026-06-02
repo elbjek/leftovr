@@ -342,13 +342,15 @@ export default function RecipesRoute() {
         </>
       )}
 
-      <BottomDock>
-        <Button
-          title={t("recipes.generateCta")}
-          onPress={openCookPrompt}
-          loading={generating}
-        />
-      </BottomDock>
+      {isEmpty ? null : (
+        <BottomDock>
+          <Button
+            title={t("recipes.generateCta")}
+            onPress={openCookPrompt}
+            loading={generating}
+          />
+        </BottomDock>
+      )}
 
       <CookPromptSheet
         key={cookPromptKey}

@@ -45,8 +45,28 @@ export default function ScanRoute() {
   const params = useLocalSearchParams<{ mode?: string }>();
   const { profile, activeHousehold, refresh } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
-  const initialChoice = getParamChoice(params.mode) ?? "receipt";
-  const [mode, setMode] = useState<ScanMode>(initialChoice === "manual" ? "manual" : initialChoice === "barcode" ? "barcodeCamera" : "choice");
+  const paramChoice = getParamChoice(params.mode);
+  const initialChoice = paramChoice ?? "receipt";
+  const canScan = resolvePremium(profile, activeHousehold);
+  // Onboarding (first-fill not yet completed) grants one free simulated scan.
+  const onboardingScan = !activeHousehold?.first_fill_completed_at;
+  const scanAllowed = canScan || onboardingScan;
+  // Deep-linking with a mode param (from first-fill / fridge) opens the action
+  // directly instead of bouncing through the choice screen. Gated scans fall back
+  // to the choice screen (a Premium sheet is shown via the mount effect below).
+  const initialMode: ScanMode =
+    paramChoice === "manual"
+      ? "manual"
+      : paramChoice === "barcode"
+        ? scanAllowed
+          ? "barcodeCamera"
+          : "choice"
+        : paramChoice === "receipt"
+          ? scanAllowed
+            ? "camera"
+            : "choice"
+          : "choice";
+  const [mode, setMode] = useState<ScanMode>(initialMode);
   const [choice, setChoice] = useState<ScanChoice>(initialChoice);
   const [templateKey, setTemplateKey] = useState(mockReceiptTemplates[0]?.key ?? "weekly-family");
   const [duplicate, setDuplicate] = useState<ReceiptDuplicate | null>(null);
@@ -57,8 +77,9 @@ export default function ScanRoute() {
   const [lastAddedName, setLastAddedName] = useState("");
   const [scanPremiumVisible, setScanPremiumVisible] = useState(false);
   const [barcodeLocked, setBarcodeLocked] = useState(false);
-  const consumedModeRef = useRef<string | null>(null);
-  const canScan = resolvePremium(profile, activeHousehold);
+  // Seeded with the initial param so the auto-open effect below does not re-run
+  // for the deep-link already handled by initialMode (avoids a double permission prompt).
+  const consumedModeRef = useRef<string | null>(params.mode ?? null);
 
   // Returning to the Scan tab should show the choice screen, not a leftover
   // post-scan terminal screen (success / notifications) from a previous flow.
@@ -71,6 +92,16 @@ export default function ScanRoute() {
       );
     }, []),
   );
+
+  // If the initial deep-link is a gated scan (free, past onboarding), surface the
+  // Premium sheet over the choice screen instead of silently doing nothing.
+  useEffect(() => {
+    if ((paramChoice === "receipt" || paramChoice === "barcode") && !scanAllowed) {
+      setScanPremiumVisible(true);
+    }
+    // Run once for the initial deep-link only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectedTemplate = useMemo(() => getMockReceiptTemplate(templateKey), [templateKey]);
   const manualSuggestions = useMemo(() => {
@@ -279,6 +310,24 @@ export default function ScanRoute() {
   }
 
   if (mode === "camera") {
+    if (!permission?.granted) {
+      return (
+        <Screen>
+          <View style={styles.center}>
+            <ReceiptIcon />
+            <Text variant="display" center>
+              {t("scan.cameraTitle")}
+            </Text>
+            <Text variant="body" muted center>
+              {t("scan.cameraDenied")}
+            </Text>
+            <Button title={t("common.continue")} onPress={requestPermission} />
+            <Button title={t("common.cancel")} variant="text" onPress={returnToChoice} />
+          </View>
+        </Screen>
+      );
+    }
+
     return (
       <Screen padded={false} backgroundColor={colors.black}>
         <View style={styles.cameraWrap}>
@@ -654,7 +703,7 @@ export default function ScanRoute() {
 
       <View style={styles.choices}>
         <ScanChoiceCard
-          selected={choice === "receipt"}
+          selected={false}
           title={t("scan.receipt.title")}
           body={t("scan.receipt.body")}
           recommended
@@ -662,14 +711,14 @@ export default function ScanRoute() {
           onPress={() => openSelectedChoice("receipt")}
         />
         <ScanChoiceCard
-          selected={choice === "barcode"}
+          selected={false}
           title={t("scan.barcode.title")}
           body={t("scan.barcode.body")}
           icon={<BarcodeIcon />}
           onPress={() => openSelectedChoice("barcode")}
         />
         <ScanChoiceCard
-          selected={choice === "manual"}
+          selected={false}
           title={t("scan.manual.title")}
           body={t("scan.manual.body")}
           icon={<ManualIcon />}
@@ -682,8 +731,6 @@ export default function ScanRoute() {
           {error}
         </Text>
       ) : null}
-
-      <Button title={t("scan.startReceipt")} onPress={() => openSelectedChoice("receipt")} />
 
       <PremiumSheet
         visible={scanPremiumVisible}
