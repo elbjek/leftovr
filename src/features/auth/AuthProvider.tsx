@@ -133,13 +133,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refresh: () => loadSessionProfile(),
       sendOtp: async (input) => {
         setState((current) => ({ ...current, loading: true, error: null }));
-        await sendEmailOtp(input);
-        setState((current) => ({ ...current, loading: false, error: null }));
+        try {
+          await sendEmailOtp(input);
+          setState((current) => ({ ...current, loading: false, error: null }));
+        } catch (error) {
+          setState((current) => ({
+            ...current,
+            loading: false,
+            error: error instanceof Error ? error.message : i18n.t("auth.genericError"),
+          }));
+          throw error;
+        }
       },
       verifyOtp: async (input) => {
         setState((current) => ({ ...current, loading: true, error: null }));
-        await verifyEmailOtp(input);
-        await loadSessionProfile();
+        try {
+          await verifyEmailOtp(input);
+          await loadSessionProfile();
+        } catch (error) {
+          setState((current) => ({
+            ...current,
+            loading: false,
+            error: error instanceof Error ? error.message : i18n.t("auth.genericError"),
+          }));
+          throw error;
+        }
       },
       signIn: async (input) => {
         setState((current) => ({ ...current, loading: true, error: null }));

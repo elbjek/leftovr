@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { Button, Card, PremiumSheet, ReceiptToFridgeIllustration, Screen, Text, TextField } from "@/components";
+import { Button, Card, PremiumSheet, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
@@ -75,7 +75,10 @@ export default function ScanRoute() {
   const [manualQuery, setManualQuery] = useState("");
   const [manualCategory, setManualCategory] = useState<InventoryCategory>("other");
   const [lastAddedName, setLastAddedName] = useState("");
-  const [scanPremiumVisible, setScanPremiumVisible] = useState(false);
+  // Open straight onto the Premium sheet if the initial deep-link is a gated scan.
+  const [scanPremiumVisible, setScanPremiumVisible] = useState(
+    (paramChoice === "receipt" || paramChoice === "barcode") && !scanAllowed,
+  );
   const [barcodeLocked, setBarcodeLocked] = useState(false);
   // Seeded with the initial param so the auto-open effect below does not re-run
   // for the deep-link already handled by initialMode (avoids a double permission prompt).
@@ -92,16 +95,6 @@ export default function ScanRoute() {
       );
     }, []),
   );
-
-  // If the initial deep-link is a gated scan (free, past onboarding), surface the
-  // Premium sheet over the choice screen instead of silently doing nothing.
-  useEffect(() => {
-    if ((paramChoice === "receipt" || paramChoice === "barcode") && !scanAllowed) {
-      setScanPremiumVisible(true);
-    }
-    // Run once for the initial deep-link only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const selectedTemplate = useMemo(() => getMockReceiptTemplate(templateKey), [templateKey]);
   const manualSuggestions = useMemo(() => {
@@ -314,7 +307,7 @@ export default function ScanRoute() {
       return (
         <Screen>
           <View style={styles.center}>
-            <ReceiptIcon />
+            <ScanMethodIcon method="receipt" />
             <Text variant="display" center>
               {t("scan.cameraTitle")}
             </Text>
@@ -404,7 +397,7 @@ export default function ScanRoute() {
       return (
         <Screen>
           <View style={styles.center}>
-            <BarcodeIcon />
+            <ScanMethodIcon method="barcode" />
             <Text variant="display" center>
               {t("scan.barcodeCameraTitle")}
             </Text>
@@ -487,7 +480,7 @@ export default function ScanRoute() {
     return (
       <Screen>
         <View style={styles.center}>
-          <BarcodeIcon />
+          <ScanMethodIcon method="barcode" />
           <Text variant="display" center>
             {t("scan.unknownBarcodeTitle")}
           </Text>
@@ -702,26 +695,20 @@ export default function ScanRoute() {
       </View>
 
       <View style={styles.choices}>
-        <ScanChoiceCard
-          selected={false}
-          title={t("scan.receipt.title")}
+        <ScanMethodCard
+          method="receipt"
           body={t("scan.receipt.body")}
           recommended
-          icon={<ReceiptIcon />}
           onPress={() => openSelectedChoice("receipt")}
         />
-        <ScanChoiceCard
-          selected={false}
-          title={t("scan.barcode.title")}
+        <ScanMethodCard
+          method="barcode"
           body={t("scan.barcode.body")}
-          icon={<BarcodeIcon />}
           onPress={() => openSelectedChoice("barcode")}
         />
-        <ScanChoiceCard
-          selected={false}
-          title={t("scan.manual.title")}
+        <ScanMethodCard
+          method="manual"
           body={t("scan.manual.body")}
-          icon={<ManualIcon />}
           onPress={() => openSelectedChoice("manual")}
         />
       </View>
@@ -746,96 +733,8 @@ export default function ScanRoute() {
   );
 }
 
-function ScanChoiceCard({
-  selected,
-  recommended = false,
-  title,
-  body,
-  icon,
-  onPress,
-}: {
-  selected: boolean;
-  recommended?: boolean;
-  title: string;
-  body: string;
-  icon: React.ReactNode;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.choiceCard,
-        selected && styles.choiceCardSelected,
-        pressed && styles.pressed,
-      ]}
-    >
-      <View style={[styles.choiceIcon, selected && styles.choiceIconSelected]}>{icon}</View>
-      <View style={styles.choiceCopy}>
-        <View style={styles.choiceTitleRow}>
-          <Text variant="h3" color={selected ? colors.surface : colors.text}>
-            {title}
-          </Text>
-          {recommended ? (
-            <View style={styles.badge}>
-              <Text variant="micro" color={colors.text}>
-                Recommended
-              </Text>
-            </View>
-          ) : null}
-        </View>
-        <Text variant="small" color={selected ? colors.surface : colors.muted}>
-          {body}
-        </Text>
-      </View>
-      <PathIcon color={selected ? colors.surface : colors.muted} />
-    </Pressable>
-  );
-}
-
 function Corner({ position }: { position: "topLeft" | "topRight" | "bottomLeft" | "bottomRight" }) {
   return <View style={[styles.corner, styles[position]]} />;
-}
-
-function ReceiptIcon() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Path d="M4 3h14v16l-2-2-2 2-2-2-2 2-2-2-2 2-2-2V3z" stroke={colors.primary} strokeWidth={1.6} strokeLinejoin="round" />
-      <Line x1={7} y1={8} x2={15} y2={8} stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" />
-      <Line x1={7} y1={12} x2={13} y2={12} stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function BarcodeIcon() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      {[4, 10, 16, 18].map((x) => (
-        <Line key={x} x1={x} y1={5} x2={x} y2={17} stroke={colors.primary} strokeWidth={1.6} />
-      ))}
-      {[7, 13].map((x) => (
-        <Line key={x} x1={x} y1={5} x2={x} y2={17} stroke={colors.primary} strokeWidth={2.6} />
-      ))}
-    </Svg>
-  );
-}
-
-function ManualIcon() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Circle cx={10} cy={10} r={6} stroke={colors.primary} strokeWidth={1.6} />
-      <Path d="M14.5 14.5L18 18" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function PathIcon({ color }: { color: string }) {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Path d="M6 4L12 9L6 14" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
 }
 
 function AliveIcon() {
@@ -883,48 +782,6 @@ const styles = StyleSheet.create({
   choices: {
     flexGrow: 1,
     gap: spacing.md,
-  },
-  choiceCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xl,
-    backgroundColor: colors.paper,
-    borderColor: colors.hairline,
-    borderWidth: 1.5,
-    borderRadius: radii.xl,
-  },
-  choiceCardSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  choiceIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: radii.md,
-    backgroundColor: colors.primary50,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  choiceIconSelected: {
-    backgroundColor: "rgba(248,244,238,0.15)",
-  },
-  choiceCopy: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  choiceTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  badge: {
-    borderRadius: radii.pill,
-    backgroundColor: colors.accent,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
   },
   pressed: {
     transform: [{ scale: 0.99 }],

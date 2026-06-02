@@ -43,6 +43,8 @@ export const sr = {
       resend: "Posalji novi kod",
       code: "6-cifreni kod",
       missingCode: "Unesi 6-cifreni kod iz emaila.",
+      invalidCode: "Kod je neispravan ili je istekao. Posalji novi.",
+      sendFailed: "Slanje koda nije uspelo. Proveri email i pokusaj ponovo.",
     },
     missingFields: "Popuni sva polja za nastavak.",
     missingSupabaseConfig: "Nedostaju Supabase environment variables.",
@@ -179,6 +181,12 @@ export const sr = {
       subtitle: "Pretrazi i dodirni. Besplatno, bez limita.",
     },
     footer: "Dodirni karticu iznad ili Continue za racun.",
+  },
+  scanMethods: {
+    recommended: "Preporuceno",
+    receipt: { title: "Skeniraj racun" },
+    barcode: { title: "Skeniraj barkod" },
+    manual: { title: "Dodaj rucno" },
   },
   fridge: {
     title: "Hej, tvoj frizider.",

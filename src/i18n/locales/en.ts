@@ -43,6 +43,8 @@ export const en = {
       resend: "Send a new code",
       code: "6-digit code",
       missingCode: "Enter the 6-digit code from your email.",
+      invalidCode: "That code is invalid or has expired. Send a new one.",
+      sendFailed: "Couldn't send the code. Check the email and try again.",
     },
     missingFields: "Fill in every field to continue.",
     missingSupabaseConfig: "Missing Supabase environment variables.",
@@ -180,6 +182,12 @@ export const en = {
       subtitle: "Search and tap. Free, unlimited.",
     },
     footer: "Tap a card above, or hit Continue to use a receipt now.",
+  },
+  scanMethods: {
+    recommended: "Recommended",
+    receipt: { title: "Scan a receipt" },
+    barcode: { title: "Scan a barcode" },
+    manual: { title: "Add manually" },
   },
   fridge: {
     title: "Hey, your fridge.",
