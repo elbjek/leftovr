@@ -1,6 +1,6 @@
 import { CookingMode } from "@/repositories/recipeRepository";
 import { InventoryLot } from "./inventoryRules";
-import { matchRecipes, RecipeMatch, RecipeMatcherInput } from "./recipeService";
+import { matchRecipes, RecipeMatch, RecipeMatcherInput, selectMakeableRecipes } from "./recipeService";
 
 export type RecipeGenerationFilters = RecipeMatcherInput["filters"];
 
@@ -20,9 +20,19 @@ export type RecipeGenerationResult = {
 };
 
 export async function generateRecipeMatches(input: RecipeGenerationInput): Promise<RecipeGenerationResult> {
+  const scored = matchRecipes(input);
+  const makeable = selectMakeableRecipes(scored, { isPremium: input.isPremium });
+  // Prefer recipes you can mostly cook; if none clear the bar, fall back to any
+  // recipe that uses at least one fridge item so Generate is never a no-op when
+  // the fridge has something. An empty fridge still yields nothing.
+  const matches =
+    makeable.length > 0
+      ? makeable
+      : selectMakeableRecipes(scored, { isPremium: input.isPremium, minCoverage: 0 });
+
   return {
     source: "mock",
-    matches: matchRecipes(input),
+    matches,
     prompt: buildRecipeGenerationPrompt(input),
   };
 }

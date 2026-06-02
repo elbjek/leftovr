@@ -35,6 +35,7 @@ export default function RecipesRoute() {
   const [showCookPrompt, setShowCookPrompt] = useState(false);
   const [cookPromptKey, setCookPromptKey] = useState(0);
   const [cookingMode, setCookingMode] = useState<CookingMode>("household");
+  const [generateNotice, setGenerateNotice] = useState<string | null>(null);
 
   const showCookingMode = members.length >= 2;
   const activeAvoidances = cookingMode === "household" ? combinedAvoidances : userAvoidances;
@@ -78,8 +79,9 @@ export default function RecipesRoute() {
       return;
     }
     setShowCookPrompt(false);
-    await generateSession(cookingMode, filters);
-  }, [canGenerate, cookingMode, generateSession]);
+    const result = await generateSession(cookingMode, filters);
+    setGenerateNotice(result && result.recipes.length === 0 ? t("recipes.noMakeable") : null);
+  }, [canGenerate, cookingMode, generateSession, t]);
 
   const navigateToDetail = useCallback(
     (match: RecipeMatch, recipeId?: string) => {
@@ -182,7 +184,7 @@ export default function RecipesRoute() {
         <View style={styles.emptyWrap}>
           <EmptyState
             title={t("recipes.emptyTitle")}
-            body={t("recipes.emptyBody")}
+            body={generateNotice ?? t("recipes.emptyBody")}
             actionLabel={t("recipes.emptyAction")}
             onAction={openCookPrompt}
           />
