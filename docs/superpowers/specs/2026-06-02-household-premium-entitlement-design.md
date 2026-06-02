@@ -29,9 +29,11 @@ Free users get:
 - limited Eat First preview
 - day 7 recap preview card
 
+**Onboarding exemption:** the first-fill (session-one) flow gives every new user one free *simulated* scan regardless of tier — scanning in V1 is fully mocked (fake receipt templates / mock barcodes), so this is a guided taste, not a real premium scan. The gate applies only after `households.first_fill_completed_at` is set. This honors the spec's "never show a paywall in session one" rule (PRODUCT_SPEC.md line 492) without weakening the manual-only model afterward.
+
 Free users do **not** get:
-- receipt scanning (premium-gated)
-- barcode scanning (premium-gated)
+- receipt scanning after onboarding (premium-gated)
+- barcode scanning after onboarding (premium-gated)
 - unlimited recipe sessions
 - full Eat First shelf
 - optimized recipe filters (time / complexity / servings)
@@ -84,7 +86,7 @@ The toggle exercises the exact entitlement (§3) and downgrade (§5) paths that 
 
 Contextual bottom sheet, never in session one. Triggers:
 
-- free user taps receipt scan **or** barcode scan (replaces the old "exceeds monthly receipt scan limit" trigger)
+- free user taps receipt scan **or** barcode scan *after onboarding* (replaces the old "exceeds monthly receipt scan limit" trigger; never fires during first-fill)
 - free user attempts fourth weekly recipe session
 - free user taps full Insights
 - free user taps full Eat First

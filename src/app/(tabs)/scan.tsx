@@ -84,7 +84,13 @@ export default function ScanRoute() {
     setChoice(nextChoice);
     setError(null);
 
-    if ((nextChoice === "receipt" || nextChoice === "barcode") && !canScan && !options?.skipGate) {
+    // Onboarding (first-fill) gives one free simulated scan: gate only once first-fill is done.
+    if (
+      (nextChoice === "receipt" || nextChoice === "barcode") &&
+      !canScan &&
+      !options?.skipGate &&
+      activeHousehold?.first_fill_completed_at
+    ) {
       setScanPremiumVisible(true);
       return;
     }
@@ -106,7 +112,7 @@ export default function ScanRoute() {
     }
 
     setMode(nextChoice === "barcode" ? "barcodeCamera" : "camera");
-  }, [canScan, choice, permission?.granted, requestPermission, t]);
+  }, [activeHousehold?.first_fill_completed_at, canScan, choice, permission?.granted, requestPermission, t]);
 
   useEffect(() => {
     const paramMode = params.mode;
