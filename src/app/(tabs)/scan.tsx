@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
 import { Button, Card, PremiumSheet, ReceiptToFridgeIllustration, Screen, Text, TextField } from "@/components";
-import { useAuth } from "@/features";
+import { isPremium as resolvePremium, useAuth } from "@/features";
 import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
   addInventoryItem,
@@ -17,6 +17,7 @@ import {
   ReceiptDuplicate,
   ReceiptScanResult,
   setNotificationPermissionPreview,
+  setPreviewTier,
 } from "@/repositories";
 import {
   demoFoodCatalog,
@@ -44,7 +45,7 @@ type ScanChoice = "receipt" | "barcode" | "manual";
 export default function ScanRoute() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ mode?: string }>();
-  const { activeHousehold, refresh } = useAuth();
+  const { profile, activeHousehold, refresh } = useAuth();
   const [permission, requestPermission] = useCameraPermissions();
   const initialChoice = getParamChoice(params.mode) ?? "receipt";
   const [mode, setMode] = useState<ScanMode>(initialChoice === "manual" ? "manual" : initialChoice === "barcode" ? "barcodeCamera" : "choice");
@@ -60,6 +61,7 @@ export default function ScanRoute() {
   const [scanPremiumVisible, setScanPremiumVisible] = useState(false);
   const [barcodeLocked, setBarcodeLocked] = useState(false);
   const consumedModeRef = useRef<string | null>(null);
+  const canScan = resolvePremium(profile, activeHousehold);
 
   const selectedTemplate = useMemo(() => getMockReceiptTemplate(templateKey), [templateKey]);
   const manualSuggestions = useMemo(() => {
@@ -94,11 +96,16 @@ export default function ScanRoute() {
       .catch(() => undefined);
   }, [activeHousehold?.id, mode, t]);
 
-  const openSelectedChoice = useCallback(async (nextChoice = choice) => {
+  const openSelectedChoice = useCallback(async (nextChoice = choice, options?: { skipGate?: boolean }) => {
     consumedModeRef.current = nextChoice;
     router.setParams({ mode: nextChoice });
     setChoice(nextChoice);
     setError(null);
+
+    if ((nextChoice === "receipt" || nextChoice === "barcode") && !canScan && !options?.skipGate) {
+      setScanPremiumVisible(true);
+      return;
+    }
 
     if (nextChoice === "manual") {
       setMode("manual");
@@ -117,7 +124,7 @@ export default function ScanRoute() {
     }
 
     setMode(nextChoice === "barcode" ? "barcodeCamera" : "camera");
-  }, [choice, permission?.granted, requestPermission, t]);
+  }, [canScan, choice, permission?.granted, requestPermission, t]);
 
   useEffect(() => {
     const paramMode = params.mode;
@@ -716,6 +723,17 @@ export default function ScanRoute() {
       ) : null}
 
       <Button title={t("scan.startReceipt")} onPress={() => openSelectedChoice("receipt")} />
+
+      <PremiumSheet
+        visible={scanPremiumVisible}
+        onPreview={async () => {
+          await setPreviewTier("premium");
+          await refresh();
+          setScanPremiumVisible(false);
+          void openSelectedChoice(choice, { skipGate: true });
+        }}
+        onDismiss={() => setScanPremiumVisible(false)}
+      />
     </Screen>
   );
 }
