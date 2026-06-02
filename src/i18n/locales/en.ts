@@ -112,6 +112,13 @@ export const en = {
     },
     personalization: {
       finish: "Finish setup",
+      name: {
+        eyebrow: "First things first",
+        title: "What should we call you?",
+        body: "We'll use this to greet you around the app.",
+        inputLabel: "Display name",
+        placeholder: "Your name",
+      },
       cookingFor: {
         eyebrow: "A few quick questions",
         title: "Who are you cooking for?",
