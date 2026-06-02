@@ -38,12 +38,16 @@ export default function OtpRoute() {
     }
 
     setFormError(null);
-    await sendOtp({
-      email: email.trim(),
-      displayName: displayName.trim() || undefined,
-      shouldCreateUser: true,
-    });
-    setSent(true);
+    try {
+      await sendOtp({
+        email: email.trim(),
+        displayName: displayName.trim() || undefined,
+        shouldCreateUser: true,
+      });
+      setSent(true);
+    } catch {
+      setFormError(t("auth.otp.sendFailed"));
+    }
   }
 
   async function handleVerify() {
@@ -53,8 +57,12 @@ export default function OtpRoute() {
     }
 
     setFormError(null);
-    await verifyOtp({ email: email.trim(), token: normalizedToken });
-    router.replace("/");
+    try {
+      await verifyOtp({ email: email.trim(), token: normalizedToken });
+      router.replace("/");
+    } catch {
+      setFormError(t("auth.otp.invalidCode"));
+    }
   }
 
   if (onboardingGateLoading) {

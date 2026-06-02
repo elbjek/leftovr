@@ -8,4 +8,5 @@ export * from "./PremiumSheet";
 export * from "./RecipeCard";
 export * from "./RecipeGlyph";
 export * from "./RetentionCard";
+export * from "./ScanMethodCard";
 export * from "./ShelfRow";
