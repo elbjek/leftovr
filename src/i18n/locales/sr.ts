@@ -3,6 +3,7 @@ export const sr = {
     continue: "Nastavi",
     loading: "Ucitavanje",
     cancel: "Otkazi",
+    back: "Nazad",
     error: "Nesto nije uspelo",
     fridgeUpdateError: "Nismo mogli da azuriramo frizider.",
     recommended: "Preporuceno",
