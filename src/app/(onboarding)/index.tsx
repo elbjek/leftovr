@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, ChoiceCard, Screen, Text, TextField } from "@/components";
+import { BackButton, Button, ChoiceCard, Screen, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import {
   acceptHouseholdInvite,
@@ -55,6 +55,17 @@ export default function OnboardingRoute() {
     if (step === "primaryGoal") return Boolean(primaryGoal);
     return true;
   }, [cookingFor, displayName, primaryGoal, shoppingStyle, step]);
+
+  function handleBack() {
+    setError(null);
+
+    if (stepIndex > 0) {
+      setStepIndex((current) => current - 1);
+      return;
+    }
+
+    router.back();
+  }
 
   function goNext() {
     setError(null);
@@ -118,6 +129,8 @@ export default function OnboardingRoute() {
       contentContainerStyle={styles.screenPad}
     >
       <View style={styles.wrap}>
+        <BackButton onPress={handleBack} style={styles.backButton} />
+
         <View style={styles.progressRow}>
           <View style={styles.progressTrack}>
             <View
@@ -283,6 +296,9 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: "flex-start",
     marginBottom: 24,
+  },
+  backButton: {
+    marginBottom: 12,
   },
   progressRow: {
     flexDirection: "row",

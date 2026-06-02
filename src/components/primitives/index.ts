@@ -1,3 +1,4 @@
+export * from "./BackButton";
 export * from "./BottomDock";
 export * from "./BottomSheet";
 export * from "./Button";
