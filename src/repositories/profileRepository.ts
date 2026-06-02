@@ -141,7 +141,7 @@ export async function setPreviewTier(tier: PlanTier) {
   if (profileError) throw profileError;
 
   if (profile.active_household_id) {
-    const householdTier = tier === "household_premium" ? "household_premium" : tier;
+    const householdTier = tier === "household_premium" ? "household_premium" : "free";
     const { error: householdError } = await supabase
       .from("households")
       .update({ plan_tier: householdTier })
