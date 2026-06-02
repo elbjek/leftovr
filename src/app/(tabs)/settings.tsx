@@ -16,7 +16,7 @@ import {
   Text,
   TextField,
 } from "@/components";
-import { useAuth, useMeasurementSystem } from "@/features";
+import { canShareHousehold, useAuth, useMeasurementSystem } from "@/features";
 import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
@@ -76,7 +76,7 @@ export default function SettingsRoute() {
     toggleSmartSuggestions,
     toggleDailySuggestion,
   } = useNotifications(activeHousehold?.id);
-  const isHouseholdPremium = profile?.tier === "household_premium";
+  const isHouseholdPremium = canShareHousehold(activeHousehold);
 
   function handleLanguageChange(language: SupportedLanguage) {
     i18n.changeLanguage(language);

@@ -4,7 +4,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { BottomDock, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, SegmentedControl, Text } from "@/components";
-import { useAuth } from "@/features";
+import { isPremium as resolvePremium, useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
@@ -27,7 +27,7 @@ export default function RecipesRoute() {
   const { profile, activeHousehold, refresh } = useAuth();
   const { lots: inventory } = useInventory(activeHousehold?.id);
   const { members, combinedAvoidances } = useHousehold(activeHousehold?.id);
-  const isPremium = profile?.tier !== "free";
+  const isPremium = resolvePremium(profile, activeHousehold);
   const userAvoidances = profile?.avoidances ?? [];
   const [tab, setTab] = useState<RecipeTab>("all");
   const [filter, setFilter] = useState<RecipeFilter>("fridge");
