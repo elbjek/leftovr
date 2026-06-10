@@ -319,6 +319,11 @@ export const en = {
       searchLabel: "Food name",
       placeholder: "e.g. Apples",
       addCustom: "Add \"{{item}}\"",
+      onlineResults: "From Open Food Facts",
+      quantityLabel: "Quantity",
+      unitLabel: "Unit",
+      expiryLabel: "Expires",
+      expiryNone: "No date",
       missingName: "Enter an item name.",
     },
     categories: {
