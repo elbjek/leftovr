@@ -212,8 +212,15 @@ Flow:
 
 Invite code entry should exist in two places:
 
-- during onboarding/account setup for invited users
+- during onboarding/account setup, shown to ALL new users as the final, optional, skippable step ("Joining someone's household?"). There is no link-based invite detection in V1, so the app cannot distinguish invited users from solo users; invalid codes show an inline error and the user can correct or skip.
 - Settings -> Household for existing users
+
+V1 invite delivery is manual: the inviter reads the code from Settings -> Household and shares it out-of-band. Deferred deep linking (invite links that survive App Store install) is explicitly out of scope for V1.
+
+Post-V1 upgrade path (not in V1):
+
+- "Share invite" button in Settings -> Household that shares a text message with the code and a store link
+- `chomp://join?code=...` deep link that prefills the invite code for users who already have the app installed
 
 If the joining user's solo fridge is empty:
 
