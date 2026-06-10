@@ -318,6 +318,11 @@ export const sr = {
       searchLabel: "Ime namirnice",
       placeholder: "npr. Jabuke",
       addCustom: "Dodaj \"{{item}}\"",
+      onlineResults: "Sa Open Food Facts",
+      quantityLabel: "Kolicina",
+      unitLabel: "Jedinica",
+      expiryLabel: "Rok trajanja",
+      expiryNone: "Bez datuma",
       missingName: "Unesi ime namirnice.",
     },
     categories: {
