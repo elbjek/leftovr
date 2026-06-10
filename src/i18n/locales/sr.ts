@@ -168,6 +168,7 @@ export const sr = {
         body: "Opciono. Unesi invite code sada ili zadrzi samostalno domacinstvo.",
         inputLabel: "Invite code",
         placeholder: "CHOMP-XXXXXX",
+        invalidCode: "Kod nije validan. Proveri ga i pokusaj ponovo, ili preskoci za sada.",
       },
     },
   },

@@ -34,7 +34,7 @@ export default function OnboardingRoute() {
   const [servings, setServings] = useState(2);
   const [shoppingStyle, setShoppingStyle] = useState("weekly");
   const [primaryGoal, setPrimaryGoal] = useState("waste");
-  const [avoidances, setAvoidances] = useState<string[]>(["fish"]);
+  const [avoidances, setAvoidances] = useState<string[]>([]);
   const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,10 +75,10 @@ export default function OnboardingRoute() {
       return;
     }
 
-    void handleSubmit();
+    void handleSubmit(false);
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(skipInvite: boolean) {
     setSubmitting(true);
     setError(null);
 
@@ -95,11 +95,12 @@ export default function OnboardingRoute() {
 
       await completeCurrentProfileOnboarding(personalization);
 
-      if (inviteCode.trim()) {
+      if (!skipInvite && inviteCode.trim()) {
         try {
           await acceptHouseholdInvite(inviteCode.trim(), false);
         } catch {
-          // invite may be invalid — continue onboarding anyway
+          setError(t("onboarding.personalization.invite.invalidCode"));
+          return;
         }
       }
 
@@ -247,7 +248,7 @@ export default function OnboardingRoute() {
               title={t("common.skipForNow")}
               variant="text"
               disabled={submitting}
-              onPress={goNext}
+              onPress={() => (step === "invite" ? void handleSubmit(true) : goNext())}
             />
           ) : null}
         </View>
