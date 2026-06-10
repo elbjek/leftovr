@@ -349,6 +349,15 @@ export const en = {
       comfort: "Comfort",
     },
     filterEmpty: "No recipes match this filter.",
+    searchPlaceholder: "Search recipes or ingredients…",
+    filterSheet: {
+      title: "Filters",
+      category: "Category",
+      time: "Time",
+      all: "All",
+      reset: "Reset filters",
+      show: "Show {{count}} recipes",
+    },
     needItems: "Need {{count}}",
     cookAgain: {
       title: "Cook again",
