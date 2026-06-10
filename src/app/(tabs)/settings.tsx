@@ -181,7 +181,10 @@ export default function SettingsRoute() {
     );
   }
 
-  const currentTier = profile?.tier ?? "free";
+  const currentTier =
+    activeHousehold?.plan_tier === "household_premium"
+      ? "household_premium"
+      : profile?.tier ?? "free";
   const currentDay = profile?.prototype_day ?? 1;
 
   const goalLabel = profile?.primary_goal
