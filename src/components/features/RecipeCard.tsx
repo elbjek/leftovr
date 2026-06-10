@@ -43,6 +43,7 @@ export function RecipeCard({
         {favorite ? (
           <View style={styles.favorite}>
             <Text variant="micro" color={colors.text}>
+           
               {favoriteLabel}
             </Text>
           </View>

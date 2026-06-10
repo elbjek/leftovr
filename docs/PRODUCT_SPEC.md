@@ -686,6 +686,12 @@ Recipe matcher must:
 - support household/shared context
 - return multiple recipe cards per session
 
+Required-vs-optional rule (mock now, AI later): every REQUIRED ingredient of
+a generated recipe must come from the fridge inventory. Ingredients the user
+does not have may only appear as optional "nice to have" extras, never as
+blockers. Item counts shown in the UI ("You have 2/3") count required
+ingredients only, with no hidden staple assumptions.
+
 Free rule:
 
 - 3 recipe sessions per calendar week

@@ -21,10 +21,11 @@ export type MockRecipe = {
 };
 
 /**
- * Every recipe is composed only of the demo receipt template items
- * (eggs, milk, greek yogurt, cheddar, chicken breast, spinach, tomatoes,
- * bananas, sourdough, rice) plus STAPLE_INGREDIENTS, so a simulated scan
- * always yields sensible matches.
+ * Mirrors what AI generation will do: every REQUIRED ingredient comes from
+ * the demo receipt template items (eggs, milk, greek yogurt, cheddar,
+ * chicken breast, spinach, tomatoes, bananas, sourdough, rice). Anything
+ * outside the fridge (garlic, olive oil, butter) is optional — a
+ * nice-to-have, never a blocker.
  */
 export const RECIPE_LIBRARY: MockRecipe[] = [
   {
@@ -42,7 +43,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
       { name: "Eggs", amount: "3", required: true, countable: true },
       { name: "Spinach", amount: "handful", required: true, countable: false },
       { name: "Cheddar", amount: "30g", required: true, countable: false },
-      { name: "Butter", amount: "1 tbsp", required: true, countable: false },
+      { name: "Butter", amount: "1 tbsp", required: false, countable: false },
     ],
     steps: [
       "Whisk eggs with a pinch of salt.",
@@ -203,7 +204,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
       { name: "Rice", amount: "150g", required: true, countable: false },
       { name: "Tomatoes", amount: "2 medium", required: true, countable: true },
       { name: "Greek yogurt", amount: "100g", required: false, countable: false },
-      { name: "Olive oil", amount: "1 tbsp", required: true, countable: false },
+      { name: "Olive oil", amount: "1 tbsp", required: false, countable: false },
     ],
     steps: [
       "Cook rice according to package directions.",
@@ -226,7 +227,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     ingredients: [
       { name: "Chicken breast", amount: "200g", required: true, countable: false },
       { name: "Spinach", amount: "100g", required: true, countable: false },
-      { name: "Garlic", amount: "2 cloves", required: true, countable: true },
+      { name: "Garlic", amount: "2 cloves", required: false, countable: true },
       { name: "Rice", amount: "150g", required: false, countable: false },
     ],
     steps: [
@@ -252,7 +253,7 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
       { name: "Tomatoes", amount: "4 medium", required: true, countable: true },
       { name: "Greek yogurt", amount: "150g", required: true, countable: false },
       { name: "Rice", amount: "200g", required: true, countable: false },
-      { name: "Garlic", amount: "3 cloves", required: true, countable: true },
+      { name: "Garlic", amount: "3 cloves", required: false, countable: true },
     ],
     steps: [
       "Cook rice. Brown diced chicken in olive oil, set aside.",
@@ -276,8 +277,8 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
       { name: "Rice", amount: "300g", required: true, countable: false },
       { name: "Tomatoes", amount: "4 medium", required: true, countable: true },
       { name: "Spinach", amount: "100g", required: false, countable: false },
-      { name: "Garlic", amount: "4 cloves", required: true, countable: true },
-      { name: "Olive oil", amount: "2 tbsp", required: true, countable: false },
+      { name: "Garlic", amount: "4 cloves", required: false, countable: true },
+      { name: "Olive oil", amount: "2 tbsp", required: false, countable: false },
     ],
     steps: [
       "Heat oven to 200°C. Toss halved tomatoes and garlic with olive oil in a baking dish.",
@@ -300,8 +301,8 @@ export const RECIPE_LIBRARY: MockRecipe[] = [
     ingredients: [
       { name: "Eggs", amount: "4", required: true, countable: true },
       { name: "Spinach", amount: "200g", required: true, countable: false },
-      { name: "Garlic", amount: "2 cloves", required: true, countable: true },
-      { name: "Olive oil", amount: "2 tbsp", required: true, countable: false },
+      { name: "Garlic", amount: "2 cloves", required: false, countable: true },
+      { name: "Olive oil", amount: "2 tbsp", required: false, countable: false },
       { name: "Sourdough", amount: "to serve", required: false, countable: false },
     ],
     steps: [

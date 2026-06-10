@@ -357,6 +357,7 @@ export const en = {
       all: "All",
       reset: "Reset filters",
       show: "Show {{count}} recipes",
+      remove: "Remove {{label}} filter",
     },
     needItems: "Need {{count}}",
     cookAgain: {
@@ -410,6 +411,8 @@ export const en = {
       howToCook: "How to cook",
       cookCta: "I cooked this",
       cookAgainCta: "Cook again",
+      niceToHave: "nice to have",
+      missing: "missing",
       saveCta: "Save recipe",
       savedCta: "Saved ★",
       bestToday: "best today",
