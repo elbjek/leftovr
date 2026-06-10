@@ -882,8 +882,9 @@ i make a recipe, i share it with a friend, open up app store to download app and
 make a shared recipes list. 
 
 1. dice roll
-2. rate meals
-share recipes on instagram
+2. rate meals share recipes on instagram
 3. share recipes with friends
 4. custom recipe adding with cookbook
 5. make the cookbook shareable on isntagram via watermark
+6. - import recipes - manually - via image - via link
+7. tiktok recipes

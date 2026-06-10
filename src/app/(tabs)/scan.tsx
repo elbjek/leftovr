@@ -23,7 +23,6 @@ import {
   INVENTORY_CATEGORIES,
   InventoryCategory,
   lookupMockBarcode,
-  getMockReceiptTemplate,
 } from "@/services";
 import { colors, radii, spacing } from "@/theme";
 
@@ -68,7 +67,6 @@ export default function ScanRoute() {
           : "choice";
   const [mode, setMode] = useState<ScanMode>(initialMode);
   const [choice, setChoice] = useState<ScanChoice>(initialChoice);
-  const [templateKey, setTemplateKey] = useState(mockReceiptTemplates[0]?.key ?? "weekly-family");
   const [duplicate, setDuplicate] = useState<ReceiptDuplicate | null>(null);
   const [result, setResult] = useState<ReceiptScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +94,7 @@ export default function ScanRoute() {
     }, []),
   );
 
-  const selectedTemplate = useMemo(() => getMockReceiptTemplate(templateKey), [templateKey]);
+  const selectedTemplate = mockReceiptTemplates[0];
   const manualSuggestions = useMemo(() => {
     const query = manualQuery.trim().toLowerCase();
     const catalog = demoFoodCatalog.map((item) => ({
@@ -198,7 +196,7 @@ export default function ScanRoute() {
       await delay(900);
       const nextResult = await processMockReceiptScan({
         householdId: activeHousehold.id,
-        templateKey,
+        templateKey: selectedTemplate.key,
         allowDuplicate,
       });
 
@@ -361,27 +359,6 @@ export default function ScanRoute() {
               <Text variant="small" muted>
                 {t("scan.coachBody")}
               </Text>
-            </View>
-
-            <View style={styles.templateRail}>
-              {mockReceiptTemplates.map((template) => (
-                <Pressable
-                  key={template.key}
-                  accessibilityRole="button"
-                  onPress={() => setTemplateKey(template.key)}
-                  style={[
-                    styles.templateChip,
-                    template.key === templateKey && styles.templateChipSelected,
-                  ]}
-                >
-                  <Text
-                    variant="small"
-                    color={template.key === templateKey ? colors.surface : colors.text}
-                  >
-                    {template.label}
-                  </Text>
-                </Pressable>
-              ))}
             </View>
 
             {error ? (
@@ -902,9 +879,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: colors.paper,
-  },
-  templateChipSelected: {
-    backgroundColor: colors.primary,
   },
   captureButton: {
     width: 76,

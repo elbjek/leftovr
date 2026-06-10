@@ -57,7 +57,7 @@ export const sr = {
     language: {
       title: "Izaberi ",
       titleAccent: "jezik",
-      body: "Choose your language. Mozes da promenis ovo kasnije u podesavanjima.",
+      body: "Izaberite jezik. Mozes da promenis ovo kasnije u podesavanjima.",
       flagLabel: "{{language}} zastava",
       choices: [
         { value: "en", title: "English", subtitle: "English", flag: "🇬🇧" },

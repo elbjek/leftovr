@@ -26,13 +26,17 @@ function lot(name: string, normalized_name: string): InventoryLot {
   };
 }
 
-// Mirrors the "weekly family shop" receipt template.
-const weeklyFamily: InventoryLot[] = [
+// Mirrors the "demo shop" receipt template.
+const demoShop: InventoryLot[] = [
   lot("Eggs", "eggs"),
+  lot("Milk", "milk"),
   lot("Greek yogurt", "greek yogurt"),
+  lot("Cheddar", "cheddar"),
   lot("Chicken breast", "chicken breast"),
   lot("Spinach", "spinach"),
   lot("Tomatoes", "tomatoes"),
+  lot("Bananas", "bananas"),
+  lot("Sourdough", "sourdough"),
   lot("Rice", "rice"),
 ];
 
@@ -73,7 +77,7 @@ describe("coverage + selectMakeableRecipes", () => {
   });
 
   it("only keeps recipes you can mostly cook from the fridge", () => {
-    const matches = matchRecipes({ ...base, inventory: weeklyFamily });
+    const matches = matchRecipes({ ...base, inventory: demoShop });
     const makeable = selectMakeableRecipes(matches, { isPremium: false });
 
     expect(makeable.length).toBeGreaterThan(0);
