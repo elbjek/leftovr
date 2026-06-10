@@ -20,6 +20,9 @@ export type AddInventoryItemInput = {
   category?: InventoryCategory;
   quantity?: number;
   unit?: string;
+  brandName?: string | null;
+  netAmount?: number | null;
+  netUnit?: "ml" | "g" | null;
   source?: InventorySource;
   addedAt?: string;
 };
@@ -30,7 +33,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
   const { data, error } = await supabase
     .from("inventory_items")
     .select(
-      "id, household_id, name, normalized_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
     )
     .eq("household_id", householdId)
     .is("removed_at", null)
@@ -44,6 +47,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
     id: row.id,
     name: row.name,
     normalized_name: row.normalized_name,
+    brand_name: row.brand_name ?? null,
     category: row.category,
     quantity: row.quantity,
     unit: row.unit,
@@ -83,8 +87,10 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
   const quantity = input.quantity ?? 1;
   const unit = input.unit ?? catalogItem?.unit ?? "item";
   const catalogNet = getCatalogNet(name);
-  const netUnit = catalogNet?.netUnit ?? null;
-  const netAmount = catalogNet ? catalogNet.netAmount * quantity : null;
+  const inputNetAmount = input.netAmount ?? null;
+  const inputNetUnit = input.netUnit ?? null;
+  const netUnit = inputNetUnit ?? catalogNet?.netUnit ?? null;
+  const netAmount = inputNetAmount ?? (catalogNet ? catalogNet.netAmount * quantity : null);
 
   const { data, error } = await supabase
     .from("inventory_items")
@@ -92,6 +98,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       household_id: input.householdId,
       name,
       normalized_name: normalizeFoodName(name),
+      brand_name: input.brandName?.trim() || null,
       category,
       quantity,
       unit,
@@ -106,7 +113,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       added_at: addedAt,
     })
     .select(
-      "id, household_id, name, normalized_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, source, added_at, removed_at",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, source, added_at, removed_at",
     )
     .single<InventoryLot>();
 

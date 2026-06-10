@@ -294,7 +294,7 @@ export const sr = {
     startReceipt: "Skeniraj racun",
     barcodeCameraTitle: "Skeniranje barkoda",
     barcodeCoachTitle: "Poravnaj barkod",
-    barcodeCoachBody: "Skeniraj pravi barkod, ili koristi mock dugmad ispod u simulatoru.",
+    barcodeCoachBody: "Skeniraj pravi barkod. Chomp prvo proverava Open Food Facts; simulator dugmad rade offline.",
     unknownBarcode: "Nepoznat barkod",
     unknownBarcodeTitle: "Ovo jos ne znamo.",
     unknownBarcodeBody: "Dodaj rucno sada. Kasnija skeniranja mogu da koriste ovaj fallback.",

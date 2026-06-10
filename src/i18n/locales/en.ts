@@ -295,7 +295,7 @@ export const en = {
     startReceipt: "Scan receipt",
     barcodeCameraTitle: "Barcode scan",
     barcodeCoachTitle: "Line up the barcode",
-    barcodeCoachBody: "Scan a real barcode, or use the mock buttons below in simulator.",
+    barcodeCoachBody: "Scan a real barcode. Chomp checks Open Food Facts first; simulator buttons still work offline.",
     unknownBarcode: "Unknown barcode",
     unknownBarcodeTitle: "We do not know this one yet.",
     unknownBarcodeBody: "Add it manually now. Future scans can learn from this fallback.",

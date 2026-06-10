@@ -20,9 +20,10 @@ import {
 } from "@/repositories";
 import {
   demoFoodCatalog,
+  BarcodeProduct,
   INVENTORY_CATEGORIES,
   InventoryCategory,
-  lookupMockBarcode,
+  lookupBarcodeProduct,
 } from "@/services";
 import { colors, radii, spacing } from "@/theme";
 
@@ -226,7 +227,7 @@ export default function ScanRoute() {
     setBarcodeLocked(true);
     setError(null);
 
-    const product = lookupMockBarcode(barcode);
+    const product = await lookupBarcodeProduct(barcode);
 
     if (!product) {
       setManualQuery("");
@@ -235,13 +236,32 @@ export default function ScanRoute() {
       return;
     }
 
+    await addResolvedBarcodeProduct(product);
+    setBarcodeLocked(false);
+  }
+
+  async function addMockBarcodeProduct(product: BarcodeProduct) {
+    if (!activeHousehold?.id || barcodeLocked) return;
+
+    setBarcodeLocked(true);
+    setError(null);
+    await addResolvedBarcodeProduct(product);
+    setBarcodeLocked(false);
+  }
+
+  async function addResolvedBarcodeProduct(product: BarcodeProduct) {
+    if (!activeHousehold?.id) return;
+
     try {
       await addInventoryItem({
         householdId: activeHousehold.id,
         name: product.name,
+        brandName: product.brandName,
         category: product.category,
         quantity: product.quantity,
         unit: product.unit,
+        netAmount: product.netAmount,
+        netUnit: product.netUnit,
         source: "barcode",
       });
       await completeFirstFillIfNeeded();
@@ -255,8 +275,6 @@ export default function ScanRoute() {
         return;
       }
       setError(errorMessage(addError, t("auth.genericError")));
-    } finally {
-      setBarcodeLocked(false);
     }
   }
 
@@ -439,7 +457,7 @@ export default function ScanRoute() {
                 <Pressable
                   key={product.barcode}
                   accessibilityRole="button"
-                  onPress={() => addInventoryFromBarcode(product.barcode)}
+                  onPress={() => addMockBarcodeProduct(product)}
                   style={styles.templateChip}
                 >
                   <Text variant="small">{product.name}</Text>

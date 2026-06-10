@@ -420,7 +420,11 @@ Duplicate prompt:
 
 ## Barcode Scanning
 
-V1 uses real camera barcode scanning with local mock product lookup.
+V1 uses real camera barcode scanning with Open Food Facts product lookup.
+The app should query the free Open Food Facts read API by barcode, map the
+product name, brand, category, and package amount into Chomp's approximate
+inventory model, and add one household inventory item when a match is found.
+Local mock products remain as simulator/offline fallback only.
 
 Unknown barcode behavior:
 
@@ -550,6 +554,7 @@ Inventory item fields should support:
 - household id
 - name
 - normalized name
+- brand name (optional, mainly barcode-sourced)
 - category
 - quantity
 - unit

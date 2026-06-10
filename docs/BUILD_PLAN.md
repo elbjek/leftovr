@@ -391,7 +391,7 @@ Goal: make secondary add paths functional.
 Tasks:
 
 - Build barcode camera scanner using Expo Camera.
-- Add local mock barcode lookup.
+- Add Open Food Facts barcode lookup with brand/package amount mapping and local mock fallback for simulator/offline use.
 - Add known barcode products.
 - Add unknown barcode fallback to manual search/add.
 - Build manual entry screen:

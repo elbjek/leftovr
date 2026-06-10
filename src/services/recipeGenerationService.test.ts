@@ -11,6 +11,7 @@ const input: RecipeGenerationInput = {
       id: "spinach-1",
       name: "Spinach",
       normalized_name: "spinach",
+      brand_name: null,
       category: "vegetables",
       quantity: 1,
       unit: "bag",

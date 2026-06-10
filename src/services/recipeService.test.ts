@@ -9,6 +9,7 @@ function lot(name: string, normalized_name: string): InventoryLot {
     id: `${normalized_name}-1`,
     name,
     normalized_name,
+    brand_name: null,
     category: "other",
     quantity: 1,
     unit: "item",
