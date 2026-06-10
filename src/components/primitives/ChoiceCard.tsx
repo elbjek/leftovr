@@ -11,6 +11,8 @@ type Props = {
   selected?: boolean;
   icon?: React.ReactNode;
   trailing?: React.ReactNode;
+  /** Tighter list-style sizing for sheets and settings. */
+  compact?: boolean;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
 };
@@ -23,6 +25,7 @@ export function ChoiceCard({
   selected = false,
   icon,
   trailing,
+  compact = false,
   onPress,
   style,
 }: Props) {
@@ -34,6 +37,7 @@ export function ChoiceCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
+        compact && styles.cardCompact,
         active && styles.active,
         pressed && styles.pressed,
         style,
@@ -44,7 +48,7 @@ export function ChoiceCard({
       ) : null}
       <View style={styles.copy}>
         <View style={styles.titleRow}>
-          <Text variant="h3" color={active ? colors.surface : colors.text}>
+          <Text variant={compact ? "label" : "h3"} color={active ? colors.surface : colors.text}>
             {title}
           </Text>
           {recommended && recommendedLabel ? (
@@ -83,6 +87,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     borderColor: colors.hairline,
+  },
+  cardCompact: {
+    minHeight: 48,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.md,
   },
   active: {
     backgroundColor: colors.primary,

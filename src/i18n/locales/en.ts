@@ -464,6 +464,7 @@ export const en = {
       sr: "Srpski",
     },
     displayNameLabel: "Display name",
+    foodProfileTitle: "Food profile",
     displayNamePlaceholder: "Your name",
     save: "Save",
     preferencesTitle: "Preferences",
