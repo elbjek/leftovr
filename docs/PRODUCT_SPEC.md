@@ -837,6 +837,11 @@ Premium users:
 
 Use real lightweight stats where easy and polished fallback where not.
 
+Insights are calculated per user by default (your scans via `created_by`,
+items you added via `added_by`, meals you cooked via `cooked_by`). In
+households with 2+ members a You/Household toggle adds a household-wide view
+of the same stats.
+
 Calculate from:
 
 - receipt scans

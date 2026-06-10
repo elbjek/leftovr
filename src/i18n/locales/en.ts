@@ -522,6 +522,10 @@ export const en = {
     unlock: "Unlock Insights",
     eyebrow: "★ Premium · Week of {{week}}",
     premiumTitle: "Your week, well fed.",
+    scope: {
+      you: "You",
+      household: "Household",
+    },
     premiumBody: "Weekly insights and recap will appear here as you cook and manage your fridge.",
     itemsSavedThisWeek: "Items saved this week",
     heroMeta: "items · about ${{amount}}",

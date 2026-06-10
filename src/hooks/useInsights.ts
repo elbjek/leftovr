@@ -17,9 +17,14 @@ function startOfCurrentMonth(): string {
   return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 }
 
-export function useInsights(householdId: string | undefined) {
+export function useInsights(
+  householdId: string | undefined,
+  options: { userId?: string; includeHousehold?: boolean } = {},
+) {
+  const { userId, includeHousehold } = options;
   const [weeklySummary, setWeeklySummary] = useState<InsightsSummary | null>(null);
   const [monthlySummary, setMonthlySummary] = useState<InsightsSummary | null>(null);
+  const [householdWeeklySummary, setHouseholdWeeklySummary] = useState<InsightsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,14 +37,18 @@ export function useInsights(householdId: string | undefined) {
       setError(null);
 
       try {
-        const [weeklyRaw, monthlyRaw] = await Promise.all([
-          getInsightsData(householdId!, startOfCurrentWeek()),
-          getInsightsData(householdId!, startOfCurrentMonth()),
+        const [weeklyRaw, monthlyRaw, householdWeeklyRaw] = await Promise.all([
+          getInsightsData(householdId!, startOfCurrentWeek(), userId),
+          getInsightsData(householdId!, startOfCurrentMonth(), userId),
+          includeHousehold ? getInsightsData(householdId!, startOfCurrentWeek()) : null,
         ]);
 
         if (!cancelled) {
           setWeeklySummary(computeInsightsSummary(weeklyRaw));
           setMonthlySummary(computeInsightsSummary(monthlyRaw));
+          setHouseholdWeeklySummary(
+            householdWeeklyRaw ? computeInsightsSummary(householdWeeklyRaw) : null,
+          );
         }
       } catch (e) {
         if (!cancelled) {
@@ -52,7 +61,7 @@ export function useInsights(householdId: string | undefined) {
 
     load();
     return () => { cancelled = true; };
-  }, [householdId]);
+  }, [householdId, includeHousehold, userId]);
 
-  return { weeklySummary, monthlySummary, loading, error };
+  return { weeklySummary, monthlySummary, householdWeeklySummary, loading, error };
 }

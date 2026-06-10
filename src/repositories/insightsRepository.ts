@@ -10,51 +10,68 @@ export type InsightsRawData = {
   cookedRecipes: { title: string; count: number }[];
 };
 
+// With userId: personal stats (your scans, items you added, meals you cooked).
+// Without: whole-household stats. Removed/saved items are attributed via
+// added_by since inventory rows don't record who removed them.
 export async function getInsightsData(
   householdId: string,
   since: string,
+  userId?: string,
 ): Promise<InsightsRawData> {
   const supabase = getSupabaseClient();
 
+  let scansQuery = supabase
+    .from("receipt_scans")
+    .select("id", { count: "exact", head: true })
+    .eq("household_id", householdId)
+    .eq("status", "completed")
+    .gte("processed_at", since);
+  if (userId) scansQuery = scansQuery.eq("created_by", userId);
+
+  let itemsQuery = supabase
+    .from("inventory_items")
+    .select("id, category", { count: "exact" })
+    .eq("household_id", householdId)
+    .gte("added_at", since);
+  if (userId) itemsQuery = itemsQuery.eq("added_by", userId);
+
+  let cookedQuery = supabase
+    .from("cooked_events")
+    .select("id", { count: "exact", head: true })
+    .eq("household_id", householdId)
+    .gte("created_at", since);
+  if (userId) cookedQuery = cookedQuery.eq("cooked_by", userId);
+
+  let cookedRecipesQuery = supabase
+    .from("cooked_events")
+    .select("recipe_id, recipes(title)")
+    .eq("household_id", householdId)
+    .gte("created_at", since);
+  if (userId) cookedRecipesQuery = cookedRecipesQuery.eq("cooked_by", userId);
+
+  let removedQuery = supabase
+    .from("inventory_items")
+    .select("id", { count: "exact", head: true })
+    .eq("household_id", householdId)
+    .not("removed_at", "is", null)
+    .gte("removed_at", since);
+  if (userId) removedQuery = removedQuery.eq("added_by", userId);
+
+  let savedQuery = supabase
+    .from("inventory_items")
+    .select("id", { count: "exact", head: true })
+    .eq("household_id", householdId)
+    .eq("removal_reason", "cooked")
+    .gte("removed_at", since);
+  if (userId) savedQuery = savedQuery.eq("added_by", userId);
+
   const [scans, items, cooked, cookedRecipeRows, removed, saved] = await Promise.all([
-    supabase
-      .from("receipt_scans")
-      .select("id", { count: "exact", head: true })
-      .eq("household_id", householdId)
-      .eq("status", "completed")
-      .gte("processed_at", since),
-
-    supabase
-      .from("inventory_items")
-      .select("id, category", { count: "exact" })
-      .eq("household_id", householdId)
-      .gte("added_at", since),
-
-    supabase
-      .from("cooked_events")
-      .select("id", { count: "exact", head: true })
-      .eq("household_id", householdId)
-      .gte("created_at", since),
-
-    supabase
-      .from("cooked_events")
-      .select("recipe_id, recipes(title)")
-      .eq("household_id", householdId)
-      .gte("created_at", since),
-
-    supabase
-      .from("inventory_items")
-      .select("id", { count: "exact", head: true })
-      .eq("household_id", householdId)
-      .not("removed_at", "is", null)
-      .gte("removed_at", since),
-
-    supabase
-      .from("inventory_items")
-      .select("id", { count: "exact", head: true })
-      .eq("household_id", householdId)
-      .eq("removal_reason", "cooked")
-      .gte("removed_at", since),
+    scansQuery,
+    itemsQuery,
+    cookedQuery,
+    cookedRecipesQuery,
+    removedQuery,
+    savedQuery,
   ]);
 
   if (scans.error) throw scans.error;
