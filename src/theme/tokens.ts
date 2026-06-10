@@ -25,6 +25,7 @@ export const colors = {
 
 export const fonts = {
   display: "Fraunces",
+  displaySemiBold: "FrauncesSemiBold",
   body: "PlusJakartaSans",
   displayItalic: "FrauncesItalic",
   bodyMedium: "PlusJakartaSansMedium",
@@ -54,10 +55,10 @@ export const typography = {
     fontWeight: fontWeights.medium,
   },
   h1: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.displaySemiBold,
     fontSize: 28,
-    lineHeight: 32,
-    fontWeight: fontWeights.bold,
+    lineHeight: 34,
+    fontWeight: fontWeights.semibold,
   },
   h2: {
     fontFamily: fonts.body,

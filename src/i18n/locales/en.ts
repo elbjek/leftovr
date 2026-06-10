@@ -169,6 +169,7 @@ export const en = {
         body: "Optional. Enter an invite code now or keep your solo household.",
         inputLabel: "Invite code",
         placeholder: "CHOMP-XXXXXX",
+        invalidCode: "Code invalid. Check it and try again, or skip for now.",
       },
     },
   },
