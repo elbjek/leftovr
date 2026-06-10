@@ -13,7 +13,6 @@ import {
   formatComplexity,
   formatTimeLabel,
   RecipeMatch,
-  STAPLE_INGREDIENTS,
 } from "@/services/recipeService";
 import { normalizeFoodName } from "@/services";
 import { colors, fonts, radii, spacing } from "@/theme";
@@ -288,6 +287,7 @@ export default function RecipesRoute() {
                   style={styles.searchInput}
                   autoCorrect={false}
                   returnKeyType="search"
+                  accessibilityLabel={t("recipes.searchPlaceholder")}
                 />
                 {search.length > 0 ? (
                   <Pressable
@@ -296,7 +296,7 @@ export default function RecipesRoute() {
                     onPress={() => setSearch("")}
                     hitSlop={10}
                   >
-                    <Text variant="small" muted>✕</Text>
+                    <CloseIcon color={colors.muted} />
                   </Pressable>
                 ) : null}
               </View>
@@ -403,12 +403,15 @@ export default function RecipesRoute() {
                         {cookAgainPick.title}
                       </Text>
                     </View>
-                    <Text variant="small" color="rgba(248,244,238,0.85)">
-                      ⏱ {cookAgainPick.time_minutes ?? 20} min · {t("recipes.cookAgain.items", {
-                        have: cookAgainCoverage.have,
-                        total: cookAgainCoverage.total,
-                      })}
-                    </Text>
+                    <View style={styles.inlineMeta}>
+                      <ClockIcon color="rgba(248,244,238,0.85)" />
+                      <Text variant="small" color="rgba(248,244,238,0.85)">
+                        {cookAgainPick.time_minutes ?? 20} min · {t("recipes.cookAgain.items", {
+                          have: cookAgainCoverage.have,
+                          total: cookAgainCoverage.total,
+                        })}
+                      </Text>
+                    </View>
                   </View>
                 </Pressable>
               </View>
@@ -668,30 +671,63 @@ function thumbColorFor(title: string) {
   return THUMB_COLORS[hash % THUMB_COLORS.length];
 }
 
-// Required, non-staple ingredients found in the live fridge.
+// Every required ingredient counts — no staple assumption, so the number
+// matches what the detail screen (and a future AI generation) actually needs.
 function fridgeCoverage(ingredients: unknown, inventoryNames: Set<string>) {
   const counted = parseRecipeIngredients(ingredients).filter(
-    (ing) =>
-      (ing as { required?: boolean }).required !== false &&
-      !STAPLE_INGREDIENTS.has(normalizeFoodName(ing.name)),
+    (ing) => (ing as { required?: boolean }).required !== false,
   );
   const have = counted.filter((ing) => inventoryNames.has(normalizeFoodName(ing.name))).length;
   return { have, total: counted.length };
 }
 
 function ActiveFilterToken({ label, onRemove }: { label: string; onRemove: () => void }) {
+  const { t } = useTranslation();
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`✕ ${label}`}
+      accessibilityLabel={t("recipes.filterSheet.remove", { label })}
       onPress={onRemove}
+      hitSlop={{ top: 6, bottom: 6 }}
       style={styles.activeFilterToken}
     >
       <Text variant="micro" color={colors.surface} style={styles.activeFilterText}>
         {label}
       </Text>
-      <Text variant="micro" color="rgba(248,244,238,0.75)">✕</Text>
+      <CloseIcon color="rgba(248,244,238,0.75)" />
     </Pressable>
+  );
+}
+
+function ClockIcon({ color = colors.muted }: { color?: string }) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 14 14">
+      <Circle cx={7} cy={7} r={5.4} stroke={color} strokeWidth={1.4} fill="none" />
+      <Path d="M7 4.2V7l1.8 1.4" stroke={color} strokeWidth={1.4} strokeLinecap="round" fill="none" />
+    </Svg>
+  );
+}
+
+function CloseIcon({ color }: { color: string }) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 12 12">
+      <Path d="M3 3l6 6M9 3l-6 6" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 20 20">
+      <Path
+        d="M10 2.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L2.8 7.8l5-.7L10 2.5z"
+        fill={filled ? colors.accent : "none"}
+        stroke={filled ? colors.accent : colors.muted}
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+    </Svg>
   );
 }
 
@@ -751,6 +787,7 @@ function SavedRecipeRow({
   haveAll?: boolean;
   tagLabel?: string;
 }) {
+  const { t } = useTranslation();
   const time = recipe.time_minutes ? `${recipe.time_minutes} min` : "";
 
   return (
@@ -765,7 +802,12 @@ function SavedRecipeRow({
       <View style={styles.savedRowCopy}>
         <Text variant="label" numberOfLines={1}>{recipe.title}</Text>
         <View style={styles.savedRowMeta}>
-          {time ? <Text variant="small" muted>⏱ {time}</Text> : null}
+          {time ? (
+            <View style={styles.inlineMeta}>
+              <ClockIcon />
+              <Text variant="small" muted>{time}</Text>
+            </View>
+          ) : null}
           {coverageLabel ? (
             <View style={styles.coverageWrap}>
               {haveAll ? <View style={styles.coverageDot} /> : null}
@@ -791,14 +833,13 @@ function SavedRecipeRow({
       </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={recipe.is_favorite ? "★" : "☆"}
+        accessibilityLabel={recipe.is_favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
+        accessibilityState={{ checked: recipe.is_favorite }}
         onPress={onFavorite}
         hitSlop={10}
         style={styles.favoriteTap}
       >
-        <Text variant="body" color={recipe.is_favorite ? colors.accent : colors.muted2}>
-          {recipe.is_favorite ? "★" : "☆"}
-        </Text>
+        <StarIcon filled={recipe.is_favorite} />
       </Pressable>
       <Chevron />
     </Pressable>
@@ -921,6 +962,11 @@ const styles = StyleSheet.create({
   activeFilterText: {
     fontWeight: "600",
   },
+  inlineMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
   filterEmpty: {
     paddingVertical: spacing.lg,
   },
@@ -965,6 +1011,8 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   tabItem: {
+    minHeight: 44,
+    justifyContent: "center",
     paddingVertical: spacing.md,
     borderBottomWidth: 2,
     borderBottomColor: "transparent",

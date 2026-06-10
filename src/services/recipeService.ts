@@ -6,22 +6,9 @@ export type RecipeMatch = MockRecipe & {
   matchCount: number;
   totalRequired: number;
   urgentItemCount: number;
-  /** Share of required, non-staple ingredients present in the fridge (0..1). */
+  /** Share of required ingredients present in the fridge (0..1). */
   coverage: number;
 };
-
-/**
- * Ingredients assumed to be on hand, so they don't count against a recipe's
- * fridge coverage (you wouldn't avoid a recipe just because it needs salt).
- */
-export const STAPLE_INGREDIENTS = new Set<string>([
-  "olive oil",
-  "garlic",
-  "salt",
-  "pepper",
-  "butter",
-  "water",
-]);
 
 export type MatchedItem = {
   ingredientName: string;
@@ -77,18 +64,16 @@ export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
     const totalRequired = recipe.ingredients.filter((i) => i.required).length;
     const urgentItemCount = matchedItems.filter((m) => m.isUrgent).length;
 
-    const requiredNonStaple = recipe.ingredients.filter(
-      (i) => i.required && !STAPLE_INGREDIENTS.has(normalizeFoodName(i.name)),
-    );
-    const matchedRequiredNonStaple = requiredNonStaple.filter((i) =>
+    const required = recipe.ingredients.filter((i) => i.required);
+    const matchedRequired = required.filter((i) =>
       inventoryByNorm.has(normalizeFoodName(i.name)),
     ).length;
     const coverage =
-      requiredNonStaple.length === 0
+      required.length === 0
         ? matchCount > 0
           ? 1
           : 0
-        : matchedRequiredNonStaple / requiredNonStaple.length;
+        : matchedRequired / required.length;
 
     return { ...recipe, matchedItems, matchCount, totalRequired, urgentItemCount, coverage };
   });
@@ -108,7 +93,7 @@ export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
 
 /**
  * Keep only recipes you can mostly cook from the fridge (>= minCoverage of the
- * required non-staple ingredients, and at least one fridge item), best first.
+ * required ingredients, and at least one fridge item), best first.
  */
 export function selectMakeableRecipes(
   matches: RecipeMatch[],

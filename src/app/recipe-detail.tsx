@@ -100,7 +100,10 @@ export default function RecipeDetailRoute() {
   }
 
   const complexityLabel = complexity === "simple" ? "Simple" : complexity === "medium" ? "Medium" : "Involved";
-  const fridgeCount = hasMappedUsedItems ? usedInventoryItems.length : usedInventoryItemIds.length;
+  const liveFridgeNames = new Set(inventoryGroups.map((group) => group.normalizedName));
+  const fridgeCount = ingredients.filter((ing) =>
+    liveFridgeNames.has(normalizeFoodName(ing.name)),
+  ).length;
 
   function getUsedItemId(ingredientName: string, index: number) {
     return usedInventoryItemMap.get(ingredientName) ?? (!hasMappedUsedItems ? usedInventoryItemIds[index] : null) ?? null;
@@ -241,13 +244,29 @@ export default function RecipeDetailRoute() {
             </Text>
             <View style={styles.ingredientChips}>
               {ingredients.map((ing, i) => {
-                const inFridge = Boolean(getUsedItemId(ing.name, i));
+                // Live fridge check by name — generation-time lot ids go stale
+                // once items are depleted or re-added.
+                const inFridge = liveFridgeNames.has(normalizeFoodName(ing.name));
                 const isUrgent = matchedUrgentItems.includes(ing.name);
+                const missingRequired = !inFridge && ing.required;
                 return (
-                  <View key={i} style={styles.ingredientChip}>
-                    <View style={[styles.dot, { backgroundColor: isUrgent ? colors.red : inFridge ? colors.green : colors.muted2 }]} />
-                    <Text variant="small" style={styles.ingredientName}>{ing.name}</Text>
+                  <View key={i} style={[styles.ingredientChip, missingRequired && styles.ingredientChipMissing]}>
+                    <View style={[styles.dot, { backgroundColor: isUrgent ? colors.red : inFridge ? colors.green : missingRequired ? colors.red : colors.muted2 }]} />
+                    <Text
+                      variant="small"
+                      color={missingRequired ? colors.red : colors.text}
+                      style={styles.ingredientName}
+                    >
+                      {ing.name}
+                    </Text>
                     <Text variant="small" muted>· {isUrgent ? t("recipes.detail.bestToday") : ing.amount}</Text>
+                    {missingRequired ? (
+                      <Text variant="micro" color={colors.red} style={styles.missingLabel}>
+                        · {t("recipes.detail.missing")}
+                      </Text>
+                    ) : !ing.required ? (
+                      <Text variant="micro" muted>· {t("recipes.detail.niceToHave")}</Text>
+                    ) : null}
                   </View>
                 );
               })}
@@ -461,6 +480,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.hairline,
     borderRadius: radii.pill,
+  },
+  ingredientChipMissing: {
+    backgroundColor: "rgba(199, 104, 69, 0.08)",
+    borderColor: "rgba(199, 104, 69, 0.35)",
+    borderStyle: "dashed",
+  },
+  missingLabel: {
+    fontWeight: "700",
   },
   dot: {
     width: 6,

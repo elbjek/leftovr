@@ -11,7 +11,8 @@ export const colors = {
   accent: "#D4A843",
   accentSoft: "#F0DDA8",
   text: "#1C1C1A",
-  muted: "#6B7A6D",
+  // Darkened from #6B7A6D for 4.5:1+ contrast on cream surfaces at small sizes.
+  muted: "#5D6C60",
   muted2: "#9AA59C",
   green: "#4F8A5B",
   yellow: "#D4A843",

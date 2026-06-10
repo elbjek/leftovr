@@ -356,6 +356,7 @@ export const sr = {
       all: "Sve",
       reset: "Ponisti filtere",
       show: "Prikazi {{count}} recepata",
+      remove: "Ukloni filter {{label}}",
     },
     needItems: "Fali {{count}}",
     cookAgain: {
@@ -409,6 +410,8 @@ export const sr = {
       howToCook: "Kako kuvati",
       cookCta: "Skuvao sam ovo",
       cookAgainCta: "Kuvaj ponovo",
+      niceToHave: "dobro bi doslo",
+      missing: "nedostaje",
       saveCta: "Sacuvaj recept",
       savedCta: "Sacuvano ★",
       bestToday: "najbolje danas",
