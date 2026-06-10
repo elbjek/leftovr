@@ -8,6 +8,7 @@ import {
   listCookedRecipes,
   getWeeklySessionCount,
   listHouseholdRecipes,
+  listUserFavoriteRecipeIds,
   RecipeRow,
   toggleRecipeFavorite,
 } from "@/repositories/recipeRepository";
@@ -36,9 +37,10 @@ export function useRecipes(
     avoidances: string[];
     isPremium: boolean;
     servings?: number;
+    userId?: string;
   },
 ) {
-  const { inventory, avoidances, isPremium, servings } = options;
+  const { inventory, avoidances, isPremium, servings, userId } = options;
 
   const [state, setState] = useState<RecipesState>({
     loading: Boolean(householdId),
@@ -67,16 +69,19 @@ export function useRecipes(
     setState((s) => ({ ...s, loading: true, error: null }));
 
     try {
-      const [recipes, cookedRecipes, count] = await Promise.all([
+      const [recipes, cookedRecipes, count, favoriteIds] = await Promise.all([
         listHouseholdRecipes(householdId),
-        listCookedRecipes(householdId),
+        listCookedRecipes(householdId, userId),
         getWeeklySessionCount(householdId),
+        listUserFavoriteRecipeIds(),
       ]);
+      const withFavorites = (rows: RecipeRow[]) =>
+        rows.map((row) => ({ ...row, is_favorite: favoriteIds.has(row.id) }));
       setState((s) => ({
         ...s,
         loading: false,
-        savedRecipes: recipes,
-        cookedRecipes,
+        savedRecipes: withFavorites(recipes),
+        cookedRecipes: withFavorites(cookedRecipes),
         weeklyCount: count,
       }));
     } catch (err) {
@@ -86,7 +91,7 @@ export function useRecipes(
         error: err instanceof Error ? err.message : "Could not load recipes.",
       }));
     }
-  }, [householdId]);
+  }, [householdId, userId]);
 
   useEffect(() => {
     load();

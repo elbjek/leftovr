@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 
 import { BottomSheet, Button, FilterChip, SegmentedControl, Text } from "../primitives";
 import { spacing } from "../../theme";
+import { CookingMode } from "@/repositories/recipeRepository";
 
 export type CookFilters = {
   mealType?: "breakfast" | "lunch" | "dinner" | "snack";
@@ -25,7 +26,12 @@ type Props = {
     vibeOptions: Record<string, string>;
     surprise: string;
     generate: string;
+    cookingFor?: string;
+    cookingForOptions?: Record<CookingMode, string>;
   };
+  /** Shown only when provided (households with 2+ members). */
+  cookingMode?: CookingMode;
+  onCookingModeChange?: (mode: CookingMode) => void;
   onDismiss: () => void;
   onGenerate: (filters?: CookFilters) => void;
 };
@@ -34,7 +40,14 @@ const MEAL_OPTIONS: MealOption[] = ["any", "breakfast", "lunch", "dinner", "snac
 const TIME_OPTIONS: TimeOption[] = ["any", "20", "45"];
 const VIBE_OPTIONS = ["comfort", "healthy", "veggie", "quick"];
 
-export function CookPromptSheet({ visible, labels, onDismiss, onGenerate }: Props) {
+export function CookPromptSheet({
+  visible,
+  labels,
+  cookingMode,
+  onCookingModeChange,
+  onDismiss,
+  onGenerate,
+}: Props) {
   const [meal, setMeal] = useState<MealOption>("any");
   const [time, setTime] = useState<TimeOption>("any");
   const [vibe, setVibe] = useState<string | null>(null);
@@ -51,6 +64,22 @@ export function CookPromptSheet({ visible, labels, onDismiss, onGenerate }: Prop
     <BottomSheet visible={visible} onDismiss={onDismiss} style={styles.sheet}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text variant="h2">{labels.title}</Text>
+
+        {cookingMode && onCookingModeChange && labels.cookingForOptions ? (
+          <View style={styles.block}>
+            <Text variant="small" muted>
+              {labels.cookingFor}
+            </Text>
+            <SegmentedControl
+              options={(["household", "just_me"] as CookingMode[]).map((option) => ({
+                label: labels.cookingForOptions?.[option] ?? option,
+                value: option,
+              }))}
+              value={cookingMode}
+              onChange={onCookingModeChange}
+            />
+          </View>
+        ) : null}
 
         <View style={styles.block}>
           <Text variant="small" muted>
