@@ -51,6 +51,7 @@ export type InventoryLot = {
   removed_at: string | null;
   added_by: string | null;
   added_by_name: string | null;
+  expires_at: string | null;
 };
 
 export type InventoryGroup = {
@@ -126,8 +127,12 @@ export function inferCategory(name: string): InventoryCategory {
   return getCatalogFood(name)?.category ?? "other";
 }
 
+export function getShelfLifeDays(name: string, category: InventoryCategory): [number, number] {
+  return getCatalogFood(name)?.shelfLifeDays ?? categoryDefaults[category];
+}
+
 export function getShelfLifeRange(name: string, category: InventoryCategory) {
-  const range = getCatalogFood(name)?.shelfLifeDays ?? categoryDefaults[category];
+  const range = getShelfLifeDays(name, category);
   return `${range[0]}-${range[1]} days`;
 }
 
@@ -145,6 +150,14 @@ export function computeUrgency(input: {
 
   if (ageDays >= range[0]) return "urgent";
   if (ageDays >= useSoonAt) return "use_soon";
+  return "safe";
+}
+
+export function urgencyFromExpiry(expiresAt: string, now: Date = new Date()): UrgencyBand {
+  const expiry = new Date(`${expiresAt}T23:59:59`);
+  const daysLeft = (expiry.getTime() - now.getTime()) / 86_400_000;
+  if (daysLeft <= 2) return "urgent";
+  if (daysLeft <= 5) return "use_soon";
   return "safe";
 }
 
@@ -178,7 +191,9 @@ export function groupInventoryLots(
   const groups = new Map<string, InventoryGroup>();
 
   lots.forEach((lot) => {
-    const urgency = lot.urgency ?? computeUrgency({ name: lot.name, category: lot.category, addedAt: lot.added_at });
+    const urgency = lot.expires_at
+      ? urgencyFromExpiry(lot.expires_at)
+      : lot.urgency ?? computeUrgency({ name: lot.name, category: lot.category, addedAt: lot.added_at });
     const key = `${lot.normalized_name}:${lot.category}:${urgency}`;
     const existing = groups.get(key);
 
