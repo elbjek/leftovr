@@ -395,6 +395,8 @@ export const en = {
       howToCook: "How to cook",
       cookCta: "I cooked this",
       cookAgainCta: "Cook again",
+      saveCta: "Save recipe",
+      savedCta: "Saved ★",
       bestToday: "best today",
       servings: "{{count}} servings",
     },
@@ -405,7 +407,9 @@ export const en = {
       confirm: "Remove {{count}} items from fridge",
       done: "Done! Fridge updated.",
       count: "Cooked {{count}}×",
+      countBy: "Cooked {{count}}× · {{name}}",
     },
+    byName: "by {{name}}",
     tabs: {
       all: "All",
       saved: "Saved",

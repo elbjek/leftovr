@@ -177,6 +177,22 @@ export async function listCookedRecipes(householdId: string, cookedBy?: string) 
   }));
 }
 
+export type CookedEventRow = { recipe_id: string; cooked_by: string };
+
+// Who cooked what, household-wide — used to badge recipe lists.
+export async function listCookedEventRows(householdId: string) {
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("cooked_events")
+    .select("recipe_id, cooked_by")
+    .eq("household_id", householdId)
+    .not("recipe_id", "is", null);
+
+  if (error) throw error;
+  return (data ?? []) as CookedEventRow[];
+}
+
 // Favorites are per user (recipe_favorites join table); RLS limits rows to auth.uid().
 export async function listUserFavoriteRecipeIds() {
   const supabase = getSupabaseClient();
