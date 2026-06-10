@@ -1,10 +1,10 @@
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { BackButton, Button, ChoiceCard, Screen, Text, TextField } from "@/components";
-import { useAuth } from "@/features";
+import { consumePendingInviteCode, useAuth } from "@/features";
 import {
   acceptHouseholdInvite,
   completeCurrentProfileOnboarding,
@@ -38,6 +38,12 @@ export default function OnboardingRoute() {
   const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void consumePendingInviteCode().then((code) => {
+      if (code) setInviteCode(code);
+    });
+  }, []);
 
   const step = steps[stepIndex];
   const stepCopy = t(`onboarding.personalization.${step}`, { returnObjects: true }) as {

@@ -490,6 +490,9 @@ export const sr = {
       inviteExpires: "Istice {{date}}",
       copyCode: "Kopiraj kod",
       codeCopied: "Kopirano!",
+      shareInvite: "Podeli pozivnicu",
+      shareMessage:
+        "Pridruzi se mom domacinstvu na Chomp! Unesi invite code {{code}} pri registraciji, ili otvori {{link}} ako vec imas aplikaciju.",
       enterCode: "Unesi pozivni kod",
       enterCodeBody: "Nalepi kod od nekoga iz svog domacinstva.",
       codeLabel: "Pozivni kod",

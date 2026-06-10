@@ -491,6 +491,9 @@ export const en = {
       inviteExpires: "Expires {{date}}",
       copyCode: "Copy code",
       codeCopied: "Copied!",
+      shareInvite: "Share invite",
+      shareMessage:
+        "Join my household on Chomp! Use invite code {{code}} during signup, or open {{link}} if you already have the app.",
       enterCode: "Enter invite code",
       enterCodeBody: "Paste a code from someone in your household.",
       codeLabel: "Invite code",

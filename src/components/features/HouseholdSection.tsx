@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Pressable, Share, StyleSheet, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +18,7 @@ type Props = {
   onLookupCode: (code: string) => Promise<InviteLookup | null>;
   onJoin: (code: string, moveItems: boolean) => Promise<void>;
   onPremiumGate: () => void;
+  initialJoinCode?: string;
 };
 
 export function HouseholdSection({
@@ -31,16 +32,25 @@ export function HouseholdSection({
   onLookupCode,
   onJoin,
   onPremiumGate,
+  initialJoinCode,
 }: Props) {
   const { t } = useTranslation();
   const [inviteLoading, setInviteLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [joinCode, setJoinCode] = useState("");
+  const [joinCode, setJoinCode] = useState(initialJoinCode ?? "");
   const [lookupResult, setLookupResult] = useState<InviteLookup | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [showJoinChoice, setShowJoinChoice] = useState(false);
+
+  useEffect(() => {
+    if (initialJoinCode) {
+      setJoinCode(initialJoinCode);
+      setLookupResult(null);
+      setLookupError(null);
+    }
+  }, [initialJoinCode]);
 
   async function handleCreateInvite() {
     if (!isPremium) {
@@ -59,6 +69,15 @@ export function HouseholdSection({
     await Clipboard.setStringAsync(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function handleShare(code: string) {
+    await Share.share({
+      message: t("settings.household.shareMessage", {
+        code,
+        link: `chomp://join?code=${code}`,
+      }),
+    });
   }
 
   async function handleLookup() {
@@ -157,6 +176,11 @@ export function HouseholdSection({
               title={copied ? t("settings.household.codeCopied") : t("settings.household.copyCode")}
               variant="ghost"
               onPress={() => handleCopy(activeInvite.code)}
+            />
+            <Button
+              title={t("settings.household.shareInvite")}
+              variant="ghost"
+              onPress={() => handleShare(activeInvite.code)}
             />
           </View>
         ) : (
