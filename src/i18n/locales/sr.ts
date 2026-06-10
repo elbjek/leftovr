@@ -521,6 +521,10 @@ export const sr = {
     unlock: "Otkljucaj Uvide",
     eyebrow: "★ Premium · Nedelja od {{week}}",
     premiumTitle: "Tvoja nedelja, sita.",
+    scope: {
+      you: "Ti",
+      household: "Domacinstvo",
+    },
     premiumBody: "Nedeljni uvidi i pregled ce se pojaviti ovde dok kuvas i upravljas friziderom.",
     itemsSavedThisWeek: "Sacuvani artikli ove nedelje",
     heroMeta: "artikli · oko ${{amount}}",

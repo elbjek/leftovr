@@ -676,6 +676,10 @@ export default function ScanRoute() {
   return (
     <Screen contentContainerStyle={styles.content}>
       <View style={styles.header}>
+        <BackButton
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/fridge"))}
+          style={styles.backButton}
+        />
         <Text variant="display">{t("scan.title")}</Text>
         <Text variant="body" muted>
           {t("scan.body")}

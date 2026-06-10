@@ -3,9 +3,9 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 
-import { EmptyState, PremiumSheet, RecipeGlyph, Screen, Text } from "@/components";
+import { EmptyState, PremiumSheet, RecipeGlyph, Screen, SegmentedControl, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import { useInsights } from "@/hooks";
+import { useHousehold, useInsights } from "@/hooks";
 import { setPreviewTier } from "@/repositories";
 import { formatCategoryLabel, InsightsSummary } from "@/services/insightsService";
 import { colors, radii, spacing } from "@/theme";
@@ -15,8 +15,12 @@ export default function InsightsRoute() {
   const { profile, activeHousehold, refresh } = useAuth();
   const isPremium = resolvePremium(profile, activeHousehold);
   const [showPremium, setShowPremium] = useState(false);
-  const { weeklySummary, loading } = useInsights(
+  const [scope, setScope] = useState<"you" | "household">("you");
+  const { members } = useHousehold(activeHousehold?.id);
+  const showHouseholdScope = members.length >= 2;
+  const { weeklySummary, householdWeeklySummary, loading } = useInsights(
     isPremium ? activeHousehold?.id : undefined,
+    { userId: profile?.id, includeHousehold: showHouseholdScope },
   );
 
   if (!isPremium) {
@@ -52,7 +56,8 @@ export default function InsightsRoute() {
     );
   }
 
-  const summary = weeklySummary ?? getEmptySummary();
+  const summary =
+    (scope === "household" ? householdWeeklySummary : weeklySummary) ?? getEmptySummary();
 
   return (
     <Screen padded={false} contentContainerStyle={styles.content}>
@@ -61,6 +66,18 @@ export default function InsightsRoute() {
           {t("insights.eyebrow", { week: formatWeekLabel() })}
         </Text>
         <Text variant="h1">{t("insights.premiumTitle")}</Text>
+        {showHouseholdScope ? (
+          <View style={styles.scopeToggle}>
+            <SegmentedControl
+              options={[
+                { label: t("insights.scope.you"), value: "you" as const },
+                { label: t("insights.scope.household"), value: "household" as const },
+              ]}
+              value={scope}
+              onChange={setScope}
+            />
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.heroWrap}>
@@ -233,6 +250,9 @@ const styles = StyleSheet.create({
   premiumBadge: {
     fontWeight: "700",
     marginBottom: spacing.xs,
+  },
+  scopeToggle: {
+    marginTop: spacing.md,
   },
   heroWrap: {
     paddingHorizontal: spacing.screenX,
