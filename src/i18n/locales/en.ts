@@ -57,7 +57,7 @@ export const en = {
     language: {
       title: "Choose your ",
       titleAccent: "language",
-      body: "Izaberite jezik. You can change this anytime in Settings.",
+      body: "Choose your language. You can change this anytime in Settings.",
       flagLabel: "{{language}} flag",
       choices: [
         { value: "en", title: "English", subtitle: "English", flag: "🇬🇧" },
