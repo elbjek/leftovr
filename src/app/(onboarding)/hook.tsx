@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   slide: {
     flex: 1,
     paddingHorizontal: 28,
-    paddingTop: 68,
+    paddingTop: spacing.screenTop,
     paddingBottom: 32,
     justifyContent: "flex-start",
   },

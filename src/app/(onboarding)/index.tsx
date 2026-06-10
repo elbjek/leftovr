@@ -11,7 +11,7 @@ import {
   OnboardingPersonalization,
   updateProfileField,
 } from "@/repositories";
-import { colors } from "@/theme";
+import { colors, spacing } from "@/theme";
 
 type StepKey = "name" | "cookingFor" | "shoppingStyle" | "primaryGoal" | "avoidances" | "invite";
 type Choice = {
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   screenPad: {
     flexGrow: 1,
     paddingHorizontal: 28,
-    paddingTop: 68,
+    paddingTop: spacing.screenTop,
     paddingBottom: 32,
   },
   wrap: {

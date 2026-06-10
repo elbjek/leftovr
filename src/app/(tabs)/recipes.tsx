@@ -4,7 +4,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, Text } from "@/components";
+import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, Screen, ScreenHeader, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
@@ -242,7 +242,7 @@ export default function RecipesRoute() {
   }
 
   return (
-    <View style={styles.screen}>
+    <Screen padded={false}>
       {isEmpty ? (
         <View style={styles.emptyWrap}>
           <EmptyState
@@ -257,7 +257,6 @@ export default function RecipesRoute() {
           <View style={styles.fixedContent}>
             <View style={styles.header}>
               <View style={styles.headerRow}>
-                {/* TEMP: filter button on the left while the dev-menu bubble covers the top-right corner. */}
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t("recipes.filterSheet.title")}
@@ -267,14 +266,11 @@ export default function RecipesRoute() {
                   <FilterIcon />
                   {hasActiveFilters ? <View style={styles.filterDot} /> : null}
                 </Pressable>
-                <View style={styles.headerCopy}>
-                  <Text variant="micro" muted uppercase>
-                    {t("recipes.countLabel", { count: listedMyRecipes.length + suggestions.length })}
-                  </Text>
-                  <Text variant="h1" style={styles.headerTitle}>
-                    {t("recipes.title")}
-                  </Text>
-                </View>
+                <ScreenHeader
+                  style={styles.headerCopy}
+                  eyebrow={t("recipes.countLabel", { count: listedMyRecipes.length + suggestions.length })}
+                  title={t("recipes.title")}
+                />
               </View>
 
               <View style={styles.searchField}>
@@ -620,7 +616,7 @@ export default function RecipesRoute() {
         }}
         onDismiss={() => setShowPremium(false)}
       />
-    </View>
+    </Screen>
   );
 }
 
@@ -848,10 +844,6 @@ function SavedRecipeRow({
 
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
   center: {
     flex: 1,
     alignItems: "center",
@@ -886,9 +878,6 @@ const styles = StyleSheet.create({
   },
   headerCopy: {
     flex: 1,
-  },
-  headerTitle: {
-    marginTop: spacing.xxs,
   },
   filterButton: {
     width: 44,
