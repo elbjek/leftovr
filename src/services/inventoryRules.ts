@@ -46,12 +46,12 @@ export type InventoryLot = {
   partial_state: PartialState;
   urgency: UrgencyBand | null;
   shelf_life_range: string | null;
+  expires_at: string | null;
   source: InventorySource;
   added_at: string;
   removed_at: string | null;
   added_by: string | null;
   added_by_name: string | null;
-  expires_at: string | null;
 };
 
 export type InventoryGroup = {
