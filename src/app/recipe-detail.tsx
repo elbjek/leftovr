@@ -296,6 +296,13 @@ export default function RecipeDetailRoute() {
           variant="accent"
           onPress={handleCookPress}
         />
+        {recipeId ? (
+          <Button
+            title={favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
+            variant="ghost"
+            onPress={handleFavoriteToggle}
+          />
+        ) : null}
       </View>
 
       <BottomSheet visible={showCooked} onDismiss={() => setShowCooked(false)}>
