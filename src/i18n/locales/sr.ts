@@ -348,6 +348,12 @@ export const sr = {
       comfort: "Utesno",
     },
     filterEmpty: "Nijedan recept ne odgovara filteru.",
+    needItems: "Fali {{count}}",
+    cookAgain: {
+      title: "Kuvaj ponovo",
+      eyebrow: "Tvoj favorit",
+      items: "Imas {{have}}/{{total}} sastojaka",
+    },
     emptyTitle: "Nema recepata",
     emptyBody: "Dodirnite dugme ispod da dobijete ideje na osnovu onoga sto imate u frideru.",
     noMakeable: "Jos nema sta da se skuva iz frizidera. Skeniraj racun ili dodaj par stavki, pa pokusaj ponovo.",
