@@ -349,6 +349,12 @@ export const en = {
       comfort: "Comfort",
     },
     filterEmpty: "No recipes match this filter.",
+    needItems: "Need {{count}}",
+    cookAgain: {
+      title: "Cook again",
+      eyebrow: "Your favourite",
+      items: "You have {{have}}/{{total}} items",
+    },
     emptyTitle: "No recipes yet",
     emptyBody: "Tap below to get recipe ideas based on what's in your fridge.",
     noMakeable: "Nothing to cook from your fridge yet. Scan a receipt or add a few items, then try again.",
