@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomDock, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, Text } from "@/components";
+import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
@@ -16,11 +16,9 @@ import {
   STAPLE_INGREDIENTS,
 } from "@/services/recipeService";
 import { normalizeFoodName } from "@/services";
-import { colors, radii, spacing } from "@/theme";
+import { colors, fonts, radii, spacing } from "@/theme";
 
 type RecipeTab = "all" | "saved" | "cooked" | "household";
-// "fridge" = show all fridge suggestions; any other value is a recipe tag/category.
-type RecipeFilter = "fridge" | (string & {});
 type RecipeIngredientParam = { name: string };
 type UsedInventoryItemParam = { ingredientName: string; itemId: string };
 
@@ -32,7 +30,10 @@ export default function RecipesRoute() {
   const isPremium = resolvePremium(profile, activeHousehold);
   const userAvoidances = profile?.avoidances ?? [];
   const [tab, setTab] = useState<RecipeTab>("all");
-  const [filter, setFilter] = useState<RecipeFilter>("fridge");
+  const [search, setSearch] = useState("");
+  const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [filterTime, setFilterTime] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [showCookPrompt, setShowCookPrompt] = useState(false);
   const [cookPromptKey, setCookPromptKey] = useState(0);
@@ -197,24 +198,30 @@ export default function RecipesRoute() {
       ...cookedRecipes.flatMap((recipe) => recipe.tags ?? []),
     ]),
   ].sort();
-  const filteredSuggestions =
-    filter === "fridge" ? suggestions : suggestions.filter((match) => match.tags.includes(filter));
-  const filteredTabRecipes =
-    filter === "fridge" ? tabRecipes : tabRecipes.filter((recipe) => (recipe.tags ?? []).includes(filter));
-  const fromFridgeRecipeCount = suggestions.length + tabRecipes.length;
-  const tagRecipeCounts = new Map(
-    categories.map((tag) => [
-      tag,
-      suggestions.filter((match) => match.tags.includes(tag)).length +
-        tabRecipes.filter((recipe) => (recipe.tags ?? []).includes(tag)).length,
-    ]),
+  const query = search.trim().toLowerCase();
+  const hasActiveFilters = filterTag !== null || filterTime !== null;
+  const matchesQuery = (title: string, ingredientNames: string[]) =>
+    !query ||
+    title.toLowerCase().includes(query) ||
+    ingredientNames.some((name) => name.toLowerCase().includes(query));
+  const filteredSuggestions = suggestions.filter(
+    (match) =>
+      (!filterTag || match.tags.includes(filterTag)) &&
+      (!filterTime || match.timeMinutes <= filterTime) &&
+      matchesQuery(match.title, match.ingredients.map((ing) => ing.name)),
+  );
+  const filteredTabRecipes = tabRecipes.filter(
+    (recipe) =>
+      (!filterTag || (recipe.tags ?? []).includes(filterTag)) &&
+      (!filterTime || (recipe.time_minutes ?? 0) <= filterTime) &&
+      matchesQuery(recipe.title, parseRecipeIngredients(recipe.ingredients).map((ing) => ing.name)),
   );
   const isEmpty = !hasSuggestions && !hasOwnRecipes && !loading;
 
   const inventoryNames = new Set(inventory.map((lot) => lot.normalized_name));
   // "Cook again" hero: the recipe you've returned to most (favorites break ties).
   const cookAgainPick =
-    tab === "all" && filter === "fridge"
+    tab === "all" && !query && !hasActiveFilters
       ? [...listedMyRecipes]
           .filter((r) => (cookedSummaries[r.id]?.count ?? 0) > 0)
           .sort(
@@ -250,55 +257,50 @@ export default function RecipesRoute() {
         <>
           <View style={styles.fixedContent}>
             <View style={styles.header}>
-              <Text variant="micro" muted uppercase>
-                {t("recipes.countLabel", { count: listedMyRecipes.length + suggestions.length })}
-              </Text>
-              <Text variant="h1" style={styles.headerTitle}>
-                {t("recipes.title")}
-              </Text>
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterRail}
-            >
-              <FilterChip
-                label={t("recipes.filters.fromFridge")}
-                active={filter === "fridge"}
-                count={String(fromFridgeRecipeCount)}
-                onPress={() => setFilter("fridge")}
-              />
-              {categories.map((tag) => (
-                <FilterChip
-                  key={tag}
-                  label={formatCategory(tag)}
-                  active={filter === tag}
-                  count={String(tagRecipeCounts.get(tag) ?? 0)}
-                  onPress={() => setFilter((f) => (f === tag ? "fridge" : tag))}
-                />
-              ))}
-            </ScrollView>
-
-            {!isPremium ? (
-              <View style={styles.limitBanner}>
-                <View>
-                  <Text variant="small" color={colors.primary} style={styles.limitText}>
-                    {canGenerate
-                      ? t("recipes.weeklyLimit", { remaining: remainingSessions, limit: freeLimit })
-                      : t("recipes.weeklyLimitReached")}
-                  </Text>
-                  <Text variant="small" muted style={styles.limitSub}>{t("recipes.freePlan")}</Text>
-                </View>
+              <View style={styles.headerRow}>
+                {/* TEMP: filter button on the left while the dev-menu bubble covers the top-right corner. */}
                 <Pressable
                   accessibilityRole="button"
-                  onPress={() => setShowPremium(true)}
-                  style={styles.upgradeChip}
+                  accessibilityLabel={t("recipes.filterSheet.title")}
+                  onPress={() => setShowFilters(true)}
+                  style={({ pressed }) => [styles.filterButton, pressed && styles.savedRowPressed]}
                 >
-                  <Text variant="micro" color={colors.text}>{t("recipes.upgrade")}</Text>
+                  <FilterIcon />
+                  {hasActiveFilters ? <View style={styles.filterDot} /> : null}
                 </Pressable>
+                <View style={styles.headerCopy}>
+                  <Text variant="micro" muted uppercase>
+                    {t("recipes.countLabel", { count: listedMyRecipes.length + suggestions.length })}
+                  </Text>
+                  <Text variant="h1" style={styles.headerTitle}>
+                    {t("recipes.title")}
+                  </Text>
+                </View>
               </View>
-            ) : null}
+
+              <View style={styles.searchField}>
+                <SearchIcon />
+                <TextInput
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholder={t("recipes.searchPlaceholder")}
+                  placeholderTextColor={colors.muted}
+                  style={styles.searchInput}
+                  autoCorrect={false}
+                  returnKeyType="search"
+                />
+                {search.length > 0 ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("common.cancel")}
+                    onPress={() => setSearch("")}
+                    hitSlop={10}
+                  >
+                    <Text variant="small" muted>✕</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
 
             {hasOwnRecipes ? (
               <View style={styles.tabBar}>
@@ -337,6 +339,43 @@ export default function RecipesRoute() {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           >
+            {hasActiveFilters ? (
+              <View style={styles.activeFilterRow}>
+                {filterTag ? (
+                  <ActiveFilterToken
+                    label={formatCategory(filterTag)}
+                    onRemove={() => setFilterTag(null)}
+                  />
+                ) : null}
+                {filterTime ? (
+                  <ActiveFilterToken
+                    label={t(`recipes.cookPrompt.timeOptions.${filterTime}`)}
+                    onRemove={() => setFilterTime(null)}
+                  />
+                ) : null}
+              </View>
+            ) : null}
+
+            {!isPremium ? (
+              <View style={styles.limitBanner}>
+                <View>
+                  <Text variant="small" color={colors.primary} style={styles.limitText}>
+                    {canGenerate
+                      ? t("recipes.weeklyLimit", { remaining: remainingSessions, limit: freeLimit })
+                      : t("recipes.weeklyLimitReached")}
+                  </Text>
+                  <Text variant="small" muted style={styles.limitSub}>{t("recipes.freePlan")}</Text>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setShowPremium(true)}
+                  style={styles.upgradeChip}
+                >
+                  <Text variant="micro" color={colors.text}>{t("recipes.upgrade")}</Text>
+                </Pressable>
+              </View>
+            ) : null}
+
             {cookAgainPick && cookAgainCoverage ? (
               <View style={styles.sectionBlock}>
                 <Text variant="micro" muted uppercase style={styles.cookAgainLabel}>
@@ -405,6 +444,14 @@ export default function RecipesRoute() {
                     })
                   )}
                 </View>
+              </View>
+            ) : null}
+
+            {hasOwnRecipes && filteredTabRecipes.length === 0 && (query || hasActiveFilters) ? (
+              <View style={styles.savedList}>
+                <Text variant="small" muted style={styles.filterEmpty}>
+                  {t("recipes.filterEmpty")}
+                </Text>
               </View>
             ) : null}
 
@@ -501,6 +548,67 @@ export default function RecipesRoute() {
         onGenerate={handleGenerate}
       />
 
+      <BottomSheet visible={showFilters} onDismiss={() => setShowFilters(false)}>
+        <Text variant="h2" style={styles.filterSheetTitle}>{t("recipes.filterSheet.title")}</Text>
+
+        <Text variant="small" muted style={styles.filterSectionLabel}>
+          {t("recipes.filterSheet.category")}
+        </Text>
+        <View style={styles.filterChipWrap}>
+          <FilterChip
+            label={t("recipes.filterSheet.all")}
+            active={filterTag === null}
+            onPress={() => setFilterTag(null)}
+          />
+          {categories.map((tag) => (
+            <FilterChip
+              key={tag}
+              label={formatCategory(tag)}
+              active={filterTag === tag}
+              onPress={() => setFilterTag((current) => (current === tag ? null : tag))}
+            />
+          ))}
+        </View>
+
+        <Text variant="small" muted style={styles.filterSectionLabel}>
+          {t("recipes.filterSheet.time")}
+        </Text>
+        <View style={styles.filterChipWrap}>
+          <FilterChip
+            label={t("recipes.cookPrompt.timeOptions.any")}
+            active={filterTime === null}
+            onPress={() => setFilterTime(null)}
+          />
+          {[20, 45].map((minutes) => (
+            <FilterChip
+              key={minutes}
+              label={t(`recipes.cookPrompt.timeOptions.${minutes}`)}
+              active={filterTime === minutes}
+              onPress={() => setFilterTime((current) => (current === minutes ? null : minutes))}
+            />
+          ))}
+        </View>
+
+        <View style={styles.filterSheetButtons}>
+          <Button
+            title={t("recipes.filterSheet.show", {
+              count: filteredSuggestions.length + filteredTabRecipes.length,
+            })}
+            onPress={() => setShowFilters(false)}
+          />
+          {hasActiveFilters ? (
+            <Button
+              title={t("recipes.filterSheet.reset")}
+              variant="text"
+              onPress={() => {
+                setFilterTag(null);
+                setFilterTime(null);
+              }}
+            />
+          ) : null}
+        </View>
+      </BottomSheet>
+
       <PremiumSheet
         visible={showPremium}
         onPreview={async () => {
@@ -569,6 +677,44 @@ function fridgeCoverage(ingredients: unknown, inventoryNames: Set<string>) {
   );
   const have = counted.filter((ing) => inventoryNames.has(normalizeFoodName(ing.name))).length;
   return { have, total: counted.length };
+}
+
+function ActiveFilterToken({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`✕ ${label}`}
+      onPress={onRemove}
+      style={styles.activeFilterToken}
+    >
+      <Text variant="micro" color={colors.surface} style={styles.activeFilterText}>
+        {label}
+      </Text>
+      <Text variant="micro" color="rgba(248,244,238,0.75)">✕</Text>
+    </Pressable>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16">
+      <Circle cx={7} cy={7} r={5} stroke={colors.muted} strokeWidth={1.6} fill="none" />
+      <Path d="M11 11l3 3" stroke={colors.muted} strokeWidth={1.6} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16">
+      <Path
+        d="M2 4h12M4 8h8M6 12h4"
+        stroke={colors.primary}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
 }
 
 function Chevron() {
@@ -689,15 +835,91 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.screenX,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
+    gap: spacing.md,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: spacing.md,
+  },
+  headerCopy: {
+    flex: 1,
   },
   headerTitle: {
     marginTop: spacing.xxs,
   },
-  filterRail: {
-    paddingHorizontal: spacing.screenX,
+  filterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterDot: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accent,
+  },
+  searchField: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
-    paddingBottom: spacing.lg,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radii.md,
+    minHeight: 44,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.text,
+    paddingVertical: 10,
+  },
+  filterSheetTitle: {
+    marginBottom: spacing.md,
+  },
+  filterSectionLabel: {
+    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  filterChipWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  filterSheetButtons: {
+    marginTop: spacing.xl,
+    gap: spacing.sm,
+  },
+  activeFilterRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.screenX,
+    marginBottom: spacing.lg,
+  },
+  activeFilterToken: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 32,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.primary,
+    borderRadius: radii.pill,
+  },
+  activeFilterText: {
+    fontWeight: "600",
   },
   filterEmpty: {
     paddingVertical: spacing.lg,

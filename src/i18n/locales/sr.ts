@@ -348,6 +348,15 @@ export const sr = {
       comfort: "Utesno",
     },
     filterEmpty: "Nijedan recept ne odgovara filteru.",
+    searchPlaceholder: "Pretrazi recepte ili sastojke…",
+    filterSheet: {
+      title: "Filteri",
+      category: "Kategorija",
+      time: "Vreme",
+      all: "Sve",
+      reset: "Ponisti filtere",
+      show: "Prikazi {{count}} recepata",
+    },
     needItems: "Fali {{count}}",
     cookAgain: {
       title: "Kuvaj ponovo",
