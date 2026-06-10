@@ -409,6 +409,7 @@ export const sr = {
       all: "Sve",
       saved: "Sacuvani",
       cooked: "Kuvani",
+      household: "Domacinstvo",
     },
     cookingMode: {
       title: "Kuvam za",

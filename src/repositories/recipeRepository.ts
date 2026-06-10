@@ -141,15 +141,21 @@ export async function listHouseholdRecipes(householdId: string) {
   return withCookedCounts(householdId, data ?? []);
 }
 
-export async function listCookedRecipes(householdId: string) {
+export async function listCookedRecipes(householdId: string, cookedBy?: string) {
   const supabase = getSupabaseClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("cooked_events")
     .select("recipes(*)")
     .eq("household_id", householdId)
     .not("recipe_id", "is", null)
     .order("created_at", { ascending: false });
+
+  if (cookedBy) {
+    query = query.eq("cooked_by", cookedBy);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 
@@ -171,28 +177,37 @@ export async function listCookedRecipes(householdId: string) {
   }));
 }
 
-export async function listFavoriteRecipes(householdId: string) {
+// Favorites are per user (recipe_favorites join table); RLS limits rows to auth.uid().
+export async function listUserFavoriteRecipeIds() {
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
-    .from("recipes")
-    .select("*")
-    .eq("household_id", householdId)
-    .eq("is_favorite", true)
-    .order("created_at", { ascending: false })
-    .returns<RecipeRow[]>();
+    .from("recipe_favorites")
+    .select("recipe_id");
 
   if (error) throw error;
-  return data ?? [];
+  return new Set((data ?? []).map((row) => row.recipe_id as string));
 }
 
 export async function toggleRecipeFavorite(recipeId: string, isFavorite: boolean) {
   const supabase = getSupabaseClient();
 
+  if (isFavorite) {
+    const { data: userResult, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
+
+    const { error } = await supabase
+      .from("recipe_favorites")
+      .upsert({ recipe_id: recipeId, user_id: userResult.user.id });
+
+    if (error) throw error;
+    return;
+  }
+
   const { error } = await supabase
-    .from("recipes")
-    .update({ is_favorite: isFavorite })
-    .eq("id", recipeId);
+    .from("recipe_favorites")
+    .delete()
+    .eq("recipe_id", recipeId);
 
   if (error) throw error;
 }

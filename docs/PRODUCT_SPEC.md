@@ -704,6 +704,8 @@ Premium rule:
 
 Tapping "What should I cook?" opens an optional prompt sheet before generating:
 
+- cooking for: household or just me (only in households with 2+ members;
+  drives servings and whose avoidances apply)
 - meal type: breakfast, lunch, dinner, or snack
 - time available
 - vibe/category, using recipe tags
@@ -712,6 +714,21 @@ A "Surprise me" action skips choices and generates instantly, preserving the
 original one-tap behavior. The prompt is available to all users; the weekly
 session limit remains the free/premium gate. Chomp always chooses ingredients
 from the fridge inventory itself; users do not manually pick what to use.
+
+### Recipe List Scoping
+
+Recipes and cooked events are stored per household but displayed per user:
+
+- All / Saved / Cooked tabs show only the current user's own recipes
+  (`generated_by`) and own cooked events (`cooked_by`)
+- favorites are per user (`recipe_favorites` join table, not a flag on the
+  recipe); Saved shows the current user's favorites, which may include
+  another member's recipe favorited from the Household tab
+- a new user always starts with a blank recipe list, including users who
+  joined an existing household via invite code
+- a Household tab listing every member's recipes appears only once the user
+  has generated at least one recipe themselves and the household has 2+
+  members
 
 ### Avoidances
 

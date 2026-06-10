@@ -410,6 +410,7 @@ export const en = {
       all: "All",
       saved: "Saved",
       cooked: "Cooked",
+      household: "Household",
     },
     cookingMode: {
       title: "Cooking for",

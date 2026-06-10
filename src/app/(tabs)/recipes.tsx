@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { BottomDock, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, SegmentedControl, Text } from "@/components";
+import { BottomDock, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
@@ -16,7 +16,7 @@ import {
 import { normalizeFoodName } from "@/services";
 import { colors, radii, spacing } from "@/theme";
 
-type RecipeTab = "all" | "saved" | "cooked";
+type RecipeTab = "all" | "saved" | "cooked" | "household";
 // "fridge" = show all fridge suggestions; any other value is a recipe tag/category.
 type RecipeFilter = "fridge" | (string & {});
 type RecipeIngredientParam = { name: string };
@@ -55,7 +55,13 @@ export default function RecipesRoute() {
     refresh: refreshRecipes,
     generateSession,
     toggleFavorite,
-  } = useRecipes(activeHousehold?.id, { inventory, avoidances: activeAvoidances, isPremium, servings });
+  } = useRecipes(activeHousehold?.id, {
+    inventory,
+    avoidances: activeAvoidances,
+    isPremium,
+    servings,
+    userId: profile?.id,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -140,20 +146,31 @@ export default function RecipesRoute() {
     });
   }, [inventory]);
 
+  // Own recipes drive the default tabs; household recipes only appear in the
+  // dedicated Household tab once the user has generated something themselves.
+  const myRecipes = savedRecipes.filter((r) => r.generated_by === profile?.id);
+  // is_favorite is overlaid per current user in useRecipes, so this is "my favorites".
   const favoriteRecipes = savedRecipes.filter((r) => r.is_favorite);
+  const hasOwnRecipes = myRecipes.length > 0 || cookedRecipes.length > 0;
+  const showHouseholdTab = myRecipes.length > 0 && members.length >= 2;
+  const visibleTabs: RecipeTab[] = showHouseholdTab
+    ? ["all", "saved", "cooked", "household"]
+    : ["all", "saved", "cooked"];
   const tabRecipes =
     tab === "all"
-      ? savedRecipes
+      ? myRecipes
       : tab === "saved"
         ? favoriteRecipes
-        : cookedRecipes;
+        : tab === "cooked"
+          ? cookedRecipes
+          : savedRecipes;
   const cookedEventCount = cookedRecipes.reduce((sum, recipe) => sum + (recipe.cooked_count ?? 0), 0);
 
   const hasSuggestions = suggestions.length > 0;
   const categories = [
     ...new Set([
       ...suggestions.flatMap((match) => match.tags),
-      ...savedRecipes.flatMap((recipe) => recipe.tags ?? []),
+      ...myRecipes.flatMap((recipe) => recipe.tags ?? []),
     ]),
   ].sort();
   const filteredSuggestions =
@@ -168,7 +185,7 @@ export default function RecipesRoute() {
         tabRecipes.filter((recipe) => (recipe.tags ?? []).includes(tag)).length,
     ]),
   );
-  const isEmpty = !hasSuggestions && savedRecipes.length === 0 && !loading;
+  const isEmpty = !hasSuggestions && !hasOwnRecipes && !loading;
 
   if (loading) {
     return (
@@ -194,7 +211,7 @@ export default function RecipesRoute() {
           <View style={styles.fixedContent}>
             <View style={styles.header}>
               <Text variant="micro" muted uppercase>
-                {t("recipes.countLabel", { count: savedRecipes.length + suggestions.length })}
+                {t("recipes.countLabel", { count: myRecipes.length + suggestions.length })}
               </Text>
               <Text variant="h1" style={styles.headerTitle}>
                 {t("recipes.title")}
@@ -223,22 +240,6 @@ export default function RecipesRoute() {
               ))}
             </ScrollView>
 
-            {showCookingMode ? (
-              <View style={styles.cookingModeWrap}>
-                <Text variant="small" muted style={styles.cookingModeLabel}>
-                  {t("recipes.cookingMode.title")}
-                </Text>
-                <SegmentedControl
-                  options={[
-                    { label: t("recipes.cookingMode.household"), value: "household" as CookingMode },
-                    { label: t("recipes.cookingMode.justMe"), value: "just_me" as CookingMode },
-                  ]}
-                  value={cookingMode}
-                  onChange={setCookingMode}
-                />
-              </View>
-            ) : null}
-
             {!isPremium ? (
               <View style={styles.limitBanner}>
                 <View>
@@ -259,15 +260,17 @@ export default function RecipesRoute() {
               </View>
             ) : null}
 
-            {savedRecipes.length > 0 ? (
+            {hasOwnRecipes ? (
               <View style={styles.tabBar}>
-                {(["all", "saved", "cooked"] as RecipeTab[]).map((t_) => {
+                {visibleTabs.map((t_) => {
                   const label =
                     t_ === "all"
                         ? t("recipes.tabs.all")
                         : t_ === "saved"
                           ? `${t("recipes.tabs.saved")} · ${favoriteRecipes.length}`
-                        : `${t("recipes.tabs.cooked")} · ${cookedEventCount}`;
+                        : t_ === "cooked"
+                          ? `${t("recipes.tabs.cooked")} · ${cookedEventCount}`
+                        : t("recipes.tabs.household");
                   return (
                     <Pressable
                       key={t_}
@@ -327,7 +330,7 @@ export default function RecipesRoute() {
               </View>
             ) : null}
 
-            {savedRecipes.length > 0 ? (
+            {hasOwnRecipes ? (
               <View style={styles.savedList}>
                 {filteredTabRecipes.map((recipe) => (
                   <SavedRecipeRow
@@ -382,7 +385,14 @@ export default function RecipesRoute() {
           },
           surprise: t("recipes.cookPrompt.surprise"),
           generate: t("recipes.cookPrompt.generate"),
+          cookingFor: t("recipes.cookingMode.title"),
+          cookingForOptions: {
+            household: t("recipes.cookingMode.household"),
+            just_me: t("recipes.cookingMode.justMe"),
+          },
         }}
+        cookingMode={showCookingMode ? cookingMode : undefined}
+        onCookingModeChange={setCookingMode}
         onDismiss={() => setShowCookPrompt(false)}
         onGenerate={handleGenerate}
       />
@@ -515,10 +525,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     marginTop: spacing.xxs,
   },
-  cookingModeWrap: {
-    paddingHorizontal: spacing.screenX,
-    marginBottom: spacing.lg,
-  },
   filterRail: {
     paddingHorizontal: spacing.screenX,
     gap: spacing.sm,
@@ -526,9 +532,6 @@ const styles = StyleSheet.create({
   },
   filterEmpty: {
     paddingVertical: spacing.lg,
-  },
-  cookingModeLabel: {
-    marginBottom: spacing.sm,
   },
   limitBanner: {
     marginHorizontal: spacing.screenX,
