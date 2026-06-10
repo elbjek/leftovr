@@ -12,6 +12,7 @@ import {
   HouseholdSection,
   PremiumSheet,
   Screen,
+  ScreenHeader,
   SegmentedControl,
   Text,
   TextField,
@@ -194,12 +195,7 @@ export default function SettingsRoute() {
   return (
     <Screen scroll contentContainerStyle={styles.content}>
       <View style={styles.sections}>
-        <View style={styles.titleBlock}>
-          <Text variant="display">{t("settings.title")}</Text>
-          <Text variant="body" muted>
-            {t("settings.body")}
-          </Text>
-        </View>
+        <ScreenHeader title={t("settings.title")} subtitle={t("settings.body")} />
 
         {/* Profile card */}
         <Card>
@@ -622,9 +618,6 @@ const styles = StyleSheet.create({
   },
   sections: {
     gap: spacing.xl,
-  },
-  titleBlock: {
-    gap: spacing.sm,
   },
   cardInner: {
     gap: spacing.md,

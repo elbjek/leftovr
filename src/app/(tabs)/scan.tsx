@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, Button, Card, PremiumSheet, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, Text, TextField } from "@/components";
+import { BackButton, Button, Card, PremiumSheet, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
@@ -490,10 +490,7 @@ export default function ScanRoute() {
       <Screen scroll contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <BackButton onPress={returnToChoice} style={styles.backButton} />
-          <Text variant="display">{t("scan.manual.title")}</Text>
-          <Text variant="body" muted>
-            {t("scan.manual.screenBody")}
-          </Text>
+          <ScreenHeader title={t("scan.manual.title")} subtitle={t("scan.manual.screenBody")} />
         </View>
 
         <TextField
@@ -680,10 +677,7 @@ export default function ScanRoute() {
           onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/fridge"))}
           style={styles.backButton}
         />
-        <Text variant="display">{t("scan.title")}</Text>
-        <Text variant="body" muted>
-          {t("scan.body")}
-        </Text>
+        <ScreenHeader title={t("scan.title")} subtitle={t("scan.body")} />
       </View>
 
       <View style={styles.choices}>
@@ -778,7 +772,7 @@ function getParamChoice(mode?: string): ScanChoice | null {
 const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
-    paddingTop: 68,
+    paddingTop: spacing.screenTop,
     gap: spacing.xxl,
   },
   header: {

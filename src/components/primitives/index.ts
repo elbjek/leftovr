@@ -9,6 +9,7 @@ export * from "./FilterChip";
 export * from "./IconButton";
 export * from "./PageDots";
 export * from "./Screen";
+export * from "./ScreenHeader";
 export * from "./SegmentedControl";
 export * from "./Text";
 export * from "./TextField";

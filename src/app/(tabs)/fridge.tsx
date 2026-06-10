@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "reac
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ShelfRow, Text, TextField } from "@/components";
+import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth, useMeasurementSystem } from "@/features";
 import { updateInventoryNetAmount } from "@/repositories";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -80,21 +80,18 @@ export default function FridgeRoute() {
 
   return (
     <Screen scroll padded={false} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <View>
-          <Text variant="micro" muted uppercase>
-            {profile?.display_name ? t("fridge.greetingWithName", { name: profile.display_name }) : t("fridge.greeting")}
-          </Text>
-          <Text variant="h1" style={styles.headerTitle}>
-            {t("fridge.homeTitle")}
-          </Text>
-        </View>
-        <View style={styles.headerActions}>
-          <IconButton label={t("fridge.search")}><SearchIcon /></IconButton>
-          <IconButton label={t("fridge.filter.title")} onPress={() => setFilterOpen(true)}><FilterIcon active={categoryFilter !== "all"} /></IconButton>
-          <IconButton label={t("fridge.refresh")} onPress={refresh}><RefreshIcon /></IconButton>
-        </View>
-      </View>
+      <ScreenHeader
+        style={styles.header}
+        eyebrow={profile?.display_name ? t("fridge.greetingWithName", { name: profile.display_name }) : t("fridge.greeting")}
+        title={t("fridge.homeTitle")}
+        actions={
+          <>
+            <IconButton label={t("fridge.search")}><SearchIcon /></IconButton>
+            <IconButton label={t("fridge.filter.title")} onPress={() => setFilterOpen(true)}><FilterIcon active={categoryFilter !== "all"} /></IconButton>
+            <IconButton label={t("fridge.refresh")} onPress={refresh}><RefreshIcon /></IconButton>
+          </>
+        }
+      />
 
       {weeklySummary && weeklySummary.itemsSaved > 0 ? (
         <Pressable
@@ -774,17 +771,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.screenX,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.md,
-  },
-  headerTitle: {
-    marginTop: spacing.xxs,
-  },
-  headerActions: {
-    flexDirection: "row",
-    gap: spacing.sm,
   },
   refreshButton: {
     minHeight: 38,

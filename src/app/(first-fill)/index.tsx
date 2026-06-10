@@ -108,7 +108,7 @@ export default function FirstFillRoute() {
 const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
-    paddingTop: 68,
+    paddingTop: spacing.screenTop,
     gap: spacing.xxl,
   },
   header: {

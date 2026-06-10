@@ -3,7 +3,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 
-import { EmptyState, PremiumSheet, RecipeGlyph, Screen, SegmentedControl, Text } from "@/components";
+import { EmptyState, PremiumSheet, RecipeGlyph, Screen, ScreenHeader, SegmentedControl, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useHousehold, useInsights } from "@/hooks";
 import { setPreviewTier } from "@/repositories";
@@ -62,10 +62,10 @@ export default function InsightsRoute() {
   return (
     <Screen padded={false} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text variant="micro" color={colors.accent} uppercase style={styles.premiumBadge}>
-          {t("insights.eyebrow", { week: formatWeekLabel() })}
-        </Text>
-        <Text variant="h1">{t("insights.premiumTitle")}</Text>
+        <ScreenHeader
+          eyebrow={t("insights.eyebrow", { week: formatWeekLabel() })}
+          title={t("insights.premiumTitle")}
+        />
         {showHouseholdScope ? (
           <View style={styles.scopeToggle}>
             <SegmentedControl
@@ -246,10 +246,6 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.screenX,
     paddingBottom: spacing.sm,
-  },
-  premiumBadge: {
-    fontWeight: "700",
-    marginBottom: spacing.xs,
   },
   scopeToggle: {
     marginTop: spacing.md,

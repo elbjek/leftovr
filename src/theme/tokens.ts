@@ -111,7 +111,9 @@ export const spacing = {
   xxxl: 28,
   huge: 32,
   screenX: 24,
-  screenTop: 64,
+  // Screens render inside SafeAreaView, which already clears the notch —
+  // this is just breathing room below it.
+  screenTop: 16,
   screenBottom: 32,
   tabBarClearance: 118,
 } as const;
