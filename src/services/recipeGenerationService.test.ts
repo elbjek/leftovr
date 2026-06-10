@@ -26,6 +26,7 @@ const input: RecipeGenerationInput = {
       added_by_name: "Test User",
       added_at: "2026-06-01T12:00:00.000Z",
       removed_at: null,
+      expires_at: null,
     },
   ],
   avoidances: ["dairy"],
