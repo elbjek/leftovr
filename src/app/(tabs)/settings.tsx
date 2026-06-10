@@ -1,5 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -13,7 +14,6 @@ import {
   PremiumSheet,
   Screen,
   ScreenHeader,
-  SegmentedControl,
   Text,
   TextField,
 } from "@/components";
@@ -30,7 +30,7 @@ import {
   updateProfileField,
   PlanTier,
 } from "@/repositories";
-import { colors, radii, spacing } from "@/theme";
+import { colors, fonts, radii, spacing } from "@/theme";
 
 const TIER_OPTIONS: { label: string; value: PlanTier; key: string }[] = [
   { label: "tierFree", value: "free", key: "free" },
@@ -48,7 +48,7 @@ const SERVINGS_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
 export default function SettingsRoute() {
   const { t, i18n } = useTranslation();
   const { joinCode } = useLocalSearchParams<{ joinCode?: string }>();
-  const { profile, activeHousehold, session, signOut, loading, refresh } = useAuth();
+  const { profile, activeHousehold, session, signOut, refresh } = useAuth();
   const { system, setMeasurementSystem } = useMeasurementSystem();
   const currentLanguage = isSupportedLanguage(i18n.language) ? i18n.language : "en";
   const languageOptions = supportedLanguages.map((language) => ({
@@ -63,6 +63,8 @@ export default function SettingsRoute() {
 
   // Editable state
   const [editingName, setEditingName] = useState(false);
+  const [editingLanguage, setEditingLanguage] = useState(false);
+  const [editingUnits, setEditingUnits] = useState(false);
   const [nameValue, setNameValue] = useState(profile?.display_name ?? "");
   const [editingGoal, setEditingGoal] = useState(false);
   const [editingStyle, setEditingStyle] = useState(false);
@@ -195,140 +197,99 @@ export default function SettingsRoute() {
   return (
     <Screen scroll contentContainerStyle={styles.content}>
       <View style={styles.sections}>
-        <ScreenHeader title={t("settings.title")} subtitle={t("settings.body")} />
+        <ScreenHeader title={t("settings.title")} />
 
-        {/* Profile card */}
-        <Card>
-          <View style={styles.cardInner}>
-            <View style={styles.profileInfo}>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => {
-                  setNameValue(profile?.display_name ?? "");
-                  setEditingName(true);
-                }}
-              >
-                <Text variant="label">{profile?.display_name}</Text>
-                <Text variant="micro" muted>{t("settings.displayNameLabel")}</Text>
-              </Pressable>
-              <Text variant="small" muted>
-                {activeHousehold?.name ?? t("common.unknownHousehold")}
-              </Text>
-              <View style={styles.tierBadge}>
-                <Text variant="micro" color={currentTier === "free" ? colors.primary : colors.accent}>
-                  {currentTier === "free"
-                    ? t("settings.tierFree")
-                    : currentTier === "premium"
-                      ? `★ ${t("settings.tierPremium")}`
-                      : `★ ${t("settings.tierHouseholdPremium")}`}
-                </Text>
-              </View>
-            </View>
-            <Button title={t("common.signOut")} loading={loading} onPress={signOut} />
-            {__DEV__ ? (
-              <Button
-                title={t("settings.resetOnboarding")}
-                variant="ghost"
-                loading={loading}
-                onPress={handleResetOnboarding}
-              />
+        {/* Profile */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("settings.displayNameLabel")}
+          onPress={() => {
+            setNameValue(profile?.display_name ?? "");
+            setEditingName(true);
+          }}
+          style={styles.profileHeader}
+        >
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {profile?.avatar_initials ?? (profile?.display_name ?? "?").slice(0, 1).toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.profileNameWrap}>
+            <Text variant="label">{profile?.display_name}</Text>
+            {session?.user?.email ? (
+              <Text variant="micro" muted numberOfLines={1}>{session.user.email}</Text>
             ) : null}
+            <Text variant="micro" muted numberOfLines={1}>
+              {activeHousehold?.name ?? t("common.unknownHousehold")}
+            </Text>
           </View>
-        </Card>
+          <View style={styles.tierBadge}>
+            <Text variant="micro" color={currentTier === "free" ? colors.primary : colors.accent}>
+              {currentTier === "free"
+                ? t("settings.tierFree")
+                : currentTier === "premium"
+                  ? `★ ${t("settings.tierPremium")}`
+                  : `★ ${t("settings.tierHouseholdPremium")}`}
+            </Text>
+          </View>
+        </Pressable>
 
-        {/* Language */}
-        <Card>
-          <View style={styles.cardInner}>
-            <View style={styles.sectionHeader}>
-              <Text variant="label">{t("settings.languageTitle")}</Text>
-              <Text variant="small" muted>
-                {t("settings.languageBody")}
-              </Text>
-            </View>
-            <SegmentedControl
-              options={languageOptions}
-              value={currentLanguage}
-              onChange={handleLanguageChange}
+        {/* Language + units */}
+        <SettingsGroup label={t("settings.preferencesTitle")}>
+          <SettingsRow
+            label={t("settings.languageTitle")}
+            value={languageOptions.find((option) => option.value === currentLanguage)?.label}
+            onPress={() => setEditingLanguage(true)}
+          />
+          <SettingsRow
+            label={t("settings.unitsTitle")}
+            value={t(`settings.units.${system}`)}
+            onPress={() => setEditingUnits(true)}
+            last
+          />
+        </SettingsGroup>
+
+        {/* Food profile */}
+        <SettingsGroup label={t("settings.foodProfileTitle")}>
+          <SettingsRow
+            label={t("settings.primaryGoalLabel")}
+            value={goalLabel}
+            onPress={() => setEditingGoal(true)}
+          />
+          <SettingsRow
+            label={t("settings.shoppingStyleLabel")}
+            value={styleLabel}
+            onPress={() => setEditingStyle(true)}
+          />
+          <SettingsRow
+            label={t("settings.avoidancesLabel")}
+            value={avoidancesLabel}
+            onPress={() => {
+              setLocalAvoidances(profile?.avoidances ?? []);
+              setEditingAvoidances(true);
+            }}
+          />
+          {activeHousehold ? (
+            <SettingsRow
+              label={t("settings.servingsTitle")}
+              value={t("settings.servingsLabel", { count: activeHousehold.default_servings })}
+              onPress={() => setEditingServings(true)}
+              last
             />
-          </View>
-        </Card>
+          ) : null}
+        </SettingsGroup>
 
-        {/* Units */}
-        <Card>
-          <View style={styles.cardInner}>
-            <View style={styles.sectionHeader}>
-              <Text variant="label">{t("settings.unitsTitle")}</Text>
-              <Text variant="small" muted>
-                {t("settings.unitsBody")}
-              </Text>
-            </View>
-            <SegmentedControl
-              options={[
-                { label: t("settings.units.metric"), value: "metric" },
-                { label: t("settings.units.imperial"), value: "imperial" },
-              ]}
-              value={system}
-              onChange={(value) => setMeasurementSystem(value as "metric" | "imperial")}
+        {/* Account actions */}
+        <SettingsGroup>
+          <SettingsRow label={t("common.signOut")} onPress={signOut} danger />
+          {__DEV__ ? (
+            <SettingsRow
+              label={t("settings.resetOnboarding")}
+              onPress={handleResetOnboarding}
+              last
             />
-          </View>
-        </Card>
-
-        {/* Preferences */}
-        <Card>
-          <View style={styles.cardInner}>
-            <View style={styles.sectionHeader}>
-              <Text variant="label">{t("settings.preferencesTitle")}</Text>
-              <Text variant="small" muted>
-                {t("settings.preferencesBody")}
-              </Text>
-            </View>
-
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setEditingGoal(true)}
-              style={styles.prefRow}
-            >
-              <Text variant="small">{t("settings.primaryGoalLabel")}</Text>
-              <Text variant="small" color={colors.primary}>{goalLabel}</Text>
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setEditingStyle(true)}
-              style={styles.prefRow}
-            >
-              <Text variant="small">{t("settings.shoppingStyleLabel")}</Text>
-              <Text variant="small" color={colors.primary}>{styleLabel}</Text>
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setLocalAvoidances(profile?.avoidances ?? []);
-                setEditingAvoidances(true);
-              }}
-              style={styles.prefRow}
-            >
-              <View style={styles.prefCopy}>
-                <Text variant="small">{t("settings.avoidancesLabel")}</Text>
-                <Text variant="micro" muted>{avoidancesLabel}</Text>
-              </View>
-            </Pressable>
-
-            {activeHousehold ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => setEditingServings(true)}
-                style={styles.prefRow}
-              >
-                <Text variant="small">{t("settings.servingsTitle")}</Text>
-                <Text variant="small" color={colors.primary}>
-                  {t("settings.servingsLabel", { count: activeHousehold.default_servings })}
-                </Text>
-              </Pressable>
-            ) : null}
-          </View>
-        </Card>
+          ) : null}
+        </SettingsGroup>
 
         {/* Household */}
         {profile && activeHousehold ? (
@@ -516,6 +477,48 @@ export default function SettingsRoute() {
         </View>
       </BottomSheet>
 
+      {/* Language sheet */}
+      <BottomSheet visible={editingLanguage} onDismiss={() => setEditingLanguage(false)}>
+        <View style={styles.sheetContent}>
+          <Text variant="h2">{t("settings.languageTitle")}</Text>
+          <View style={styles.choiceList}>
+            {languageOptions.map((option) => (
+              <ChoiceCard
+                compact
+                key={option.value}
+                title={option.label}
+                selected={currentLanguage === option.value}
+                onPress={() => {
+                  handleLanguageChange(option.value);
+                  setEditingLanguage(false);
+                }}
+              />
+            ))}
+          </View>
+        </View>
+      </BottomSheet>
+
+      {/* Units sheet */}
+      <BottomSheet visible={editingUnits} onDismiss={() => setEditingUnits(false)}>
+        <View style={styles.sheetContent}>
+          <Text variant="h2">{t("settings.unitsTitle")}</Text>
+          <View style={styles.choiceList}>
+            {(["metric", "imperial"] as const).map((value) => (
+              <ChoiceCard
+                compact
+                key={value}
+                title={t(`settings.units.${value}`)}
+                selected={system === value}
+                onPress={() => {
+                  setMeasurementSystem(value);
+                  setEditingUnits(false);
+                }}
+              />
+            ))}
+          </View>
+        </View>
+      </BottomSheet>
+
       {/* Edit primary goal sheet */}
       <BottomSheet visible={editingGoal} onDismiss={() => setEditingGoal(false)}>
         <View style={styles.sheetContent}>
@@ -523,6 +526,7 @@ export default function SettingsRoute() {
           <View style={styles.choiceList}>
             {PRIMARY_GOAL_OPTIONS.map((value) => (
               <ChoiceCard
+                compact
                 key={value}
                 title={t(`settings.primaryGoalChoices.${value}`)}
                 selected={profile?.primary_goal === value}
@@ -540,6 +544,7 @@ export default function SettingsRoute() {
           <View style={styles.choiceList}>
             {SHOPPING_STYLE_OPTIONS.map((value) => (
               <ChoiceCard
+                compact
                 key={value}
                 title={t(`settings.shoppingStyleChoices.${value}`)}
                 selected={profile?.shopping_style === value}
@@ -558,6 +563,7 @@ export default function SettingsRoute() {
           <View style={styles.choiceList}>
             {AVOIDANCE_OPTIONS.map((value) => (
               <ChoiceCard
+                compact
                 key={value}
                 title={t(`settings.avoidanceChoices.${value}`)}
                 selected={localAvoidances.includes(value)}
@@ -612,6 +618,64 @@ export default function SettingsRoute() {
   );
 }
 
+function SettingsGroup({ label, children }: { label?: string; children: React.ReactNode }) {
+  return (
+    <View>
+      {label ? (
+        <Text variant="micro" muted uppercase style={styles.groupLabel}>
+          {label}
+        </Text>
+      ) : null}
+      <View style={styles.groupCard}>{children}</View>
+    </View>
+  );
+}
+
+function SettingsRow({
+  label,
+  value,
+  onPress,
+  danger,
+  last,
+}: {
+  label: string;
+  value?: string;
+  onPress: () => void;
+  danger?: boolean;
+  last?: boolean;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.groupRow,
+        !last && styles.groupRowDivider,
+        pressed && styles.groupRowPressed,
+      ]}
+    >
+      <Text variant="label" color={danger ? colors.red : colors.text} style={styles.groupRowLabel}>
+        {label}
+      </Text>
+      {value ? (
+        <Text variant="small" muted numberOfLines={1} style={styles.groupRowValue}>
+          {value}
+        </Text>
+      ) : null}
+      <Svg width={14} height={14} viewBox="0 0 14 14">
+        <Path
+          d="M5 3L9 7L5 11"
+          stroke={colors.muted2}
+          strokeWidth={1.6}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing.tabBarClearance,
@@ -622,13 +686,64 @@ const styles = StyleSheet.create({
   cardInner: {
     gap: spacing.md,
   },
-  profileInfo: {
-    gap: spacing.xs,
+  profileHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: {
+    fontFamily: fonts.displayItalic,
+    fontSize: 18,
+    lineHeight: 22,
+    color: colors.accent,
+  },
+  profileNameWrap: {
+    flex: 1,
+    minWidth: 0,
+    gap: 1,
+  },
+  groupLabel: {
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.xxs,
+  },
+  groupCard: {
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radii.lg,
+    overflow: "hidden",
+  },
+  groupRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 14,
+    minHeight: 48,
+  },
+  groupRowDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hairline,
+  },
+  groupRowPressed: {
+    backgroundColor: colors.primary50,
+  },
+  groupRowLabel: {
+    flex: 1,
+  },
+  groupRowValue: {
+    maxWidth: 160,
   },
   tierBadge: {
-    marginTop: spacing.xxs,
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.xxs,
     backgroundColor: colors.primary50,
     borderRadius: radii.pill,
@@ -676,19 +791,6 @@ const styles = StyleSheet.create({
   dayOptionActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
-  },
-  prefRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hairline,
-    gap: spacing.md,
-  },
-  prefCopy: {
-    flex: 1,
-    gap: spacing.xxs,
   },
   settingRow: {
     flexDirection: "row",

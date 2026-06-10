@@ -463,6 +463,7 @@ export const sr = {
       sr: "Srpski",
     },
     displayNameLabel: "Ime za prikaz",
+    foodProfileTitle: "Profil ishrane",
     displayNamePlaceholder: "Tvoje ime",
     save: "Sacuvaj",
     preferencesTitle: "Preferencije",
