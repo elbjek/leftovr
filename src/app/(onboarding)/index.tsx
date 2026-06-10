@@ -25,16 +25,49 @@ type Choice = {
 const steps: StepKey[] = ["name", "cookingFor", "shoppingStyle", "primaryGoal", "avoidances", "invite"];
 const requiredStepCount = 5;
 
+function hasUsableProfileName(displayName: string | undefined, email: string | undefined) {
+  const trimmedName = displayName?.trim();
+  if (!trimmedName) return false;
+
+  const emailLocalPart = email?.split("@")[0]?.trim();
+  return trimmedName.toLowerCase() !== emailLocalPart?.toLowerCase();
+}
+
+function getInitialStepIndex({
+  hasSavedDisplayName,
+  cookingForSeed,
+  shoppingStyle,
+  primaryGoal,
+}: {
+  hasSavedDisplayName: boolean;
+  cookingForSeed: string | null | undefined;
+  shoppingStyle: string | null | undefined;
+  primaryGoal: string | null | undefined;
+}) {
+  if (!hasSavedDisplayName) return 0;
+  if (!cookingForSeed) return 1;
+  if (!shoppingStyle) return 2;
+  if (!primaryGoal) return 3;
+  return 4;
+}
+
 export default function OnboardingRoute() {
   const { t } = useTranslation();
-  const { refresh } = useAuth();
-  const [stepIndex, setStepIndex] = useState(0);
-  const [displayName, setDisplayName] = useState("");
-  const [cookingFor, setCookingFor] = useState("partner");
-  const [servings, setServings] = useState(2);
-  const [shoppingStyle, setShoppingStyle] = useState("weekly");
-  const [primaryGoal, setPrimaryGoal] = useState("waste");
-  const [avoidances, setAvoidances] = useState<string[]>([]);
+  const { profile, refresh, user } = useAuth();
+  const hasSavedDisplayName = hasUsableProfileName(profile?.display_name, user?.email);
+  const initialStepIndex = getInitialStepIndex({
+    hasSavedDisplayName,
+    cookingForSeed: profile?.cooking_for_seed,
+    shoppingStyle: profile?.shopping_style,
+    primaryGoal: profile?.primary_goal,
+  });
+  const [stepIndex, setStepIndex] = useState(initialStepIndex);
+  const [displayName, setDisplayName] = useState(hasSavedDisplayName ? profile?.display_name ?? "" : "");
+  const [cookingFor, setCookingFor] = useState(profile?.cooking_for_seed ?? "partner");
+  const [servings, setServings] = useState(profile?.default_servings ?? 2);
+  const [shoppingStyle, setShoppingStyle] = useState(profile?.shopping_style ?? "weekly");
+  const [primaryGoal, setPrimaryGoal] = useState(profile?.primary_goal ?? "waste");
+  const [avoidances, setAvoidances] = useState<string[]>(profile?.avoidances ?? []);
   const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

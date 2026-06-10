@@ -8,7 +8,12 @@ import React, {
   useState,
 } from "react";
 
-import { getCurrentProfile, getHouseholdById } from "@/repositories";
+import {
+  completeHouseholdFirstFill,
+  getCurrentProfile,
+  getHouseholdById,
+  getHouseholdItemCount,
+} from "@/repositories";
 import { sendEmailOtp, signInWithEmail, signOut, signUpWithEmail, verifyEmailOtp } from "@/services";
 import { getSupabaseClient, hasSupabaseConfig } from "@/lib/supabase";
 import { i18n } from "@/i18n";
@@ -94,6 +99,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profile.active_household_id) {
         activeHousehold = await getHouseholdById(profile.active_household_id);
+
+        if (!activeHousehold.first_fill_completed_at) {
+          const activeItemCount = await getHouseholdItemCount(activeHousehold.id);
+
+          if (activeItemCount > 0) {
+            await completeHouseholdFirstFill(activeHousehold.id);
+            activeHousehold = await getHouseholdById(activeHousehold.id);
+          }
+        }
       }
 
       setState({
