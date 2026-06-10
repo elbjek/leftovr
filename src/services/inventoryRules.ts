@@ -36,6 +36,7 @@ export type InventoryLot = {
   id: string;
   name: string;
   normalized_name: string;
+  brand_name: string | null;
   category: InventoryCategory;
   quantity: number;
   unit: string;
@@ -56,6 +57,7 @@ export type InventoryGroup = {
   key: string;
   name: string;
   normalizedName: string;
+  brandName: string | null;
   category: InventoryCategory;
   urgency: UrgencyBand;
   urgencyLabel: string;
@@ -188,6 +190,7 @@ export function groupInventoryLots(
       }
       existing.lotCount += 1;
       existing.lots.push(lot);
+      if (!existing.brandName && lot.brand_name) existing.brandName = lot.brand_name;
       existing.partialState = mergePartialState(existing.partialState, lot.partial_state);
       existing.partialLabel = formatPartialState(existing.partialState);
       existing.meta = formatGroupMeta(existing, system);
@@ -198,6 +201,7 @@ export function groupInventoryLots(
       key,
       name: lot.name,
       normalizedName: lot.normalized_name,
+      brandName: lot.brand_name,
       category: lot.category,
       urgency,
       urgencyLabel: formatUrgency(urgency),
@@ -255,7 +259,7 @@ export function toUiCategory(category: InventoryCategory) {
 }
 
 function formatGroupMeta(
-  group: Pick<InventoryGroup, "quantity" | "unit" | "lotCount" | "urgencyLabel" | "partialLabel" | "netAmount" | "netUnit">,
+  group: Pick<InventoryGroup, "brandName" | "quantity" | "unit" | "lotCount" | "urgencyLabel" | "partialLabel" | "netAmount" | "netUnit">,
   system: MeasurementSystem = "metric",
 ) {
   const quantity = Number.isInteger(group.quantity) ? group.quantity : Number(group.quantity.toFixed(1));
@@ -264,7 +268,8 @@ function formatGroupMeta(
       ? formatAmount(group.netAmount, group.netUnit, system)
       : `${quantity} ${group.unit}`;
   const lotCopy = group.lotCount > 1 ? `, ${i18n.t("fridge.meta.lots", { count: group.lotCount })}` : "";
-  return `${amount}${lotCopy} · ${group.urgencyLabel} · ${group.partialLabel}`;
+  const brandCopy = group.brandName ? `${group.brandName} · ` : "";
+  return `${brandCopy}${amount}${lotCopy} · ${group.urgencyLabel} · ${group.partialLabel}`;
 }
 
 function mergePartialState(a: PartialState, b: PartialState): PartialState {
