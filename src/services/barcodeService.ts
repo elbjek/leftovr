@@ -28,6 +28,9 @@ type OpenFoodFactsResponse = {
 };
 
 const OPEN_FOOD_FACTS_BASE_URL = "https://world.openfoodfacts.org/api/v3.6/product";
+const OPEN_FOOD_FACTS_SEARCH_URL = "https://search.openfoodfacts.org/search";
+const OPEN_FOOD_FACTS_SEARCH_TIMEOUT_MS = 6000;
+const OPEN_FOOD_FACTS_SEARCH_FIELDS = "code,product_name,brands,quantity,categories_tags";
 const OPEN_FOOD_FACTS_FIELDS = [
   "product_name",
   "product_name_en",
@@ -172,4 +175,69 @@ export function parseOpenFoodFactsQuantity(quantity?: string): { netAmount: numb
 
 function roundAmount(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+type OpenFoodFactsSearchHit = {
+  code?: string;
+  product_name?: string;
+  brands?: string | string[];
+  quantity?: string;
+  categories_tags?: string[];
+};
+
+type OpenFoodFactsSearchResponse = {
+  hits?: OpenFoodFactsSearchHit[];
+};
+
+export async function searchOpenFoodFactsProducts(query: string): Promise<BarcodeProduct[]> {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) return [];
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), OPEN_FOOD_FACTS_SEARCH_TIMEOUT_MS);
+
+  try {
+    const params = new URLSearchParams({
+      q: normalizedQuery,
+      page_size: "8",
+      fields: OPEN_FOOD_FACTS_SEARCH_FIELDS,
+    });
+    const response = await fetch(`${OPEN_FOOD_FACTS_SEARCH_URL}?${params}`, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "Chomp/1.0 (local-dev@chomp.app)",
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) return [];
+
+    const payload = (await response.json()) as OpenFoodFactsSearchResponse;
+    return (payload.hits ?? [])
+      .map(mapSearchHit)
+      .filter((product): product is BarcodeProduct => product !== null);
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function mapSearchHit(hit: OpenFoodFactsSearchHit): BarcodeProduct | null {
+  const name = hit.product_name?.trim();
+  if (!hit.code || !name) return null;
+
+  const brands = Array.isArray(hit.brands) ? hit.brands.join(",") : hit.brands;
+  const packageAmount = parseOpenFoodFactsQuantity(hit.quantity);
+
+  return {
+    barcode: hit.code,
+    name,
+    brandName: getBrandName(brands),
+    category: inferOpenFoodFactsCategory(hit.categories_tags ?? []),
+    quantity: 1,
+    unit: packageAmount ? "package" : "item",
+    netAmount: packageAmount?.netAmount ?? null,
+    netUnit: packageAmount?.netUnit ?? null,
+  };
 }

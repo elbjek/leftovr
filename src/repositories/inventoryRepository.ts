@@ -23,6 +23,7 @@ export type AddInventoryItemInput = {
   brandName?: string | null;
   netAmount?: number | null;
   netUnit?: "ml" | "g" | null;
+  expiresAt?: string | null;
   source?: InventorySource;
   addedAt?: string;
 };
@@ -33,7 +34,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
   const { data, error } = await supabase
     .from("inventory_items")
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, expires_at, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
     )
     .eq("household_id", householdId)
     .is("removed_at", null)
@@ -57,6 +58,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
     partial_state: row.partial_state,
     urgency: row.urgency,
     shelf_life_range: row.shelf_life_range,
+    expires_at: row.expires_at ?? null,
     source: row.source,
     added_at: row.added_at,
     removed_at: row.removed_at,
@@ -108,12 +110,13 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       partial_state: "full" satisfies PartialState,
       urgency,
       shelf_life_range: getShelfLifeRange(name, category),
+      expires_at: input.expiresAt ?? null,
       source: input.source ?? "manual",
       added_by: userId,
       added_at: addedAt,
     })
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, source, added_at, removed_at",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, expires_at, source, added_at, removed_at",
     )
     .single<InventoryLot>();
 
