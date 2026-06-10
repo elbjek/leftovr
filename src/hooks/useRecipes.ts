@@ -5,6 +5,7 @@ import {
   createRecipeSession,
   CookingMode,
   FREE_WEEKLY_SESSION_LIMIT,
+  listCookedEventRows,
   listCookedRecipes,
   getWeeklySessionCount,
   listHouseholdRecipes,
@@ -20,12 +21,18 @@ import { generateRecipeMatches, RecipeGenerationFilters } from "@/services/recip
 import { InventoryLot } from "@/services/inventoryRules";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 
+export type CookedSummary = { count: number; cookedBy: string[] };
+
 type RecipesState = {
   loading: boolean;
   generating: boolean;
   suggestions: RecipeMatch[];
+  /** Session backing the current suggestions, so lists can skip those rows. */
+  currentSessionId: string | null;
   savedRecipes: RecipeRow[];
   cookedRecipes: RecipeRow[];
+  /** Household-wide cooked counts and cooks, keyed by recipe id. */
+  cookedSummaries: Record<string, CookedSummary>;
   weeklyCount: number;
   error: string | null;
 };
@@ -46,8 +53,10 @@ export function useRecipes(
     loading: Boolean(householdId),
     generating: false,
     suggestions: [],
+    currentSessionId: null,
     savedRecipes: [],
     cookedRecipes: [],
+    cookedSummaries: {},
     weeklyCount: 0,
     error: null,
   });
@@ -58,8 +67,10 @@ export function useRecipes(
         loading: false,
         generating: false,
         suggestions: [],
+        currentSessionId: null,
         savedRecipes: [],
         cookedRecipes: [],
+        cookedSummaries: {},
         weeklyCount: 0,
         error: null,
       });
@@ -69,19 +80,27 @@ export function useRecipes(
     setState((s) => ({ ...s, loading: true, error: null }));
 
     try {
-      const [recipes, cookedRecipes, count, favoriteIds] = await Promise.all([
+      const [recipes, cookedRecipes, count, favoriteIds, cookedEventRows] = await Promise.all([
         listHouseholdRecipes(householdId),
         listCookedRecipes(householdId, userId),
         getWeeklySessionCount(householdId),
         listUserFavoriteRecipeIds(),
+        listCookedEventRows(householdId),
       ]);
       const withFavorites = (rows: RecipeRow[]) =>
         rows.map((row) => ({ ...row, is_favorite: favoriteIds.has(row.id) }));
+      const cookedSummaries: Record<string, CookedSummary> = {};
+      for (const row of cookedEventRows) {
+        const summary = (cookedSummaries[row.recipe_id] ??= { count: 0, cookedBy: [] });
+        summary.count += 1;
+        if (!summary.cookedBy.includes(row.cooked_by)) summary.cookedBy.push(row.cooked_by);
+      }
       setState((s) => ({
         ...s,
         loading: false,
         savedRecipes: withFavorites(recipes),
         cookedRecipes: withFavorites(cookedRecipes),
+        cookedSummaries,
         weeklyCount: count,
       }));
     } catch (err) {
@@ -162,6 +181,7 @@ export function useRecipes(
             ...s,
             generating: false,
             suggestions: top,
+            currentSessionId: session.id,
             weeklyCount: s.weeklyCount + 1,
             savedRecipes: [...savedRecipes, ...s.savedRecipes],
           }));

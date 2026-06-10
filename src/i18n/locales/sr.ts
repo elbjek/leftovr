@@ -394,6 +394,8 @@ export const sr = {
       howToCook: "Kako kuvati",
       cookCta: "Skuvao sam ovo",
       cookAgainCta: "Kuvaj ponovo",
+      saveCta: "Sacuvaj recept",
+      savedCta: "Sacuvano ★",
       bestToday: "najbolje danas",
       servings: "{{count}} porcija",
     },
@@ -404,7 +406,9 @@ export const sr = {
       confirm: "Ukloni {{count}} stavki iz frizidera",
       done: "Gotovo! Frizider azuriran.",
       count: "Kuvano {{count}}×",
+      countBy: "Kuvano {{count}}× · {{name}}",
     },
+    byName: "od {{name}}",
     tabs: {
       all: "Sve",
       saved: "Sacuvani",

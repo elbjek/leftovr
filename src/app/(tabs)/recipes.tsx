@@ -55,6 +55,8 @@ export default function RecipesRoute() {
     refresh: refreshRecipes,
     generateSession,
     toggleFavorite,
+    currentSessionId,
+    cookedSummaries,
   } = useRecipes(activeHousehold?.id, {
     inventory,
     avoidances: activeAvoidances,
@@ -146,6 +148,14 @@ export default function RecipesRoute() {
     });
   }, [inventory]);
 
+  const memberName = useCallback(
+    (id: string) =>
+      id === profile?.id
+        ? t("settings.household.you")
+        : members.find((m) => m.user_id === id)?.display_name ?? "?",
+    [members, profile?.id, t],
+  );
+
   // Own recipes drive the default tabs; household recipes only appear in the
   // dedicated Household tab once the user has generated something themselves.
   const myRecipes = savedRecipes.filter((r) => r.generated_by === profile?.id);
@@ -156,14 +166,23 @@ export default function RecipesRoute() {
   const visibleTabs: RecipeTab[] = showHouseholdTab
     ? ["all", "saved", "cooked", "household"]
     : ["all", "saved", "cooked"];
+  // Rows backing the live "From your fridge tonight" cards are skipped in the
+  // lists so a fresh generation doesn't appear twice on screen.
+  const hideCurrentSession = suggestions.length > 0 && currentSessionId;
+  const listedMyRecipes = hideCurrentSession
+    ? myRecipes.filter((r) => r.session_id !== currentSessionId)
+    : myRecipes;
+  const listedHouseholdRecipes = hideCurrentSession
+    ? savedRecipes.filter((r) => r.session_id !== currentSessionId)
+    : savedRecipes;
   const tabRecipes =
     tab === "all"
-      ? myRecipes
+      ? listedMyRecipes
       : tab === "saved"
         ? favoriteRecipes
         : tab === "cooked"
           ? cookedRecipes
-          : savedRecipes;
+          : listedHouseholdRecipes;
   const cookedEventCount = cookedRecipes.reduce((sum, recipe) => sum + (recipe.cooked_count ?? 0), 0);
 
   const hasSuggestions = suggestions.length > 0;
@@ -211,7 +230,7 @@ export default function RecipesRoute() {
           <View style={styles.fixedContent}>
             <View style={styles.header}>
               <Text variant="micro" muted uppercase>
-                {t("recipes.countLabel", { count: myRecipes.length + suggestions.length })}
+                {t("recipes.countLabel", { count: listedMyRecipes.length + suggestions.length })}
               </Text>
               <Text variant="h1" style={styles.headerTitle}>
                 {t("recipes.title")}
@@ -332,15 +351,31 @@ export default function RecipesRoute() {
 
             {hasOwnRecipes ? (
               <View style={styles.savedList}>
-                {filteredTabRecipes.map((recipe) => (
-                  <SavedRecipeRow
-                    key={recipe.id}
-                    recipe={recipe}
-                    onPress={() => navigateToSavedDetail(recipe)}
-                    onFavorite={() => toggleFavorite(recipe.id, recipe.is_favorite)}
-                    cookedLabel={recipe.cooked_count ? t("recipes.cooked.count", { count: recipe.cooked_count }) : undefined}
-                  />
-                ))}
+                {filteredTabRecipes.map((recipe) => {
+                  const summary = cookedSummaries[recipe.id];
+                  const cookedLabel = summary
+                    ? members.length >= 2 && summary.cookedBy.length === 1
+                      ? t("recipes.cooked.countBy", {
+                          count: summary.count,
+                          name: memberName(summary.cookedBy[0]),
+                        })
+                      : t("recipes.cooked.count", { count: summary.count })
+                    : undefined;
+                  return (
+                    <SavedRecipeRow
+                      key={recipe.id}
+                      recipe={recipe}
+                      onPress={() => navigateToSavedDetail(recipe)}
+                      onFavorite={() => toggleFavorite(recipe.id, recipe.is_favorite)}
+                      cookedLabel={cookedLabel}
+                      attribution={
+                        members.length >= 2
+                          ? t("recipes.byName", { name: memberName(recipe.generated_by) })
+                          : undefined
+                      }
+                    />
+                  );
+                })}
               </View>
             ) : null}
           </ScrollView>
@@ -453,11 +488,13 @@ function SavedRecipeRow({
   onPress,
   onFavorite,
   cookedLabel,
+  attribution,
 }: {
   recipe: RecipeRow;
   onPress: () => void;
   onFavorite: () => void;
   cookedLabel?: string;
+  attribution?: string;
 }) {
   const time = recipe.time_minutes ? `${recipe.time_minutes} min` : "";
 
@@ -474,6 +511,9 @@ function SavedRecipeRow({
         <Text variant="h3" numberOfLines={1}>{recipe.title}</Text>
         <View style={styles.savedRowMeta}>
           {time ? <Text variant="small" muted>⏱ {time}</Text> : null}
+          {attribution ? (
+            <Text variant="micro" muted>{attribution}</Text>
+          ) : null}
           {recipe.is_favorite ? (
             <Pressable accessibilityRole="button" onPress={onFavorite}>
               <Text variant="small" color={colors.accent}>★</Text>
