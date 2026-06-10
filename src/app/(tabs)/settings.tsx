@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -46,6 +46,7 @@ const SERVINGS_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
 
 export default function SettingsRoute() {
   const { t, i18n } = useTranslation();
+  const { joinCode } = useLocalSearchParams<{ joinCode?: string }>();
   const { profile, activeHousehold, session, signOut, loading, refresh } = useAuth();
   const { system, setMeasurementSystem } = useMeasurementSystem();
   const currentLanguage = isSupportedLanguage(i18n.language) ? i18n.language : "en";
@@ -349,6 +350,7 @@ export default function SettingsRoute() {
               await refresh();
             }}
             onPremiumGate={() => setShowPremium(true)}
+            initialJoinCode={typeof joinCode === "string" ? joinCode : undefined}
           />
         ) : null}
 

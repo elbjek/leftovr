@@ -212,15 +212,18 @@ Flow:
 
 Invite code entry should exist in two places:
 
-- during onboarding/account setup, shown to ALL new users as the final, optional, skippable step ("Joining someone's household?"). There is no link-based invite detection in V1, so the app cannot distinguish invited users from solo users; invalid codes show an inline error and the user can correct or skip.
+- during onboarding/account setup, shown to ALL new users as the final, optional, skippable step ("Joining someone's household?"). Invite links cannot survive App Store install, so the app cannot reliably distinguish invited users from solo users; the field is prefilled when a `chomp://join` link was opened beforehand. Invalid codes show an inline error and the user can correct or skip.
 - Settings -> Household for existing users
 
-V1 invite delivery is manual: the inviter reads the code from Settings -> Household and shares it out-of-band. Deferred deep linking (invite links that survive App Store install) is explicitly out of scope for V1.
+V1 invite delivery:
 
-Post-V1 upgrade path (not in V1):
+- "Share invite" button in Settings -> Household shares a text message with the code and a `chomp://join?code=...` link
+- the `chomp://join?code=...` deep link only works if the app is already installed:
+  - signed-in, onboarded user: opens Settings with the code prefilled in the join field
+  - anyone else (signed out or mid-onboarding): the code is stored locally and prefilled on the onboarding invite step after signup
+- the code itself remains primary; recipients without the app type it manually during signup
 
-- "Share invite" button in Settings -> Household that shares a text message with the code and a store link
-- `chomp://join?code=...` deep link that prefills the invite code for users who already have the app installed
+Deferred deep linking (invite links that survive App Store install) and store links are explicitly out of scope for V1 — revisit once the app has a store listing.
 
 If the joining user's solo fridge is empty:
 
