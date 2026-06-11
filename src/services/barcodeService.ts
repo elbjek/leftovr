@@ -199,7 +199,7 @@ export async function searchOpenFoodFactsProducts(query: string): Promise<Barcod
   try {
     const params = new URLSearchParams({
       q: normalizedQuery,
-      page_size: "8",
+      page_size: "5",
       fields: OPEN_FOOD_FACTS_SEARCH_FIELDS,
     });
     const response = await fetch(`${OPEN_FOOD_FACTS_SEARCH_URL}?${params}`, {
