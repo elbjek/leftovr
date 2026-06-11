@@ -4,10 +4,10 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, Card, RecipeGlyph, Text } from "@/components";
+import { BottomSheet, Button, Card, RecipeGlyph, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import { notifyInventoryChanged, useInventory } from "@/hooks";
-import { formatComplexity, formatTimeLabel, normalizeFoodName } from "@/services";
+import { formatComplexity, formatTimeLabel, InventoryGroup, normalizeFoodName } from "@/services";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite } from "@/repositories/recipeRepository";
@@ -79,6 +79,10 @@ export default function RecipeDetailRoute() {
   }[]>([]);
   // Row currently picking a substitute, or "add" when appending an extra item.
   const [swapIndex, setSwapIndex] = useState<number | "add" | null>(null);
+  // Extra-item flow, step 2: chosen fridge item awaiting an amount.
+  const [extraTarget, setExtraTarget] = useState<InventoryGroup | null>(null);
+  const [extraAmount, setExtraAmount] = useState("1");
+  const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
   const [stepsViewportHeight, setStepsViewportHeight] = useState(0);
@@ -124,40 +128,52 @@ export default function RecipeDetailRoute() {
     });
     setCookedItems(items);
     setSwapIndex(null);
+    setExtraTarget(null);
     setShowCooked(true);
   }
 
-  function applySwap(index: number | "add", group: { normalizedName: string; name: string; unit: string }) {
-    if (index === "add") {
-      // Extra fridge item used beyond the recipe — deplete one of it.
-      setCookedItems((prev) => [
-        ...prev,
-        {
-          name: group.name,
-          amount: `1 ${group.unit}`,
-          quantityToUse: 1,
-          unit: group.unit,
-          used: true,
-          inFridge: true,
-          swapNormalized: group.normalizedName,
-          swapDisplay: null,
-          extra: true,
-        },
-      ]);
-    } else {
-      setCookedItems((prev) =>
-        prev.map((item, i) =>
-          i === index
-            ? {
-                ...item,
-                used: true,
-                swapNormalized: group.normalizedName,
-                swapDisplay: group.name,
-              }
-            : item,
-        ),
-      );
-    }
+  function applySwap(index: number, group: { normalizedName: string; name: string }) {
+    setCookedItems((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              used: true,
+              swapNormalized: group.normalizedName,
+              swapDisplay: group.name,
+            }
+          : item,
+      ),
+    );
+    setSwapIndex(null);
+  }
+
+  function startExtraAmount(group: InventoryGroup) {
+    setExtraTarget(group);
+    setExtraAmount("1");
+    setExtraUnit(group.unit);
+  }
+
+  function confirmExtra() {
+    if (!extraTarget) return;
+    const quantity = Number(extraAmount.replace(",", "."));
+    if (!(quantity > 0)) return;
+
+    setCookedItems((prev) => [
+      ...prev,
+      {
+        name: extraTarget.name,
+        amount: `${quantity} ${extraUnit}`,
+        quantityToUse: quantity,
+        unit: extraUnit,
+        used: true,
+        inFridge: true,
+        swapNormalized: extraTarget.normalizedName,
+        swapDisplay: null,
+        extra: true,
+      },
+    ]);
+    setExtraTarget(null);
     setSwapIndex(null);
   }
 
@@ -443,6 +459,53 @@ export default function RecipeDetailRoute() {
               style={styles.cookedConfirm}
             />
           </>
+        ) : extraTarget ? (
+          <>
+            <Text variant="h2" style={styles.cookedTitle}>
+              {t("recipes.cooked.swapAmountTitle", { item: extraTarget.name })}
+            </Text>
+            <View style={styles.extraAmountRow}>
+              <TextField
+                label={t("scan.manual.quantityLabel")}
+                value={extraAmount}
+                // decimal-pad only picks the soft keyboard — hardware keyboards
+                // and paste can still inject letters, so strip them here.
+                onChangeText={(text) => setExtraAmount(text.replace(/[^0-9.,]/g, ""))}
+                keyboardType="decimal-pad"
+                containerStyle={styles.extraAmountField}
+              />
+              <View style={styles.unitChips}>
+                {[extraTarget.unit, extraTarget.netUnit]
+                  .filter((unit): unit is string => Boolean(unit))
+                  .filter((unit, index, all) => all.indexOf(unit) === index)
+                  .map((unit) => (
+                    <Pressable
+                      key={unit}
+                      accessibilityRole="button"
+                      onPress={() => setExtraUnit(unit)}
+                      style={[styles.unitChip, extraUnit === unit && styles.unitChipActive]}
+                    >
+                      <Text
+                        variant="small"
+                        color={extraUnit === unit ? colors.surface : colors.primary}
+                      >
+                        {unit}
+                      </Text>
+                    </Pressable>
+                  ))}
+              </View>
+            </View>
+            <Button
+              title={t("scan.add")}
+              onPress={confirmExtra}
+              style={styles.cookedConfirm}
+            />
+            <Button
+              title={t("common.cancel")}
+              variant="text"
+              onPress={() => setExtraTarget(null)}
+            />
+          </>
         ) : (
           <>
             <Text variant="h2" style={styles.cookedTitle}>
@@ -455,7 +518,7 @@ export default function RecipeDetailRoute() {
                 <Pressable
                   key={group.key}
                   accessibilityRole="button"
-                  onPress={() => applySwap(swapIndex, group)}
+                  onPress={() => (swapIndex === "add" ? startExtraAmount(group) : applySwap(swapIndex, group))}
                   style={({ pressed }) => [styles.swapRow, pressed && styles.swapRowPressed]}
                 >
                   <Text variant="body">{group.name}</Text>
@@ -710,5 +773,28 @@ const styles = StyleSheet.create({
   },
   swapRowPressed: {
     opacity: 0.6,
+  },
+  extraAmountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginTop: spacing.lg,
+  },
+  extraAmountField: {
+    flex: 1,
+  },
+  unitChips: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  unitChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.pill,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+  },
+  unitChipActive: {
+    backgroundColor: colors.primary,
   },
 });
