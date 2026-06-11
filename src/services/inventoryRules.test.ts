@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { getShelfLifeDays, isMetricAmountRunningLow, urgencyFromExpiry } from "./inventoryRules";
+import {
+  getShelfLifeDays,
+  InventoryLot,
+  isMetricAmountRunningLow,
+  resolveUrgency,
+  urgencyFromExpiry,
+} from "./inventoryRules";
 
 const baseGroup = {
   normalizedName: "milk",
@@ -45,5 +51,32 @@ describe("urgencyFromExpiry", () => {
 
   it("treats past dates as urgent", () => {
     expect(urgencyFromExpiry("2026-06-01", now)).toBe("urgent");
+  });
+});
+
+describe("resolveUrgency", () => {
+  const now = new Date("2026-06-10T12:00:00Z");
+  const lot = (over: Partial<InventoryLot>): Pick<InventoryLot, "name" | "category" | "expires_at" | "added_at"> => ({
+    name: "Spinach",
+    category: "vegetables",
+    expires_at: null,
+    added_at: now.toISOString(),
+    ...over,
+  });
+
+  it("prefers explicit expiry over the stored column", () => {
+    expect(resolveUrgency(lot({ expires_at: "2026-06-11" }), now)).toBe("urgent");
+  });
+
+  it("ignores the stale stored urgency and ages from added_at", () => {
+    // Spinach shelf life [2,4]; added 5 days ago with a stale 'safe' column.
+    const added = new Date("2026-06-05T12:00:00Z").toISOString();
+    expect(
+      resolveUrgency({ ...lot({ added_at: added }), urgency: "safe" } as InventoryLot, now),
+    ).toBe("urgent");
+  });
+
+  it("is safe for a freshly added item with no expiry", () => {
+    expect(resolveUrgency(lot({}), now)).toBe("safe");
   });
 });

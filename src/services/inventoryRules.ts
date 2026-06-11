@@ -160,7 +160,20 @@ export function urgencyFromExpiry(expiresAt: string, now: Date = new Date()): Ur
   return "safe";
 }
 
-export function getNextPartialState(state: PartialState) {
+// Single source of truth for a lot's urgency. The stored `urgency` column is a
+// snapshot taken at insert time (always "safe" for fresh items) and is never
+// updated as the item ages, so it must NOT be trusted on read — always derive
+// from the explicit expiry date or, failing that, the item's age + shelf life.
+export function resolveUrgency(
+  lot: Pick<InventoryLot, "name" | "category" | "expires_at" | "added_at">,
+  now: Date = new Date(),
+): UrgencyBand {
+  return lot.expires_at
+    ? urgencyFromExpiry(lot.expires_at, now)
+    : computeUrgency({ name: lot.name, category: lot.category, addedAt: lot.added_at, now });
+}
+
+export function getNextPartialState(state: PartialState): PartialState {
   if (state === "full") return "some_used";
   if (state === "some_used") return "low";
   return "low";
@@ -172,15 +185,12 @@ export function getDepletionUpdate(lot: Pick<InventoryLot, "quantity" | "partial
     return { quantity: nextQuantity, partialState: lot.partial_state, shouldRemove: nextQuantity <= 0 };
   }
 
-  if (lot.partial_state === "full") {
-    return { quantity: lot.quantity, partialState: "some_used" as PartialState, shouldRemove: false };
+  // Last unit: walk the partial-state ladder (full → some_used → low), then remove.
+  if (lot.partial_state === "low") {
+    return { quantity: 0, partialState: lot.partial_state, shouldRemove: true };
   }
 
-  if (lot.partial_state === "some_used") {
-    return { quantity: lot.quantity, partialState: "low" as PartialState, shouldRemove: false };
-  }
-
-  return { quantity: 0, partialState: lot.partial_state, shouldRemove: true };
+  return { quantity: lot.quantity, partialState: getNextPartialState(lot.partial_state), shouldRemove: false };
 }
 
 export function groupInventoryLots(
@@ -190,9 +200,7 @@ export function groupInventoryLots(
   const groups = new Map<string, InventoryGroup>();
 
   lots.forEach((lot) => {
-    const urgency = lot.expires_at
-      ? urgencyFromExpiry(lot.expires_at)
-      : lot.urgency ?? computeUrgency({ name: lot.name, category: lot.category, addedAt: lot.added_at });
+    const urgency = resolveUrgency(lot);
     const key = `${lot.normalized_name}:${lot.category}:${urgency}`;
     const existing = groups.get(key);
 
@@ -292,7 +300,7 @@ function mergePartialState(a: PartialState, b: PartialState): PartialState {
   return "full";
 }
 
-function urgencyRank(urgency: UrgencyBand) {
+export function urgencyRank(urgency: UrgencyBand | null) {
   if (urgency === "urgent") return 3;
   if (urgency === "use_soon") return 2;
   return 1;

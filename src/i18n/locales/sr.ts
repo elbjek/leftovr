@@ -93,6 +93,7 @@ export const sr = {
           key: "cook",
           title: "Nikad vise ne otvaras frizider ",
           titleAccent: "bez ideje.",
+          titleAfter: "",
           body: "Jedan dodir daje recept od tacno onoga sto imas - prvo ono sto treba pojesti.",
           illustration: "socialProof",
           quotes: [
@@ -386,6 +387,16 @@ export const sr = {
     haveAll: "Imate sve",
     usesCount: "Koristi {{count}} iz frizidera",
     fromFridge: "Iz vaseg frizidera",
+    complexity: {
+      simple: "Jednostavno",
+      medium: "Srednje",
+      involved: "Zahtevno",
+    },
+    time: {
+      minutes: "{{count}} min",
+      hours: "{{count}} h",
+      hoursMinutes: "{{hours}} h {{mins}} min",
+    },
     cookPrompt: {
       title: "Sta da kuvam?",
       meal: "Obrok",

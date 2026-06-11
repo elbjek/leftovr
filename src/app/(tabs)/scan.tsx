@@ -122,21 +122,24 @@ export default function ScanRoute() {
 
   useEffect(() => {
     const query = manualQuery.trim();
-    if (query.length < 3) {
-      setOffResults([]);
-      setOffSearching(false);
-      return;
-    }
-
     let cancelled = false;
-    setOffSearching(true);
+
+    // All state updates run inside the timer callback (not synchronously in the
+    // effect body) to avoid cascading renders. Short queries clear immediately.
     const timer = setTimeout(async () => {
+      if (cancelled) return;
+      if (query.length < 3) {
+        setOffResults([]);
+        setOffSearching(false);
+        return;
+      }
+      setOffSearching(true);
       const results = await searchOpenFoodFactsProducts(query);
       if (!cancelled) {
         setOffResults(results);
         setOffSearching(false);
       }
-    }, 400);
+    }, query.length < 3 ? 0 : 400);
 
     return () => {
       cancelled = true;
@@ -354,15 +357,20 @@ export default function ScanRoute() {
 
     setError(null);
 
+    const quantity = input.quantity ?? 1;
+    // netAmount from a product is per-package; store the total across the
+    // chosen quantity to match the catalog path in addInventoryItem (#4).
+    const netAmount = input.netAmount != null ? input.netAmount * quantity : input.netAmount;
+
     try {
       await addInventoryItem({
         householdId: activeHousehold.id,
         name,
         category: input.category ?? manualCategory,
         unit: input.unit ?? "item",
-        quantity: input.quantity ?? 1,
+        quantity,
         brandName: input.brandName ?? undefined,
-        netAmount: input.netAmount,
+        netAmount,
         netUnit: input.netUnit,
         expiresAt: input.expiresAt,
         source: "manual",

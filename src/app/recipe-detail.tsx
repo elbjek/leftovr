@@ -7,7 +7,7 @@ import Svg, { Path } from "react-native-svg";
 import { BottomSheet, Button, Card, RecipeGlyph, Text } from "@/components";
 import { useAuth } from "@/features";
 import { notifyInventoryChanged, useInventory } from "@/hooks";
-import { normalizeFoodName } from "@/services";
+import { formatComplexity, formatTimeLabel, normalizeFoodName } from "@/services";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite } from "@/repositories/recipeRepository";
@@ -99,7 +99,7 @@ export default function RecipeDetailRoute() {
     }
   }
 
-  const complexityLabel = complexity === "simple" ? "Simple" : complexity === "medium" ? "Medium" : "Involved";
+  const complexityLabel = formatComplexity(complexity);
   const liveFridgeNames = new Set(inventoryGroups.map((group) => group.normalizedName));
   const fridgeCount = ingredients.filter((ing) =>
     liveFridgeNames.has(normalizeFoodName(ing.name)),
@@ -230,7 +230,7 @@ export default function RecipeDetailRoute() {
           </Text>
         ) : null}
         <View style={styles.metaRow}>
-          <Text variant="small" muted>⏱ {timeMinutes} min</Text>
+          <Text variant="small" muted>⏱ {formatTimeLabel(timeMinutes)}</Text>
           <Text variant="small" muted>·</Text>
           <Text variant="small" muted>{t("recipes.detail.servings", { count: servings })}</Text>
           <Text variant="small" muted>·</Text>
