@@ -394,6 +394,8 @@ Tasks:
 - Add Open Food Facts barcode lookup with brand/package amount mapping and local mock fallback for simulator/offline use.
 - Add known barcode products.
 - Add unknown barcode fallback to manual search/add.
+- Add Open Food Facts manual text search (search-a-licious) as the only suggestion source.
+- Extend custom manual create with quantity/unit and optional expiry date (expires_at).
 - Build manual entry screen:
   - search
   - autocomplete

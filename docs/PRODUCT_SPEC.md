@@ -440,24 +440,25 @@ Manual entry is free and unlimited.
 V1 includes:
 
 - search field
-- autocomplete against a small local preset catalog
-- tap-to-add suggestions
-- recently added suggestions if useful
+- Open Food Facts text search suggestions (debounced with loader, online only, a handful of results)
+- tapping a suggestion opens the add sheet prefilled (name, brand, category, unit) to confirm quantity and expiry
+- empty until the user types; no local preset list
 
 If item does not exist:
 
 1. User types item name.
 2. App shows `Add "{typed item}"`.
-3. User chooses category.
-4. Item is added with default quantity `1 item`.
-5. Shelf-life range comes from category default.
+3. User chooses category, quantity + unit, and an optional expiry date
+   (prefilled from the category shelf-life default, skippable).
+4. Item is added; when an expiry date is set, urgency is derived from days
+   left instead of the shelf-life heuristic.
 
 Custom manual items require:
 
 - name
 - category
 
-No heavy form.
+Quantity defaults to `1 item`; expiry is optional. Still no heavy form.
 
 ## Free And Premium
 

@@ -1,11 +1,12 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from "expo-camera";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, Button, Card, PremiumSheet, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
+import { BackButton, BottomSheet, Button, Card, PremiumSheet, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
@@ -19,13 +20,24 @@ import {
   setPreviewTier,
 } from "@/repositories";
 import {
-  demoFoodCatalog,
   BarcodeProduct,
+  getShelfLifeDays,
   INVENTORY_CATEGORIES,
   InventoryCategory,
   lookupBarcodeProduct,
+  searchOpenFoodFactsProducts,
 } from "@/services";
-import { colors, radii, spacing } from "@/theme";
+import { colors, fonts, radii, spacing } from "@/theme";
+
+function formatNet(product: BarcodeProduct) {
+  return product.netAmount && product.netUnit ? `${product.netAmount} ${product.netUnit}` : null;
+}
+
+function toLocalDateString(date: Date) {
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
 
 type ScanMode =
   | "choice"
@@ -73,6 +85,15 @@ export default function ScanRoute() {
   const [error, setError] = useState<string | null>(null);
   const [manualQuery, setManualQuery] = useState("");
   const [manualCategory, setManualCategory] = useState<InventoryCategory>("other");
+  const [offResults, setOffResults] = useState<BarcodeProduct[]>([]);
+  const [manualQuantity, setManualQuantity] = useState(1);
+  const [manualUnit, setManualUnit] = useState("item");
+  const [manualExpiry, setManualExpiry] = useState<Date | null>(null);
+  const [manualExpiryEnabled, setManualExpiryEnabled] = useState(true);
+  const [showExpiryPicker, setShowExpiryPicker] = useState(false);
+  const [customSheetVisible, setCustomSheetVisible] = useState(false);
+  const [offSearching, setOffSearching] = useState(false);
+  const [draftProduct, setDraftProduct] = useState<BarcodeProduct | null>(null);
   const [lastAddedName, setLastAddedName] = useState("");
   // Open straight onto the Premium sheet if the initial deep-link is a gated scan.
   const [scanPremiumVisible, setScanPremiumVisible] = useState(
@@ -96,22 +117,41 @@ export default function ScanRoute() {
   );
 
   const selectedTemplate = mockReceiptTemplates[0];
-  const manualSuggestions = useMemo(() => {
-    const query = manualQuery.trim().toLowerCase();
-    const catalog = demoFoodCatalog.map((item) => ({
-      name: item.name,
-      category: item.category,
-      unit: item.unit ?? "item",
-    }));
-
-    if (!query) return catalog.slice(0, 6);
-
-    return catalog
-      .filter((item) => item.name.toLowerCase().includes(query))
-      .slice(0, 6);
-  }, [manualQuery]);
   const showCustomManualAdd = manualQuery.trim().length > 0
-    && !manualSuggestions.some((item) => item.name.toLowerCase() === manualQuery.trim().toLowerCase());
+    && !offResults.some((product) => product.name.toLowerCase() === manualQuery.trim().toLowerCase());
+
+  useEffect(() => {
+    const query = manualQuery.trim();
+    if (query.length < 3) {
+      setOffResults([]);
+      setOffSearching(false);
+      return;
+    }
+
+    let cancelled = false;
+    setOffSearching(true);
+    const timer = setTimeout(async () => {
+      const results = await searchOpenFoodFactsProducts(query);
+      if (!cancelled) {
+        setOffResults(results);
+        setOffSearching(false);
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [manualQuery]);
+
+  const sheetItemName = (draftProduct?.name ?? manualQuery).trim();
+  const defaultExpiry = useMemo(() => {
+    const [, upper] = getShelfLifeDays(sheetItemName, manualCategory);
+    const date = new Date();
+    date.setDate(date.getDate() + upper);
+    return date;
+  }, [sheetItemName, manualCategory]);
+  const expiryValue = manualExpiry ?? defaultExpiry;
 
   const openSelectedChoice = useCallback(async (nextChoice = choice, options?: { skipGate?: boolean }) => {
     consumedModeRef.current = nextChoice;
@@ -282,10 +322,27 @@ export default function ScanRoute() {
     void addInventoryFromBarcode(result.data);
   }
 
+  function openProductSheet(product: BarcodeProduct | null) {
+    setDraftProduct(product);
+    if (product) {
+      setManualCategory(product.category);
+      setManualUnit(product.unit);
+    }
+    setManualQuantity(1);
+    setManualExpiry(null);
+    setManualExpiryEnabled(true);
+    setCustomSheetVisible(true);
+  }
+
   async function addManualItem(input: {
     name: string;
     category?: InventoryCategory;
     unit?: string;
+    quantity?: number;
+    brandName?: string | null;
+    netAmount?: number | null;
+    netUnit?: "ml" | "g" | null;
+    expiresAt?: string | null;
   }) {
     if (!activeHousehold?.id) return;
 
@@ -303,12 +360,24 @@ export default function ScanRoute() {
         name,
         category: input.category ?? manualCategory,
         unit: input.unit ?? "item",
+        quantity: input.quantity ?? 1,
+        brandName: input.brandName ?? undefined,
+        netAmount: input.netAmount,
+        netUnit: input.netUnit,
+        expiresAt: input.expiresAt,
         source: "manual",
       });
       await completeFirstFillIfNeeded();
       await refresh();
       setLastAddedName(name);
       setManualQuery("");
+      setManualQuantity(1);
+      setManualUnit("item");
+      setManualExpiry(null);
+      setManualExpiryEnabled(true);
+      setCustomSheetVisible(false);
+      setShowExpiryPicker(false);
+      setDraftProduct(null);
       setMode("addSuccess");
     } catch (addError) {
       setError(addError instanceof Error ? addError.message : t("auth.genericError"));
@@ -519,33 +588,85 @@ export default function ScanRoute() {
           autoCapitalize="words"
         />
 
-        <View style={styles.suggestions}>
-          {manualSuggestions.map((item) => (
-            <Pressable
-              key={item.name}
-              accessibilityRole="button"
-              onPress={() => addManualItem(item)}
-              style={({ pressed }) => [styles.suggestionRow, pressed && styles.pressed]}
-            >
-              <View>
-                <Text variant="label">{item.name}</Text>
-                <Text variant="small" muted>
-                  {t(`scan.categories.${item.category}`)}
+        {offSearching ? (
+          <View style={styles.searchingRow}>
+            <ActivityIndicator color={colors.primary} size="small" />
+            <Text variant="small" muted>
+              {t("scan.manual.searching")}
+            </Text>
+          </View>
+        ) : null}
+
+        {offResults.length > 0 ? (
+          <View style={styles.suggestions}>
+            <Text variant="small" muted>
+              {t("scan.manual.onlineResults")}
+            </Text>
+            {offResults.map((product) => (
+              <Pressable
+                key={product.barcode}
+                accessibilityRole="button"
+                onPress={() => openProductSheet(product)}
+                style={({ pressed }) => [styles.suggestionRow, pressed && styles.pressed]}
+              >
+                <View>
+                  <Text variant="label">{product.name}</Text>
+                  <Text variant="small" muted>
+                    {[product.brandName, formatNet(product)].filter(Boolean).join(" · ") ||
+                      t(`scan.categories.${product.category}`)}
+                  </Text>
+                </View>
+                <Text variant="label" color={colors.primary}>
+                  {t("scan.add")}
                 </Text>
-              </View>
-              <Text variant="label" color={colors.primary}>
-                {t("scan.add")}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
         {showCustomManualAdd ? (
-          <Card style={styles.customAddCard}>
-            <Text variant="label">
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => openProductSheet(null)}
+            style={({ pressed }) => [styles.customAddRow, pressed && styles.pressed]}
+          >
+            <View style={styles.customAddPlus}>
+              <Text variant="h3" color={colors.primary}>+</Text>
+            </View>
+            <Text variant="label" color={colors.primary}>
               {t("scan.manual.addCustom", { item: manualQuery.trim() })}
             </Text>
-            <View style={styles.categoryGrid}>
+          </Pressable>
+        ) : null}
+
+        {error && !customSheetVisible ? (
+          <Text variant="small" color={colors.red} center>
+            {error}
+          </Text>
+        ) : null}
+
+        <BottomSheet
+          visible={customSheetVisible}
+          onDismiss={() => setCustomSheetVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.customAddCard}
+          >
+            <Text variant="h3">
+              {t("scan.manual.addCustom", { item: sheetItemName })}
+            </Text>
+            {draftProduct?.brandName ? (
+              <Text variant="small" muted>
+                {[draftProduct.brandName, formatNet(draftProduct)].filter(Boolean).join(" · ")}
+              </Text>
+            ) : null}
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryRow}
+            >
               {INVENTORY_CATEGORIES.map((category) => (
                 <Pressable
                   key={category}
@@ -564,19 +685,137 @@ export default function ScanRoute() {
                   </Text>
                 </Pressable>
               ))}
-            </View>
-            <Button
-              title={t("scan.manual.addCustom", { item: manualQuery.trim() })}
-              onPress={() => addManualItem({ name: manualQuery, category: manualCategory })}
-            />
-          </Card>
-        ) : null}
+            </ScrollView>
 
-        {error ? (
-          <Text variant="small" color={colors.red} center>
-            {error}
-          </Text>
-        ) : null}
+            <View style={styles.fieldRow}>
+              <View style={styles.fieldBox}>
+                <Text variant="micro" muted uppercase>
+                  {t("scan.manual.quantityLabel")}
+                </Text>
+                <View style={styles.stepperRow}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("scan.manual.quantityDown")}
+                    hitSlop={spacing.sm}
+                    onPress={() => setManualQuantity((current) => Math.max(1, current - 1))}
+                    style={({ pressed }) => [styles.stepButton, pressed && styles.pressed]}
+                  >
+                    <Text variant="h3" color={colors.primary}>−</Text>
+                  </Pressable>
+                  <Text variant="h3" style={styles.stepValue}>
+                    {manualQuantity}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("scan.manual.quantityUp")}
+                    hitSlop={spacing.sm}
+                    onPress={() => setManualQuantity((current) => current + 1)}
+                    style={({ pressed }) => [styles.stepButton, pressed && styles.pressed]}
+                  >
+                    <Text variant="h3" color={colors.primary}>+</Text>
+                  </Pressable>
+                </View>
+              </View>
+
+              <View style={[styles.fieldBox, styles.fieldBoxGrow]}>
+                <Text variant="micro" muted uppercase>
+                  {t("scan.manual.unitLabel")}
+                </Text>
+                <TextInput
+                  value={manualUnit}
+                  onChangeText={setManualUnit}
+                  autoCapitalize="none"
+                  style={styles.unitInput}
+                  placeholderTextColor={colors.muted2}
+                />
+              </View>
+            </View>
+
+            <View style={styles.fieldBox}>
+              <Text variant="micro" muted uppercase>
+                {t("scan.manual.expiryLabel")}
+              </Text>
+              <View style={styles.expiryRow}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    if (!manualExpiryEnabled) {
+                      setManualExpiryEnabled(true);
+                      return;
+                    }
+                    setShowExpiryPicker(true);
+                  }}
+                  style={({ pressed }) => [
+                    styles.expiryPill,
+                    !manualExpiryEnabled && styles.expiryPillMuted,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text
+                    variant="label"
+                    color={manualExpiryEnabled ? colors.primary : colors.muted}
+                  >
+                    {manualExpiryEnabled
+                      ? expiryValue.toLocaleDateString(undefined, {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : t("scan.manual.expiryNone")}
+                  </Text>
+                </Pressable>
+                {manualExpiryEnabled ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    hitSlop={spacing.sm}
+                    onPress={() => setManualExpiryEnabled(false)}
+                    style={({ pressed }) => [pressed && styles.pressed]}
+                  >
+                    <Text variant="small" muted>
+                      {t("scan.manual.expiryNone")}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
+
+            {showExpiryPicker && manualExpiryEnabled ? (
+              <DateTimePicker
+                value={expiryValue}
+                mode="date"
+                minimumDate={new Date()}
+                onChange={(_event, date) => {
+                  setShowExpiryPicker(Platform.OS === "ios");
+                  if (date) setManualExpiry(date);
+                }}
+              />
+            ) : null}
+
+            <Button
+              title={t("scan.add")}
+              onPress={() =>
+                addManualItem({
+                  name: sheetItemName,
+                  category: manualCategory,
+                  quantity: manualQuantity,
+                  unit: manualUnit.trim() || "item",
+                  brandName: draftProduct?.brandName,
+                  netAmount: draftProduct?.netAmount,
+                  netUnit: draftProduct?.netUnit,
+                  expiresAt: manualExpiryEnabled
+                    ? toLocalDateString(expiryValue)
+                    : null,
+                })
+              }
+            />
+
+            {error ? (
+              <Text variant="small" color={colors.red} center>
+                {error}
+              </Text>
+            ) : null}
+          </KeyboardAvoidingView>
+        </BottomSheet>
       </Screen>
     );
   }
@@ -948,10 +1187,36 @@ const styles = StyleSheet.create({
   customAddCard: {
     gap: spacing.md,
   },
-  categoryGrid: {
+  searchingRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "center",
     gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  customAddRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: colors.hairlineStrong,
+    borderRadius: radii.lg,
+    backgroundColor: colors.paper,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  customAddPlus: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  categoryRow: {
+    gap: spacing.sm,
+    paddingVertical: spacing.xxs,
   },
   categoryChip: {
     borderRadius: radii.pill,
@@ -964,5 +1229,62 @@ const styles = StyleSheet.create({
   categoryChipSelected: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
+  },
+  fieldRow: {
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  fieldBox: {
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radii.lg,
+    backgroundColor: colors.paper,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+  },
+  fieldBoxGrow: {
+    flex: 1,
+  },
+  stepperRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  stepButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary50,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepValue: {
+    minWidth: 24,
+    textAlign: "center",
+  },
+  unitInput: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 17,
+    color: colors.text,
+    height: 36,
+    padding: 0,
+  },
+  expiryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  expiryPill: {
+    backgroundColor: colors.primary50,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    minHeight: 36,
+    justifyContent: "center",
+  },
+  expiryPillMuted: {
+    backgroundColor: colors.surface2,
   },
 });
