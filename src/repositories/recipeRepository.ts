@@ -181,22 +181,25 @@ export async function listUserFavoriteRecipeIds() {
 export async function toggleRecipeFavorite(recipeId: string, isFavorite: boolean) {
   const supabase = getSupabaseClient();
 
-  if (isFavorite) {
-    const { data: userResult, error: userError } = await supabase.auth.getUser();
-    if (userError) throw userError;
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  const userId = userResult.user.id;
 
+  if (isFavorite) {
     const { error } = await supabase
       .from("recipe_favorites")
-      .upsert({ recipe_id: recipeId, user_id: userResult.user.id });
+      .upsert({ recipe_id: recipeId, user_id: userId });
 
     if (error) throw error;
     return;
   }
 
+  // Scope the delete to the caller's own favorite — defense in depth beyond RLS (#16).
   const { error } = await supabase
     .from("recipe_favorites")
     .delete()
-    .eq("recipe_id", recipeId);
+    .eq("recipe_id", recipeId)
+    .eq("user_id", userId);
 
   if (error) throw error;
 }

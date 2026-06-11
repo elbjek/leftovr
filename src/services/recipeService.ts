@@ -1,5 +1,6 @@
+import { i18n } from "@/i18n";
 import { MockRecipe, RECIPE_LIBRARY } from "@/mocks/recipeLibrary";
-import { InventoryLot, normalizeFoodName } from "./inventoryRules";
+import { InventoryLot, normalizeFoodName, resolveUrgency } from "./inventoryRules";
 
 export type RecipeMatch = MockRecipe & {
   matchedItems: MatchedItem[];
@@ -51,7 +52,9 @@ export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
     const matchedItems: MatchedItem[] = recipe.ingredients.map((ing) => {
       const norm = normalizeFoodName(ing.name);
       const lot = inventoryByNorm.get(norm) ?? null;
-      const isUrgent = lot?.urgency === "urgent" || lot?.urgency === "use_soon";
+      // Resolve urgency from expiry/age — the stored column is stale (CODE_REVIEW #2).
+      const lotUrgency = lot ? resolveUrgency(lot) : null;
+      const isUrgent = lotUrgency === "urgent" || lotUrgency === "use_soon";
       return {
         ingredientName: ing.name,
         inventoryLot: lot,
@@ -132,16 +135,17 @@ export function getRecipeFridgeLabel(match: RecipeMatch): string {
 }
 
 export function formatComplexity(complexity: string): string {
-  if (complexity === "simple") return "Simple";
-  if (complexity === "medium") return "Medium";
-  return "Involved";
+  const key = complexity === "simple" ? "simple" : complexity === "medium" ? "medium" : "involved";
+  return i18n.t(`recipes.complexity.${key}`);
 }
 
 export function formatTimeLabel(minutes: number): string {
   if (minutes >= 60) {
     const hrs = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return mins > 0 ? `${hrs} hr ${mins} min` : `${hrs} hr`;
+    return mins > 0
+      ? i18n.t("recipes.time.hoursMinutes", { hours: hrs, mins })
+      : i18n.t("recipes.time.hours", { count: hrs });
   }
-  return `${minutes} min`;
+  return i18n.t("recipes.time.minutes", { count: minutes });
 }

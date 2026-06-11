@@ -67,6 +67,10 @@ export async function lookupOpenFoodFactsBarcode(barcode: string): Promise<Barco
   const normalizedBarcode = barcode.trim();
   if (!normalizedBarcode) return null;
 
+  // Time-box the lookup so a slow network can't freeze the locked barcode camera.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), OPEN_FOOD_FACTS_SEARCH_TIMEOUT_MS);
+
   try {
     const params = new URLSearchParams({ fields: OPEN_FOOD_FACTS_FIELDS });
     const response = await fetch(`${OPEN_FOOD_FACTS_BASE_URL}/${encodeURIComponent(normalizedBarcode)}.json?${params}`, {
@@ -74,6 +78,7 @@ export async function lookupOpenFoodFactsBarcode(barcode: string): Promise<Barco
         Accept: "application/json",
         "User-Agent": "Chomp/1.0 (local-dev@chomp.app)",
       },
+      signal: controller.signal,
     });
 
     if (!response.ok) return null;
@@ -97,6 +102,8 @@ export async function lookupOpenFoodFactsBarcode(barcode: string): Promise<Barco
     };
   } catch {
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

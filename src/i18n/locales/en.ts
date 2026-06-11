@@ -387,6 +387,16 @@ export const en = {
     haveAll: "Have it all",
     usesCount: "Uses {{count}} from fridge",
     fromFridge: "From your fridge",
+    complexity: {
+      simple: "Simple",
+      medium: "Medium",
+      involved: "Involved",
+    },
+    time: {
+      minutes: "{{count}} min",
+      hours: "{{count}} hr",
+      hoursMinutes: "{{hours}} hr {{mins}} min",
+    },
     cookPrompt: {
       title: "What should I cook?",
       meal: "Meal",

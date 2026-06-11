@@ -12,6 +12,7 @@ import {
   normalizeFoodName,
   PartialState,
   planDepletion,
+  urgencyRank,
 } from "@/services";
 
 export type AddInventoryItemInput = {
@@ -183,12 +184,6 @@ export async function markInventoryPartialState(itemId: string, partialState: Pa
   }
 }
 
-function urgencyDepletionRank(urgency: "safe" | "use_soon" | "urgent" | null) {
-  if (urgency === "urgent") return 3;
-  if (urgency === "use_soon") return 2;
-  return 1;
-}
-
 // Fetches the active lots for one food and plans which ops deplete it.
 // Ops are applied atomically by the apply_cook RPC.
 async function computeDepletionOps(
@@ -220,7 +215,7 @@ async function computeDepletionOps(
   }[];
 
   lots.sort((a, b) => {
-    const rank = urgencyDepletionRank(b.urgency) - urgencyDepletionRank(a.urgency);
+    const rank = urgencyRank(b.urgency) - urgencyRank(a.urgency);
     if (rank !== 0) return rank;
     return a.added_at.localeCompare(b.added_at);
   });

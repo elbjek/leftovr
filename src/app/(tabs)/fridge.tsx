@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import Svg, { Circle, Path } from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
 
 import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth, useMeasurementSystem } from "@/features";
@@ -63,7 +63,6 @@ export default function FridgeRoute() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const filteredGroups = categoryFilter === "all" ? groups : groups.filter((group) => group.category === categoryFilter);
-  const urgentGroups = filteredGroups.filter((group) => group.urgency === "urgent");
   const isPremium = resolvePremium(profile, activeHousehold);
   const { weeklySummary } = useInsights(activeHousehold?.id);
   const eatFirstGroups = getEatFirstGroups(filteredGroups);
@@ -86,7 +85,6 @@ export default function FridgeRoute() {
         title={t("fridge.homeTitle")}
         actions={
           <>
-            <IconButton label={t("fridge.search")}><SearchIcon /></IconButton>
             <IconButton label={t("fridge.filter.title")} onPress={() => setFilterOpen(true)}><FilterIcon active={categoryFilter !== "all"} /></IconButton>
             <IconButton label={t("fridge.refresh")} onPress={refresh}><RefreshIcon /></IconButton>
           </>
@@ -189,16 +187,6 @@ export default function FridgeRoute() {
           />
         </View>
       ) : null}
-
-      {renderShelf(t("fridge.shelves.urgent"), urgentGroups, {
-        tone: colors.red,
-        emptyLabel: t("fridge.expiringEmpty"),
-        alwaysShow: true,
-        labels: getActionLabels(t),
-        onUse: consumeFirstLot,
-        onPartial: async (group) => setPartialGroup(group),
-        onRemove: async (group) => setRemoveGroupTarget(group),
-      }, groups.length === 0, showAddedBy)}
 
       {runningLowGroups.length > 0 ? (
         <CategoryShelf
@@ -382,68 +370,6 @@ function RemoveSheet({
   );
 }
 
-function renderShelf(
-  name: string,
-  groups: InventoryGroup[],
-  actions: {
-    tone: string;
-    labels: { use: string; partial: string; remove: string };
-    onUse: (group: InventoryGroup) => Promise<void>;
-    onPartial: (group: InventoryGroup) => Promise<void>;
-    onRemove: (group: InventoryGroup) => Promise<void>;
-    alwaysShow?: boolean;
-    emptyLabel?: string;
-  },
-  emptyOnly = false,
-  showAddedBy = false,
-) {
-  if (!emptyOnly || (groups.length === 0 && !actions.alwaysShow)) return null;
-
-  return (
-    <View style={styles.shelfWrap}>
-      <ShelfRow
-        name={name}
-        count={groups.length}
-        tone={actions.tone}
-        items={groups.map((group) => ({
-          id: group.key,
-          name: group.name,
-          category: toUiCategory(group.category),
-          meta: group.meta,
-          metaLines: getCardMetaLines(group.meta),
-          urgency: toUiUrgency(group.urgency),
-          addedBy: showAddedBy ? group.lots[0]?.added_by_name ?? null : null,
-        }))}
-      />
-      {groups.length === 0 && actions.emptyLabel ? (
-        <View style={styles.emptyShelf}>
-          <Text variant="small" muted>
-            {actions.emptyLabel}
-          </Text>
-        </View>
-      ) : null}
-      <View style={styles.actions}>
-        {groups.map((group) => (
-          <View key={group.key} style={styles.actionCard}>
-            <View style={styles.actionCopy}>
-              <Text variant="label" numberOfLines={1}>
-                {group.name}
-              </Text>
-              <Text variant="micro" muted numberOfLines={1}>
-                {group.meta}
-              </Text>
-            </View>
-            <View style={styles.actionButtons}>
-              <Button title={actions.labels.use} variant="accent" onPress={() => actions.onUse(group)} style={styles.smallButton} />
-              <Button title={actions.labels.partial} variant="ghost" onPress={() => actions.onPartial(group)} style={styles.smallButton} />
-              <Button title={actions.labels.remove} variant="text" onPress={() => actions.onRemove(group)} style={styles.smallButton} />
-            </View>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
 
 function CategoryShelf({
   name,
@@ -694,23 +620,23 @@ function computeBestByLabel(group: InventoryGroup, t: ReturnType<typeof useTrans
   const oldestLot = group.lots.reduce((oldest, lot) =>
     new Date(lot.added_at) < new Date(oldest.added_at) ? lot : oldest,
   );
-  const catalog = getCatalogFood(group.name);
-  const maxDays = catalog?.shelfLifeDays[1] ?? shelfLifeStart(group.shelfLifeRange);
-  const ageDays = Math.floor((Date.now() - new Date(oldestLot.added_at).getTime()) / 86_400_000);
-  const remaining = Math.max(0, maxDays - ageDays);
+
+  let remaining: number;
+  // An explicit expiry date wins over shelf-life estimation (CODE_REVIEW #3) —
+  // otherwise the badge can disagree with the card's urgency.
+  if (oldestLot.expires_at) {
+    const expiry = new Date(`${oldestLot.expires_at}T23:59:59`);
+    remaining = Math.max(0, Math.ceil((expiry.getTime() - Date.now()) / 86_400_000));
+  } else {
+    const catalog = getCatalogFood(group.name);
+    const maxDays = catalog?.shelfLifeDays[1] ?? shelfLifeStart(group.shelfLifeRange);
+    const ageDays = Math.floor((Date.now() - new Date(oldestLot.added_at).getTime()) / 86_400_000);
+    remaining = Math.max(0, maxDays - ageDays);
+  }
 
   if (remaining <= 0) return t("fridge.bestBy.today");
   if (remaining === 1) return t("fridge.bestBy.tomorrow");
   return t("fridge.bestBy.inDays", { count: remaining });
-}
-
-function SearchIcon() {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Circle cx={8} cy={8} r={5.5} stroke={colors.primary} strokeWidth={1.6} />
-      <Path d="M12.5 12.5L16 16" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" />
-    </Svg>
-  );
 }
 
 function RefreshIcon() {
@@ -789,42 +715,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
     alignItems: "center",
     gap: spacing.lg,
-  },
-  shelfWrap: {
-    gap: spacing.sm,
-  },
-  emptyShelf: {
-    marginHorizontal: spacing.screenX,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.paper,
-  },
-  actions: {
-    paddingHorizontal: spacing.screenX,
-    gap: spacing.sm,
-  },
-  actionCard: {
-    backgroundColor: colors.paper,
-    borderColor: colors.hairline,
-    borderWidth: 1,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  actionCopy: {
-    gap: spacing.xxs,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  smallButton: {
-    minHeight: 38,
-    paddingHorizontal: spacing.md,
   },
   sheetContent: {
     gap: spacing.xl,

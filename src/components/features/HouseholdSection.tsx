@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Pressable, Share, StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { Share, StyleSheet, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
@@ -44,13 +44,15 @@ export function HouseholdSection({
   const [joinLoading, setJoinLoading] = useState(false);
   const [showJoinChoice, setShowJoinChoice] = useState(false);
 
-  useEffect(() => {
-    if (initialJoinCode) {
-      setJoinCode(initialJoinCode);
-      setLookupResult(null);
-      setLookupError(null);
-    }
-  }, [initialJoinCode]);
+  // Sync a newly-arrived deep-linked invite code into local state during render
+  // (React's "adjust state on prop change" pattern — avoids a setState effect).
+  const [prevInitialJoinCode, setPrevInitialJoinCode] = useState(initialJoinCode);
+  if (initialJoinCode && initialJoinCode !== prevInitialJoinCode) {
+    setPrevInitialJoinCode(initialJoinCode);
+    setJoinCode(initialJoinCode);
+    setLookupResult(null);
+    setLookupError(null);
+  }
 
   async function handleCreateInvite() {
     if (!isPremium) {
