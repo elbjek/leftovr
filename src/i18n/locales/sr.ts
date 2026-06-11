@@ -439,8 +439,10 @@ export const sr = {
     cooked: {
       eyebrow: "Lepo kuvanje",
       title: "Sta ste zapravo koristili?",
-      body: "Uklanjamo ovo iz vaseg frizidera. Odznacite ono sto niste koristili.",
-      confirm: "Ukloni {{count}} stavki iz frizidera",
+      body: "Ovo se skida sa stanja frizidera. Odznaci ono sto nisi koristio/la.",
+      confirm_one: "Iskoristi {{count}} stavku",
+      confirm_few: "Iskoristi {{count}} stavke",
+      confirm_other: "Iskoristi {{count}} stavki",
       done: "Gotovo! Frizider azuriran.",
       count: "Kuvano {{count}}×",
       countBy: "Kuvano {{count}}× · {{name}}",
@@ -450,6 +452,7 @@ export const sr = {
       swapTitle: "Sta si koristio/la umesto {{item}}?",
       swapAddTitle: "Sta si jos koristio/la?",
       addExtra: "Dodaj jos nesto sto si koristio/la",
+      swapAmountTitle: "Koliko — {{item}}?",
     },
     byName: "od {{name}}",
     tabs: {

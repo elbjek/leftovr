@@ -439,8 +439,9 @@ export const en = {
     cooked: {
       eyebrow: "Nice cooking",
       title: "What did you actually use?",
-      body: "We'll remove these from your fridge. Untick anything you didn't use.",
-      confirm: "Remove {{count}} items from fridge",
+      body: "These come off your fridge. Untick anything you didn't use.",
+      confirm_one: "Use {{count}} item",
+      confirm_other: "Use {{count}} items",
       done: "Done! Fridge updated.",
       count: "Cooked {{count}}×",
       countBy: "Cooked {{count}}× · {{name}}",
@@ -450,6 +451,7 @@ export const en = {
       swapTitle: "What did you use instead of {{item}}?",
       swapAddTitle: "What else did you use?",
       addExtra: "Add something else you used",
+      swapAmountTitle: "How much {{item}}?",
     },
     byName: "by {{name}}",
     tabs: {
