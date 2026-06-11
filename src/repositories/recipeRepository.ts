@@ -34,11 +34,18 @@ export type RecipeRow = {
   cooked_count?: number;
 };
 
+// Trimmed snapshot shape: full InventoryLot rows duplicated household data
+// outside the inventory lifecycle and grew unbounded (one copy per session).
+export type FridgeSnapshotItem = Pick<
+  InventoryLot,
+  "normalized_name" | "category" | "quantity" | "unit" | "urgency"
+>;
+
 export type CreateRecipeSessionInput = {
   householdId: string;
   cookingMode: CookingMode;
   avoidancesUsed: string[];
-  fridgeSnapshot: InventoryLot[];
+  fridgeSnapshot: FridgeSnapshotItem[];
   isPremiumOptimized: boolean;
 };
 
@@ -103,14 +110,14 @@ export async function createRecipe(input: CreateRecipeInput) {
       used_inventory_item_ids: input.usedInventoryItemIds,
       tags: input.tags,
       avoidance_tags: input.avoidanceTags,
-      is_favorite: false,
       generated_by: userId,
     })
     .select("*")
     .single<RecipeRow>();
 
   if (error) throw error;
-  return data;
+  // is_favorite lives in recipe_favorites; a fresh recipe is never a favorite.
+  return { ...data, is_favorite: false };
 }
 
 export async function listHouseholdRecipeSessions(householdId: string) {
@@ -138,56 +145,22 @@ export async function listHouseholdRecipes(householdId: string) {
     .returns<RecipeRow[]>();
 
   if (error) throw error;
-  return withCookedCounts(householdId, data ?? []);
+  return data ?? [];
 }
 
-export async function listCookedRecipes(householdId: string, cookedBy?: string) {
-  const supabase = getSupabaseClient();
+export type CookedEventRow = { recipe_id: string; cooked_by: string; created_at: string };
 
-  let query = supabase
-    .from("cooked_events")
-    .select("recipes(*)")
-    .eq("household_id", householdId)
-    .not("recipe_id", "is", null)
-    .order("created_at", { ascending: false });
-
-  if (cookedBy) {
-    query = query.eq("cooked_by", cookedBy);
-  }
-
-  const { data, error } = await query;
-
-  if (error) throw error;
-
-  const recipes: RecipeRow[] = [];
-  const counts = new Map<string, number>();
-  const seen = new Set<string>();
-  for (const row of data ?? []) {
-    const recipe = Array.isArray(row.recipes) ? row.recipes[0] : row.recipes;
-    if (!recipe) continue;
-    counts.set(recipe.id, (counts.get(recipe.id) ?? 0) + 1);
-    if (seen.has(recipe.id)) continue;
-    recipes.push({ ...(recipe as RecipeRow), cooked_count: 0 });
-    seen.add(recipe.id);
-  }
-
-  return recipes.map((recipe) => ({
-    ...recipe,
-    cooked_count: counts.get(recipe.id) ?? 0,
-  }));
-}
-
-export type CookedEventRow = { recipe_id: string; cooked_by: string };
-
-// Who cooked what, household-wide — used to badge recipe lists.
+// Who cooked what, household-wide, newest first. Single source for cooked
+// counts, the cooked tab, and the "cooked by" badges (was 3 separate queries).
 export async function listCookedEventRows(householdId: string) {
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
     .from("cooked_events")
-    .select("recipe_id, cooked_by")
+    .select("recipe_id, cooked_by, created_at")
     .eq("household_id", householdId)
-    .not("recipe_id", "is", null);
+    .not("recipe_id", "is", null)
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return (data ?? []) as CookedEventRow[];
@@ -250,31 +223,6 @@ function getCalendarWeekStart() {
   monday.setDate(now.getDate() - diff);
   monday.setHours(0, 0, 0, 0);
   return monday;
-}
-
-async function withCookedCounts(householdId: string, recipes: RecipeRow[]) {
-  if (recipes.length === 0) return recipes;
-
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("cooked_events")
-    .select("recipe_id")
-    .eq("household_id", householdId)
-    .not("recipe_id", "is", null);
-
-  if (error) throw error;
-
-  const counts = new Map<string, number>();
-  for (const row of data ?? []) {
-    const recipeId = row.recipe_id;
-    if (typeof recipeId !== "string") continue;
-    counts.set(recipeId, (counts.get(recipeId) ?? 0) + 1);
-  }
-
-  return recipes.map((recipe) => ({
-    ...recipe,
-    cooked_count: counts.get(recipe.id) ?? 0,
-  }));
 }
 
 export const FREE_WEEKLY_SESSION_LIMIT = 3;

@@ -6,7 +6,6 @@ import {
   CookingMode,
   FREE_WEEKLY_SESSION_LIMIT,
   listCookedEventRows,
-  listCookedRecipes,
   getWeeklySessionCount,
   listHouseholdRecipes,
   listUserFavoriteRecipeIds,
@@ -80,26 +79,48 @@ export function useRecipes(
     setState((s) => ({ ...s, loading: true, error: null }));
 
     try {
-      const [recipes, cookedRecipes, count, favoriteIds, cookedEventRows] = await Promise.all([
+      const [recipes, count, favoriteIds, cookedEventRows] = await Promise.all([
         listHouseholdRecipes(householdId),
-        listCookedRecipes(householdId, userId),
         getWeeklySessionCount(householdId),
         listUserFavoriteRecipeIds(),
         listCookedEventRows(householdId),
       ]);
-      const withFavorites = (rows: RecipeRow[]) =>
-        rows.map((row) => ({ ...row, is_favorite: favoriteIds.has(row.id) }));
+
+      // One cooked_events fetch feeds counts, summaries, and the cooked tab
+      // (used to be three separate queries).
       const cookedSummaries: Record<string, CookedSummary> = {};
+      const myCookedCounts = new Map<string, number>();
       for (const row of cookedEventRows) {
         const summary = (cookedSummaries[row.recipe_id] ??= { count: 0, cookedBy: [] });
         summary.count += 1;
         if (!summary.cookedBy.includes(row.cooked_by)) summary.cookedBy.push(row.cooked_by);
+        if (!userId || row.cooked_by === userId) {
+          myCookedCounts.set(row.recipe_id, (myCookedCounts.get(row.recipe_id) ?? 0) + 1);
+        }
       }
+
+      const savedRecipes = recipes.map((row) => ({
+        ...row,
+        is_favorite: favoriteIds.has(row.id),
+        cooked_count: cookedSummaries[row.id]?.count ?? 0,
+      }));
+
+      // Cooked tab: recipes the current user has cooked, most recent first
+      // (event rows arrive newest-first), with their per-user cook count.
+      const recipesById = new Map(savedRecipes.map((row) => [row.id, row]));
+      const cookedRecipes: RecipeRow[] = [];
+      for (const row of cookedEventRows) {
+        if (userId && row.cooked_by !== userId) continue;
+        const recipe = recipesById.get(row.recipe_id);
+        if (!recipe || cookedRecipes.some((r) => r.id === recipe.id)) continue;
+        cookedRecipes.push({ ...recipe, cooked_count: myCookedCounts.get(recipe.id) ?? 0 });
+      }
+
       setState((s) => ({
         ...s,
         loading: false,
-        savedRecipes: withFavorites(recipes),
-        cookedRecipes: withFavorites(cookedRecipes),
+        savedRecipes,
+        cookedRecipes,
         cookedSummaries,
         weeklyCount: count,
       }));
@@ -150,7 +171,13 @@ export function useRecipes(
             householdId,
             cookingMode,
             avoidancesUsed: avoidances,
-            fridgeSnapshot: inventory,
+            fridgeSnapshot: inventory.map((lot) => ({
+              normalized_name: lot.normalized_name,
+              category: lot.category,
+              quantity: lot.quantity,
+              unit: lot.unit,
+              urgency: lot.urgency,
+            })),
             isPremiumOptimized: isPremium,
           });
 

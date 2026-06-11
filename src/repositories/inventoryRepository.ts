@@ -34,7 +34,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
   const { data, error } = await supabase
     .from("inventory_items")
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, expires_at, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, urgency, shelf_life_range, expires_at, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
     )
     .eq("household_id", householdId)
     .is("removed_at", null)
@@ -54,7 +54,6 @@ export async function listActiveHouseholdInventory(householdId: string) {
     unit: row.unit,
     net_amount: row.net_amount ?? null,
     net_unit: row.net_unit ?? null,
-    display_quantity: row.display_quantity,
     partial_state: row.partial_state,
     urgency: row.urgency,
     shelf_life_range: row.shelf_life_range,
@@ -106,7 +105,6 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       unit,
       net_amount: netAmount,
       net_unit: netUnit,
-      display_quantity: formatDisplayQuantity(quantity, unit),
       partial_state: "full" satisfies PartialState,
       urgency,
       shelf_life_range: getShelfLifeRange(name, category),
@@ -116,7 +114,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       added_at: addedAt,
     })
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, display_quantity, net_amount, net_unit, partial_state, urgency, shelf_life_range, expires_at, source, added_at, removed_at",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, urgency, shelf_life_range, expires_at, source, added_at, removed_at",
     )
     .single<InventoryLot>();
 
@@ -141,7 +139,17 @@ export async function removeInventoryLot(itemId: string, reason = "removed") {
 }
 
 export async function removeInventoryGroup(lotIds: string[], reason = "removed") {
-  await Promise.all(lotIds.map((lotId) => removeInventoryLot(lotId, reason)));
+  if (lotIds.length === 0) return;
+  const supabase = getSupabaseClient();
+
+  const { error } = await supabase
+    .from("inventory_items")
+    .update({ removed_at: new Date().toISOString(), removal_reason: reason })
+    .in("id", lotIds);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function updateInventoryQuantity(itemId: string, quantity: number) {
@@ -152,22 +160,9 @@ export async function updateInventoryQuantity(itemId: string, quantity: number) 
     return;
   }
 
-  const { data: current, error: currentError } = await supabase
-    .from("inventory_items")
-    .select("unit")
-    .eq("id", itemId)
-    .single<{ unit: string }>();
-
-  if (currentError) {
-    throw currentError;
-  }
-
   const { error } = await supabase
     .from("inventory_items")
-    .update({
-      quantity,
-      display_quantity: formatDisplayQuantity(quantity, current.unit),
-    })
+    .update({ quantity })
     .eq("id", itemId);
 
   if (error) {
@@ -194,11 +189,13 @@ function urgencyDepletionRank(urgency: "safe" | "use_soon" | "urgent" | null) {
   return 1;
 }
 
-export async function depleteItemQuantity(
+// Fetches the active lots for one food and plans which ops deplete it.
+// Ops are applied atomically by the apply_cook RPC.
+async function computeDepletionOps(
   householdId: string,
   normalizedName: string,
-  amount = 1,
-  unit = "item",
+  amount: number,
+  unit: string,
 ) {
   const supabase = getSupabaseClient();
 
@@ -228,47 +225,33 @@ export async function depleteItemQuantity(
     return a.added_at.localeCompare(b.added_at);
   });
 
-  const ops = planDepletion(lots, { amount, unit });
+  return planDepletion(lots, { amount, unit });
+}
 
-  for (const op of ops) {
-    if (op.kind === "remove") {
-      await removeInventoryLot(op.id, "cooked");
-      continue;
-    }
-    const lot = lots.find((l) => l.id === op.id)!;
-    const update: Record<string, unknown> = {};
-    if (op.kind === "setNet") {
-      update.net_amount = op.netAmount;
-      update.display_quantity = formatDisplayQuantity(op.netAmount, lot.net_unit ?? lot.unit);
-    } else if (op.kind === "setQuantity") {
-      update.quantity = op.quantity;
-      update.display_quantity = formatDisplayQuantity(op.quantity, lot.unit);
-    } else {
-      update.partial_state = op.partialState;
-    }
-    const { error: updateError } = await supabase
-      .from("inventory_items")
-      .update(update)
-      .eq("id", op.id);
-    if (updateError) throw updateError;
-  }
+export async function depleteItemQuantity(
+  householdId: string,
+  normalizedName: string,
+  amount = 1,
+  unit = "item",
+) {
+  const supabase = getSupabaseClient();
+  const ops = await computeDepletionOps(householdId, normalizedName, amount, unit);
+  if (ops.length === 0) return;
+
+  const { error } = await supabase.rpc("apply_cook", {
+    p_household_id: householdId,
+    p_ops: ops,
+  });
+
+  if (error) throw error;
 }
 
 export async function updateInventoryNetAmount(itemId: string, netAmount: number) {
   if (!(netAmount > 0)) throw new Error("net amount must be positive");
   const supabase = getSupabaseClient();
-  const { data: lot, error: readError } = await supabase
-    .from("inventory_items")
-    .select("net_unit, unit")
-    .eq("id", itemId)
-    .single<{ net_unit: string | null; unit: string }>();
-  if (readError) throw readError;
   const { error } = await supabase
     .from("inventory_items")
-    .update({
-      net_amount: netAmount,
-      display_quantity: formatDisplayQuantity(netAmount, lot.net_unit ?? lot.unit),
-    })
+    .update({ net_amount: netAmount })
     .eq("id", itemId);
   if (error) throw error;
 }
@@ -296,42 +279,30 @@ export async function recordCookedEventAndDepleteInventory(input: {
   usedItems: { normalizedName: string; amount?: number | null; unit?: string | null }[];
 }) {
   const supabase = getSupabaseClient();
-  const { data: userResult, error: userError } = await supabase.auth.getUser();
 
-  if (userError) {
-    throw userError;
-  }
-
-  const userId = userResult.user?.id;
-
-  if (!userId) {
-    throw new Error("No signed-in user.");
-  }
-
-  // Deplete sequentially so concurrent updates to the same lot can't race.
+  const ops = [];
   for (const item of input.usedItems) {
-    await depleteItemQuantity(
-      input.householdId,
-      item.normalizedName,
-      item.amount ?? 1,
-      item.unit ?? "item",
+    ops.push(
+      ...(await computeDepletionOps(
+        input.householdId,
+        item.normalizedName,
+        item.amount ?? 1,
+        item.unit ?? "item",
+      )),
     );
   }
 
-  const { error } = await supabase.from("cooked_events").insert({
-    household_id: input.householdId,
-    recipe_id: input.recipeId ?? null,
-    cooked_by: userId,
-    servings: input.servings ?? null,
-    used_items: input.usedItems,
+  // Single transaction: all depletion ops + the cooked event land together
+  // (cooked_by is auth.uid() inside the RPC).
+  const { error } = await supabase.rpc("apply_cook", {
+    p_household_id: input.householdId,
+    p_ops: ops,
+    p_recipe_id: input.recipeId ?? null,
+    p_servings: input.servings ?? null,
+    p_used_items: input.usedItems,
   });
 
   if (error) {
     throw error;
   }
-}
-
-function formatDisplayQuantity(quantity: number, unit: string) {
-  const roughQuantity = Number.isInteger(quantity) ? quantity : Number(quantity.toFixed(1));
-  return `${roughQuantity} ${unit}`;
 }

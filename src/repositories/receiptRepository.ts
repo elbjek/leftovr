@@ -124,6 +124,11 @@ export async function processMockReceiptScan(input: {
     .single<{ id: string }>();
 
   if (scanError) {
+    // Unique signature index caught a concurrent scan of the same receipt
+    // (the pre-insert duplicate check is racy across two devices).
+    if ((scanError as { code?: string }).code === "23505") {
+      throw new Error("Duplicate receipt needs confirmation.");
+    }
     throw scanError;
   }
 
@@ -140,7 +145,6 @@ export async function processMockReceiptScan(input: {
         unit: item.unit,
         net_amount: catalogNet ? catalogNet.netAmount * item.quantity : null,
         net_unit: catalogNet?.netUnit ?? null,
-        display_quantity: formatDisplayQuantity(item.quantity, item.unit),
         partial_state: "full",
         urgency: item.urgency ?? computeUrgency({ name: item.name, category: item.category, addedAt: now }),
         shelf_life_range: getShelfLifeRange(item.name, item.category),
@@ -222,7 +226,3 @@ function startOfCurrentMonth() {
   return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
-function formatDisplayQuantity(quantity: number, unit: string) {
-  const roughQuantity = Number.isInteger(quantity) ? quantity : Number(quantity.toFixed(1));
-  return `${roughQuantity} ${unit}`;
-}

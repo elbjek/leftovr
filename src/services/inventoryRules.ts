@@ -42,7 +42,6 @@ export type InventoryLot = {
   unit: string;
   net_amount: number | null;
   net_unit: "ml" | "g" | null;
-  display_quantity: string | null;
   partial_state: PartialState;
   urgency: UrgencyBand | null;
   shelf_life_range: string | null;
