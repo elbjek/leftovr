@@ -136,24 +136,12 @@ export type PlanTier = "free" | "premium" | "household_premium";
 
 export async function setPreviewTier(tier: PlanTier) {
   const supabase = getSupabaseClient();
-  const profile = await getCurrentProfile();
 
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({ tier })
-    .eq("id", profile.id);
+  // tier/plan_tier columns are locked to clients; the preview goes through the
+  // prototype-only set_preview_tier RPC (revoked entirely at launch).
+  const { error } = await supabase.rpc("set_preview_tier", { p_tier: tier });
 
-  if (profileError) throw profileError;
-
-  if (profile.active_household_id) {
-    const householdTier = tier === "household_premium" ? "household_premium" : "free";
-    const { error: householdError } = await supabase
-      .from("households")
-      .update({ plan_tier: householdTier })
-      .eq("id", profile.active_household_id);
-
-    if (householdError) throw householdError;
-  }
+  if (error) throw error;
 }
 
 export async function updateProfileField(

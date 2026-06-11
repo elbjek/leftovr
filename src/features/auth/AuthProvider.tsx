@@ -120,7 +120,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error: null,
       });
     } catch (error) {
-      console.error("[auth] loadSessionProfile failed", error);
+      // Auth errors can embed emails/request details — keep them out of release logs.
+      if (__DEV__) console.error("[auth] loadSessionProfile failed", error);
       setState((current) => ({
         ...current,
         configured: hasSupabaseConfig(),
@@ -165,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await sendEmailOtp(input);
           setState((current) => ({ ...current, loading: false, error: null }));
         } catch (error) {
-          console.error("[auth] sendOtp failed", error);
+          if (__DEV__) console.error("[auth] sendOtp failed", error);
           setState((current) => ({
             ...current,
             loading: false,
@@ -180,7 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await verifyEmailOtp(input);
           await loadSessionProfile();
         } catch (error) {
-          console.error("[auth] verifyOtp failed", error);
+          if (__DEV__) console.error("[auth] verifyOtp failed", error);
           setState((current) => ({
             ...current,
             loading: false,

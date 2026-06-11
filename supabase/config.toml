@@ -33,6 +33,10 @@ enable_signup = true
 [auth.email]
 enable_signup = true
 enable_confirmations = true
+# SECURITY_REVIEW S10: short OTP lifetime + send throttle (mirror these in the
+# hosted project's dashboard before launch — this file only configures local).
+otp_expiry = 600
+max_frequency = "1m0s"
 
 [edge_runtime]
 enabled = true

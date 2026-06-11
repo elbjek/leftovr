@@ -32,7 +32,6 @@ Deno.serve(async (req) => {
     source: "mock",
     message: "generate-recipes is ready for a future Anthropic-backed implementation.",
     prompt: buildPrompt(input),
-    request: input,
   });
 });
 
