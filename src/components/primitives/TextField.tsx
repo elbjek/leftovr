@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
+  Pressable,
   StyleProp,
   StyleSheet,
   TextInput,
@@ -17,19 +18,45 @@ type Props = TextInputProps & {
   containerStyle?: StyleProp<ViewStyle>;
 };
 
-export function TextField({ label, error, containerStyle, style, ...props }: Props) {
+export function TextField({
+  label,
+  error,
+  containerStyle,
+  style,
+  onFocus,
+  onBlur,
+  ...props
+}: Props) {
+  const inputRef = useRef<TextInput>(null);
+  const [focused, setFocused] = useState(false);
+
   return (
     <View style={[styles.wrap, containerStyle]}>
-      <Text variant="micro" muted uppercase style={styles.label}>
-        {label.toLocaleUpperCase()}
-      </Text>
-      <TextInput
-        placeholderTextColor={colors.muted2}
-        autoCapitalize="none"
-        autoCorrect={false}
-        style={[styles.input, error && styles.inputError, style]}
-        {...props}
-      />
+      <Pressable
+        accessible={false}
+        style={[styles.box, focused && styles.boxFocused, error ? styles.boxError : null]}
+        onPress={() => inputRef.current?.focus()}
+      >
+        <Text variant="micro" muted uppercase>
+          {label}
+        </Text>
+        <TextInput
+          ref={inputRef}
+          placeholderTextColor={colors.muted2}
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={[styles.input, style]}
+          onFocus={(event) => {
+            setFocused(true);
+            onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setFocused(false);
+            onBlur?.(event);
+          }}
+          {...props}
+        />
+      </Pressable>
       {error ? (
         <Text variant="small" color={colors.red} style={styles.error}>
           {error}
@@ -43,23 +70,28 @@ const styles = StyleSheet.create({
   wrap: {
     gap: spacing.xs,
   },
-  label: {
-    paddingLeft: spacing.xs,
+  box: {
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radii.lg,
+    backgroundColor: colors.paper,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+  },
+  boxFocused: {
+    borderColor: colors.primary,
+  },
+  boxError: {
+    borderColor: colors.red,
   },
   input: {
-    minHeight: 60,
-    borderRadius: radii.lg,
-    borderWidth: 1.5,
-    borderColor: colors.hairlineStrong,
-    backgroundColor: colors.paper,
-    paddingHorizontal: 18,
+    height: 36,
+    padding: 0,
     color: colors.text,
-    fontFamily: fonts.bodySemiBold,
-    fontSize: 18,
-    lineHeight: 22,
-  },
-  inputError: {
-    borderColor: colors.red,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    lineHeight: 20,
   },
   error: {
     paddingLeft: spacing.xs,

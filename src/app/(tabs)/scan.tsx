@@ -2,7 +2,7 @@ import { BarcodeScanningResult, CameraView, useCameraPermissions } from "expo-ca
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
@@ -27,7 +27,7 @@ import {
   lookupBarcodeProduct,
   searchOpenFoodFactsProducts,
 } from "@/services";
-import { colors, fonts, radii, spacing } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 function formatNet(product: BarcodeProduct) {
   return product.netAmount && product.netUnit ? `${product.netAmount} ${product.netUnit}` : null;
@@ -717,18 +717,12 @@ export default function ScanRoute() {
                 </View>
               </View>
 
-              <View style={[styles.fieldBox, styles.fieldBoxGrow]}>
-                <Text variant="micro" muted uppercase>
-                  {t("scan.manual.unitLabel")}
-                </Text>
-                <TextInput
-                  value={manualUnit}
-                  onChangeText={setManualUnit}
-                  autoCapitalize="none"
-                  style={styles.unitInput}
-                  placeholderTextColor={colors.muted2}
-                />
-              </View>
+              <TextField
+                label={t("scan.manual.unitLabel")}
+                value={manualUnit}
+                onChangeText={setManualUnit}
+                containerStyle={styles.fieldBoxGrow}
+              />
             </View>
 
             <View style={styles.fieldBox}>
@@ -1262,13 +1256,6 @@ const styles = StyleSheet.create({
   stepValue: {
     minWidth: 24,
     textAlign: "center",
-  },
-  unitInput: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 17,
-    color: colors.text,
-    height: 36,
-    padding: 0,
   },
   expiryRow: {
     flexDirection: "row",
