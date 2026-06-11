@@ -85,8 +85,6 @@ export default function RecipeDetailRoute() {
   const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
-  const [stepsViewportHeight, setStepsViewportHeight] = useState(0);
-  const [stepsContentHeight, setStepsContentHeight] = useState(0);
 
   const showCookCoachMark =
     (profile?.prototype_day ?? 1) >= 3 && !profile?.cooked_coachmark_seen_at;
@@ -238,7 +236,6 @@ export default function RecipeDetailRoute() {
 
   const removedCount = cookedItems.filter((i) => i.used).length;
   const urgentBadge = matchedUrgentItems[0];
-  const stepsOverflow = stepsContentHeight > stepsViewportHeight + 1;
 
   return (
     <View style={styles.screen}>
@@ -246,7 +243,9 @@ export default function RecipeDetailRoute() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t("recipes.detail.backLabel")}
-          onPress={() => router.back()}
+          // Always return to the recipes list — inside the tab group,
+          // router.back() can land on whichever tab was visited before.
+          onPress={() => router.replace("/(tabs)/recipes")}
           style={styles.backButton}
         >
           <Svg width={14} height={14} viewBox="0 0 14 14">
@@ -264,6 +263,7 @@ export default function RecipeDetailRoute() {
         {recipeId ? (
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
             onPress={handleFavoriteToggle}
             style={styles.favoriteButton}
           >
@@ -272,6 +272,13 @@ export default function RecipeDetailRoute() {
         ) : null}
       </View>
 
+      {/* Single scroll surface: title through steps move together; only the
+          hero (back/save) and the cook CTA stay fixed. */}
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
       <View style={styles.body}>
         <Text variant="h1">{title}</Text>
         {description ? (
@@ -314,7 +321,9 @@ export default function RecipeDetailRoute() {
                       <Text variant="micro" color={colors.red} style={styles.missingLabel}>
                         · {t("recipes.detail.missing")}
                       </Text>
-                    ) : !ing.required ? (
+                    ) : !ing.required && !inFridge ? (
+                      // "nice to have" only matters when you DON'T have the
+                      // optional item — on an in-fridge chip it reads backwards.
                       <Text variant="micro" muted>· {t("recipes.detail.niceToHave")}</Text>
                     ) : null}
                   </View>
@@ -327,17 +336,7 @@ export default function RecipeDetailRoute() {
         <Text variant="micro" muted style={styles.sectionLabel}>
           {t("recipes.detail.howToCook")}
         </Text>
-      </View>
 
-      <ScrollView
-        style={styles.stepsScroll}
-        contentContainerStyle={styles.stepsContent}
-        scrollEnabled={stepsOverflow}
-        bounces={stepsOverflow}
-        showsVerticalScrollIndicator={stepsOverflow}
-        onLayout={(event) => setStepsViewportHeight(event.nativeEvent.layout.height)}
-        onContentSizeChange={(_width, height) => setStepsContentHeight(height)}
-      >
         <View style={styles.steps}>
           {steps.map((step, i) => (
             <View key={i} style={styles.stepRow}>
@@ -348,6 +347,7 @@ export default function RecipeDetailRoute() {
             </View>
           ))}
         </View>
+      </View>
       </ScrollView>
 
       <View style={styles.bottomGradient}>
@@ -365,13 +365,6 @@ export default function RecipeDetailRoute() {
           variant="accent"
           onPress={handleCookPress}
         />
-        {recipeId ? (
-          <Button
-            title={favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
-            variant="ghost"
-            onPress={handleFavoriteToggle}
-          />
-        ) : null}
       </View>
 
       <BottomSheet visible={showCooked} onDismiss={() => setShowCooked(false)}>
@@ -553,12 +546,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.surface,
   },
-  stepsScroll: {
+  scrollArea: {
     flex: 1,
   },
-  stepsContent: {
-    paddingHorizontal: spacing.xxl,
-    paddingBottom: 120,
+  scrollContent: {
+    paddingBottom: 140,
   },
   hero: {
     height: 280,
@@ -580,10 +572,10 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     position: "absolute",
-    top: 60,
+    top: 56,
     right: 20,
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: 999,
     backgroundColor: "rgba(255,255,255,0.85)",
     alignItems: "center",
@@ -679,7 +671,8 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
-    paddingBottom: 28,
+    // The tab dock sits below this bar now — no home-indicator clearance needed.
+    paddingBottom: spacing.md,
     gap: spacing.sm,
   },
   coachMark: {
