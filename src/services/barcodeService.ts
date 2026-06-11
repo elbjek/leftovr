@@ -1,4 +1,3 @@
-import { mockBarcodeProducts } from "@/mocks";
 import { InventoryCategory } from "./inventoryRules";
 
 export type BarcodeProduct = {
@@ -41,26 +40,11 @@ const OPEN_FOOD_FACTS_FIELDS = [
   "categories_tags",
 ].join(",");
 
+// Live Open Food Facts lookup — barcodes are decoded on-device by the camera,
+// then resolved against the free OFF database. Unknown products fall through
+// to the manual-add flow (scan.tsx barcodeFallback).
 export async function lookupBarcodeProduct(barcode: string): Promise<BarcodeProduct | null> {
-  const openFoodFactsProduct = await lookupOpenFoodFactsBarcode(barcode);
-  const mockProduct = lookupMockBarcode(barcode);
-
-  if (!openFoodFactsProduct) return mockProduct;
-  if (!mockProduct) return openFoodFactsProduct;
-
-  return {
-    ...openFoodFactsProduct,
-    brandName: openFoodFactsProduct.brandName ?? mockProduct.brandName,
-    category: openFoodFactsProduct.category === "other" ? mockProduct.category : openFoodFactsProduct.category,
-    unit: openFoodFactsProduct.netAmount ? openFoodFactsProduct.unit : mockProduct.unit,
-    netAmount: openFoodFactsProduct.netAmount ?? mockProduct.netAmount ?? null,
-    netUnit: openFoodFactsProduct.netUnit ?? mockProduct.netUnit ?? null,
-  };
-}
-
-export function lookupMockBarcode(barcode: string): BarcodeProduct | null {
-  const product = mockBarcodeProducts.find((candidate) => candidate.barcode === barcode);
-  return product ? { ...product } : null;
+  return lookupOpenFoodFactsBarcode(barcode);
 }
 
 export async function lookupOpenFoodFactsBarcode(barcode: string): Promise<BarcodeProduct | null> {

@@ -20,6 +20,16 @@ import { i18n } from "@/i18n";
 
 import { AuthState, Household } from "./types";
 
+// The stored session can reference a user that no longer exists (account
+// deleted, or a local `supabase db reset` during development). Every request
+// then fails with "User from sub claim in JWT does not exist" — unrecoverable
+// without clearing the session.
+function isDeadSessionError(error: unknown) {
+  const code = (error as { code?: string })?.code;
+  const message = error instanceof Error ? error.message : "";
+  return code === "user_not_found" || /sub claim in JWT does not exist/i.test(message);
+}
+
 function resolveErrorMessage(error: unknown) {
   if (error instanceof Error) {
     return error.message;
@@ -122,6 +132,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       // Auth errors can embed emails/request details — keep them out of release logs.
       if (__DEV__) console.error("[auth] loadSessionProfile failed", error);
+
+      // Dead session (user behind the JWT is gone): clear it locally and fall
+      // back to the signed-out state so the user can log in again.
+      if (isDeadSessionError(error)) {
+        try {
+          await getSupabaseClient().auth.signOut({ scope: "local" });
+        } catch {
+          // Local sign-out only; nothing else to do if even that fails.
+        }
+        setState({
+          configured: true,
+          loading: false,
+          session: null,
+          user: null,
+          profile: null,
+          activeHousehold: null,
+          error: null,
+        });
+        return;
+      }
+
       setState((current) => ({
         ...current,
         configured: hasSupabaseConfig(),

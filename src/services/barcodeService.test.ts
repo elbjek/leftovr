@@ -38,45 +38,6 @@ describe("barcodeService", () => {
     });
   });
 
-  it("falls back to local mock products when Open Food Facts has no match", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => ({
-      ok: true,
-      json: async () => ({ status: "failure" }),
-    })));
-
-    await expect(lookupBarcodeProduct("5901234123457")).resolves.toMatchObject({
-      name: "Milk",
-      brandName: "Chomp Dairy",
-      category: "dairy_eggs",
-      unit: "carton",
-      netAmount: 1000,
-      netUnit: "ml",
-    });
-  });
-
-  it("fills missing Open Food Facts amounts from known local products", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => ({
-      ok: true,
-      json: async () => ({
-        status: "success",
-        product: {
-          product_name: "100% orange juice from concentrate, orange",
-          brands: "Tropicana",
-          categories_tags: ["en:beverages"],
-        },
-      }),
-    })));
-
-    await expect(lookupBarcodeProduct("0048500005729")).resolves.toMatchObject({
-      name: "100% orange juice from concentrate, orange",
-      brandName: "Tropicana",
-      category: "drinks",
-      unit: "bottle",
-      netAmount: 1892.71,
-      netUnit: "ml",
-    });
-  });
-
   it("returns null for unknown barcode misses", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => ({
       ok: true,

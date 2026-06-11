@@ -124,14 +124,21 @@ export default function HookCarouselRoute() {
                   <View style={styles.steps}>
                     {item.steps.map((step, index) => (
                       <View key={step} style={styles.step}>
-                        <View style={styles.stepNumber}>
-                          <Text variant="label" color={colors.surface}>
-                            {index + 1}
+                        <View style={styles.stepRail}>
+                          <View style={styles.stepDot}>
+                            <Text variant="small" color={colors.surface}>
+                              {index + 1}
+                            </Text>
+                          </View>
+                          {index < (item.steps?.length ?? 0) - 1 ? (
+                            <View style={styles.stepConnector} />
+                          ) : null}
+                        </View>
+                        <View style={styles.stepLabelWrap}>
+                          <Text variant="h3" style={styles.stepLabel}>
+                            {step}
                           </Text>
                         </View>
-                        <Text variant="h3" style={styles.stepLabel}>
-                          {step}
-                        </Text>
                       </View>
                     ))}
                   </View>
@@ -239,7 +246,6 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   steps: {
-    gap: 12,
     marginTop: 4,
     marginBottom: 0,
     alignSelf: "stretch",
@@ -247,19 +253,33 @@ const styles = StyleSheet.create({
   },
   step: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: spacing.md,
   },
-  stepNumber: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  stepRail: {
+    width: 28,
+    alignItems: "center",
+  },
+  stepDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.primary,
+  },
+  stepConnector: {
+    width: 2,
+    height: 20,
+    marginTop: 2,
+    backgroundColor: colors.primary100,
+  },
+  stepLabelWrap: {
+    height: 28,
+    justifyContent: "center",
   },
   stepLabel: {
-    fontFamily: fonts.bodyBold,
+    fontFamily: fonts.bodyMedium,
   },
   socialProof: {
     width: 280,
