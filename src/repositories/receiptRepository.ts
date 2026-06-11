@@ -1,54 +1,21 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import { normalizeMockReceipt } from "@/services";
 import {
-  computeUrgency,
   getCatalogNet,
   getShelfLifeRange,
   normalizeFoodName,
 } from "@/services/inventoryRules";
-
-const FREE_MONTHLY_RECEIPT_LIMIT = 3;
 
 export type ReceiptDuplicate = {
   id: string;
   created_at: string;
 };
 
-export type ReceiptLimitStatus = {
-  used: number;
-  limit: number;
-  remaining: number;
-};
-
 export type ReceiptScanResult = {
   scanId: string;
   addedCount: number;
   reviewCount: number;
-  limit: ReceiptLimitStatus;
 };
-
-export async function getReceiptScanLimitStatus(householdId: string): Promise<ReceiptLimitStatus> {
-  const supabase = getSupabaseClient();
-  const start = startOfCurrentMonth();
-
-  const { count, error } = await supabase
-    .from("receipt_scans")
-    .select("id", { count: "exact", head: true })
-    .eq("household_id", householdId)
-    .eq("status", "completed")
-    .gte("processed_at", start.toISOString());
-
-  if (error) {
-    throw error;
-  }
-
-  const used = count ?? 0;
-  return {
-    used,
-    limit: FREE_MONTHLY_RECEIPT_LIMIT,
-    remaining: Math.max(0, FREE_MONTHLY_RECEIPT_LIMIT - used),
-  };
-}
 
 export async function findRecentReceiptDuplicate(
   householdId: string,
@@ -93,8 +60,6 @@ export async function processMockReceiptScan(input: {
   if (!userId) {
     throw new Error("No signed-in user.");
   }
-
-  const limit = await getReceiptScanLimitStatus(input.householdId);
 
   const normalized = normalizeMockReceipt(input.templateKey);
   const duplicate = await findRecentReceiptDuplicate(
@@ -146,7 +111,6 @@ export async function processMockReceiptScan(input: {
         net_amount: catalogNet ? catalogNet.netAmount * item.quantity : null,
         net_unit: catalogNet?.netUnit ?? null,
         partial_state: "full",
-        urgency: item.urgency ?? computeUrgency({ name: item.name, category: item.category, addedAt: now }),
         shelf_life_range: getShelfLifeRange(item.name, item.category),
         source: "receipt",
         source_scan_id: scan.id,
@@ -183,11 +147,6 @@ export async function processMockReceiptScan(input: {
     scanId: scan.id,
     addedCount: normalized.highConfidenceItems.length,
     reviewCount: normalized.reviewItems.length,
-    limit: {
-      ...limit,
-      used: limit.used + 1,
-      remaining: Math.max(0, limit.remaining - 1),
-    },
   };
 }
 
@@ -219,10 +178,5 @@ export async function setNotificationPermissionPreview(input: {
   if (error) {
     throw error;
   }
-}
-
-function startOfCurrentMonth() {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 

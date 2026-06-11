@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase";
-import { InventoryLot } from "@/services/inventoryRules";
+import { InventoryLot, UrgencyBand } from "@/services/inventoryRules";
 
 export type CookingMode = "household" | "just_me";
 
@@ -36,10 +36,11 @@ export type RecipeRow = {
 
 // Trimmed snapshot shape: full InventoryLot rows duplicated household data
 // outside the inventory lifecycle and grew unbounded (one copy per session).
+// Urgency is resolved live at snapshot time (the stored column was dropped).
 export type FridgeSnapshotItem = Pick<
   InventoryLot,
-  "normalized_name" | "category" | "quantity" | "unit" | "urgency"
->;
+  "normalized_name" | "category" | "quantity" | "unit"
+> & { urgency: UrgencyBand };
 
 export type CreateRecipeSessionInput = {
   householdId: string;

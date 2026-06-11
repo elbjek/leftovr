@@ -73,16 +73,14 @@ describe("resolveUrgency", () => {
     ...over,
   });
 
-  it("prefers explicit expiry over the stored column", () => {
+  it("prefers explicit expiry over age-based estimation", () => {
     expect(resolveUrgency(lot({ expires_at: "2026-06-11" }), now)).toBe("urgent");
   });
 
-  it("ignores the stale stored urgency and ages from added_at", () => {
-    // Spinach shelf life [2,4]; added 5 days ago with a stale 'safe' column.
+  it("ages from added_at when there is no expiry", () => {
+    // Spinach shelf life [2,4]; added 5 days ago → past the urgent threshold.
     const added = new Date("2026-06-05T12:00:00Z").toISOString();
-    expect(
-      resolveUrgency({ ...lot({ added_at: added }), urgency: "safe" } as InventoryLot, now),
-    ).toBe("urgent");
+    expect(resolveUrgency(lot({ added_at: added }), now)).toBe("urgent");
   });
 
   it("is safe for a freshly added item with no expiry", () => {

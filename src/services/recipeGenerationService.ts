@@ -1,5 +1,5 @@
 import { CookingMode } from "@/repositories/recipeRepository";
-import { InventoryLot } from "./inventoryRules";
+import { InventoryLot, resolveUrgency } from "./inventoryRules";
 import { matchRecipes, RecipeMatch, RecipeMatcherInput, selectMakeableRecipes } from "./recipeService";
 
 export type RecipeGenerationFilters = RecipeMatcherInput["filters"];
@@ -65,7 +65,7 @@ function formatInventoryLines(inventory: InventoryLot[]) {
         : lot.quantity != null
           ? `${lot.quantity}`
           : "unknown amount";
-    return `- ${lot.name} (${lot.normalized_name}); category=${lot.category}; urgency=${lot.urgency}; amount=${amount}; partial=${lot.partial_state}`;
+    return `- ${lot.name} (${lot.normalized_name}); category=${lot.category}; urgency=${resolveUrgency(lot)}; amount=${amount}; partial=${lot.partial_state}`;
   });
 }
 

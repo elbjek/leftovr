@@ -18,7 +18,6 @@ const input: RecipeGenerationInput = {
       net_amount: 200,
       net_unit: "g",
       partial_state: "full",
-      urgency: "use_soon",
       shelf_life_range: "2-4 days",
       source: "receipt",
       added_by: "user-1",
