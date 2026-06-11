@@ -5,18 +5,25 @@ export type InsightsRawData = {
   itemsAdded: number;
   cookedEvents: number;
   removedItems: number;
-  itemsSaved: number;
+  /** Items consumed (cooked or fully used up) in the window — the real "saved" signal. */
+  itemsUsed: number;
+  /** Category counts of the USED items, not the added ones. */
   categoryBreakdown: Record<string, number>;
   cookedRecipes: { title: string; count: number }[];
 };
 
+// Removal reasons that mean "consumed", as opposed to thrown out ("removed").
+const USED_REASONS = ["cooked", "quantity_depleted"];
+
 // With userId: personal stats (your scans, items you added, meals you cooked).
-// Without: whole-household stats. Removed/saved items are attributed via
+// Without: whole-household stats. Removed/used items are attributed via
 // added_by since inventory rows don't record who removed them.
+// `until` bounds the window so previous-week comparisons are real, not invented.
 export async function getInsightsData(
   householdId: string,
   since: string,
   userId?: string,
+  until?: string,
 ): Promise<InsightsRawData> {
   const supabase = getSupabaseClient();
 
@@ -26,13 +33,15 @@ export async function getInsightsData(
     .eq("household_id", householdId)
     .eq("status", "completed")
     .gte("processed_at", since);
+  if (until) scansQuery = scansQuery.lt("processed_at", until);
   if (userId) scansQuery = scansQuery.eq("created_by", userId);
 
   let itemsQuery = supabase
     .from("inventory_items")
-    .select("id, category", { count: "exact" })
+    .select("id", { count: "exact", head: true })
     .eq("household_id", householdId)
     .gte("added_at", since);
+  if (until) itemsQuery = itemsQuery.lt("added_at", until);
   if (userId) itemsQuery = itemsQuery.eq("added_by", userId);
 
   let cookedQuery = supabase
@@ -40,6 +49,7 @@ export async function getInsightsData(
     .select("id", { count: "exact", head: true })
     .eq("household_id", householdId)
     .gte("created_at", since);
+  if (until) cookedQuery = cookedQuery.lt("created_at", until);
   if (userId) cookedQuery = cookedQuery.eq("cooked_by", userId);
 
   let cookedRecipesQuery = supabase
@@ -47,6 +57,7 @@ export async function getInsightsData(
     .select("recipe_id, recipes(title)")
     .eq("household_id", householdId)
     .gte("created_at", since);
+  if (until) cookedRecipesQuery = cookedRecipesQuery.lt("created_at", until);
   if (userId) cookedRecipesQuery = cookedRecipesQuery.eq("cooked_by", userId);
 
   let removedQuery = supabase
@@ -55,23 +66,25 @@ export async function getInsightsData(
     .eq("household_id", householdId)
     .not("removed_at", "is", null)
     .gte("removed_at", since);
+  if (until) removedQuery = removedQuery.lt("removed_at", until);
   if (userId) removedQuery = removedQuery.eq("added_by", userId);
 
-  let savedQuery = supabase
+  let usedQuery = supabase
     .from("inventory_items")
-    .select("id", { count: "exact", head: true })
+    .select("id, category", { count: "exact" })
     .eq("household_id", householdId)
-    .eq("removal_reason", "cooked")
+    .in("removal_reason", USED_REASONS)
     .gte("removed_at", since);
-  if (userId) savedQuery = savedQuery.eq("added_by", userId);
+  if (until) usedQuery = usedQuery.lt("removed_at", until);
+  if (userId) usedQuery = usedQuery.eq("added_by", userId);
 
-  const [scans, items, cooked, cookedRecipeRows, removed, saved] = await Promise.all([
+  const [scans, items, cooked, cookedRecipeRows, removed, used] = await Promise.all([
     scansQuery,
     itemsQuery,
     cookedQuery,
     cookedRecipesQuery,
     removedQuery,
-    savedQuery,
+    usedQuery,
   ]);
 
   if (scans.error) throw scans.error;
@@ -79,11 +92,11 @@ export async function getInsightsData(
   if (cooked.error) throw cooked.error;
   if (cookedRecipeRows.error) throw cookedRecipeRows.error;
   if (removed.error) throw removed.error;
-  if (saved.error) throw saved.error;
+  if (used.error) throw used.error;
 
   const categoryBreakdown: Record<string, number> = {};
-  if (items.data) {
-    for (const row of items.data as { id: string; category: string }[]) {
+  if (used.data) {
+    for (const row of used.data as { id: string; category: string }[]) {
       categoryBreakdown[row.category] = (categoryBreakdown[row.category] ?? 0) + 1;
     }
   }
@@ -106,7 +119,7 @@ export async function getInsightsData(
     itemsAdded: items.count ?? 0,
     cookedEvents: cooked.count ?? 0,
     removedItems: removed.count ?? 0,
-    itemsSaved: saved.count ?? 0,
+    itemsUsed: used.count ?? 0,
     categoryBreakdown,
     cookedRecipes,
   };

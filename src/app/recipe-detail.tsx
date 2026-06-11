@@ -70,7 +70,13 @@ export default function RecipeDetailRoute() {
     quantityToUse: number;
     unit: string;
     used: boolean;
+    inFridge: boolean;
+    /** Fridge item used instead of the recipe ingredient (normalized + display). */
+    swapNormalized: string | null;
+    swapDisplay: string | null;
   }[]>([]);
+  // Index of the cooked-sheet row currently picking a substitute, if any.
+  const [swapIndex, setSwapIndex] = useState<number | null>(null);
   const [cooking, setCooking] = useState(false);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
   const [stepsViewportHeight, setStepsViewportHeight] = useState(0);
@@ -101,17 +107,38 @@ export default function RecipeDetailRoute() {
     // not just the ones matched when the recipe was generated.
     const fridgeNames = new Set(inventoryGroups.map((group) => group.normalizedName));
     const items = ingredients.map((ing) => {
+      const inFridge = fridgeNames.has(normalizeFoodName(ing.name));
       const parsed = parseIngredientAmount(ing.amount);
       return {
         name: ing.name,
         amount: ing.amount,
         quantityToUse: ing.countable ? parsed.value : (parsed.unit ? parsed.value : 1),
         unit: ing.countable ? "item" : (parsed.unit ?? "item"),
-        used: fridgeNames.has(normalizeFoodName(ing.name)),
+        used: inFridge,
+        inFridge,
+        swapNormalized: null,
+        swapDisplay: null,
       };
     });
     setCookedItems(items);
+    setSwapIndex(null);
     setShowCooked(true);
+  }
+
+  function applySwap(index: number, group: { normalizedName: string; name: string }) {
+    setCookedItems((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              used: true,
+              swapNormalized: group.normalizedName,
+              swapDisplay: group.name,
+            }
+          : item,
+      ),
+    );
+    setSwapIndex(null);
   }
 
   function toggleCookedItem(index: number) {
@@ -130,7 +157,9 @@ export default function RecipeDetailRoute() {
       const byName = new Map<string, { amount: number; unit: string }>();
       for (const item of cookedItems) {
         if (!item.used) continue;
-        const key = normalizeFoodName(item.name);
+        // A swapped row depletes the chosen fridge item instead of the
+        // recipe's original ingredient.
+        const key = item.swapNormalized ?? normalizeFoodName(item.name);
         const existing = byName.get(key);
         byName.set(key, {
           amount: (existing?.amount ?? 0) + item.quantityToUse,
@@ -310,42 +339,94 @@ export default function RecipeDetailRoute() {
       </View>
 
       <BottomSheet visible={showCooked} onDismiss={() => setShowCooked(false)}>
-        <Text variant="micro" color={colors.accent} style={styles.cookedEyebrow}>
-          {t("recipes.cooked.eyebrow")}
-        </Text>
-        <Text variant="h1" style={styles.cookedTitle}>{t("recipes.cooked.title")}</Text>
-        <Text variant="body" muted style={styles.cookedBody}>{t("recipes.cooked.body")}</Text>
+        {swapIndex === null ? (
+          <>
+            <Text variant="micro" color={colors.accent} style={styles.cookedEyebrow}>
+              {t("recipes.cooked.eyebrow")}
+            </Text>
+            <Text variant="h1" style={styles.cookedTitle}>{t("recipes.cooked.title")}</Text>
+            <Text variant="body" muted style={styles.cookedBody}>{t("recipes.cooked.body")}</Text>
 
-        <View style={styles.cookedList}>
-          {cookedItems.map((item, i) => (
-            <Pressable
-              key={i}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: item.used }}
-              onPress={() => toggleCookedItem(i)}
-              style={[styles.cookedItem, item.used && styles.cookedItemActive]}
-            >
-              <View style={[styles.checkbox, item.used && styles.checkboxActive]}>
-                {item.used ? (
-                  <Svg width={13} height={13} viewBox="0 0 13 13">
-                    <Path d="M3 7L5.5 9.5L10 4" stroke={colors.surface} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  </Svg>
-                ) : null}
-              </View>
-              <View style={styles.cookedItemCopy}>
-                <Text variant="body" style={[!item.used && styles.strikethrough]}>{item.name}</Text>
-                <Text variant="small" muted>{item.amount}</Text>
-              </View>
-            </Pressable>
-          ))}
-        </View>
+            <View style={styles.cookedList}>
+              {cookedItems.map((item, i) => (
+                <Pressable
+                  key={i}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: item.used }}
+                  onPress={() => toggleCookedItem(i)}
+                  style={[styles.cookedItem, item.used && styles.cookedItemActive]}
+                >
+                  <View style={[styles.checkbox, item.used && styles.checkboxActive]}>
+                    {item.used ? (
+                      <Svg width={13} height={13} viewBox="0 0 13 13">
+                        <Path d="M3 7L5.5 9.5L10 4" stroke={colors.surface} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      </Svg>
+                    ) : null}
+                  </View>
+                  <View style={styles.cookedItemCopy}>
+                    <Text variant="body" style={[!item.used && item.inFridge && styles.strikethrough]}>
+                      {item.swapDisplay ?? item.name}
+                    </Text>
+                    {item.swapDisplay ? (
+                      <Text variant="small" muted>
+                        {t("recipes.cooked.insteadOf", { item: item.name })}
+                      </Text>
+                    ) : (
+                      <Text variant="small" muted>{item.amount}</Text>
+                    )}
+                    {!item.inFridge && !item.swapDisplay ? (
+                      <View style={styles.missingRow}>
+                        <Text variant="small" muted>
+                          {t("recipes.cooked.notInFridge")}
+                        </Text>
+                        <Pressable
+                          accessibilityRole="button"
+                          hitSlop={8}
+                          onPress={() => setSwapIndex(i)}
+                        >
+                          <Text variant="small" color={colors.primary}>
+                            {t("recipes.cooked.useSomethingElse")}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    ) : null}
+                  </View>
+                </Pressable>
+              ))}
+            </View>
 
-        <Button
-          title={t("recipes.cooked.confirm", { count: removedCount })}
-          onPress={confirmCooked}
-          loading={cooking}
-          style={styles.cookedConfirm}
-        />
+            <Button
+              title={t("recipes.cooked.confirm", { count: removedCount })}
+              onPress={confirmCooked}
+              loading={cooking}
+              style={styles.cookedConfirm}
+            />
+          </>
+        ) : (
+          <>
+            <Text variant="h2" style={styles.cookedTitle}>
+              {t("recipes.cooked.swapTitle", { item: cookedItems[swapIndex]?.name ?? "" })}
+            </Text>
+            <ScrollView style={styles.swapList}>
+              {inventoryGroups.map((group) => (
+                <Pressable
+                  key={group.key}
+                  accessibilityRole="button"
+                  onPress={() => applySwap(swapIndex, group)}
+                  style={({ pressed }) => [styles.swapRow, pressed && styles.swapRowPressed]}
+                >
+                  <Text variant="body">{group.name}</Text>
+                  <Text variant="small" muted>{group.meta}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <Button
+              title={t("common.cancel")}
+              variant="text"
+              onPress={() => setSwapIndex(null)}
+            />
+          </>
+        )}
       </BottomSheet>
     </View>
   );
@@ -552,5 +633,25 @@ const styles = StyleSheet.create({
   },
   cookedConfirm: {
     marginTop: spacing.lg,
+  },
+  missingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.xxs,
+  },
+  swapList: {
+    maxHeight: 340,
+    marginTop: spacing.md,
+  },
+  swapRow: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hairline,
+    gap: spacing.xxs,
+  },
+  swapRowPressed: {
+    opacity: 0.6,
   },
 });
