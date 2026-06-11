@@ -74,9 +74,11 @@ export default function RecipeDetailRoute() {
     /** Fridge item used instead of the recipe ingredient (normalized + display). */
     swapNormalized: string | null;
     swapDisplay: string | null;
+    /** Extra fridge item the cook added beyond the recipe's ingredients. */
+    extra?: boolean;
   }[]>([]);
-  // Index of the cooked-sheet row currently picking a substitute, if any.
-  const [swapIndex, setSwapIndex] = useState<number | null>(null);
+  // Row currently picking a substitute, or "add" when appending an extra item.
+  const [swapIndex, setSwapIndex] = useState<number | "add" | null>(null);
   const [cooking, setCooking] = useState(false);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
   const [stepsViewportHeight, setStepsViewportHeight] = useState(0);
@@ -125,19 +127,37 @@ export default function RecipeDetailRoute() {
     setShowCooked(true);
   }
 
-  function applySwap(index: number, group: { normalizedName: string; name: string }) {
-    setCookedItems((prev) =>
-      prev.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              used: true,
-              swapNormalized: group.normalizedName,
-              swapDisplay: group.name,
-            }
-          : item,
-      ),
-    );
+  function applySwap(index: number | "add", group: { normalizedName: string; name: string; unit: string }) {
+    if (index === "add") {
+      // Extra fridge item used beyond the recipe — deplete one of it.
+      setCookedItems((prev) => [
+        ...prev,
+        {
+          name: group.name,
+          amount: `1 ${group.unit}`,
+          quantityToUse: 1,
+          unit: group.unit,
+          used: true,
+          inFridge: true,
+          swapNormalized: group.normalizedName,
+          swapDisplay: null,
+          extra: true,
+        },
+      ]);
+    } else {
+      setCookedItems((prev) =>
+        prev.map((item, i) =>
+          i === index
+            ? {
+                ...item,
+                used: true,
+                swapNormalized: group.normalizedName,
+                swapDisplay: group.name,
+              }
+            : item,
+        ),
+      );
+    }
     setSwapIndex(null);
   }
 
@@ -348,51 +368,72 @@ export default function RecipeDetailRoute() {
             <Text variant="body" muted style={styles.cookedBody}>{t("recipes.cooked.body")}</Text>
 
             <View style={styles.cookedList}>
-              {cookedItems.map((item, i) => (
-                <Pressable
-                  key={i}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: item.used }}
-                  onPress={() => toggleCookedItem(i)}
-                  style={[styles.cookedItem, item.used && styles.cookedItemActive]}
-                >
-                  <View style={[styles.checkbox, item.used && styles.checkboxActive]}>
-                    {item.used ? (
-                      <Svg width={13} height={13} viewBox="0 0 13 13">
-                        <Path d="M3 7L5.5 9.5L10 4" stroke={colors.surface} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                      </Svg>
-                    ) : null}
-                  </View>
-                  <View style={styles.cookedItemCopy}>
-                    <Text variant="body" style={[!item.used && item.inFridge && styles.strikethrough]}>
-                      {item.swapDisplay ?? item.name}
-                    </Text>
-                    {item.swapDisplay ? (
-                      <Text variant="small" muted>
-                        {t("recipes.cooked.insteadOf", { item: item.name })}
-                      </Text>
-                    ) : (
-                      <Text variant="small" muted>{item.amount}</Text>
-                    )}
-                    {!item.inFridge && !item.swapDisplay ? (
-                      <View style={styles.missingRow}>
+              {cookedItems.map((item, i) => {
+                const missing = !item.inFridge && !item.swapDisplay;
+
+                // Missing ingredient: visually distinct (dashed, no checkbox) —
+                // the only action is picking a substitute, so the row IS the action.
+                if (missing) {
+                  return (
+                    <Pressable
+                      key={i}
+                      accessibilityRole="button"
+                      onPress={() => setSwapIndex(i)}
+                      style={({ pressed }) => [styles.cookedItemMissing, pressed && styles.swapRowPressed]}
+                    >
+                      <View style={styles.cookedItemCopy}>
+                        <Text variant="body" muted>{item.name}</Text>
                         <Text variant="small" muted>
-                          {t("recipes.cooked.notInFridge")}
+                          {item.amount} · {t("recipes.cooked.notInFridge")}
                         </Text>
-                        <Pressable
-                          accessibilityRole="button"
-                          hitSlop={8}
-                          onPress={() => setSwapIndex(i)}
-                        >
-                          <Text variant="small" color={colors.primary}>
-                            {t("recipes.cooked.useSomethingElse")}
-                          </Text>
-                        </Pressable>
                       </View>
-                    ) : null}
-                  </View>
-                </Pressable>
-              ))}
+                      <Text variant="small" color={colors.primary}>
+                        {t("recipes.cooked.useSomethingElse")}
+                      </Text>
+                    </Pressable>
+                  );
+                }
+
+                return (
+                  <Pressable
+                    key={i}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: item.used }}
+                    onPress={() => toggleCookedItem(i)}
+                    style={[styles.cookedItem, item.used && styles.cookedItemActive]}
+                  >
+                    <View style={[styles.checkbox, item.used && styles.checkboxActive]}>
+                      {item.used ? (
+                        <Svg width={13} height={13} viewBox="0 0 13 13">
+                          <Path d="M3 7L5.5 9.5L10 4" stroke={colors.surface} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        </Svg>
+                      ) : null}
+                    </View>
+                    <View style={styles.cookedItemCopy}>
+                      <Text variant="body" style={[!item.used && styles.strikethrough]}>
+                        {item.swapDisplay ?? item.name}
+                      </Text>
+                      <Text variant="small" muted>
+                        {item.swapDisplay
+                          ? t("recipes.cooked.insteadOf", { item: item.name })
+                          : item.extra
+                            ? t("recipes.fromFridge")
+                            : item.amount}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setSwapIndex("add")}
+                style={({ pressed }) => [styles.addExtraRow, pressed && styles.swapRowPressed]}
+              >
+                <Text variant="label" color={colors.primary}>
+                  + {t("recipes.cooked.addExtra")}
+                </Text>
+              </Pressable>
             </View>
 
             <Button
@@ -405,7 +446,9 @@ export default function RecipeDetailRoute() {
         ) : (
           <>
             <Text variant="h2" style={styles.cookedTitle}>
-              {t("recipes.cooked.swapTitle", { item: cookedItems[swapIndex]?.name ?? "" })}
+              {swapIndex === "add"
+                ? t("recipes.cooked.swapAddTitle")
+                : t("recipes.cooked.swapTitle", { item: cookedItems[swapIndex]?.name ?? "" })}
             </Text>
             <ScrollView style={styles.swapList}>
               {inventoryGroups.map((group) => (
@@ -634,11 +677,25 @@ const styles = StyleSheet.create({
   cookedConfirm: {
     marginTop: spacing.lg,
   },
-  missingRow: {
+  cookedItemMissing: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    marginTop: spacing.xxs,
+    justifyContent: "space-between",
+    gap: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: colors.hairlineStrong,
+    borderRadius: radii.lg,
+  },
+  addExtraRow: {
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: colors.hairline,
+    borderRadius: radii.lg,
   },
   swapList: {
     maxHeight: 340,
