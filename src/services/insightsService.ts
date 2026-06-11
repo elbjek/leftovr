@@ -16,7 +16,9 @@ export type InsightsSummary = {
 const ESTIMATED_VALUE_PER_ITEM = 1.5;
 
 export function computeInsightsSummary(raw: InsightsRawData): InsightsSummary {
-  const estimatedItemsSaved = Math.max(0, raw.itemsAdded - raw.removedItems);
+  // "Saved" means consumed — cooked or fully used up — not merely added to the
+  // fridge. The money figure stays an estimate (flat value per item).
+  const estimatedItemsSaved = raw.itemsUsed;
   const estimatedMoneySaved = estimatedItemsSaved * ESTIMATED_VALUE_PER_ITEM;
 
   let mostUsedCategory: string | null = null;
@@ -28,14 +30,14 @@ export function computeInsightsSummary(raw: InsightsRawData): InsightsSummary {
     }
   }
 
-  const isSparse = raw.itemsAdded < 3 && raw.cookedEvents === 0;
+  const isSparse = raw.itemsUsed === 0 && raw.cookedEvents === 0;
 
   return {
     receiptScans: raw.receiptScans,
     itemsAdded: raw.itemsAdded,
     cookedEvents: raw.cookedEvents,
     removedItems: raw.removedItems,
-    itemsSaved: raw.itemsSaved,
+    itemsSaved: raw.itemsUsed,
     estimatedItemsSaved,
     estimatedMoneySaved,
     mostUsedCategory,

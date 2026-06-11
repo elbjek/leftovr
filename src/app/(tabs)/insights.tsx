@@ -18,7 +18,7 @@ export default function InsightsRoute() {
   const [scope, setScope] = useState<"you" | "household">("you");
   const { members } = useHousehold(activeHousehold?.id);
   const showHouseholdScope = members.length >= 2;
-  const { weeklySummary, householdWeeklySummary, loading } = useInsights(
+  const { weeklySummary, lastWeekSummary, householdWeeklySummary, loading } = useInsights(
     isPremium ? activeHousehold?.id : undefined,
     { userId: profile?.id, includeHousehold: showHouseholdScope },
   );
@@ -58,6 +58,10 @@ export default function InsightsRoute() {
 
   const summary =
     (scope === "household" ? householdWeeklySummary : weeklySummary) ?? getEmptySummary();
+  // Real week-over-week deltas (personal scope only; household scope shows no trend).
+  const lastWeek = scope === "you" ? lastWeekSummary : null;
+  const savedDelta = lastWeek ? summary.estimatedItemsSaved - lastWeek.estimatedItemsSaved : 0;
+  const cookedDelta = lastWeek ? summary.cookedEvents - lastWeek.cookedEvents : 0;
 
   return (
     <Screen padded={false} contentContainerStyle={styles.content}>
@@ -81,7 +85,7 @@ export default function InsightsRoute() {
       </View>
 
       <View style={styles.heroWrap}>
-        <HeroStat summary={summary} />
+        <HeroStat summary={summary} savedDelta={savedDelta} />
       </View>
 
       <ScrollView
@@ -93,7 +97,11 @@ export default function InsightsRoute() {
           <MiniStat
             label={t("insights.recipesCooked")}
             value={String(summary.cookedEvents)}
-            sub={t("insights.recipesCookedSub")}
+            sub={
+              cookedDelta > 0
+                ? t("insights.recipesCookedSubUp", { count: cookedDelta })
+                : t("insights.recipesCookedSubFlat")
+            }
           />
           <MiniStat
             label={t("insights.eatFirstHits")}
@@ -109,7 +117,7 @@ export default function InsightsRoute() {
   );
 }
 
-function HeroStat({ summary }: { summary: InsightsSummary }) {
+function HeroStat({ summary, savedDelta }: { summary: InsightsSummary; savedDelta: number }) {
   const { t } = useTranslation();
   const items = summary.estimatedItemsSaved;
   const amount = summary.estimatedMoneySaved.toFixed(0);
@@ -129,7 +137,9 @@ function HeroStat({ summary }: { summary: InsightsSummary }) {
       <Text variant="small" color="rgba(248,244,238,0.86)">
         {summary.isSparse
           ? t("insights.heroSparse")
-          : t("insights.heroTrend", { count: Math.max(1, Math.round(items / 3)) })}
+          : savedDelta > 0
+            ? t("insights.heroTrend", { count: savedDelta })
+            : t("insights.heroTrendFlat")}
       </Text>
     </View>
   );

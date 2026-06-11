@@ -12,6 +12,12 @@ function startOfCurrentWeek(): string {
   return monday.toISOString();
 }
 
+function startOfPreviousWeek(): string {
+  const monday = new Date(startOfCurrentWeek());
+  monday.setDate(monday.getDate() - 7);
+  return monday.toISOString();
+}
+
 function startOfCurrentMonth(): string {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -23,6 +29,7 @@ export function useInsights(
 ) {
   const { userId, includeHousehold } = options;
   const [weeklySummary, setWeeklySummary] = useState<InsightsSummary | null>(null);
+  const [lastWeekSummary, setLastWeekSummary] = useState<InsightsSummary | null>(null);
   const [monthlySummary, setMonthlySummary] = useState<InsightsSummary | null>(null);
   const [householdWeeklySummary, setHouseholdWeeklySummary] = useState<InsightsSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,14 +44,17 @@ export function useInsights(
       setError(null);
 
       try {
-        const [weeklyRaw, monthlyRaw, householdWeeklyRaw] = await Promise.all([
+        const [weeklyRaw, lastWeekRaw, monthlyRaw, householdWeeklyRaw] = await Promise.all([
           getInsightsData(householdId!, startOfCurrentWeek(), userId),
+          // Real previous-week window for the trend copy.
+          getInsightsData(householdId!, startOfPreviousWeek(), userId, startOfCurrentWeek()),
           getInsightsData(householdId!, startOfCurrentMonth(), userId),
           includeHousehold ? getInsightsData(householdId!, startOfCurrentWeek()) : null,
         ]);
 
         if (!cancelled) {
           setWeeklySummary(computeInsightsSummary(weeklyRaw));
+          setLastWeekSummary(computeInsightsSummary(lastWeekRaw));
           setMonthlySummary(computeInsightsSummary(monthlyRaw));
           setHouseholdWeeklySummary(
             householdWeeklyRaw ? computeInsightsSummary(householdWeeklyRaw) : null,
@@ -63,5 +73,5 @@ export function useInsights(
     return () => { cancelled = true; };
   }, [householdId, includeHousehold, userId]);
 
-  return { weeklySummary, monthlySummary, householdWeeklySummary, loading, error };
+  return { weeklySummary, lastWeekSummary, monthlySummary, householdWeeklySummary, loading, error };
 }
