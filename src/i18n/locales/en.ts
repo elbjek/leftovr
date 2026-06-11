@@ -448,6 +448,8 @@ export const en = {
       useSomethingElse: "Use something else?",
       insteadOf: "instead of {{item}}",
       swapTitle: "What did you use instead of {{item}}?",
+      swapAddTitle: "What else did you use?",
+      addExtra: "Add something else you used",
     },
     byName: "by {{name}}",
     tabs: {

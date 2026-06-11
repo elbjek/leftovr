@@ -448,6 +448,8 @@ export const sr = {
       useSomethingElse: "Koristi nesto drugo?",
       insteadOf: "umesto {{item}}",
       swapTitle: "Sta si koristio/la umesto {{item}}?",
+      swapAddTitle: "Sta si jos koristio/la?",
+      addExtra: "Dodaj jos nesto sto si koristio/la",
     },
     byName: "od {{name}}",
     tabs: {
