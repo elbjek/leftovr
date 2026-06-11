@@ -256,7 +256,7 @@ export default function RecipesRoute() {
   }
 
   return (
-    <Screen padded={false}>
+    <Screen padded={false} bottomInset={false}>
       {isEmpty ? (
         <View style={styles.emptyWrap}>
           <EmptyState

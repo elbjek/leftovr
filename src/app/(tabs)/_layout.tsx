@@ -74,6 +74,9 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <SettingsIcon color={String(color)} />,
         }}
       />
+      {/* Detail screen lives inside the tab group so the dock stays visible,
+          but it is not itself a tab. */}
+      <Tabs.Screen name="recipe-detail" options={{ href: null }} />
     </Tabs>
   );
 }
@@ -90,6 +93,8 @@ function ChompTabBar({ state, navigation }: TabBarProps) {
   return (
     <View style={styles.dock}>
       {state.routes.map((route, index) => {
+        // Routes in the group that aren't tabs (href: null) don't get a dock slot.
+        if (route.name === "recipe-detail") return null;
         const focused = state.index === index;
         const color = focused ? colors.primary : colors.muted2;
         const label = getTabLabel(route.name, t);

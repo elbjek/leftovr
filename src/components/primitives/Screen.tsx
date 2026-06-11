@@ -32,7 +32,13 @@ export function Screen({
   ];
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor }, style]}>
+    <SafeAreaView
+      // bottomInset={false} also drops the safe-area bottom edge: inside the
+      // tab navigator the dock already clears the home indicator, so keeping
+      // the edge would float absolute-bottom CTAs an extra inset above it.
+      edges={bottomInset ? ["top", "bottom", "left", "right"] : ["top", "left", "right"]}
+      style={[styles.safe, { backgroundColor }, style]}
+    >
       {scroll ? (
         <ScrollView
           bounces={false}
