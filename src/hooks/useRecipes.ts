@@ -17,7 +17,7 @@ import {
   RecipeMatch,
 } from "@/services/recipeService";
 import { generateRecipeMatches, RecipeGenerationFilters } from "@/services/recipeGenerationService";
-import { InventoryLot } from "@/services/inventoryRules";
+import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 
 export type CookedSummary = { count: number; cookedBy: string[] };
@@ -176,7 +176,7 @@ export function useRecipes(
               category: lot.category,
               quantity: lot.quantity,
               unit: lot.unit,
-              urgency: lot.urgency,
+              urgency: resolveUrgency(lot),
             })),
             isPremiumOptimized: isPremium,
           });

@@ -167,7 +167,7 @@ Whole `InventoryLot[]` (all columns, all lots) per session. Unbounded growth: ~3
 |---|---|
 | D1, D2, D3, D6 | ✅ Fixed — `20260611100815_rls_perf_and_search_path.sql`; advisors 17 → 0; RLS smoke test passed |
 | D4, D5 | ✅ Fixed — `20260611100816_fk_and_hotpath_indexes.sql` (11 indexes) |
-| D7 | ◐ Mostly fixed — `recipes.is_favorite` dropped (`20260611101241`), `display_quantity` dropped (`20260611101932`); `urgency` column intentionally kept until CODE_REVIEW #1 (client must compute urgency on read first) |
+| D7 | ✅ Fixed — `recipes.is_favorite` (`20260611101241`), `display_quantity` (`20260611101932`), and `urgency` + `urgency_band` enum (`20260611181942`) all dropped. Urgency is computed on read (`resolveUrgency`); the depletion sort now resolves urgency live instead of reading the dropped column. |
 | D8 | ✅ Fixed — sessions store trimmed `FridgeSnapshotItem[]` (client) |
 | D9 | ✅ Fixed — partial unique signature index + 23505 backstop in `processMockReceiptScan` |
 | D10 | ✅ Fixed — one `listCookedEventRows` query feeds counts, summaries, and the cooked tab; `listCookedRecipes`/`withCookedCounts` deleted |

@@ -1,6 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import {
-  computeUrgency,
   getCatalogFood,
   getCatalogNet,
   getNextPartialState,
@@ -12,6 +11,7 @@ import {
   normalizeFoodName,
   PartialState,
   planDepletion,
+  resolveUrgency,
   urgencyRank,
 } from "@/services";
 
@@ -35,7 +35,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
   const { data, error } = await supabase
     .from("inventory_items")
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, urgency, shelf_life_range, expires_at, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
     )
     .eq("household_id", householdId)
     .is("removed_at", null)
@@ -56,7 +56,6 @@ export async function listActiveHouseholdInventory(householdId: string) {
     net_amount: row.net_amount ?? null,
     net_unit: row.net_unit ?? null,
     partial_state: row.partial_state,
-    urgency: row.urgency,
     shelf_life_range: row.shelf_life_range,
     expires_at: row.expires_at ?? null,
     source: row.source,
@@ -85,7 +84,6 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
   const category = input.category ?? inferCategory(name);
   const catalogItem = getCatalogFood(name);
   const addedAt = input.addedAt ?? new Date().toISOString();
-  const urgency = computeUrgency({ name, category, addedAt });
   const quantity = input.quantity ?? 1;
   const unit = input.unit ?? catalogItem?.unit ?? "item";
   const catalogNet = getCatalogNet(name);
@@ -107,7 +105,6 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       net_amount: netAmount,
       net_unit: netUnit,
       partial_state: "full" satisfies PartialState,
-      urgency,
       shelf_life_range: getShelfLifeRange(name, category),
       expires_at: input.expiresAt ?? null,
       source: input.source ?? "manual",
@@ -115,7 +112,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       added_at: addedAt,
     })
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, urgency, shelf_life_range, expires_at, source, added_at, removed_at",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at",
     )
     .single<InventoryLot>();
 
@@ -196,7 +193,7 @@ async function computeDepletionOps(
 
   const { data, error } = await supabase
     .from("inventory_items")
-    .select("id, quantity, partial_state, unit, urgency, added_at, net_amount, net_unit")
+    .select("id, name, category, quantity, partial_state, unit, expires_at, added_at, net_amount, net_unit")
     .eq("household_id", householdId)
     .eq("normalized_name", normalizedName)
     .is("removed_at", null);
@@ -205,17 +202,21 @@ async function computeDepletionOps(
 
   const lots = (data ?? []) as {
     id: string;
+    name: string;
+    category: InventoryCategory;
     quantity: number;
     partial_state: PartialState;
     unit: string;
-    urgency: "safe" | "use_soon" | "urgent" | null;
+    expires_at: string | null;
     added_at: string;
     net_amount: number | null;
     net_unit: "ml" | "g" | null;
   }[];
 
+  // Most-urgent first (urgency computed live, not from the dropped column),
+  // then soonest-added — so depletion spills out the at-risk lots first.
   lots.sort((a, b) => {
-    const rank = urgencyRank(b.urgency) - urgencyRank(a.urgency);
+    const rank = urgencyRank(resolveUrgency(b)) - urgencyRank(resolveUrgency(a));
     if (rank !== 0) return rank;
     return a.added_at.localeCompare(b.added_at);
   });

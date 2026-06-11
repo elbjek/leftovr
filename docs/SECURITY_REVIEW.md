@@ -111,7 +111,7 @@ A trusted-household model is a legitimate design choice for fridge items — but
 | S5 | ✅ Fixed — `LargeSecureStore` (AES-256 key in expo-secure-store, ciphertext in AsyncStorage) per Supabase's official adapter; wired into `getSupabaseClient`. Native rebuild required to exercise on-device. |
 | S6 | ✅ Fixed — DATABASE_REVIEW D14 (`20260611101241`): grants narrowed to DML. |
 | S7 | ✅ Fixed (stub) — `generate-recipes` no longer echoes raw request; `verify_jwt` default (true) retained (no per-function override in config.toml). Real validation lands with the Anthropic implementation. |
-| S8 | ✅ Not a live hole — verified the restrictive RLS gate blocks free post-onboarding receipt scans (smoke). ⚠️ Conflict to resolve: client `FREE_MONTHLY_RECEIPT_LIMIT = 3` is display-only and disagrees with the gate (gate grants 0 free scans post-onboarding, not 3). Product decision, not security. |
+| S8 | ✅ Resolved — product decision: **0 free scans** post-onboarding. The misleading client-side `FREE_MONTHLY_RECEIPT_LIMIT`, `getReceiptScanLimitStatus`, `ReceiptLimitStatus`, and the `ReceiptScanResult.limit` field are removed; the restrictive RLS gate (premium-or-onboarding) is the sole enforcement. |
 | S9 | ✅ Fixed — auth `console.error` calls gated behind `__DEV__`. |
 | S10 | ✅ Fixed (local) — `config.toml` sets `otp_expiry = 600`, `max_frequency = "1m0s"`; ⚠️ must be mirrored in the hosted dashboard before launch (config.toml only configures local). |
 | S11, S12, S13 | ⏳ Informational — privacy-policy / consent items; no code fix. S12: replace the `local-dev@chomp.app` OpenFoodFacts UA contact with a real address before release. |

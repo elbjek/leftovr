@@ -16,7 +16,6 @@ function lot(name: string, normalized_name: string): InventoryLot {
     net_amount: null,
     net_unit: null,
     partial_state: "full",
-    urgency: "safe",
     shelf_life_range: null,
     source: "receipt",
     added_by: "user-1",
