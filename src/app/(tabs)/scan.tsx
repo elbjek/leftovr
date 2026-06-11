@@ -59,22 +59,20 @@ export default function ScanRoute() {
   const [permission, requestPermission] = useCameraPermissions();
   const paramChoice = getParamChoice(params.mode);
   const initialChoice = paramChoice ?? "receipt";
-  const canScan = resolvePremium(profile, activeHousehold);
-  // Onboarding (first-fill not yet completed) grants one free simulated scan.
-  const onboardingScan = !activeHousehold?.first_fill_completed_at;
-  const scanAllowed = canScan || onboardingScan;
+  // Receipt scanning carries a per-scan AI cost → premium only, no free
+  // onboarding scan. Barcode (free OpenFoodFacts lookup) and manual entry are
+  // free for everyone.
+  const canScanReceipt = resolvePremium(profile, activeHousehold);
   // Deep-linking with a mode param (from first-fill / fridge) opens the action
-  // directly instead of bouncing through the choice screen. Gated scans fall back
-  // to the choice screen (a Premium sheet is shown via the mount effect below).
+  // directly instead of bouncing through the choice screen. A gated receipt
+  // scan falls back to the choice screen (Premium sheet shown on mount).
   const initialMode: ScanMode =
     paramChoice === "manual"
       ? "manual"
       : paramChoice === "barcode"
-        ? scanAllowed
-          ? "barcodeCamera"
-          : "choice"
+        ? "barcodeCamera"
         : paramChoice === "receipt"
-          ? scanAllowed
+          ? canScanReceipt
             ? "camera"
             : "choice"
           : "choice";
@@ -97,7 +95,7 @@ export default function ScanRoute() {
   const [lastAddedName, setLastAddedName] = useState("");
   // Open straight onto the Premium sheet if the initial deep-link is a gated scan.
   const [scanPremiumVisible, setScanPremiumVisible] = useState(
-    (paramChoice === "receipt" || paramChoice === "barcode") && !scanAllowed,
+    paramChoice === "receipt" && !canScanReceipt,
   );
   const [barcodeLocked, setBarcodeLocked] = useState(false);
   // Seeded with the initial param so the auto-open effect below does not re-run
@@ -162,13 +160,8 @@ export default function ScanRoute() {
     setChoice(nextChoice);
     setError(null);
 
-    // Onboarding (first-fill) gives one free simulated scan: gate only once first-fill is done.
-    if (
-      (nextChoice === "receipt" || nextChoice === "barcode") &&
-      !canScan &&
-      !options?.skipGate &&
-      activeHousehold?.first_fill_completed_at
-    ) {
+    // Receipt scanning is premium-only (per-scan AI cost); barcode and manual are free.
+    if (nextChoice === "receipt" && !canScanReceipt && !options?.skipGate) {
       setScanPremiumVisible(true);
       return;
     }
@@ -190,7 +183,7 @@ export default function ScanRoute() {
     }
 
     setMode(nextChoice === "barcode" ? "barcodeCamera" : "camera");
-  }, [activeHousehold?.first_fill_completed_at, canScan, choice, permission?.granted, requestPermission, t]);
+  }, [canScanReceipt, choice, permission?.granted, requestPermission, t]);
 
   useEffect(() => {
     const paramMode = params.mode;
@@ -253,8 +246,8 @@ export default function ScanRoute() {
       setMode("success");
     } catch (scanError) {
       // RLS rejection AND the client agrees the user isn't entitled = upsell.
-      // (A 42501 while canScan is true means a different problem, e.g. stale household.)
-      if (isPremiumGateError(scanError) && !canScan) {
+      // (A 42501 while canScanReceipt is true means a different problem, e.g. stale household.)
+      if (isPremiumGateError(scanError) && !canScanReceipt) {
         setMode("choice");
         setScanPremiumVisible(true);
         return;
@@ -312,11 +305,7 @@ export default function ScanRoute() {
       setLastAddedName(product.name);
       setMode("addSuccess");
     } catch (addError) {
-      if (isPremiumGateError(addError) && !canScan) {
-        setMode("choice");
-        setScanPremiumVisible(true);
-        return;
-      }
+      // Barcode adds are free — no premium gate to translate here.
       setError(errorMessage(addError, t("auth.genericError")));
     }
   }
@@ -529,25 +518,30 @@ export default function ScanRoute() {
               </Text>
             </View>
 
-            <View style={styles.templateRail}>
-              {mockBarcodeProducts.map((product) => (
+            {__DEV__ ? (
+              // Simulator helper: the camera can't scan there, so these chips
+              // simulate hits/misses. Production scans come from the camera +
+              // live Open Food Facts lookup only.
+              <View style={styles.templateRail}>
+                {mockBarcodeProducts.map((product) => (
+                  <Pressable
+                    key={product.barcode}
+                    accessibilityRole="button"
+                    onPress={() => addMockBarcodeProduct(product)}
+                    style={styles.templateChip}
+                  >
+                    <Text variant="small">{product.name}</Text>
+                  </Pressable>
+                ))}
                 <Pressable
-                  key={product.barcode}
                   accessibilityRole="button"
-                  onPress={() => addMockBarcodeProduct(product)}
+                  onPress={() => addInventoryFromBarcode("unknown-demo-code")}
                   style={styles.templateChip}
                 >
-                  <Text variant="small">{product.name}</Text>
+                  <Text variant="small">{t("scan.unknownBarcode")}</Text>
                 </Pressable>
-              ))}
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => addInventoryFromBarcode("unknown-demo-code")}
-                style={styles.templateChip}
-              >
-                <Text variant="small">{t("scan.unknownBarcode")}</Text>
-              </Pressable>
-            </View>
+              </View>
+            ) : null}
 
             {error ? (
               <Text variant="small" color={colors.red} center>

@@ -3,6 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import * as aesjs from "aes-js";
 
+// aes-js's hex.toBytes silently yields NaN bytes for non-hex input, which then
+// throws deep inside the cipher ("Array contains invalid value"). Validate up front.
+function isHex(value: string) {
+  return value.length % 2 === 0 && /^[0-9a-fA-F]*$/.test(value);
+}
+
 // SECURITY_REVIEW S5: Supabase auth tokens (refresh + access JWT) were stored
 // in plaintext AsyncStorage. expo-secure-store caps values at 2048 bytes — too
 // small for a session — so we follow Supabase's official adapter: a per-key
@@ -23,8 +29,11 @@ export class LargeSecureStore {
 
   private async _decrypt(key: string, value: string) {
     const encryptionKeyHex = await SecureStore.getItemAsync(key);
-    if (!encryptionKeyHex) {
-      return encryptionKeyHex;
+    // No key (e.g. a legacy plaintext value written before this adapter), or a
+    // value/key that isn't valid hex → not decryptable. Bail instead of letting
+    // aes-js choke on NaN bytes.
+    if (!encryptionKeyHex || !isHex(encryptionKeyHex) || !isHex(value)) {
+      return null;
     }
 
     const cipher = new aesjs.ModeOfOperation.ctr(
@@ -39,10 +48,17 @@ export class LargeSecureStore {
   async getItem(key: string) {
     const encrypted = await AsyncStorage.getItem(key);
     if (!encrypted) {
-      return encrypted;
+      return null;
     }
 
-    return await this._decrypt(key, encrypted);
+    try {
+      return await this._decrypt(key, encrypted);
+    } catch {
+      // Corrupt or legacy entry — drop it so the app falls back to a
+      // logged-out state instead of crashing on every read/refresh.
+      await this.removeItem(key);
+      return null;
+    }
   }
 
   async removeItem(key: string) {

@@ -371,18 +371,9 @@ Include several realistic templates:
 - snack-heavy shop
 - low-confidence receipt
 
-Receipt scan limits count successful receipt additions only.
-
-Do not count:
-
-- cancelled capture
-- failed processing
-- duplicate cancelled by user
-
-Do count:
-
-- successful scan adding high-confidence items
-- duplicate where user chooses "Add anyway"
+Receipt scanning is premium-only (each scan carries a real AI processing
+cost). There is no free allowance and no free onboarding scan; free users see
+the Premium sheet when choosing the receipt path.
 
 ### Low-Confidence Review Queue
 
@@ -468,7 +459,6 @@ V1 removes the credit system.
 
 Free users get:
 
-- 3 successful receipt scans per calendar month
 - 3 recipe sessions per calendar week
 - unlimited barcode scans
 - unlimited manual adds
@@ -477,7 +467,7 @@ Free users get:
 
 Free users do not get:
 
-- unlimited receipt scanning
+- receipt scanning (premium only — each scan carries a real AI processing cost)
 - unlimited recipe sessions
 - full Eat First shelf
 - optimized premium recipe filters
@@ -511,7 +501,7 @@ Premium reveal is contextual through a bottom sheet.
 Triggers:
 
 - free user attempts fourth weekly recipe session
-- free user exceeds monthly receipt scan limit
+- free user attempts a receipt scan
 - free user taps full Insights
 - free user taps full Eat First
 - free user enters household invite/create flow
