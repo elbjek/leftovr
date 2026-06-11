@@ -106,12 +106,55 @@ export const demoFoodCatalog: CatalogFood[] = [
 
 const catalogByName = new Map(demoFoodCatalog.map((item) => [normalizeFoodName(item.name), item]));
 
+// Localized aliases → canonical catalog name. The demo catalog and recipe
+// library are English mock data, so non-English inventory names (e.g. the
+// Serbian demo item "Grcki jogurt") miss the catalog and get a generic
+// category/shelf life. This bounded alias table fixes the foods the app
+// itself surfaces; full multilingual food intelligence is the eventual
+// AI/OpenFoodFacts-taxonomy job (CODE_REVIEW #7). Keys are diacritic-folded.
+const FOOD_ALIASES: Record<string, string> = {
+  // Serbian
+  "grcki jogurt": "greek yogurt",
+  jogurt: "greek yogurt",
+  mleko: "milk",
+  jaja: "eggs",
+  "pileca prsa": "chicken breast",
+  losos: "salmon",
+  spanac: "spinach",
+  paradajz: "tomatoes",
+  banane: "bananas",
+  pirinac: "rice",
+  "smrznuti grasak": "frozen peas",
+  "sok od pomorandze": "orange juice",
+  humus: "hummus",
+  kackavalj: "cheddar",
+};
+
+function foldDiacritics(value: string) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 export function normalizeFoodName(name: string) {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 export function getCatalogFood(name: string) {
-  return catalogByName.get(normalizeFoodName(name));
+  const normalized = normalizeFoodName(name);
+  const direct = catalogByName.get(normalized);
+  if (direct) return direct;
+
+  const canonical = FOOD_ALIASES[foldDiacritics(normalized)];
+  return canonical ? catalogByName.get(canonical) : undefined;
+}
+
+// Normalized name folded through the alias table to a canonical (English)
+// catalog key when one exists. Both the fridge and the English recipe library
+// resolve through this so a localized inventory name still matches recipe
+// ingredients (CODE_REVIEW #7).
+export function canonicalFoodName(name: string) {
+  const normalized = normalizeFoodName(name);
+  if (catalogByName.has(normalized)) return normalized;
+  return FOOD_ALIASES[foldDiacritics(normalized)] ?? normalized;
 }
 
 export function getCatalogNet(name: string): { netAmount: number; netUnit: "ml" | "g" } | null {

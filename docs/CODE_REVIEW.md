@@ -136,16 +136,18 @@ One `load()` in `useRecipes` triggers: `listHouseholdRecipes` → `withCookedCou
 | 4 | ✅ Fixed — manual add scales `netAmount × quantity` to match the catalog path. |
 | 5 | ✅ Fixed — unreachable `renderShelf` + orphaned `urgentGroups`/styles deleted. |
 | 6 | ✅ Fixed — dead fridge search button + orphaned `SearchIcon`/`Circle` import removed (search is a future feature, not wired to nothing). |
-| 7 | ⏳ Deferred — English-only food catalog/recipe matching is an architectural/product decision (per-locale catalog vs AI/OFF taxonomy). Flagged, no mechanical fix. |
+| 7 | ✅ Fixed (prototype scope) — `FOOD_ALIASES` + `canonicalFoodName()` fold localized food names (incl. diacritics) to the canonical English catalog, so the Serbian demo item categorizes correctly and localized fridge items match the English recipe library. Full multilingual intelligence (translated recipe content) remains the AI/OFF-taxonomy job. 1 new test. |
 | 8 | ✅ Fixed — `formatComplexity`/`formatTimeLabel` now i18n (en+sr keys added); recipe-detail inline English replaced; missing `slides.3.titleAfter` sr key added (parity now 0). `shelf_life_range` left as-is — it's number-parsed, never rendered. |
 | 9 | ✅ Fixed — scan effect moves all setState into the timer callback; HouseholdSection uses the render-time prop-sync pattern; unused `Pressable` import removed. Lint clean. |
 | 10 | ✅ Fixed in DATABASE_REVIEW D10 (single cooked-events query). |
 | 11 | ✅ Fixed in DATABASE_REVIEW D11 (one `.in()` update). |
 | 12 | ✅ Fixed — `urgencyRank` exported and reused; duplicate `urgencyDepletionRank` deleted. |
 | 13 | ✅ Fixed — `getDepletionUpdate` reuses `getNextPartialState`. |
-| 14 | ⏳ Deferred — 10-param navigation → fetch-by-id is a feature-sized refactor touching the cook flow; needs its own PR with on-device verification. Maintainability, not a correctness bug. |
+| 14 | ✅ Fixed — both nav builders collapsed into one `goToRecipeDetail`; the 3 dead/recomputable JSON params (`usedInventoryItemIds`, `usedInventoryItems`, `matchedUrgentItems`) removed — the cook flow already depletes by name against live inventory, and urgent ingredients are now recomputed live in the detail screen. Dead builders/types/parser deleted. |
 | 15 | ✅ Fixed — `lookupOpenFoodFactsBarcode` now uses an AbortController timeout. |
 | 16 | ✅ Fixed — favorite delete scoped with `.eq("user_id", uid)`. |
+
+**All 16 findings resolved.** The two former deferrals (#7, #14) are done at prototype scope; the only remaining multilingual work (translated recipe *content*) is genuinely the AI-generation milestone, not a fixable bug today.
 
 ## Suggested fix order
 

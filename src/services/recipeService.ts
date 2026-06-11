@@ -1,6 +1,6 @@
 import { i18n } from "@/i18n";
 import { MockRecipe, RECIPE_LIBRARY } from "@/mocks/recipeLibrary";
-import { InventoryLot, normalizeFoodName, resolveUrgency } from "./inventoryRules";
+import { canonicalFoodName, InventoryLot, resolveUrgency } from "./inventoryRules";
 
 export type RecipeMatch = MockRecipe & {
   matchedItems: MatchedItem[];
@@ -32,10 +32,13 @@ export type RecipeMatcherInput = {
 
 export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
   const { inventory, avoidances, isPremium } = input;
+  // Key by canonical (alias-folded) name so a localized fridge item still
+  // matches the English recipe library (CODE_REVIEW #7).
   const inventoryByNorm = new Map<string, InventoryLot>();
   for (const lot of inventory) {
-    if (!inventoryByNorm.has(lot.normalized_name)) {
-      inventoryByNorm.set(lot.normalized_name, lot);
+    const key = canonicalFoodName(lot.normalized_name);
+    if (!inventoryByNorm.has(key)) {
+      inventoryByNorm.set(key, lot);
     }
   }
 
@@ -50,7 +53,7 @@ export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
 
   const scored = filtered.map((recipe) => {
     const matchedItems: MatchedItem[] = recipe.ingredients.map((ing) => {
-      const norm = normalizeFoodName(ing.name);
+      const norm = canonicalFoodName(ing.name);
       const lot = inventoryByNorm.get(norm) ?? null;
       // Resolve urgency from expiry/age — the stored column is stale (CODE_REVIEW #2).
       const lotUrgency = lot ? resolveUrgency(lot) : null;
@@ -69,7 +72,7 @@ export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
 
     const required = recipe.ingredients.filter((i) => i.required);
     const matchedRequired = required.filter((i) =>
-      inventoryByNorm.has(normalizeFoodName(i.name)),
+      inventoryByNorm.has(canonicalFoodName(i.name)),
     ).length;
     const coverage =
       required.length === 0

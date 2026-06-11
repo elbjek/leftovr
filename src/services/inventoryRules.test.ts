@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   getShelfLifeDays,
+  inferCategory,
   InventoryLot,
   isMetricAmountRunningLow,
   resolveUrgency,
@@ -37,6 +38,14 @@ describe("getShelfLifeDays", () => {
   it("returns catalog days for known foods and category defaults otherwise", () => {
     expect(getShelfLifeDays("Salmon", "fish")).toEqual([1, 2]);
     expect(getShelfLifeDays("Mystery item", "meat")).toEqual([1, 3]);
+  });
+
+  it("resolves localized aliases to the canonical catalog entry", () => {
+    // Serbian demo item maps to "Greek yogurt" (dairy_eggs, [5,8]).
+    expect(getShelfLifeDays("Grcki jogurt", "other")).toEqual([5, 8]);
+    expect(inferCategory("Grcki jogurt")).toBe("dairy_eggs");
+    // Diacritic-folded match: "Spanać" → spinach.
+    expect(inferCategory("Spanać")).toBe("vegetables");
   });
 });
 

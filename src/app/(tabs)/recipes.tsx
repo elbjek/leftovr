@@ -19,7 +19,6 @@ import { colors, fonts, radii, spacing } from "@/theme";
 
 type RecipeTab = "all" | "saved" | "cooked" | "household";
 type RecipeIngredientParam = { name: string };
-type UsedInventoryItemParam = { ingredientName: string; itemId: string };
 
 export default function RecipesRoute() {
   const { t } = useTranslation();
@@ -93,62 +92,77 @@ export default function RecipesRoute() {
     setGenerateNotice(result && result.recipes.length === 0 ? t("recipes.noMakeable") : null);
   }, [canGenerate, cookingMode, generateSession, t]);
 
-  const navigateToDetail = useCallback(
-    (match: RecipeMatch, recipeId?: string) => {
-      const usedInventoryItems = buildUsedInventoryItemsFromMatch(match);
-      const usedIds = usedInventoryItems.map((item) => item.itemId);
-      const urgentNames = match.matchedItems
-        .filter((m) => m.isUrgent)
-        .map((m) => m.ingredientName);
-
+  // Single navigation builder. The detail screen recomputes which ingredients
+  // are in-fridge/urgent from live inventory and depletes by name, so neither
+  // the matched-item ids nor the urgent-name snapshot need to travel as params.
+  const goToRecipeDetail = useCallback(
+    (recipe: {
+      title: string;
+      description: string;
+      timeMinutes: number;
+      complexity: string;
+      servings: number;
+      ingredients: unknown;
+      steps: unknown;
+      recipeId: string;
+      isFavorite: boolean;
+      cookedCount: number;
+    }) => {
       router.push({
         pathname: "/recipe-detail",
         params: {
-          title: match.title,
-          description: match.description,
-          timeMinutes: String(match.timeMinutes),
-          complexity: match.complexity,
-          servings: String(match.servingsBaseline),
-          ingredients: JSON.stringify(match.ingredients),
-          steps: JSON.stringify(match.steps),
-          usedInventoryItemIds: JSON.stringify(usedIds),
-          usedInventoryItems: JSON.stringify(usedInventoryItems),
-          recipeId: recipeId ?? "",
-          isFavorite: String(recipeId ? (savedRecipes.find((r) => r.id === recipeId)?.is_favorite ?? false) : false),
-          cookedCount: String(recipeId ? (savedRecipes.find((r) => r.id === recipeId)?.cooked_count ?? 0) : 0),
-          matchedUrgentItems: JSON.stringify(urgentNames),
+          title: recipe.title,
+          description: recipe.description,
+          timeMinutes: String(recipe.timeMinutes),
+          complexity: recipe.complexity,
+          servings: String(recipe.servings),
+          ingredients: JSON.stringify(recipe.ingredients),
+          steps: JSON.stringify(recipe.steps),
+          recipeId: recipe.recipeId,
+          isFavorite: String(recipe.isFavorite),
+          cookedCount: String(recipe.cookedCount),
         },
       });
     },
-    [savedRecipes],
+    [],
   );
 
-  const navigateToSavedDetail = useCallback((recipe: RecipeRow) => {
-    const usedInventoryItems = buildUsedInventoryItemsForSavedRecipe(
-      recipe.ingredients,
-      recipe.used_inventory_item_ids,
-      inventory,
-    );
+  const navigateToDetail = useCallback(
+    (match: RecipeMatch, recipeId?: string) => {
+      const saved = recipeId ? savedRecipes.find((r) => r.id === recipeId) : undefined;
+      goToRecipeDetail({
+        title: match.title,
+        description: match.description,
+        timeMinutes: match.timeMinutes,
+        complexity: match.complexity,
+        servings: match.servingsBaseline,
+        ingredients: match.ingredients,
+        steps: match.steps,
+        recipeId: recipeId ?? "",
+        isFavorite: saved?.is_favorite ?? false,
+        cookedCount: saved?.cooked_count ?? 0,
+      });
+    },
+    [goToRecipeDetail, savedRecipes],
+  );
 
-    router.push({
-      pathname: "/recipe-detail",
-      params: {
+  const navigateToSavedDetail = useCallback(
+    (recipe: RecipeRow) => {
+      goToRecipeDetail({
         title: recipe.title,
         description: recipe.description ?? "",
-        timeMinutes: String(recipe.time_minutes ?? 20),
+        timeMinutes: recipe.time_minutes ?? 20,
         complexity: recipe.complexity ?? "simple",
-        servings: String(recipe.servings),
-        ingredients: JSON.stringify(recipe.ingredients),
-        steps: JSON.stringify(recipe.steps),
-        usedInventoryItemIds: JSON.stringify(recipe.used_inventory_item_ids),
-        usedInventoryItems: JSON.stringify(usedInventoryItems),
+        servings: recipe.servings,
+        ingredients: recipe.ingredients,
+        steps: recipe.steps,
         recipeId: recipe.id,
-        isFavorite: String(recipe.is_favorite),
-        cookedCount: String(recipe.cooked_count ?? 0),
-        matchedUrgentItems: "[]",
-      },
-    });
-  }, [inventory]);
+        isFavorite: recipe.is_favorite,
+        cookedCount: recipe.cooked_count ?? 0,
+      });
+    },
+    [goToRecipeDetail],
+  );
 
   const memberName = useCallback(
     (id: string) =>
@@ -620,32 +634,8 @@ export default function RecipesRoute() {
   );
 }
 
-function buildUsedInventoryItemsFromMatch(match: RecipeMatch): UsedInventoryItemParam[] {
-  return match.matchedItems
-    .filter((item) => item.inFridge && item.inventoryLot)
-    .map((item) => ({
-      ingredientName: item.ingredientName,
-      itemId: item.inventoryLot!.id,
-    }));
-}
-
 function formatCategory(tag: string): string {
   return tag.charAt(0).toUpperCase() + tag.slice(1);
-}
-
-function buildUsedInventoryItemsForSavedRecipe(
-  ingredients: unknown,
-  usedInventoryItemIds: string[],
-  inventory: { id: string; normalized_name: string }[],
-): UsedInventoryItemParam[] {
-  const activeSavedIds = new Set(usedInventoryItemIds);
-  const inventoryByName = new Map(inventory.map((lot) => [lot.normalized_name, lot]));
-
-  return parseRecipeIngredients(ingredients).flatMap((ingredient) => {
-    const lot = inventoryByName.get(normalizeFoodName(ingredient.name));
-    if (!lot || !activeSavedIds.has(lot.id)) return [];
-    return [{ ingredientName: ingredient.name, itemId: lot.id }];
-  });
 }
 
 function parseRecipeIngredients(ingredients: unknown): RecipeIngredientParam[] {

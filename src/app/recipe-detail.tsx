@@ -20,11 +20,6 @@ type IngredientItem = {
   countable: boolean;
 };
 
-type UsedInventoryItemParam = {
-  ingredientName: string;
-  itemId: string;
-};
-
 export default function RecipeDetailRoute() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{
@@ -35,12 +30,9 @@ export default function RecipeDetailRoute() {
     servings: string;
     ingredients: string;
     steps: string;
-    usedInventoryItemIds: string;
-    usedInventoryItems: string;
     recipeId: string;
     isFavorite: string;
     cookedCount: string;
-    matchedUrgentItems: string;
   }>();
 
   const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
@@ -59,23 +51,22 @@ export default function RecipeDetailRoute() {
     ? JSON.parse(params.ingredients)
     : [];
   const steps: string[] = params.steps ? JSON.parse(params.steps) : [];
-  const usedInventoryItemIds: string[] = params.usedInventoryItemIds
-    ? JSON.parse(params.usedInventoryItemIds)
-    : [];
-  const usedInventoryItems = parseUsedInventoryItems(params.usedInventoryItems);
-  const hasMappedUsedItems = usedInventoryItems.length > 0;
-  const usedInventoryItemMap = new Map(
-    usedInventoryItems.map((item) => [item.ingredientName, item.itemId]),
+
+  // Urgent ingredients are derived from LIVE inventory, not a generation-time
+  // snapshot — the urgency band can change as items age (CODE_REVIEW #14/#2).
+  const urgentFridgeNames = new Set(
+    inventoryGroups
+      .filter((group) => group.urgency === "urgent" || group.urgency === "use_soon")
+      .map((group) => group.normalizedName),
   );
-  const matchedUrgentItems: string[] = params.matchedUrgentItems
-    ? JSON.parse(params.matchedUrgentItems)
-    : [];
+  const matchedUrgentItems = ingredients
+    .filter((ing) => urgentFridgeNames.has(normalizeFoodName(ing.name)))
+    .map((ing) => ing.name);
 
   const [showCooked, setShowCooked] = useState(false);
   const [cookedItems, setCookedItems] = useState<{
     name: string;
     amount: string;
-    itemId: string | null;
     quantityToUse: number;
     unit: string;
     used: boolean;
@@ -105,21 +96,15 @@ export default function RecipeDetailRoute() {
     liveFridgeNames.has(normalizeFoodName(ing.name)),
   ).length;
 
-  function getUsedItemId(ingredientName: string, index: number) {
-    return usedInventoryItemMap.get(ingredientName) ?? (!hasMappedUsedItems ? usedInventoryItemIds[index] : null) ?? null;
-  }
-
   function handleCookPress() {
     // Pre-tick every ingredient currently in the fridge (live by name),
     // not just the ones matched when the recipe was generated.
     const fridgeNames = new Set(inventoryGroups.map((group) => group.normalizedName));
-    const items = ingredients.map((ing, i) => {
-      const itemId = getUsedItemId(ing.name, i);
+    const items = ingredients.map((ing) => {
       const parsed = parseIngredientAmount(ing.amount);
       return {
         name: ing.name,
         amount: ing.amount,
-        itemId,
         quantityToUse: ing.countable ? parsed.value : (parsed.unit ? parsed.value : 1),
         unit: ing.countable ? "item" : (parsed.unit ?? "item"),
         used: fridgeNames.has(normalizeFoodName(ing.name)),
@@ -375,26 +360,6 @@ function parseIngredientAmount(amount: string): { value: number; unit: string | 
     unit,
   };
 }
-
-function parseUsedInventoryItems(input?: string): UsedInventoryItemParam[] {
-  if (!input) return [];
-  try {
-    const parsed: unknown = JSON.parse(input);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is UsedInventoryItemParam => (
-      typeof item === "object" &&
-      item !== null &&
-      "ingredientName" in item &&
-      "itemId" in item &&
-      typeof item.ingredientName === "string" &&
-      typeof item.itemId === "string"
-    ));
-  } catch {
-    return [];
-  }
-}
-
-
 
 const styles = StyleSheet.create({
   screen: {
