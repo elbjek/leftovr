@@ -17,7 +17,6 @@ const input: RecipeGenerationInput = {
       unit: "bag",
       net_amount: 200,
       net_unit: "g",
-      display_quantity: "1 bag",
       partial_state: "full",
       urgency: "use_soon",
       shelf_life_range: "2-4 days",
