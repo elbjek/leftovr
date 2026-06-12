@@ -30,14 +30,14 @@ V1 uses:
 - Supabase database migrations, RLS, and seed/demo data
 - Expo Camera for receipt and barcode camera flows
 - Mock receipt normalization
-- Mock curated recipe suggestions
+- AI recipe generation (Anthropic via Supabase Edge Function) with curated mock fallback
 - Notification architecture and preference storage, but no real push delivery
 - Internationalization from the start, with English and Serbian
 
 V1 does not include:
 
 - real payments
-- real Anthropic API calls
+- real Anthropic API calls for receipt normalization (recipe generation does call Anthropic)
 - real Firebase Cloud Messaging delivery
 - real Apple/Google OAuth
 - exact expiration dates
@@ -94,7 +94,7 @@ Suggested component structure:
 - `EatFirstShelf`
 - `ReceiptScanOverlay`
 - `RecipeCard`
-- `InventoryReviewCard`
+- `ReceiptConfirmList`
 - `PremiumSheet`
 - `FoodGlyph`
 
@@ -346,8 +346,9 @@ Receipt flow:
 2. Guided receipt camera overlay with first-time coach marks.
 3. Mock processing state.
 4. Mock receipt template selected.
-5. High-confidence items are added.
-6. Low-confidence items go to review queue.
+5. All scanned items appear on a confirmation list (editable, low-confidence
+   items badged) before anything is added.
+6. Confirmed items are added to the fridge.
 7. Success screen appears.
 8. User transitions into Home with populated fridge.
 
@@ -355,7 +356,6 @@ Success screen:
 
 - "Your fridge is alive."
 - "23 items added."
-- if relevant: "3 need a quick check."
 
 Never show an empty fridge on first launch.
 
@@ -371,27 +371,25 @@ Include several realistic templates:
 - snack-heavy shop
 - low-confidence receipt
 
-Receipt scanning is premium-only (each scan carries a real AI processing
-cost). There is no free allowance and no free onboarding scan; free users see
-the Premium sheet when choosing the receipt path.
+Every user gets exactly one free receipt scan (one-time, per user — not per
+week). The first scan is the activation moment: the user experiences the
+receipt-to-fridge magic once for free. From the second scan onward, receipt
+scanning is premium (each scan carries a real AI processing cost); free users
+see the Premium sheet when attempting their second scan.
 
-### Low-Confidence Review Queue
+### Scan Confirmation
 
-Low-confidence items do not block the success screen.
+After processing and before anything is added to the fridge, the user sees a
+confirmation list with every scanned item (high and low confidence together):
 
-Home should show a review card until cleared:
+- each row shows editable name, quantity, and unit
+- low-confidence rows carry a "Check this" badge so the user inspects them
+- any row can be excluded (marked as wrongly scanned); excluded rows are not added
+- footer CTA: "Add N items" (count reflects included rows only)
+- cancelling the confirmation discards the scan entirely — nothing is written
+  and the user's one free scan is NOT consumed (the scan only counts once confirmed)
 
-- "3 items need a quick check"
-- CTA: "Review"
-
-Review is one item at a time:
-
-- "Is this Greek yogurt?"
-- Yes
-- No
-- Edit
-
-Yes adds the item. No discards it. Edit opens lightweight name/category editing.
+There is no separate post-add review queue; the confirmation list replaces it.
 
 ### Duplicate Receipt Detection
 
@@ -459,7 +457,8 @@ V1 removes the credit system.
 
 Free users get:
 
-- 3 recipe sessions per calendar week
+- one free receipt scan (one-time, per user)
+- one free recipe generation (one-time, per user; returns 3 recipe cards)
 - unlimited barcode scans
 - unlimited manual adds
 - limited Eat First preview
@@ -467,8 +466,8 @@ Free users get:
 
 Free users do not get:
 
-- receipt scanning (premium only — each scan carries a real AI processing cost)
-- unlimited recipe sessions
+- receipt scans beyond the first (each scan carries a real AI processing cost)
+- recipe generations beyond the first
 - full Eat First shelf
 - optimized premium recipe filters
 - full insights
@@ -480,7 +479,7 @@ Free users do not get:
 Premium unlocks:
 
 - unlimited receipt scans
-- unlimited recipes
+- unlimited recipe generations (3 recipe cards per generation)
 - full Eat First shelf
 - optimized recipe suggestions
 - time filters
@@ -500,8 +499,8 @@ Premium reveal is contextual through a bottom sheet.
 
 Triggers:
 
-- free user attempts fourth weekly recipe session
-- free user attempts a receipt scan
+- free user attempts a second recipe generation
+- free user attempts a second receipt scan
 - free user taps full Insights
 - free user taps full Eat First
 - free user enters household invite/create flow
@@ -670,9 +669,9 @@ This writes a cooked event and feeds future recommendations.
 
 ## Recipes
 
-V1 uses curated mock recipes selected from fridge contents.
-
-No Anthropic API calls in V1.
+Recipe generation calls Anthropic (Haiku) through the `generate-recipes`
+Supabase Edge Function. The curated mock matcher remains as a silent fallback
+for any failure (missing key, network, rate limit), so Generate never breaks.
 
 Recipe matcher must:
 
@@ -690,17 +689,32 @@ ingredients only, with no hidden staple assumptions.
 
 Free rule:
 
-- 3 recipe sessions per calendar week
-- each session returns multiple recipe cards
-- fourth session triggers Premium sheet
+- exactly one free recipe generation (one-time, per user — not per week)
+- the free generation returns the full experience: 3 recipe cards
+- the second generation attempt triggers the Premium sheet
 
 Premium rule:
 
-- unlimited recipe sessions
+- unlimited recipe generations
+- 3 recipe cards per generation
 - optimized suggestions
 - time filters
 - complexity filters
 - serving controls
+
+### Empty and Sparse Fridge
+
+- Empty fridge: generation is a no-op. No Anthropic call is made, no session
+  is created, and the free one-time generation is NOT consumed. The UI shows
+  an empty state nudging the user to scan a receipt or add items.
+- Sparse fridge (items exist but too few for a sensible meal, e.g. only
+  yogurt and garlic): generation runs best-effort. Every returned recipe must
+  use at least one fridge item; missing ingredients may appear only as
+  optional pantry staples, never as required blockers. If no usable recipe
+  comes back (AI guardrails and the mock fallback both yield nothing), show a
+  friendly "not enough to cook with yet" state nudging scan/add — no session
+  is created and the free generation is NOT consumed. A failed attempt never
+  burns the user's allowance.
 
 ### Cook Prompt
 
@@ -805,7 +819,6 @@ Show:
 - inventory summary
 - Eat First area
 - grouped shelves by category
-- review queue card if needed
 - retention cards if active
 - bottom CTA/action for recipes when relevant
 

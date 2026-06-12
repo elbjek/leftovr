@@ -98,7 +98,7 @@ Tasks:
   - `EatFirstShelf`
   - `PremiumSheet`
   - `RecipeCard`
-  - `InventoryReviewCard`
+  - `ReceiptConfirmList`
   - `RetentionCard`
 
 Definition of done:
@@ -357,11 +357,16 @@ Tasks:
 - Implement mock receipt normalization service.
 - Implement successful receipt scan persistence:
   - `receipt_scans`
-  - high-confidence `inventory_items`
-  - low-confidence `receipt_review_items`
-- Implement monthly free receipt scan limit:
-  - 3 successful receipt scans per calendar month
-  - count successful additions only
+  - user-confirmed `inventory_items`
+- Implement scan confirmation before persistence:
+  - show all scanned items together
+  - allow name, quantity, and unit edits
+  - allow excluding wrong rows
+  - badge low-confidence rows
+- Implement one-time free receipt scan gate:
+  - first confirmed scan is free
+  - second confirmed scan requires Premium
+  - cancelled confirmations do not count
 - Implement duplicate detection:
   - mock `receipt_signature`
   - same household recent match
@@ -375,14 +380,14 @@ Definition of done:
 - User can complete first fill through receipt scan.
 - Mock items are saved to Supabase.
 - Success screen appears after processing.
-- Low-confidence items are queued, not blocking.
-- Receipt limits and duplicates behave correctly.
+- Confirmation edits/exclusions are reflected in saved inventory.
+- Receipt gating and duplicates behave correctly.
 
 Verification:
 
 - Complete first scan from a new account.
 - Scan same mock receipt again and confirm duplicate prompt.
-- Use a free account to exceed monthly scan limit.
+- Use a free account to attempt a second confirmed receipt scan.
 
 ## Phase 8 - Barcode And Manual Add
 

@@ -1,8 +1,24 @@
 import { CookingMode } from "@/repositories/recipeRepository";
+import { env } from "@/lib/env";
+import { MockRecipe } from "@/mocks/recipeLibrary";
 import { InventoryLot, resolveUrgency } from "./inventoryRules";
 import { matchRecipes, RecipeMatch, RecipeMatcherInput, selectMakeableRecipes } from "./recipeService";
 
 export type RecipeGenerationFilters = RecipeMatcherInput["filters"];
+
+export type AiRecipeCard = {
+  title: string;
+  description: string;
+  timeMinutes: number;
+  complexity: MockRecipe["complexity"];
+  servings: number;
+  mealType: MockRecipe["mealType"];
+  category: string;
+  tags: string[];
+  avoidanceTags: string[];
+  ingredients: { name: string; amount: string; required: boolean; countable: boolean }[];
+  steps: string[];
+};
 
 export type RecipeGenerationInput = {
   inventory: InventoryLot[];
@@ -14,12 +30,89 @@ export type RecipeGenerationInput = {
 };
 
 export type RecipeGenerationResult = {
-  source: "mock";
+  source: "ai" | "mock";
   matches: RecipeMatch[];
   prompt: string;
 };
 
+/**
+ * Converts AI recipe cards into the existing RecipeMatch shape by scoring them
+ * with the same matcher used for the curated library. Fridge linkage is computed
+ * here via canonical-name matching rather than trusted from the model, and recipes
+ * that use no fridge item are dropped (spec: every generated recipe must come from
+ * the fridge inventory).
+ */
+export function mapAiRecipesToMatches(
+  cards: AiRecipeCard[],
+  input: RecipeGenerationInput,
+): RecipeMatch[] {
+  const library: MockRecipe[] = cards.map((card, index) => ({
+    key: `ai-${index}-${card.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    title: card.title,
+    description: card.description,
+    timeMinutes: card.timeMinutes,
+    complexity: card.complexity,
+    servingsBaseline: card.servings,
+    category: card.category,
+    mealType: card.mealType,
+    tags: card.tags,
+    avoidanceTags: card.avoidanceTags,
+    ingredients: card.ingredients,
+    steps: card.steps,
+  }));
+
+  return matchRecipes(input, library).filter((match) => match.matchCount >= 1);
+}
+
+async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMatch[] | null> {
+  if (!env.supabaseUrl || !env.supabaseAnonKey) {
+    return null;
+  }
+
+  try {
+    // Lazy import keeps react-native-only supabase deps out of the node test env.
+    const { getSupabaseClient } = await import("@/lib/supabase");
+    const { data, error } = await getSupabaseClient().functions.invoke("generate-recipes", {
+      body: {
+        inventory: input.inventory.map((lot) => ({
+          name: lot.name,
+          normalized_name: lot.normalized_name,
+          category: lot.category,
+          urgency: resolveUrgency(lot),
+          quantity: lot.quantity,
+          unit: lot.unit,
+          net_amount: lot.net_amount,
+          net_unit: lot.net_unit,
+          partial_state: lot.partial_state,
+        })),
+        avoidances: input.avoidances,
+        isPremium: input.isPremium,
+        cookingMode: input.cookingMode,
+        servings: input.servings,
+        filters: input.filters,
+      },
+    });
+    if (error) throw error;
+
+    const cards = (data as { recipes?: AiRecipeCard[] } | null)?.recipes ?? [];
+    const matches = mapAiRecipesToMatches(cards, input);
+    return matches.length > 0 ? matches : null;
+  } catch (error) {
+    if (__DEV__) console.warn("[recipes] AI generation failed, using mock matcher", error);
+    return null;
+  }
+}
+
 export async function generateRecipeMatches(input: RecipeGenerationInput): Promise<RecipeGenerationResult> {
+  const aiMatches = await generateAiMatches(input);
+  if (aiMatches) {
+    return {
+      source: "ai",
+      matches: aiMatches,
+      prompt: buildRecipeGenerationPrompt(input),
+    };
+  }
+
   const scored = matchRecipes(input);
   const makeable = selectMakeableRecipes(scored, { isPremium: input.isPremium });
   // Prefer recipes you can mostly cook; if none clear the bar, fall back to any
