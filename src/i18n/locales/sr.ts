@@ -279,7 +279,7 @@ export const sr = {
     coachBody: "Neka svaka stavka bude citljiva i unutar okvira, pa dodirni okidac.",
     capture: "Skeniraj racun",
     processingTitle: "Citamo racun.",
-    processingBody: "Normalizujemo namirnice sa racuna.",
+    processingBody: "Sredjujemo tvoju kupovinu.",
     confirm: {
       title: "Proveri racun",
       body: "Izmeni cudne stavke, preskoci pogresne, pa dodaj u frizider.",

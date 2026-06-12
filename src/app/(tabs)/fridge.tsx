@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, EatFirstShelf, FoodCard, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
+import { BottomSheet, Button, EatFirstShelf, FoodCard, GeneratingLoader, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth, useMeasurementSystem } from "@/features";
 import { updateInventoryNetAmount } from "@/repositories";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -155,7 +155,7 @@ export default function FridgeRoute() {
 
       {loading ? (
         <View style={styles.centerState}>
-          <ActivityIndicator color={colors.primary} />
+          <GeneratingLoader size={110} />
           <Text variant="small" muted>
             {t("common.loading")}
           </Text>

@@ -16,6 +16,7 @@ import {
   AliveFridgeIllustration,
   Button,
   ForgottenFridgeIllustration,
+  Logo,
   PageDots,
   ReceiptToFridgeIllustration,
   ScanLoopIllustration,
@@ -193,12 +194,15 @@ function SocialProofIllustration({ quotes }: { quotes: { text: string; byline: s
 function WordmarkIllustration({ kicker }: { kicker?: string }) {
   return (
     <View style={styles.wordmarkIllustration}>
-      <Text variant="display" color={colors.primary} italic style={styles.wordmark}>
-        leftovr
-        <Text variant="display" color={colors.accent} italic style={styles.wordmark}>
-          .
+      <View style={styles.wordmarkLockup}>
+        <Logo size={56} />
+        <Text variant="display" color={colors.primary} italic style={styles.wordmark}>
+          leftovr
+          <Text variant="display" color={colors.accent} italic style={styles.wordmark}>
+            .
+          </Text>
         </Text>
-      </Text>
+      </View>
       {kicker ? (
         <Text variant="micro" muted uppercase style={styles.wordmarkKicker}>
           {kicker}
@@ -316,6 +320,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     minHeight: 220,
+  },
+  wordmarkLockup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
   },
   wordmark: {
     fontSize: 64,
