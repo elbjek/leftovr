@@ -180,8 +180,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loadSessionProfile(session);
     });
 
-    loadSessionProfile();
-
     return () => {
       subscription.unsubscribe();
     };

@@ -24,6 +24,7 @@ export function getSupabaseClient() {
       detectSessionInUrl: false,
       flowType: "pkce",
       lock: processLock,
+      lockAcquireTimeout: 5000,
     },
   });
 
