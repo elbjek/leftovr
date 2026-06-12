@@ -21,6 +21,7 @@ export type AiRecipeCard = {
 };
 
 export type RecipeGenerationInput = {
+  householdId?: string;
   inventory: InventoryLot[];
   avoidances: string[];
   isPremium: boolean;
@@ -86,8 +87,12 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
   try {
     // Lazy import keeps react-native-only supabase deps out of the node test env.
     const { getSupabaseClient } = await import("@/lib/supabase");
+    const requestHash = buildRecipeGenerationRequestHash(input);
     const { data, error } = await getSupabaseClient().functions.invoke("generate-recipes", {
       body: {
+        householdId: input.householdId,
+        idempotencyKey: requestHash,
+        requestHash,
         inventory: input.inventory.map((lot) => ({
           name: lot.name,
           normalized_name: lot.normalized_name,
@@ -110,6 +115,9 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
       if (__DEV__) console.warn("[recipes] Edge function error", error);
       throw error;
     }
+    if ((data as { source?: string } | null)?.source === "processing") {
+      throw new Error("Recipe generation already in progress.");
+    }
 
     const cards = (data as { recipes?: AiRecipeCard[] } | null)?.recipes ?? [];
     const matches = mapAiRecipesToMatches(cards, input);
@@ -125,6 +133,37 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
     if (__DEV__) console.warn("[recipes] AI generation failed, using mock matcher", error);
     return null;
   }
+}
+
+export function buildRecipeGenerationRequestHash(input: RecipeGenerationInput) {
+  const stable = JSON.stringify({
+    householdId: input.householdId ?? null,
+    inventory: input.inventory
+      .map((lot) => ({
+        id: lot.id,
+        name: lot.normalized_name,
+        quantity: lot.quantity,
+        unit: lot.unit,
+        partial: lot.partial_state,
+        netAmount: lot.net_amount,
+        netUnit: lot.net_unit,
+      }))
+      .sort((a, b) => a.id.localeCompare(b.id)),
+    avoidances: [...input.avoidances].sort(),
+    cookingMode: input.cookingMode,
+    servings: input.servings ?? 2,
+    filters: input.filters ?? null,
+  });
+
+  return `recipe-${hashString(stable)}`;
+}
+
+function hashString(value: string) {
+  let hash = 5381;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 33) ^ value.charCodeAt(index);
+  }
+  return (hash >>> 0).toString(36);
 }
 
 export async function generateRecipeMatches(input: RecipeGenerationInput): Promise<RecipeGenerationResult> {
