@@ -4,6 +4,7 @@ import {
   inferCategory,
   InventoryLot,
   isMetricAmountRunningLow,
+  isPantryStaple,
   resolveUrgency,
   urgencyFromExpiry,
 } from "./inventoryRules";
@@ -85,5 +86,23 @@ describe("resolveUrgency", () => {
 
   it("is safe for a freshly added item with no expiry", () => {
     expect(resolveUrgency(lot({}), now)).toBe("safe");
+  });
+});
+
+describe("isPantryStaple", () => {
+  it("treats seasoning and oil staples as owned", () => {
+    expect(isPantryStaple("Salt")).toBe(true);
+    expect(isPantryStaple("black pepper")).toBe(true);
+    expect(isPantryStaple("pepper")).toBe(true);
+    expect(isPantryStaple("extra virgin olive oil")).toBe(true);
+    expect(isPantryStaple("dried oregano")).toBe(true);
+  });
+
+  it("does not flag produce that shares staple words", () => {
+    expect(isPantryStaple("bell pepper")).toBe(false);
+    expect(isPantryStaple("red pepper")).toBe(false);
+    expect(isPantryStaple("sugar snap peas")).toBe(false);
+    expect(isPantryStaple("lemon")).toBe(false);
+    expect(isPantryStaple("chicken breast")).toBe(false);
   });
 });

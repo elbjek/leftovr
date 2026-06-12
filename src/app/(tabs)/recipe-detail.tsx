@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Animated, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
@@ -7,11 +7,15 @@ import Svg, { Path } from "react-native-svg";
 import { BottomSheet, Button, Card, RecipeGlyph, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import { notifyInventoryChanged, useInventory } from "@/hooks";
-import { formatComplexity, formatTimeLabel, InventoryGroup, normalizeFoodName } from "@/services";
-import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
+import { formatComplexity, formatTimeLabel, InventoryGroup, isPantryStaple, normalizeFoodName } from "@/services";
+import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite } from "@/repositories/recipeRepository";
 import { colors, radii, spacing } from "@/theme";
+
+const HERO_MAX_HEIGHT = 280;
+const HERO_MIN_HEIGHT = 110;
+const HERO_SCROLL_DISTANCE = HERO_MAX_HEIGHT - HERO_MIN_HEIGHT;
 
 type IngredientItem = {
   name: string;
@@ -175,6 +179,30 @@ export default function RecipeDetailRoute() {
     setSwapIndex(null);
   }
 
+  // "I have this": the ingredient exists at home but was never logged. Log it
+  // to the fridge now so this cook (and future matching) can use it.
+  async function confirmHaveItem(index: number) {
+    if (!activeHousehold?.id) return;
+    const item = cookedItems[index];
+    if (!item) return;
+    try {
+      await addInventoryItem({
+        householdId: activeHousehold.id,
+        name: item.name,
+        source: "manual",
+      });
+      notifyInventoryChanged();
+      setCookedItems((prev) =>
+        prev.map((it, i) => (i === index ? { ...it, inFridge: true, used: true } : it)),
+      );
+    } catch (error) {
+      Alert.alert(
+        t("common.error"),
+        error instanceof Error ? error.message : t("common.fridgeUpdateError"),
+      );
+    }
+  }
+
   function toggleCookedItem(index: number) {
     setCookedItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, used: !item.used } : item)),
@@ -237,47 +265,41 @@ export default function RecipeDetailRoute() {
   const removedCount = cookedItems.filter((i) => i.used).length;
   const urgentBadge = matchedUrgentItems[0];
 
+  // Collapsing hero: the header band shrinks from HERO_MAX to HERO_MIN as the
+  // recipe scrolls, with the glyph scaling down into the collapsed band. All
+  // transform-driven so it runs on the native thread.
+  const [scrollY] = useState(() => new Animated.Value(0));
+  const heroTranslate = scrollY.interpolate({
+    inputRange: [0, HERO_SCROLL_DISTANCE],
+    outputRange: [0, -HERO_SCROLL_DISTANCE],
+    extrapolate: "clamp",
+  });
+  const glyphScale = scrollY.interpolate({
+    inputRange: [0, HERO_SCROLL_DISTANCE],
+    outputRange: [1, 0.6],
+    extrapolate: "clamp",
+  });
+  // Counter-translate so the shrinking glyph stays centered in what remains
+  // visible of the hero after it slides up.
+  const glyphTranslate = scrollY.interpolate({
+    inputRange: [0, HERO_SCROLL_DISTANCE],
+    outputRange: [0, HERO_SCROLL_DISTANCE / 2],
+    extrapolate: "clamp",
+  });
+
   return (
     <View style={styles.screen}>
-      <View style={styles.hero}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("recipes.detail.backLabel")}
-          // Always return to the recipes list — inside the tab group,
-          // router.back() can land on whichever tab was visited before.
-          onPress={() => router.replace("/(tabs)/recipes")}
-          style={styles.backButton}
-        >
-          <Svg width={14} height={14} viewBox="0 0 14 14">
-            <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
-        </Pressable>
-        <RecipeGlyph size={48} />
-        {urgentBadge ? (
-          <View style={styles.urgentChip}>
-            <Text variant="small" color={colors.primary}>
-              {t("recipes.saves", { item: urgentBadge })}
-            </Text>
-          </View>
-        ) : null}
-        {recipeId ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
-            onPress={handleFavoriteToggle}
-            style={styles.favoriteButton}
-          >
-            <Text variant="body">{favorite ? "★" : "☆"}</Text>
-          </Pressable>
-        ) : null}
-      </View>
-
-      {/* Single scroll surface: title through steps move together; only the
-          hero (back/save) and the cook CTA stay fixed. */}
-      <ScrollView
+      {/* Single scroll surface: title through steps move together; the hero
+          collapses with scroll while back/save and the cook CTA stay fixed. */}
+      <Animated.ScrollView
         style={styles.scrollArea}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
       >
       <View style={styles.body}>
         <Text variant="h1">{title}</Text>
@@ -348,7 +370,45 @@ export default function RecipeDetailRoute() {
           ))}
         </View>
       </View>
-      </ScrollView>
+      </Animated.ScrollView>
+
+      <Animated.View style={[styles.hero, { transform: [{ translateY: heroTranslate }] }]}>
+        <Animated.View
+          style={{ transform: [{ translateY: glyphTranslate }, { scale: glyphScale }] }}
+        >
+          <RecipeGlyph size={48} />
+        </Animated.View>
+        {urgentBadge ? (
+          <View style={styles.urgentChip}>
+            <Text variant="small" color={colors.primary}>
+              {t("recipes.saves", { item: urgentBadge })}
+            </Text>
+          </View>
+        ) : null}
+      </Animated.View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("recipes.detail.backLabel")}
+        // Always return to the recipes list — inside the tab group,
+        // router.back() can land on whichever tab was visited before.
+        onPress={() => router.replace("/(tabs)/recipes")}
+        style={styles.backButton}
+      >
+        <Svg width={14} height={14} viewBox="0 0 14 14">
+          <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+      </Pressable>
+      {recipeId ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
+          onPress={handleFavoriteToggle}
+          style={styles.favoriteButton}
+        >
+          <Text variant="body">{favorite ? "★" : "☆"}</Text>
+        </Pressable>
+      ) : null}
 
       <View style={styles.bottomGradient}>
         {coachVisible ? (
@@ -376,30 +436,67 @@ export default function RecipeDetailRoute() {
             <Text variant="h1" style={styles.cookedTitle}>{t("recipes.cooked.title")}</Text>
             <Text variant="body" muted style={styles.cookedBody}>{t("recipes.cooked.body")}</Text>
 
-            <View style={styles.cookedList}>
+            <ScrollView
+              style={styles.cookedListScroll}
+              contentContainerStyle={styles.cookedList}
+              showsVerticalScrollIndicator={false}
+            >
               {cookedItems.map((item, i) => {
                 const missing = !item.inFridge && !item.swapDisplay;
 
-                // Missing ingredient: visually distinct (dashed, no checkbox) —
-                // the only action is picking a substitute, so the row IS the action.
+                // Unlogged pantry staples (salt, oil, spices): assume they're
+                // owned — show quietly, never nag, never deplete.
+                if (missing && isPantryStaple(item.name)) {
+                  return (
+                    <View key={i} style={styles.cookedItemStaple}>
+                      <View style={styles.cookedItemCopy}>
+                        <Text variant="body" muted>{item.name}</Text>
+                        <Text variant="small" muted>
+                          {item.amount} · {t("recipes.cooked.pantryStaple")}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                }
+
+                // Missing ingredient: visually distinct (dashed, no checkbox),
+                // with two outs — log it as owned, or substitute from the fridge.
                 if (missing) {
                   return (
-                    <Pressable
-                      key={i}
-                      accessibilityRole="button"
-                      onPress={() => setSwapIndex(i)}
-                      style={({ pressed }) => [styles.cookedItemMissing, pressed && styles.swapRowPressed]}
-                    >
-                      <View style={styles.cookedItemCopy}>
+                    <View key={i} style={styles.cookedItemMissing}>
+                      <View>
                         <Text variant="body" muted>{item.name}</Text>
                         <Text variant="small" muted>
                           {item.amount} · {t("recipes.cooked.notInFridge")}
                         </Text>
                       </View>
-                      <Text variant="small" color={colors.primary}>
-                        {t("recipes.cooked.useSomethingElse")}
-                      </Text>
-                    </Pressable>
+                      <View style={styles.missingActions}>
+                        <Pressable
+                          accessibilityRole="button"
+                          onPress={() => confirmHaveItem(i)}
+                          style={({ pressed }) => [
+                            styles.missingActionButton,
+                            pressed && styles.swapRowPressed,
+                          ]}
+                        >
+                          <Text variant="small" color={colors.primary}>
+                            {t("recipes.cooked.iHaveThis")}
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          accessibilityRole="button"
+                          onPress={() => setSwapIndex(i)}
+                          style={({ pressed }) => [
+                            styles.missingActionButton,
+                            pressed && styles.swapRowPressed,
+                          ]}
+                        >
+                          <Text variant="small" color={colors.primary}>
+                            {t("recipes.cooked.useSomethingElse")}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
                   );
                 }
 
@@ -443,7 +540,7 @@ export default function RecipeDetailRoute() {
                   + {t("recipes.cooked.addExtra")}
                 </Text>
               </Pressable>
-            </View>
+            </ScrollView>
 
             <Button
               title={t("recipes.cooked.confirm", { count: removedCount })}
@@ -550,17 +647,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    paddingTop: HERO_MAX_HEIGHT,
     paddingBottom: 140,
   },
   hero: {
-    height: 280,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: HERO_MAX_HEIGHT,
     backgroundColor: "#C8D5C2",
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
+    zIndex: 10,
   },
   backButton: {
     position: "absolute",
+    zIndex: 20,
     top: 60,
     left: 20,
     width: 38,
@@ -572,6 +675,7 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     position: "absolute",
+    zIndex: 20,
     top: 56,
     right: 20,
     width: 44,
@@ -692,6 +796,9 @@ const styles = StyleSheet.create({
   cookedBody: {
     marginBottom: spacing.xl,
   },
+  cookedListScroll: {
+    flexShrink: 1,
+  },
   cookedList: {
     gap: spacing.sm,
   },
@@ -734,16 +841,37 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   cookedItemMissing: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.lg,
+    gap: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
     borderWidth: 1.5,
     borderStyle: "dashed",
     borderColor: colors.hairlineStrong,
     borderRadius: radii.lg,
+  },
+  cookedItemStaple: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surface2,
+    borderRadius: radii.lg,
+    opacity: 0.8,
+  },
+  missingActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  missingActionButton: {
+    flex: 1,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.primary100,
+    backgroundColor: colors.paper,
+    borderRadius: radii.pill,
   },
   addExtraRow: {
     alignItems: "center",

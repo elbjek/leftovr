@@ -211,7 +211,9 @@ export function buildRecipeGenerationPrompt(input: RecipeGenerationInput) {
     ...formatInventoryLines(input.inventory),
     "Prompt filters:",
     ...formatFilterLines(input.filters),
-    "Return multiple recipe cards with title, description, timeMinutes, complexity, servings, ingredients, steps, usedInventoryItemIds, tags, and avoidanceTags.",
+    input.isPremium
+      ? "Return exactly 2 recipe cards with clearly distinct approaches."
+      : "Return exactly 1 recipe card: your single most confident pick for this fridge.",
     "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
     "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
     "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",

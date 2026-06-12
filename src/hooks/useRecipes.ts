@@ -172,7 +172,9 @@ export function useRecipes(
               prompt,
             });
           }
-          const top = matches.slice(0, 3);
+          // Premium sees two distinct options; free gets the single best pick
+          // (fewer cards also keeps complex generations fast).
+          const top = matches.slice(0, isPremium ? 2 : 1);
 
           // Nothing makeable from the current fridge: don't create a session
           // (so it doesn't burn a weekly count) and signal the empty result.
