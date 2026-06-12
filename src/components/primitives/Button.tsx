@@ -11,6 +11,8 @@ type Props = {
   variant?: ButtonVariant;
   disabled?: boolean;
   loading?: boolean;
+  /** Hug the label as a centered pill instead of stretching to the container. */
+  fit?: boolean;
   iconLeft?: React.ReactNode;
   iconRight?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
@@ -22,6 +24,7 @@ export function Button({
   variant = "primary",
   disabled = false,
   loading = false,
+  fit = false,
   iconLeft,
   iconRight,
   style,
@@ -38,6 +41,7 @@ export function Button({
         styles.base,
         styles[variant],
         isText && styles.textButton,
+        fit && styles.fit,
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
         style,
@@ -94,6 +98,11 @@ const styles = StyleSheet.create({
   textButton: {
     minHeight: 40,
     paddingHorizontal: spacing.md,
+  },
+  fit: {
+    alignSelf: "center",
+    minWidth: 200,
+    paddingHorizontal: spacing.huge,
   },
   disabled: {
     opacity: 0.45,

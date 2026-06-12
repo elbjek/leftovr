@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { getInsightsData } from "@/repositories/insightsRepository";
 import { computeInsightsSummary, InsightsSummary } from "@/services/insightsService";
@@ -35,43 +35,48 @@ export function useInsights(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!householdId) return;
-    let cancelled = false;
 
-    async function load() {
-      setLoading(true);
+    try {
+      const [weeklyRaw, lastWeekRaw, monthlyRaw, householdWeeklyRaw] = await Promise.all([
+        getInsightsData(householdId, startOfCurrentWeek(), userId),
+        // Real previous-week window for the trend copy.
+        getInsightsData(householdId, startOfPreviousWeek(), userId, startOfCurrentWeek()),
+        getInsightsData(householdId, startOfCurrentMonth(), userId),
+        includeHousehold ? getInsightsData(householdId, startOfCurrentWeek()) : null,
+      ]);
+
+      setWeeklySummary(computeInsightsSummary(weeklyRaw));
+      setLastWeekSummary(computeInsightsSummary(lastWeekRaw));
+      setMonthlySummary(computeInsightsSummary(monthlyRaw));
+      setHouseholdWeeklySummary(
+        householdWeeklyRaw ? computeInsightsSummary(householdWeeklyRaw) : null,
+      );
       setError(null);
-
-      try {
-        const [weeklyRaw, lastWeekRaw, monthlyRaw, householdWeeklyRaw] = await Promise.all([
-          getInsightsData(householdId!, startOfCurrentWeek(), userId),
-          // Real previous-week window for the trend copy.
-          getInsightsData(householdId!, startOfPreviousWeek(), userId, startOfCurrentWeek()),
-          getInsightsData(householdId!, startOfCurrentMonth(), userId),
-          includeHousehold ? getInsightsData(householdId!, startOfCurrentWeek()) : null,
-        ]);
-
-        if (!cancelled) {
-          setWeeklySummary(computeInsightsSummary(weeklyRaw));
-          setLastWeekSummary(computeInsightsSummary(lastWeekRaw));
-          setMonthlySummary(computeInsightsSummary(monthlyRaw));
-          setHouseholdWeeklySummary(
-            householdWeeklyRaw ? computeInsightsSummary(householdWeeklyRaw) : null,
-          );
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Failed to load insights");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load insights");
+    } finally {
+      setLoading(false);
     }
-
-    load();
-    return () => { cancelled = true; };
   }, [householdId, includeHousehold, userId]);
 
-  return { weeklySummary, lastWeekSummary, monthlySummary, householdWeeklySummary, loading, error };
+  useEffect(() => {
+    // All setState in load() happens after the first await (async, not sync) —
+    // the rule can't see through the call.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load();
+  }, [load]);
+
+  return {
+    weeklySummary,
+    lastWeekSummary,
+    monthlySummary,
+    householdWeeklySummary,
+    loading,
+    error,
+    // Call on tab focus so cooking on another tab shows up without an app restart.
+    // Refetches keep showing the previous numbers (no spinner flash) until data lands.
+    refresh: load,
+  };
 }

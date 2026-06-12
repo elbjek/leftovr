@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 
@@ -18,9 +19,22 @@ export default function InsightsRoute() {
   const [scope, setScope] = useState<"you" | "household">("you");
   const { members } = useHousehold(activeHousehold?.id);
   const showHouseholdScope = members.length >= 2;
-  const { weeklySummary, lastWeekSummary, householdWeeklySummary, loading } = useInsights(
-    isPremium ? activeHousehold?.id : undefined,
-    { userId: profile?.id, includeHousehold: showHouseholdScope },
+  const {
+    weeklySummary,
+    lastWeekSummary,
+    householdWeeklySummary,
+    loading,
+    refresh: refreshInsights,
+  } = useInsights(isPremium ? activeHousehold?.id : undefined, {
+    userId: profile?.id,
+    includeHousehold: showHouseholdScope,
+  });
+
+  // Cooking happens on other tabs — refetch whenever this tab gains focus.
+  useFocusEffect(
+    useCallback(() => {
+      void refreshInsights();
+    }, [refreshInsights]),
   );
 
   if (!isPremium) {

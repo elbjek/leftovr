@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, FilterChip, SegmentedControl, Text } from "../primitives";
-import { spacing } from "../../theme";
+import { BottomSheet, Button, FilterChip, IconButton, SegmentedControl, Text } from "../primitives";
+import { colors, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
 
 export type CookFilters = {
@@ -36,8 +37,9 @@ type Props = {
   onGenerate: (filters?: CookFilters) => void;
 };
 
-const MEAL_OPTIONS: MealOption[] = ["any", "breakfast", "lunch", "dinner", "snack"];
-const TIME_OPTIONS: TimeOption[] = ["any", "20", "45"];
+// "any" is the unselected state, not a chip — tapping a selected chip clears it.
+const MEAL_OPTIONS: Exclude<MealOption, "any">[] = ["breakfast", "lunch", "dinner", "snack"];
+const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["20", "45"];
 const VIBE_OPTIONS = ["comfort", "healthy", "veggie", "quick"];
 
 export function CookPromptSheet({
@@ -82,35 +84,39 @@ export function CookPromptSheet({
         ) : null}
 
         <View style={styles.block}>
-          <Text variant="small" muted>
+          <Text variant="micro" muted uppercase>
             {labels.meal}
           </Text>
-          <SegmentedControl
-            options={MEAL_OPTIONS.map((option) => ({
-              label: labels.mealOptions[option],
-              value: option,
-            }))}
-            value={meal}
-            onChange={setMeal}
-          />
+          <View style={styles.chipWrap}>
+            {MEAL_OPTIONS.map((option) => (
+              <FilterChip
+                key={option}
+                label={labels.mealOptions[option]}
+                active={meal === option}
+                onPress={() => setMeal((current) => (current === option ? "any" : option))}
+              />
+            ))}
+          </View>
         </View>
 
         <View style={styles.block}>
-          <Text variant="small" muted>
+          <Text variant="micro" muted uppercase>
             {labels.time}
           </Text>
-          <SegmentedControl
-            options={TIME_OPTIONS.map((option) => ({
-              label: labels.timeOptions[option],
-              value: option,
-            }))}
-            value={time}
-            onChange={setTime}
-          />
+          <View style={styles.chipWrap}>
+            {TIME_OPTIONS.map((option) => (
+              <FilterChip
+                key={option}
+                label={labels.timeOptions[option]}
+                active={time === option}
+                onPress={() => setTime((current) => (current === option ? "any" : option))}
+              />
+            ))}
+          </View>
         </View>
 
         <View style={styles.block}>
-          <Text variant="small" muted>
+          <Text variant="micro" muted uppercase>
             {labels.vibe}
           </Text>
           <View style={styles.chipWrap}>
@@ -125,12 +131,39 @@ export function CookPromptSheet({
           </View>
         </View>
 
-        <View style={styles.buttons}>
-          <Button title={labels.generate} onPress={() => onGenerate(buildFilters())} />
-          <Button title={labels.surprise} variant="text" onPress={() => onGenerate(undefined)} />
+        <View style={styles.ctaRow}>
+          <Button
+            title={labels.generate}
+            onPress={() => onGenerate(buildFilters())}
+            style={styles.generate}
+          />
+          <IconButton label={labels.surprise} size={56} onPress={() => onGenerate(undefined)}>
+            <ShuffleIcon />
+          </IconButton>
         </View>
       </ScrollView>
     </BottomSheet>
+  );
+}
+
+// Shuffle arrows — "Surprise me" as a compact icon action beside Generate.
+function ShuffleIcon() {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+      <Path
+        d="M3 6.5H6.5C8 6.5 9 7.2 10 8.5L12 11.5C13 12.8 14 13.5 15.5 13.5H19"
+        stroke={colors.primary}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Path
+        d="M3 15.5H6.5C7.6 15.5 8.4 15.1 9.2 14.3M19 6.5H15.5C14.4 6.5 13.6 6.9 12.8 7.7"
+        stroke={colors.primary}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+      />
+      <Path d="M16.5 4L19 6.5L16.5 9M16.5 11L19 13.5L16.5 16" stroke={colors.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 
@@ -150,8 +183,13 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.sm,
   },
-  buttons: {
+  ctaRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     marginTop: spacing.sm,
+  },
+  generate: {
+    flex: 1,
   },
 });
