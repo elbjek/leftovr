@@ -26,6 +26,7 @@ export type RecipeMatcherInput = {
   filters?: {
     mealType?: "breakfast" | "lunch" | "dinner" | "snack";
     maxMinutes?: number;
+    minMinutes?: number;
     vibe?: string;
   };
 };
@@ -35,29 +36,27 @@ export function matchRecipes(
   library: MockRecipe[] = RECIPE_LIBRARY,
 ): RecipeMatch[] {
   const { inventory, avoidances, isPremium } = input;
-  // Key by canonical (alias-folded) name so a localized fridge item still
-  // matches the English recipe library (CODE_REVIEW #7).
-  const inventoryByNorm = new Map<string, InventoryLot>();
+  const inventoryByNorm = new Map<string, { lot: InventoryLot; key: string }>();
   for (const lot of inventory) {
     const key = canonicalFoodName(lot.normalized_name);
     if (!inventoryByNorm.has(key)) {
-      inventoryByNorm.set(key, lot);
+      inventoryByNorm.set(key, { lot, key });
     }
   }
 
   const filters = input.filters;
   const filtered = library.filter((recipe) => {
-    if (recipe.avoidanceTags.some((tag) => avoidances.includes(tag))) return false;
+    if (violatesAvoidances(recipe, avoidances)) return false;
     if (filters?.mealType && recipe.mealType !== filters.mealType) return false;
     if (filters?.maxMinutes != null && recipe.timeMinutes > filters.maxMinutes) return false;
+    if (filters?.minMinutes != null && recipe.timeMinutes < filters.minMinutes) return false;
     if (filters?.vibe && !recipe.tags.includes(filters.vibe)) return false;
     return true;
   });
 
   const scored = filtered.map((recipe) => {
     const matchedItems: MatchedItem[] = recipe.ingredients.map((ing) => {
-      const norm = canonicalFoodName(ing.name);
-      const lot = inventoryByNorm.get(norm) ?? null;
+      const lot = findInventoryLotForIngredient(ing.name, inventoryByNorm);
       // Resolve urgency from expiry/age — the stored column is stale (CODE_REVIEW #2).
       const lotUrgency = lot ? resolveUrgency(lot) : null;
       const isUrgent = lotUrgency === "urgent" || lotUrgency === "use_soon";
@@ -75,7 +74,7 @@ export function matchRecipes(
 
     const required = recipe.ingredients.filter((i) => i.required);
     const matchedRequired = required.filter((i) =>
-      inventoryByNorm.has(canonicalFoodName(i.name)),
+      findInventoryLotForIngredient(i.name, inventoryByNorm) !== null,
     ).length;
     const coverage =
       required.length === 0
@@ -98,6 +97,53 @@ export function matchRecipes(
   });
 
   return scored;
+}
+
+function violatesAvoidances(recipe: MockRecipe, avoidances: string[]) {
+  if (avoidances.length === 0) return false;
+  const normalizedAvoidances = avoidances.map((avoidance) => avoidance.toLowerCase().trim());
+  const searchable = [
+    ...recipe.avoidanceTags,
+    ...recipe.ingredients.map((ingredient) => ingredient.name),
+  ].map((value) => value.toLowerCase());
+
+  return normalizedAvoidances.some((avoidance) =>
+    searchable.some((value) => value.includes(avoidance)),
+  );
+}
+
+function findInventoryLotForIngredient(
+  ingredientName: string,
+  inventoryByNorm: Map<string, { lot: InventoryLot; key: string }>,
+) {
+  const ingredientKey = simplifyFoodKey(canonicalFoodName(ingredientName));
+  const exact = inventoryByNorm.get(ingredientKey);
+  if (exact) return exact.lot;
+
+  for (const { lot, key } of inventoryByNorm.values()) {
+    const lotKey = simplifyFoodKey(key);
+    if (
+      lotKey === ingredientKey ||
+      lotKey.includes(ingredientKey) ||
+      ingredientKey.includes(lotKey)
+    ) {
+      return lot;
+    }
+  }
+
+  return null;
+}
+
+function simplifyFoodKey(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]+/g, " ")
+    .replace(/\b(fresh|cooked|raw|mixed|chopped|sliced|diced)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/ies\b/g, "y")
+    .replace(/oes\b/g, "o")
+    .replace(/s\b/g, "");
 }
 
 /**

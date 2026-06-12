@@ -365,6 +365,7 @@ V1 uses mock receipt templates. No Anthropic API calls.
 
 Include several realistic templates:
 
+- demo shop with ~40 varied fridge/pantry items for local testing
 - weekly family shop
 - quick top-up
 - vegetarian shop
@@ -723,11 +724,16 @@ Tapping "What should I cook?" opens an optional prompt sheet before generating:
 - cooking for: household or just me (only in households with 2+ members;
   drives servings and whose avoidances apply)
 - meal type: breakfast, lunch, dinner, or snack
-- time available
-- vibe/category, using recipe tags
+- time available: quick options include <=20 min, <=45 min, and 1h+ projects
+- vibe/category, using recipe tags such as comfort, healthy, veggie, quick,
+  high-protein, light, family-friendly, and budget
+- servings must come from user/household settings and every generated card must
+  match that serving count
+- dietary avoidances are hard constraints: generated recipes must not include
+  avoided ingredients in ingredients, steps, substitutions, or optional toppings
 
 A "Surprise me" action skips choices and generates instantly, preserving the
-original one-tap behavior. The prompt is available to all users; the weekly
+original one-tap behavior. The prompt is available to all users; the one-time
 session limit remains the free/premium gate. Chomp always chooses ingredients
 from the fridge inventory itself; users do not manually pick what to use.
 

@@ -1,4 +1,4 @@
-import Anthropic from "npm:@anthropic-ai/sdk";
+import Anthropic from "npm:@anthropic-ai/sdk@^0.24.0";
 
 type GenerateRecipesRequest = {
   inventory?: Array<{
@@ -19,6 +19,7 @@ type GenerateRecipesRequest = {
   filters?: {
     mealType?: "breakfast" | "lunch" | "dinner" | "snack";
     maxMinutes?: number;
+    minMinutes?: number;
     vibe?: string;
   };
 };
@@ -102,17 +103,20 @@ Deno.serve(async (req) => {
   }
 
   const input = await req.json().catch(() => ({})) as GenerateRecipesRequest;
+  const prompt = buildPrompt(input);
+  console.info("[generate-recipes] prompt\n" + prompt);
 
   try {
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 8000,
-      messages: [{ role: "user", content: buildPrompt(input) }],
+      messages: [{ role: "user", content: prompt }],
       output_config: { format: { type: "json_schema", schema: RECIPE_SCHEMA } },
     });
 
     const text = response.content.find((block) => block.type === "text")?.text ?? "";
+    console.info("[generate-recipes] response text length", text.length);
     const parsed = JSON.parse(text) as { recipes: AiRecipeCard[] };
 
     const avoidances = input.avoidances ?? [];
@@ -120,8 +124,14 @@ Deno.serve(async (req) => {
       (recipe) =>
         recipe.ingredients.length > 0 &&
         recipe.steps.length > 0 &&
-        !recipe.avoidanceTags.some((tag) => avoidances.includes(tag)),
+        !violatesAvoidances(recipe, avoidances),
     );
+
+    console.info("[generate-recipes] returning recipes", {
+      raw: parsed.recipes.length,
+      kept: recipes.length,
+      titles: recipes.map((recipe) => recipe.title),
+    });
 
     return Response.json({ source: "ai", recipes });
   } catch (error) {
@@ -137,12 +147,19 @@ function buildPrompt(input: GenerateRecipesRequest) {
     `Cooking mode: ${input.cookingMode ?? "household"}.`,
     `Servings: ${input.servings ?? 2}.`,
     `Premium optimized: ${input.isPremium ? "yes" : "no"}.`,
-    `Avoidances: ${input.avoidances?.length ? input.avoidances.join(", ") : "none"}.`,
+    `Hard serving constraint: recipe servings MUST equal ${input.servings ?? 2}.`,
+    `Hard dietary constraints: ${
+      input.avoidances?.length
+        ? `avoid ${input.avoidances.join(", ")}. Do not include these in ingredients, steps, substitutions, or optional toppings.`
+        : "none"
+    }`,
+    "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated fridge items into the same recipe just because they are available; it is better to use fewer well-matched fridge items. Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but avoid awkward sweet-savory combinations unless they are a familiar dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it.",
     "Fridge contents:",
     ...formatInventory(input.inventory ?? []),
     "Prompt filters:",
     `- meal type: ${input.filters?.mealType ?? "any"}`,
     `- max time: ${input.filters?.maxMinutes != null ? `${input.filters.maxMinutes} minutes` : "any"}`,
+    `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
     "Return 3 to 5 recipe cards.",
     "Every recipe must use at least one fridge item, and prefer items with higher urgency.",
@@ -150,6 +167,20 @@ function buildPrompt(input: GenerateRecipesRequest) {
     "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",
     "Respect the prompt filters: matching mealType, timeMinutes within max time, and include the vibe/tag in tags when one is set.",
   ].join("\n");
+}
+
+function violatesAvoidances(recipe: AiRecipeCard, avoidances: string[]) {
+  if (avoidances.length === 0) return false;
+  const normalizedAvoidances = avoidances.map((avoidance) => avoidance.toLowerCase().trim());
+  const searchable = [
+    ...recipe.avoidanceTags,
+    ...recipe.ingredients.map((ingredient) => ingredient.name),
+    ...recipe.steps,
+  ].map((value) => value.toLowerCase());
+
+  return normalizedAvoidances.some((avoidance) =>
+    searchable.some((value) => value.includes(avoidance)),
+  );
 }
 
 function formatInventory(inventory: NonNullable<GenerateRecipesRequest["inventory"]>) {

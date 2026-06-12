@@ -36,6 +36,7 @@ const input: RecipeGenerationInput = {
   filters: {
     mealType: "dinner" as const,
     maxMinutes: 45,
+    minMinutes: 20,
     vibe: "healthy",
   },
 };
@@ -46,9 +47,15 @@ describe("recipe generation service", () => {
 
     expect(prompt).toContain("meal type: dinner");
     expect(prompt).toContain("max time: 45 minutes");
+    expect(prompt).toContain("min time: 20 minutes");
     expect(prompt).toContain("vibe/tag: healthy");
-    expect(prompt).toContain("Avoidances: dairy");
+    expect(prompt).toContain("Hard serving constraint: recipe servings MUST equal 2");
+    expect(prompt).toContain("Hard dietary constraints: avoid dairy");
+    expect(prompt).toContain("Do not include these in ingredients");
     expect(prompt).toContain("Spinach (spinach)");
+    expect(prompt).toContain("Culinary judgment");
+    expect(prompt).toContain("Do not force unrelated fridge items");
+    expect(prompt).toContain("Sweet fruit can be used when it belongs naturally");
   });
 
   it("uses the same filters for current mock generation", async () => {
@@ -57,11 +64,17 @@ describe("recipe generation service", () => {
     expect(result.source).toBe("mock");
     expect(result.matches.every((match) => match.mealType === "dinner")).toBe(true);
     expect(result.matches.every((match) => match.timeMinutes <= 45)).toBe(true);
+    expect(result.matches.every((match) => match.timeMinutes >= 20)).toBe(true);
     expect(result.matches.every((match) => match.tags.includes("healthy"))).toBe(true);
   });
 });
 
 describe("mapAiRecipesToMatches", () => {
+  const unfilteredInput: RecipeGenerationInput = {
+    ...input,
+    filters: undefined,
+  };
+
   const fridgeCard: AiRecipeCard = {
     title: "Garlic spinach saute",
     description: "Quick wilted spinach with garlic.",
@@ -86,7 +99,7 @@ describe("mapAiRecipesToMatches", () => {
   };
 
   it("keeps only recipes that use at least one fridge item", () => {
-    const matches = mapAiRecipesToMatches([fridgeCard, noFridgeCard], input);
+    const matches = mapAiRecipesToMatches([fridgeCard, noFridgeCard], unfilteredInput);
 
     expect(matches).toHaveLength(1);
     expect(matches[0].title).toBe("Garlic spinach saute");
@@ -97,7 +110,7 @@ describe("mapAiRecipesToMatches", () => {
   });
 
   it("maps card fields onto the RecipeMatch shape", () => {
-    const [match] = mapAiRecipesToMatches([fridgeCard], input);
+    const [match] = mapAiRecipesToMatches([fridgeCard], unfilteredInput);
 
     expect(match.servingsBaseline).toBe(2);
     expect(match.complexity).toBe("simple");
@@ -116,4 +129,5 @@ describe("mapAiRecipesToMatches", () => {
     expect(mapAiRecipesToMatches([dairyCard], input)).toHaveLength(0);
     expect(mapAiRecipesToMatches([slowCard], input)).toHaveLength(0);
   });
+
 });

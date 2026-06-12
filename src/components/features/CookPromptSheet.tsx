@@ -9,11 +9,12 @@ import { CookingMode } from "@/repositories/recipeRepository";
 export type CookFilters = {
   mealType?: "breakfast" | "lunch" | "dinner" | "snack";
   maxMinutes?: number;
+  minMinutes?: number;
   vibe?: string;
 };
 
 type MealOption = "any" | "breakfast" | "lunch" | "dinner" | "snack";
-type TimeOption = "any" | "20" | "45";
+type TimeOption = "any" | "20" | "45" | "60plus";
 
 type Props = {
   visible: boolean;
@@ -27,11 +28,14 @@ type Props = {
     vibeOptions: Record<string, string>;
     surprise: string;
     generate: string;
+    servings?: string;
     cookingFor?: string;
     cookingForOptions?: Record<CookingMode, string>;
   };
   /** Shown only when provided (households with 2+ members). */
   cookingMode?: CookingMode;
+  servings?: number;
+  generating?: boolean;
   onCookingModeChange?: (mode: CookingMode) => void;
   onDismiss: () => void;
   onGenerate: (filters?: CookFilters) => void;
@@ -39,13 +43,24 @@ type Props = {
 
 // "any" is the unselected state, not a chip — tapping a selected chip clears it.
 const MEAL_OPTIONS: Exclude<MealOption, "any">[] = ["breakfast", "lunch", "dinner", "snack"];
-const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["20", "45"];
-const VIBE_OPTIONS = ["comfort", "healthy", "veggie", "quick"];
+const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["20", "45", "60plus"];
+const VIBE_OPTIONS = [
+  "comfort",
+  "healthy",
+  "veggie",
+  "quick",
+  "high_protein",
+  "light",
+  "family_friendly",
+  "budget",
+];
 
 export function CookPromptSheet({
   visible,
   labels,
   cookingMode,
+  servings,
+  generating = false,
   onCookingModeChange,
   onDismiss,
   onGenerate,
@@ -57,7 +72,8 @@ export function CookPromptSheet({
   function buildFilters(): CookFilters {
     return {
       mealType: meal === "any" ? undefined : meal,
-      maxMinutes: time === "any" ? undefined : Number(time),
+      maxMinutes: time === "any" || time === "60plus" ? undefined : Number(time),
+      minMinutes: time === "60plus" ? 60 : undefined,
       vibe: vibe ?? undefined,
     };
   }
@@ -81,6 +97,12 @@ export function CookPromptSheet({
               onChange={onCookingModeChange}
             />
           </View>
+        ) : null}
+
+        {servings && labels.servings ? (
+          <Text variant="small" muted>
+            {labels.servings}
+          </Text>
         ) : null}
 
         <View style={styles.block}>
@@ -134,10 +156,17 @@ export function CookPromptSheet({
         <View style={styles.ctaRow}>
           <Button
             title={labels.generate}
+            loading={generating}
+            disabled={generating}
             onPress={() => onGenerate(buildFilters())}
             style={styles.generate}
           />
-          <IconButton label={labels.surprise} size={56} onPress={() => onGenerate(undefined)}>
+          <IconButton
+            label={labels.surprise}
+            size={56}
+            onPress={generating ? undefined : () => onGenerate(undefined)}
+            style={generating && styles.disabledIcon}
+          >
             <ShuffleIcon />
           </IconButton>
         </View>
@@ -191,5 +220,8 @@ const styles = StyleSheet.create({
   },
   generate: {
     flex: 1,
+  },
+  disabledIcon: {
+    opacity: 0.45,
   },
 });
