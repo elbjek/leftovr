@@ -12,9 +12,6 @@ export type InsightsRawData = {
   cookedRecipes: { title: string; count: number }[];
 };
 
-// Removal reasons that mean "consumed", as opposed to thrown out ("removed").
-const USED_REASONS = ["cooked", "quantity_depleted"];
-
 // With userId: personal stats (your scans, items you added, meals you cooked).
 // Without: whole-household stats. Removed/used items are attributed via
 // added_by since inventory rows don't record who removed them.
@@ -69,14 +66,15 @@ export async function getInsightsData(
   if (until) removedQuery = removedQuery.lt("removed_at", until);
   if (userId) removedQuery = removedQuery.eq("added_by", userId);
 
+  // item_usage_events logs every item touched by a cook/use — partial
+  // depletion included, which removal-based counting missed entirely.
   let usedQuery = supabase
-    .from("inventory_items")
+    .from("item_usage_events")
     .select("id, category", { count: "exact" })
     .eq("household_id", householdId)
-    .in("removal_reason", USED_REASONS)
-    .gte("removed_at", since);
-  if (until) usedQuery = usedQuery.lt("removed_at", until);
-  if (userId) usedQuery = usedQuery.eq("added_by", userId);
+    .gte("used_at", since);
+  if (until) usedQuery = usedQuery.lt("used_at", until);
+  if (userId) usedQuery = usedQuery.eq("used_by", userId);
 
   const [scans, items, cooked, cookedRecipeRows, removed, used] = await Promise.all([
     scansQuery,

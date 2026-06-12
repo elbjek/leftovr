@@ -64,7 +64,7 @@ export default function FridgeRoute() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const filteredGroups = categoryFilter === "all" ? groups : groups.filter((group) => group.category === categoryFilter);
   const isPremium = resolvePremium(profile, activeHousehold);
-  const { weeklySummary } = useInsights(activeHousehold?.id);
+  const { weeklySummary, refresh: refreshInsights } = useInsights(activeHousehold?.id);
   const eatFirstGroups = getEatFirstGroups(filteredGroups);
   const runningLowGroups = filteredGroups.filter(isMetricAmountRunningLow);
   const categoryShelves = buildCategoryShelves(filteredGroups, t);
@@ -74,7 +74,8 @@ export default function FridgeRoute() {
   useFocusEffect(
     useCallback(() => {
       void refresh();
-    }, [refresh]),
+      void refreshInsights();
+    }, [refresh, refreshInsights]),
   );
 
   return (
