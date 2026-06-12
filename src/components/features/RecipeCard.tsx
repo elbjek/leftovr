@@ -15,6 +15,8 @@ type Props = {
   favoriteLabel?: string;
   favorite?: boolean;
   cookedLabel?: string;
+  /** Marks a just-generated recipe with an accent "new" pill. */
+  newLabel?: string;
   onPress?: () => void;
 };
 
@@ -28,6 +30,7 @@ export function RecipeCard({
   favoriteLabel,
   favorite = false,
   cookedLabel,
+  newLabel,
   onPress,
 }: Props) {
   const leadItem = usedItems[0] ?? title;
@@ -52,6 +55,11 @@ export function RecipeCard({
       <View style={styles.copy}>
         <Text variant="h3" numberOfLines={1}>{title}</Text>
         <View style={styles.metaRow}>
+          {newLabel ? (
+            <View style={styles.newBadge}>
+              <Text variant="micro" color={colors.text}>{newLabel}</Text>
+            </View>
+          ) : null}
           <Text variant="small" muted>
             {timeLabel}
             {metaSeparator}
@@ -127,6 +135,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     backgroundColor: colors.primary50,
+    borderRadius: radii.pill,
+  },
+  newBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    backgroundColor: colors.accentSoft,
+    borderWidth: 1,
+    borderColor: colors.accent,
     borderRadius: radii.pill,
   },
 });

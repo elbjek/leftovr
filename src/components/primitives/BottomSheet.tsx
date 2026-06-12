@@ -33,6 +33,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(28,28,26,0.42)",
   },
   sheet: {
+    // Tall content must scroll inside the sheet, never push it past the top.
+    maxHeight: "88%",
     borderTopLeftRadius: radii.xxl,
     borderTopRightRadius: radii.xxl,
     backgroundColor: colors.surface,

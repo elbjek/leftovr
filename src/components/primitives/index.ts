@@ -6,6 +6,7 @@ export * from "./Card";
 export * from "./ChoiceCard";
 export * from "./EmptyState";
 export * from "./FilterChip";
+export * from "./GeneratingOverlay";
 export * from "./IconButton";
 export * from "./PageDots";
 export * from "./Screen";

@@ -4,7 +4,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, PremiumSheet, RecipeCard, RecipeGlyph, Screen, ScreenHeader, Text } from "@/components";
+import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, GeneratingOverlay, PremiumSheet, RecipeCard, RecipeGlyph, Screen, ScreenHeader, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
@@ -464,6 +464,7 @@ export default function RecipesRoute() {
                           favorite={savedRecipe?.is_favorite}
                           favoriteLabel="★"
                           cookedLabel={savedRecipe?.cooked_count ? t("recipes.cooked.count", { count: savedRecipe.cooked_count }) : undefined}
+                          newLabel={t("recipes.newBadge")}
                           onPress={() => navigateToDetail(match, savedRecipe?.id)}
                         />
                       );
@@ -651,6 +652,18 @@ export default function RecipesRoute() {
         }}
         onDismiss={() => setShowPremium(false)}
       />
+
+      {generating ? (
+        <GeneratingOverlay
+          title={t("recipes.generatingOverlay.title")}
+          phrases={[
+            t("recipes.generatingOverlay.phrase1"),
+            t("recipes.generatingOverlay.phrase2"),
+            t("recipes.generatingOverlay.phrase3"),
+            t("recipes.generatingOverlay.phrase4"),
+          ]}
+        />
+      ) : null}
     </Screen>
   );
 }

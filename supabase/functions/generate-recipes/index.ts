@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
   const gate = await acquireGenerationAttempt(input, authHeader);
   if (gate.response) return gate.response;
 
-  const prompt = buildPrompt(input);
+  const prompt = buildPrompt(input, gate.premium === true);
   console.info("[generate-recipes] prompt\n" + prompt);
 
   try {
@@ -245,7 +245,7 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
     .single();
 
   if (!insert.error) {
-    return { attemptId: insert.data.id as string, supabase };
+    return { attemptId: insert.data.id as string, supabase, premium };
   }
   if (insert.error.code !== "23505") {
     return { response: Response.json({ error: "generation_lock_failed" }, { status: 500 }) };
@@ -270,13 +270,13 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
       .from("recipe_generation_attempts")
       .update({ status: "processing", error_message: null, completed_at: null })
       .eq("id", existing.id);
-    return { attemptId: existing.id as string, supabase };
+    return { attemptId: existing.id as string, supabase, premium };
   }
 
   return { response: Response.json({ error: "generation_lock_conflict" }, { status: 409 }) };
 }
 
-function buildPrompt(input: GenerateRecipesRequest) {
+function buildPrompt(input: GenerateRecipesRequest, premium: boolean) {
   return [
     "Generate practical Leftovr recipe ideas from household fridge contents.",
     "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
@@ -297,7 +297,9 @@ function buildPrompt(input: GenerateRecipesRequest) {
     `- max time: ${input.filters?.maxMinutes != null ? `${input.filters.maxMinutes} minutes` : "any"}`,
     `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
-    "Return 3 to 5 recipe cards.",
+    premium
+      ? "Return exactly 2 recipe cards with clearly distinct approaches (different main technique or cuisine)."
+      : "Return exactly 1 recipe card: your single most confident pick for this fridge.",
     "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
     "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
     "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
