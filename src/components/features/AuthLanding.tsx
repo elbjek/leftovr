@@ -166,10 +166,10 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     color: colors.primary,
-    fontFamily: fonts.displayItalic,
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 36,
     lineHeight: 40,
-    fontWeight: "500",
+    fontWeight: "800",
   },
   wordmarkDot: {
     color: colors.accent,

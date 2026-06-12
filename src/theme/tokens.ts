@@ -32,6 +32,7 @@ export const fonts = {
   bodyMedium: "PlusJakartaSansMedium",
   bodySemiBold: "PlusJakartaSansSemiBold",
   bodyBold: "PlusJakartaSansBold",
+  bodyExtraBold: "PlusJakartaSansExtraBold",
   fallback: "System",
 } as const;
 

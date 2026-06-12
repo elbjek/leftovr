@@ -196,9 +196,9 @@ function WordmarkIllustration({ kicker }: { kicker?: string }) {
     <View style={styles.wordmarkIllustration}>
       <View style={styles.wordmarkLockup}>
         <Logo size={56} />
-        <Text variant="display" color={colors.primary} italic style={styles.wordmark}>
+        <Text variant="display" color={colors.primary} style={styles.wordmark}>
           leftovr
-          <Text variant="display" color={colors.accent} italic style={styles.wordmark}>
+          <Text variant="display" color={colors.accent} style={styles.wordmark}>
             .
           </Text>
         </Text>
@@ -327,6 +327,8 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   wordmark: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
     fontSize: 64,
     lineHeight: 70,
   },

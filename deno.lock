@@ -58,6 +58,7 @@
         "npm:expo-constants@~56.0.16",
         "npm:expo-device@~56.0.4",
         "npm:expo-font@~56.0.5",
+        "npm:expo-image-manipulator@~56.0.18",
         "npm:expo-image@~56.0.9",
         "npm:expo-linking@~56.0.12",
         "npm:expo-localization@~56.0.5",
