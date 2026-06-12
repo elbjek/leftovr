@@ -52,10 +52,42 @@ describe("matchRecipes filters", () => {
     expect(res.every((r) => r.mealType === "breakfast")).toBe(true);
   });
 
+  it("matches simple AI-style ingredient names to more specific fridge names", () => {
+    const res = matchRecipes({
+      ...base,
+      inventory: [lot("Greek yogurt", "greek yogurt")],
+    }, [
+      {
+        key: "ai-yogurt-bowl",
+        title: "Yogurt bowl",
+        description: "Fast bowl.",
+        timeMinutes: 5,
+        complexity: "simple",
+        servingsBaseline: 1,
+        category: "breakfast",
+        mealType: "breakfast",
+        tags: ["healthy"],
+        avoidanceTags: [],
+        ingredients: [
+          { name: "yogurt", amount: "1 bowl", required: true, countable: false },
+        ],
+        steps: ["Spoon yogurt into a bowl."],
+      },
+    ]);
+
+    expect(res[0].matchCount).toBe(1);
+    expect(res[0].coverage).toBe(1);
+  });
+
   it("filters by maxMinutes", () => {
     const res = matchRecipes({ ...base, filters: { maxMinutes: 15 } });
     expect(res.length).toBeGreaterThan(0);
     expect(res.every((r) => r.timeMinutes <= 15)).toBe(true);
+  });
+
+  it("filters by minMinutes", () => {
+    const res = matchRecipes({ ...base, filters: { minMinutes: 60 } });
+    expect(res.every((r) => r.timeMinutes >= 60)).toBe(true);
   });
 
   it("filters by vibe tag", () => {

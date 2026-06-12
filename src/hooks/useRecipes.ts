@@ -151,7 +151,7 @@ export function useRecipes(
         setState((s) => ({ ...s, generating: true, error: null }));
 
         try {
-          const { matches } = await generateRecipeMatches({
+          const { matches, source, prompt } = await generateRecipeMatches({
             inventory,
             avoidances,
             isPremium,
@@ -159,6 +159,13 @@ export function useRecipes(
             cookingMode,
             filters,
           });
+          if (__DEV__) {
+            console.info("[recipes] generation result", {
+              source,
+              matchCount: matches.length,
+              prompt,
+            });
+          }
           const top = matches.slice(0, 3);
 
           // Nothing makeable from the current fridge: don't create a session
@@ -216,6 +223,7 @@ export function useRecipes(
 
           return { recipes: savedRecipes, matches: top };
         } catch (err) {
+          if (__DEV__) console.warn("[recipes] generation persistence failed", err);
           setState((s) => ({
             ...s,
             generating: false,

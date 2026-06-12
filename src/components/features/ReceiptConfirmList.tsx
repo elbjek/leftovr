@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { ReceiptConfirmItem } from "@/services";
@@ -45,6 +45,9 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
 
   return (
     <View style={styles.wrap}>
+      <View style={styles.toolbar}>
+        <Button title={t("common.cancel")} variant="text" onPress={onCancel} />
+      </View>
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {rows.map((row) => (
           <Card key={row.id} style={[styles.row, !row.included && styles.rowExcluded]}>
@@ -103,15 +106,24 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
         ))}
       </ScrollView>
 
-      <View style={styles.footer}>
-        <Button
-          title={t("scan.confirm.addCta", { count: includedCount })}
-          loading={confirming}
-          disabled={includedCount === 0}
-          onPress={handleConfirm}
-        />
-        <Button title={t("common.cancel")} variant="ghost" onPress={onCancel} />
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        disabled={includedCount === 0 || confirming}
+        onPress={handleConfirm}
+        style={({ pressed }) => [
+          styles.confirmButton,
+          (includedCount === 0 || confirming) && styles.confirmButtonDisabled,
+          pressed && styles.confirmButtonPressed,
+        ]}
+      >
+        {confirming ? (
+          <ActivityIndicator color={colors.surface} />
+        ) : (
+          <Text variant="label" color={colors.surface}>
+            {t("scan.confirm.addCta", { count: includedCount })}
+          </Text>
+        )}
+      </Pressable>
     </View>
   );
 }
@@ -120,9 +132,13 @@ const styles = StyleSheet.create({
   wrap: {
     flex: 1,
   },
+  toolbar: {
+    alignItems: "flex-end",
+    marginBottom: spacing.xs,
+  },
   list: {
     gap: spacing.sm,
-    paddingBottom: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   row: {
     flexDirection: "row",
@@ -170,8 +186,19 @@ const styles = StyleSheet.create({
   unitField: {
     flex: 1,
   },
-  footer: {
-    gap: spacing.xs,
-    paddingTop: spacing.sm,
+  confirmButton: {
+    minHeight: 48,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.xl,
+  },
+  confirmButtonDisabled: {
+    opacity: 0.45,
+  },
+  confirmButtonPressed: {
+    transform: [{ scale: 0.985 }],
   },
 });

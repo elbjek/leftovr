@@ -56,6 +56,7 @@ export default function RecipesRoute() {
     toggleFavorite,
     currentSessionId,
     cookedSummaries,
+    error: recipeError,
   } = useRecipes(activeHousehold?.id, {
     inventory,
     avoidances: activeAvoidances,
@@ -86,6 +87,11 @@ export default function RecipesRoute() {
       setShowPremium(true);
       return;
     }
+    setGenerateNotice(null);
+    setSearch("");
+    setFilterTag(null);
+    setFilterTime(null);
+    setTab("all");
     setShowCookPrompt(false);
     const result = await generateSession(cookingMode, filters);
     setGenerateNotice(result && result.recipes.length === 0 ? t("recipes.noMakeable") : null);
@@ -260,7 +266,7 @@ export default function RecipesRoute() {
         <View style={styles.emptyWrap}>
           <EmptyState
             title={t("recipes.emptyTitle")}
-            body={generateNotice ?? t("recipes.emptyBody")}
+            body={generateNotice ?? recipeError ?? t("recipes.emptyBody")}
             actionLabel={t("recipes.emptyAction")}
             onAction={openCookPrompt}
           />
@@ -362,6 +368,14 @@ export default function RecipesRoute() {
                     onRemove={() => setFilterTime(null)}
                   />
                 ) : null}
+              </View>
+            ) : null}
+
+            {recipeError ? (
+              <View style={styles.errorBanner}>
+                <Text variant="small" color={colors.red} style={styles.limitText}>
+                  {recipeError}
+                </Text>
               </View>
             ) : null}
 
@@ -538,6 +552,7 @@ export default function RecipesRoute() {
             any: t("recipes.cookPrompt.timeOptions.any"),
             "20": t("recipes.cookPrompt.timeOptions.20"),
             "45": t("recipes.cookPrompt.timeOptions.45"),
+            "60plus": t("recipes.cookPrompt.timeOptions.60plus"),
           },
           vibe: t("recipes.cookPrompt.vibe"),
           vibeOptions: {
@@ -545,15 +560,22 @@ export default function RecipesRoute() {
             healthy: t("recipes.cookPrompt.vibeOptions.healthy"),
             veggie: t("recipes.cookPrompt.vibeOptions.veggie"),
             quick: t("recipes.cookPrompt.vibeOptions.quick"),
+            high_protein: t("recipes.cookPrompt.vibeOptions.highProtein"),
+            light: t("recipes.cookPrompt.vibeOptions.light"),
+            family_friendly: t("recipes.cookPrompt.vibeOptions.familyFriendly"),
+            budget: t("recipes.cookPrompt.vibeOptions.budget"),
           },
           surprise: t("recipes.cookPrompt.surprise"),
           generate: t("recipes.cookPrompt.generate"),
+          servings: t("recipes.detail.servings", { count: servings }),
           cookingFor: t("recipes.cookingMode.title"),
           cookingForOptions: {
             household: t("recipes.cookingMode.household"),
             just_me: t("recipes.cookingMode.justMe"),
           },
         }}
+        generating={generating}
+        servings={servings}
         cookingMode={showCookingMode ? cookingMode : undefined}
         onCookingModeChange={setCookingMode}
         onDismiss={() => setShowCookPrompt(false)}
@@ -958,6 +980,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  errorBanner: {
+    marginHorizontal: spacing.screenX,
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: "#FBEDEA",
+    borderRadius: radii.md,
   },
   limitText: {
     fontWeight: "700",

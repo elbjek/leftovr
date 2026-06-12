@@ -877,7 +877,7 @@ export default function ScanRoute() {
 
   if (mode === "confirm") {
     return (
-      <Screen>
+      <Screen bottomInset={false}>
         <ScreenHeader
           title={t("scan.confirm.title")}
           subtitle={t("scan.confirm.body")}

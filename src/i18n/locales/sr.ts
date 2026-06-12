@@ -417,6 +417,7 @@ export const sr = {
         any: "Bilo koje",
         "20": "≤ 20 min",
         "45": "≤ 45 min",
+        "60plus": "1 h+",
       },
       vibe: "Stil",
       vibeOptions: {
@@ -424,6 +425,10 @@ export const sr = {
         healthy: "Zdravo",
         veggie: "Povrce",
         quick: "Brzo",
+        highProtein: "Puno proteina",
+        light: "Lagano",
+        familyFriendly: "Porodicno",
+        budget: "Povoljno",
       },
       surprise: "Iznenadi me",
       generate: "Generisi",

@@ -417,6 +417,7 @@ export const en = {
         any: "Any",
         "20": "≤ 20 min",
         "45": "≤ 45 min",
+        "60plus": "1 hr+",
       },
       vibe: "Vibe",
       vibeOptions: {
@@ -424,6 +425,10 @@ export const en = {
         healthy: "Healthy",
         veggie: "Veggie",
         quick: "Quick",
+        highProtein: "High protein",
+        light: "Light",
+        familyFriendly: "Family",
+        budget: "Budget",
       },
       surprise: "Surprise me",
       generate: "Generate",

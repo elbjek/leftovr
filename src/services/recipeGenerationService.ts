@@ -61,12 +61,26 @@ export function mapAiRecipesToMatches(
     steps: card.steps,
   }));
 
-  return matchRecipes(input, library).filter((match) => match.matchCount >= 1);
+  const matches = matchRecipes(input, library);
+  const fridgeMatches = matches.filter((match) => match.matchCount >= 1);
+
+  // If Anthropic returned recipe cards but local name matching cannot link
+  // them back to inventory, still keep the paid AI output instead of silently
+  // falling back to curated mock recipes. The prompt already requires every
+  // recipe to use fridge items; this preserves user-visible output while logs
+  // expose the matching gap.
+  return fridgeMatches.length > 0 ? fridgeMatches : matches;
 }
 
 async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMatch[] | null> {
   if (!env.supabaseUrl || !env.supabaseAnonKey) {
+    if (__DEV__) console.warn("[recipes] AI skipped: missing Supabase config");
     return null;
+  }
+
+  const prompt = buildRecipeGenerationPrompt(input);
+  if (__DEV__) {
+    console.info("[recipes] client prompt\n" + prompt);
   }
 
   try {
@@ -92,10 +106,20 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
         filters: input.filters,
       },
     });
-    if (error) throw error;
+    if (error) {
+      if (__DEV__) console.warn("[recipes] Edge function error", error);
+      throw error;
+    }
 
     const cards = (data as { recipes?: AiRecipeCard[] } | null)?.recipes ?? [];
     const matches = mapAiRecipesToMatches(cards, input);
+    if (__DEV__) {
+      console.info("[recipes] AI response", {
+        cards: cards.length,
+        matched: matches.length,
+        titles: cards.map((card) => card.title),
+      });
+    }
     return matches.length > 0 ? matches : null;
   } catch (error) {
     if (__DEV__) console.warn("[recipes] AI generation failed, using mock matcher", error);
@@ -106,6 +130,7 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
 export async function generateRecipeMatches(input: RecipeGenerationInput): Promise<RecipeGenerationResult> {
   const aiMatches = await generateAiMatches(input);
   if (aiMatches) {
+    if (__DEV__) console.info("[recipes] using ai matches", { count: aiMatches.length });
     return {
       source: "ai",
       matches: aiMatches,
@@ -123,6 +148,8 @@ export async function generateRecipeMatches(input: RecipeGenerationInput): Promi
       ? makeable
       : selectMakeableRecipes(scored, { isPremium: input.isPremium, minCoverage: 0 });
 
+  if (__DEV__) console.info("[recipes] using mock matches", { count: matches.length });
+
   return {
     source: "mock",
     matches,
@@ -137,7 +164,13 @@ export function buildRecipeGenerationPrompt(input: RecipeGenerationInput) {
     `Cooking mode: ${input.cookingMode}.`,
     `Servings: ${input.servings ?? 2}.`,
     `Premium optimized: ${input.isPremium ? "yes" : "no"}.`,
-    `Avoidances: ${input.avoidances.length > 0 ? input.avoidances.join(", ") : "none"}.`,
+    `Hard serving constraint: recipe servings MUST equal ${input.servings ?? 2}.`,
+    `Hard dietary constraints: ${
+      input.avoidances.length > 0
+        ? `avoid ${input.avoidances.join(", ")}. Do not include these in ingredients, steps, substitutions, or optional toppings.`
+        : "none"
+    }`,
+    "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated fridge items into the same recipe just because they are available; it is better to use fewer well-matched fridge items. Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but avoid awkward sweet-savory combinations unless they are a familiar dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it.",
     "Fridge contents:",
     ...formatInventoryLines(input.inventory),
     "Prompt filters:",
@@ -166,6 +199,7 @@ function formatFilterLines(filters: RecipeGenerationFilters | undefined) {
   return [
     `- meal type: ${filters?.mealType ?? "any"}`,
     `- max time: ${filters?.maxMinutes != null ? `${filters.maxMinutes} minutes` : "any"}`,
+    `- min time: ${filters?.minMinutes != null ? `${filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${filters?.vibe ?? "any"}`,
   ];
 }
