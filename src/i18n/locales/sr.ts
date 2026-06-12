@@ -278,6 +278,8 @@ export const sr = {
     coachTitle: "Uhvatite ceo racun",
     coachBody: "Neka svaka stavka bude citljiva i unutar okvira, pa dodirni okidac.",
     capture: "Skeniraj racun",
+    emptyScan: "Nismo nasli namirnice na ovom racunu. Probaj jasniju, dobro osvetljenu fotografiju.",
+    demoReceipt: "Koristi demo racun",
     processingTitle: "Citamo racun.",
     processingBody: "Sredjujemo tvoju kupovinu.",
     confirm: {

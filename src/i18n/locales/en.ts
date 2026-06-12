@@ -278,6 +278,8 @@ export const en = {
     coachTitle: "Line up the whole receipt",
     coachBody: "Make sure every line is readable and inside the frame, then tap the shutter.",
     capture: "Capture receipt",
+    emptyScan: "We couldn't find any groceries on that receipt. Try a clearer, well-lit photo.",
+    demoReceipt: "Use demo receipt",
     processingTitle: "Reading your receipt.",
     processingBody: "Sorting out what you bought.",
     confirm: {
