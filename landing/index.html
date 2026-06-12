@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>leftovr — What's for dinner?</title>
+<meta name="description" content="leftovr is a receipt-powered virtual fridge. Scan your grocery receipt, see what you have, and cook what should be eaten first — no manual tracking, no guilt." />
+<meta property="og:title" content="leftovr — What's for dinner?" />
+<meta property="og:description" content="Scan a receipt. Your fridge fills itself. Dinner figures itself out." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cpath d='M5 19 h26 a13 13 0 0 1 -26 0 Z' fill='none' stroke='%231B4332' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M12.5 13 c0 -2.4 2 -2.4 2 -4.8' fill='none' stroke='%23D4A843' stroke-width='2.55' stroke-linecap='round'/%3E%3Cpath d='M21.5 13 c0 -2.4 2 -2.4 2 -4.8' fill='none' stroke='%23D4A843' stroke-width='2.55' stroke-linecap='round'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --primary: #1B4332;
+    --primary-700: #163829;
+    --primary-50: rgba(27, 67, 50, 0.06);
+    --primary-100: rgba(27, 67, 50, 0.12);
+    --surface: #F8F4EE;
+    --surface-2: #F1ECE2;
+    --surface-3: #E8E1D3;
+    --paper: #FFFEFB;
+    --bg: #EFE9DD;
+    --accent: #D4A843;
+    --accent-soft: #F0DDA8;
+    --text: #1C1C1A;
+    --muted: #5D6C60;
+    --green: #4F8A5B;
+    --red: #C76845;
+    --hairline: rgba(27, 67, 50, 0.10);
+    --hairline-strong: rgba(27, 67, 50, 0.18);
+    --display: "Fraunces", Georgia, serif;
+    --body: "Plus Jakarta Sans", -apple-system, sans-serif;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-xxl: 24px;
+    --shadow-card: 0 6px 14px rgba(28, 28, 26, 0.05);
+    --shadow-pop: 0 8px 24px rgba(27, 67, 50, 0.18);
+    --max-w: 1120px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body);
+    color: var(--text);
+    background: var(--bg);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay for warmth */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.04'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection { background: var(--accent-soft); color: var(--primary-700); }
+
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; }
+  img, svg { display: block; }
+
+  .wrap { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+
+  /* ---------- Nav ---------- */
+  .nav-shell {
+    position: fixed;
+    top: 16px; left: 16px; right: 16px;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+  nav {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    background: rgba(255, 254, 251, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 10px 12px 10px 20px;
+    box-shadow: var(--shadow-card);
+    max-width: var(--max-w);
+    width: 100%;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 22px; font-weight: 600; color: var(--primary); }
+  .nav-links { display: flex; gap: 24px; margin-left: auto; }
+  .nav-links a {
+    font-size: 14px; font-weight: 600; color: var(--muted);
+    transition: color 200ms ease;
+    padding: 8px 2px;
+  }
+  .nav-links a:hover, .nav-links a:focus-visible { color: var(--primary); }
+  .nav-cta {
+    background: var(--primary); color: var(--surface);
+    border: none; border-radius: 999px;
+    padding: 11px 22px; font-size: 14px; font-weight: 700;
+    transition: background 200ms ease, box-shadow 200ms ease;
+  }
+  .nav-cta:hover { background: var(--primary-700); box-shadow: var(--shadow-pop); }
+  .menu-btn {
+    display: none; margin-left: auto;
+    background: none; border: none; padding: 10px;
+    color: var(--primary);
+  }
+  .mobile-menu {
+    display: none;
+    position: fixed; top: 84px; left: 16px; right: 16px; z-index: 49;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-pop);
+    padding: 12px;
+    flex-direction: column;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    padding: 14px 16px; font-weight: 600; font-size: 16px;
+    border-radius: 12px; color: var(--text);
+  }
+  .mobile-menu a:hover { background: var(--primary-50); }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    border-radius: 999px; font-weight: 700; font-size: 16px;
+    padding: 16px 30px; border: none;
+    transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+    min-height: 44px;
+  }
+  .btn-primary { background: var(--primary); color: var(--surface); box-shadow: 0 8px 24px rgba(27, 67, 50, 0.22); }
+  .btn-primary:hover { background: var(--primary-700); box-shadow: 0 12px 32px rgba(27, 67, 50, 0.3); transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--primary); border: 1.5px solid var(--hairline-strong); }
+  .btn-ghost:hover { background: var(--primary-50); }
+
+  /* ---------- Hero ---------- */
+  header.hero {
+    position: relative;
+    padding: 168px 0 80px;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(900px 480px at 80% -10%, rgba(212, 168, 67, 0.18), transparent 65%),
+      radial-gradient(700px 500px at 8% 20%, rgba(79, 138, 91, 0.10), transparent 60%),
+      linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 48px;
+    align-items: center;
+  }
+  .kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--primary);
+    background: var(--accent-soft);
+    border-radius: 999px;
+    padding: 8px 16px;
+    margin-bottom: 24px;
+  }
+  .kicker .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
+  h1 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(44px, 6.5vw, 76px);
+    line-height: 1.02;
+    color: var(--primary);
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--text);
+    position: relative;
+    white-space: nowrap;
+  }
+  h1 em .underline-svg {
+    position: absolute; left: 0; right: 0; bottom: -6px; width: 100%; height: 12px;
+  }
+  .hero-sub {
+    font-size: 19px; line-height: 1.65; color: var(--muted);
+    max-width: 46ch; margin-bottom: 36px;
+  }
+  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 40px; }
+  .hero-proof { display: flex; align-items: center; gap: 14px; }
+  .avatars { display: flex; }
+  .avatars span {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 2px solid var(--surface);
+    margin-left: -10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--primary);
+  }
+  .avatars span:first-child { margin-left: 0; }
+  .hero-proof p { font-size: 14px; color: var(--muted); }
+  .hero-proof strong { color: var(--text); }
+  .stars { color: var(--accent); letter-spacing: 2px; font-size: 13px; }
+
+  /* ---------- Phone mockup ---------- */
+  .phone-zone { position: relative; display: flex; justify-content: center; }
+  .phone {
+    position: relative;
+    width: 320px;
+    background: var(--primary-700);
+    border-radius: 48px;
+    padding: 12px;
+    box-shadow: 0 40px 80px rgba(27, 67, 50, 0.28), 0 4px 12px rgba(28,28,26,0.15);
+    transform: rotate(2.5deg);
+  }
+  .phone-screen {
+    background: var(--surface);
+    border-radius: 38px;
+    overflow: hidden;
+    padding: 22px 16px 18px;
+  }
+  .phone-notch {
+    width: 110px; height: 26px; background: var(--primary-700);
+    border-radius: 0 0 16px 16px;
+    margin: -22px auto 14px;
+  }
+  .app-greeting { font-family: var(--display); font-size: 23px; font-weight: 600; color: var(--primary); line-height: 1.15; }
+  .app-sub { font-size: 12px; color: var(--muted); margin: 4px 0 14px; }
+  .shelf-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); margin: 12px 0 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .shelf-label .pip { width: 7px; height: 7px; border-radius: 50%; }
+  .food-row { display: flex; gap: 8px; }
+  .food-card {
+    flex: 1;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .food-glyph {
+    width: 38px; height: 38px; border-radius: 12px;
+    margin: 0 auto 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .food-card h4 { font-size: 11px; font-weight: 700; color: var(--text); }
+  .food-card p { font-size: 9.5px; font-weight: 600; }
+  .recipe-banner {
+    margin-top: 14px;
+    background: var(--primary);
+    border-radius: 16px;
+    padding: 14px;
+    color: var(--surface);
+  }
+  .recipe-banner .tag { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-soft); }
+  .recipe-banner h4 { font-family: var(--display); font-size: 16px; font-weight: 500; margin: 4px 0 2px; }
+  .recipe-banner p { font-size: 10.5px; opacity: 0.75; }
+  .float-chip {
+    position: absolute;
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-size: 13px; font-weight: 700;
+    box-shadow: var(--shadow-card);
+    display: flex; align-items: center; gap: 8px;
+    animation: float 5s ease-in-out infinite;
+  }
+  .chip-1 { top: 12%; left: -4%; color: var(--green); animation-delay: 0s; }
+  .chip-2 { bottom: 20%; right: -6%; color: var(--primary); animation-delay: 1.6s; }
+  .chip-3 { bottom: 4%; left: 2%; color: var(--accent); animation-delay: 3s; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* ---------- Sections ---------- */
+  section { padding: 96px 0; position: relative; }
+  .section-head { max-width: 620px; margin-bottom: 56px; }
+  .section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+  .eyebrow {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 14px; display: block;
+  }
+  h2 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(32px, 4.2vw, 48px);
+    line-height: 1.1;
+    color: var(--primary);
+    margin-bottom: 16px;
+  }
+  .section-head p { font-size: 17px; color: var(--muted); }
+
+  /* How it works */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .step {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-xxl);
+    padding: 32px 28px;
+    position: relative;
+    transition: transform 250ms ease, box-shadow 250ms ease;
+  }
+  .step:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(28,28,26,0.08); }
+  .step-num {
+    font-family: var(--display);
+    font-size: 52px; font-weight: 600; font-style: italic;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 18px;
+  }
+  .step-icon { width: 52px; height: 52px; border-radius: 16px; background: var(--primary-50); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+  .step h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+  .step p { font-size: 15px; color: var(--muted); }
+
+  /* Features bento */
+  #features { background: var(--surface); border-radius: 48px 48px 0 0; }
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 18px;
+  }
+  .cell {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-xxl);
+    padding: 32px;
+    transition: transform 250ms ease, box-shadow 250ms ease;
+    overflow: hidden;
+    position: relative;
+  }
+  .cell:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(28,28,26,0.08); }
+  .cell-lg { grid-column: span 4; }
+  .cell-sm { grid-column: span 2; }
+  .cell-md { grid-column: span 3; }
+  .cell-dark { background: var(--primary); border-color: var(--primary-700); color: var(--surface); }
+  .cell-dark h3 { color: var(--surface); }
+  .cell-dark p { color: rgba(248, 244, 238, 0.75); }
+  .cell-gold { background: var(--accent-soft); border-color: rgba(212, 168, 67, 0.4); }
+  .cell .icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: var(--primary-50);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+  }
+  .cell-dark .icon { background: rgba(248, 244, 238, 0.12); }
+  .cell-gold .icon { background: rgba(255, 254, 251, 0.6); }
+  .cell h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .cell p { font-size: 15px; color: var(--muted); }
+  .urgency-demo { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
+  .urgency-demo span {
+    font-size: 12px; font-weight: 700; border-radius: 999px; padding: 7px 14px;
+  }
+  .u-today { background: rgba(199, 104, 69, 0.14); color: var(--red); }
+  .u-soon { background: rgba(212, 168, 67, 0.2); color: #8a6a1d; }
+  .u-fresh { background: rgba(79, 138, 91, 0.15); color: var(--green); }
+  .mini-receipt {
+    margin-top: 22px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px dashed var(--hairline-strong);
+    padding: 14px 16px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .mini-receipt div { display: flex; justify-content: space-between; padding: 3px 0; }
+  .mini-receipt .ok { color: var(--green); font-weight: 700; }
+
+  /* Stats */
+  .stats-band {
+    background: var(--primary);
+    color: var(--surface);
+    border-radius: var(--radius-xxl);
+    padding: 56px 48px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .stats-band::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(600px 300px at 85% 120%, rgba(212, 168, 67, 0.25), transparent 60%);
+    pointer-events: none;
+  }
+  .stat .num {
+    font-family: var(--display);
+    font-size: clamp(40px, 5vw, 58px);
+    font-weight: 600;
+    color: var(--accent-soft);
+    line-height: 1.1;
+  }
+  .stat .lbl { font-size: 14px; font-weight: 600; opacity: 0.8; margin-top: 6px; }
+
+  /* Testimonials */
+  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .quote {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-xxl);
+    padding: 32px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .quote blockquote {
+    font-family: var(--display);
+    font-size: 19px; font-style: italic; font-weight: 400;
+    line-height: 1.45; color: var(--text);
+  }
+  .quote footer { display: flex; align-items: center; gap: 12px; margin-top: auto; }
+  .quote .who b { display: block; font-size: 14px; }
+  .quote .who span { font-size: 13px; color: var(--muted); }
+  .qa {
+    width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--display); font-weight: 600; color: var(--primary);
+  }
+
+  /* FAQ */
+  .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  details {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: box-shadow 200ms ease;
+  }
+  details[open] { box-shadow: var(--shadow-card); }
+  summary {
+    list-style: none;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 22px 26px;
+    font-weight: 700; font-size: 16px;
+    cursor: pointer;
+    transition: color 200ms ease;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover { color: var(--primary); }
+  summary .plus {
+    flex: none; width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--hairline-strong);
+    position: relative;
+    transition: transform 250ms ease, background 250ms ease;
+  }
+  summary .plus::before, summary .plus::after {
+    content: ""; position: absolute; background: var(--primary);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+  }
+  summary .plus::before { width: 11px; height: 1.5px; }
+  summary .plus::after { width: 1.5px; height: 11px; transition: opacity 200ms ease; }
+  details[open] summary .plus { transform: rotate(45deg); background: var(--accent-soft); }
+  .faq-body { padding: 0 26px 24px; font-size: 15px; color: var(--muted); max-width: 60ch; }
+
+  /* Final CTA */
+  .final-cta {
+    background: var(--primary);
+    border-radius: var(--radius-xxl);
+    padding: 80px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .final-cta::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(500px 280px at 15% -20%, rgba(212, 168, 67, 0.28), transparent 60%),
+      radial-gradient(500px 280px at 90% 120%, rgba(79, 138, 91, 0.3), transparent 60%);
+    pointer-events: none;
+  }
+  .final-cta > * { position: relative; }
+  .final-cta h2 { color: var(--surface); margin-bottom: 14px; }
+  .final-cta p { color: rgba(248, 244, 238, 0.75); font-size: 17px; margin-bottom: 36px; }
+  .waitlist-form {
+    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    max-width: 520px; margin: 0 auto;
+  }
+  .waitlist-form input[type="email"] {
+    flex: 1 1 260px;
+    min-height: 44px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(248, 244, 238, 0.35);
+    background: rgba(248, 244, 238, 0.1);
+    color: var(--surface);
+    font-family: var(--body);
+    font-size: 16px;
+    font-weight: 500;
+    padding: 14px 24px;
+    transition: border-color 200ms ease, background 200ms ease;
+  }
+  .waitlist-form input[type="email"]::placeholder { color: rgba(248, 244, 238, 0.55); }
+  .waitlist-form input[type="email"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(248, 244, 238, 0.16);
+  }
+  .waitlist-form .btn { flex: none; }
+  .waitlist-form .btn[disabled] { opacity: 0.6; cursor: wait; transform: none; }
+  .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .form-msg { min-height: 24px; margin-top: 14px; font-size: 14px; font-weight: 600; }
+  .form-msg.ok { color: var(--accent-soft); }
+  .form-msg.err { color: #F0B9A4; }
+  .btn-gold { background: var(--accent); color: var(--primary-700); }
+  .btn-gold:hover { background: var(--accent-soft); transform: translateY(-1px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+  .btn-outline-light { background: transparent; color: var(--surface); border: 1.5px solid rgba(248,244,238,0.35); }
+  .btn-outline-light:hover { background: rgba(248,244,238,0.1); }
+  .store-note { margin-top: 22px; font-size: 13px; color: rgba(248,244,238,0.55); }
+
+  /* Footer */
+  footer.site {
+    padding: 56px 0 40px;
+    border-top: 1px solid var(--hairline);
+    margin-top: 96px;
+  }
+  .foot-grid { display: flex; justify-content: space-between; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+  .foot-brand p { font-size: 14px; color: var(--muted); max-width: 30ch; margin-top: 12px; }
+  .foot-links { display: flex; gap: 56px; flex-wrap: wrap; }
+  .foot-col b { display: block; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .foot-col a { display: block; font-size: 15px; font-weight: 600; padding: 6px 0; color: var(--text); transition: color 200ms ease; }
+  .foot-col a:hover { color: var(--primary); }
+  .legal {
+    margin-top: 48px; padding-top: 24px;
+    border-top: 1px solid var(--hairline);
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    font-size: 13px; color: var(--muted);
+  }
+
+  /* Reveal animation */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 700ms ease, transform 700ms ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal-d1 { transition-delay: 100ms; }
+  .reveal-d2 { transition-delay: 200ms; }
+  .reveal-d3 { transition-delay: 300ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .float-chip { animation: none; }
+    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  }
+
+  :focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 960px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 64px; }
+    .phone { transform: rotate(0deg); }
+    .steps, .quotes { grid-template-columns: 1fr; }
+    .stats-band { grid-template-columns: 1fr; padding: 48px 32px; }
+    .cell-lg, .cell-sm, .cell-md { grid-column: span 6; }
+    .nav-links, .nav-shell .nav-cta { display: none; }
+    .menu-btn { display: block; }
+    section { padding: 72px 0; }
+    header.hero { padding-top: 132px; }
+  }
+  @media (max-width: 480px) {
+    .phone { width: 280px; }
+    .final-cta { padding: 56px 24px; }
+    .chip-2 { right: -2%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== NAV ===================== -->
+<div class="nav-shell">
+  <nav aria-label="Main">
+    <a class="nav-logo" href="#top" aria-label="leftovr home">
+      <svg width="32" height="32" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+        <path d="M5 19 h26 a13 13 0 0 1 -26 0 Z" stroke="#1B4332" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M12.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
+        <path d="M21.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
+      </svg>
+      leftovr
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#loved">Loved by</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <button class="nav-cta" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join waitlist</button>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
+      </svg>
+    </button>
+  </nav>
+</div>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#how">How it works</a>
+  <a href="#features">Features</a>
+  <a href="#loved">Loved by</a>
+  <a href="#faq">FAQ</a>
+  <a href="#waitlist" style="color: var(--primary); font-weight: 700;">Join the waitlist →</a>
+</div>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="kicker reveal in"><span class="dot"></span>Receipt-powered virtual fridge</span>
+      <h1 class="reveal in">Scan a receipt.<br />Dinner <em>figures itself out.<svg class="underline-svg" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 9 C 50 3, 150 3, 198 8" stroke="#D4A843" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg></em></h1>
+      <p class="hero-sub reveal in reveal-d1">leftovr turns your grocery receipt into a living fridge. It knows what you have, nudges you on what's best eaten today, and suggests recipes from food you already own — no barcoding every yogurt, no guilt, no spreadsheets.</p>
+      <div class="hero-ctas reveal in reveal-d2">
+        <a class="btn btn-primary" href="#waitlist">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+          Join the waitlist
+        </a>
+        <a class="btn btn-ghost" href="#how">See how it works</a>
+      </div>
+      <div class="hero-proof reveal in reveal-d3">
+        <div class="avatars" aria-hidden="true">
+          <span style="background:#C8D5C2;">M</span>
+          <span style="background:#F0DDA8;">A</span>
+          <span style="background:#E8B59E;">J</span>
+          <span style="background:#C6D6DA;">S</span>
+        </div>
+        <p><span class="stars" aria-hidden="true">★★★★★</span><br /><strong>4.8</strong> from households who stopped asking "what's for dinner?"</p>
+      </div>
+    </div>
+
+    <div class="phone-zone reveal in reveal-d2">
+      <div class="phone" role="img" aria-label="leftovr app screen showing the virtual fridge with an eat-first shelf and a recipe suggestion">
+        <div class="phone-screen">
+          <div class="phone-notch"></div>
+          <div class="app-greeting">Good evening, Lena</div>
+          <p class="app-sub">Your fridge: 23 items · 3 best eaten soon</p>
+
+          <div class="shelf-label"><span class="pip" style="background:#C76845;"></span>Eat first</div>
+          <div class="food-row">
+            <div class="food-card">
+              <div class="food-glyph" style="background:#C8D5C2;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4c-4 3-6 6-6 9a6 6 0 0 0 12 0c0-3-2-6-6-9Z"/></svg>
+              </div>
+              <h4>Spinach</h4>
+              <p style="color:#C76845;">Best today</p>
+            </div>
+            <div class="food-card">
+              <div class="food-glyph" style="background:#F0DDA8;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 8h14l-1.5 11a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5L5 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+              </div>
+              <h4>Yogurt</h4>
+              <p style="color:#8a6a1d;">2–3 days</p>
+            </div>
+            <div class="food-card">
+              <div class="food-glyph" style="background:#E8B59E;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-3 3-3"/></svg>
+              </div>
+              <h4>Peaches</h4>
+              <p style="color:#8a6a1d;">2–3 days</p>
+            </div>
+          </div>
+
+          <div class="shelf-label"><span class="pip" style="background:#4F8A5B;"></span>Fresh &amp; fine</div>
+          <div class="food-row">
+            <div class="food-card">
+              <div class="food-glyph" style="background:#E8C3B0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><ellipse cx="12" cy="12" rx="8" ry="6"/><path d="M7 10c2 1 8 1 10 0"/></svg>
+              </div>
+              <h4>Chicken</h4>
+              <p style="color:#4F8A5B;">Fresh</p>
+            </div>
+            <div class="food-card">
+              <div class="food-glyph" style="background:#E5D9C4;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 14c0-4 3.5-7 8-7s8 3 8 7c0 2-2 4-8 4s-8-2-8-4Z"/><path d="M8 11v2M12 10v2M16 11v2"/></svg>
+              </div>
+              <h4>Bread</h4>
+              <p style="color:#4F8A5B;">Fresh</p>
+            </div>
+            <div class="food-card">
+              <div class="food-glyph" style="background:#C6D6DA;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12c3-4 7-6 11-6 3 0 5 1 7 3-2 2-4 3-7 3-4 0-8 0-11 0Z"/><path d="M3 12c3 4 7 6 11 6"/></svg>
+              </div>
+              <h4>Salmon</h4>
+              <p style="color:#4F8A5B;">Fresh</p>
+            </div>
+          </div>
+
+          <div class="recipe-banner">
+            <span class="tag">Tonight's idea</span>
+            <h4>Creamy spinach &amp; salmon pasta</h4>
+            <p>Uses 3 things from your eat-first shelf · 25 min</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="float-chip chip-1" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>
+        Receipt added · 14 items
+      </div>
+      <div class="float-chip chip-2" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        Use your spinach tonight
+      </div>
+      <div class="float-chip chip-3" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M7 8c0-2 2-3 5-3s5 1 5 3-2 3-5 3-5 1-5 3 2 3 5 3 5-1 5-3"/></svg>
+        You saved ~$9 this week
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== HOW IT WORKS ===================== -->
+<section id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>Three steps. Zero inventory chores.</h2>
+      <p>leftovr is built to feel low-effort and approximate — useful without becoming a tracking job.</p>
+    </div>
+    <div class="steps">
+      <article class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5V3Z"/><path d="M10 8h4M10 12h4"/></svg>
+        </div>
+        <h3>Snap your receipt</h3>
+        <p>One photo after the grocery run. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.</p>
+      </article>
+      <article class="step reveal reveal-d1">
+        <div class="step-num">02</div>
+        <div class="step-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 11h14M9 7h.01M9 15h.01"/></svg>
+        </div>
+        <h3>Your fridge fills itself</h3>
+        <p>Everything lands on shelves with gentle freshness windows — "best today", "this week" — never scary expiration countdowns.</p>
+      </article>
+      <article class="step reveal reveal-d2">
+        <div class="step-num">03</div>
+        <div class="step-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 h14 a7 7 0 0 1 -14 0 Z"/><path d="M10 14c0-1.6 1.3-1.6 1.3-3.2M14 14c0-1.6 1.3-1.6 1.3-3.2"/></svg>
+        </div>
+        <h3>Cook what you have</h3>
+        <p>AI recipes built from your actual fridge, starring whatever should be eaten first. Dinner answered in one tap.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<section id="features">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Features</span>
+      <h2>Everything a fridge wishes it could tell you</h2>
+      <p>Opportunity-framing only. leftovr celebrates what you save — it never scolds you for what you waste.</p>
+    </div>
+
+    <div class="bento">
+      <article class="cell cell-lg reveal">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5V3Z"/><path d="M10 8h4M10 12h4M10 16h2"/></svg>
+        </div>
+        <h3>Receipt scanning that just works</h3>
+        <p>Point your camera at the receipt. leftovr normalizes cryptic store abbreviations into real food, guesses quantities, and lets you confirm in seconds.</p>
+        <div class="mini-receipt" aria-hidden="true">
+          <div><span>ORG BBY SPNCH 250G</span><span class="ok">→ Baby spinach</span></div>
+          <div><span>GRK YGT 4PK</span><span class="ok">→ Greek yogurt ×4</span></div>
+          <div><span>CHKN BRST FLT</span><span class="ok">→ Chicken breast</span></div>
+          <div><span>SHMPOO 400ML</span><span style="opacity:0.5;">skipped — not food</span></div>
+        </div>
+      </article>
+
+      <article class="cell cell-sm cell-dark reveal reveal-d1">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F8F4EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 1 6 6c0 4-6 12-6 12S6 13 6 9a6 6 0 0 1 6-6Z"/><circle cx="12" cy="9" r="2"/></svg>
+        </div>
+        <h3>Eat-first shelf</h3>
+        <p>A gentle front-row for food at its peak. "Use your spinach tonight" — opportunity, not alarm.</p>
+        <div class="urgency-demo">
+          <span class="u-today" style="background:rgba(248,244,238,0.12); color:#F0DDA8;">Best today</span>
+          <span class="u-soon" style="background:rgba(248,244,238,0.12); color:#F0DDA8;">This week</span>
+        </div>
+      </article>
+
+      <article class="cell cell-sm reveal">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.7 2.6 2.4 4.3 5 5-2.6.7-4.3 2.4-5 5-.7-2.6-2.4-4.3-5-5 2.6-.7 4.3-2.4 5-5Z"/><path d="M19 14c.4 1.5 1.4 2.5 3 3-1.6.5-2.6 1.5-3 3-.4-1.5-1.4-2.5-3-3 1.6-.5 2.6-1.5 3-3Z"/></svg>
+        </div>
+        <h3>AI dinner ideas</h3>
+        <p>Recipes generated from what's actually in your fridge — prioritizing the eat-first shelf, matched to your taste and time.</p>
+      </article>
+
+      <article class="cell cell-md reveal reveal-d1">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.5c2.8.3 5 2.6 5 5.5"/></svg>
+        </div>
+        <h3>One fridge, whole household</h3>
+        <p>Invite your people with a link. Everyone sees the same fridge, anyone can scan, and nobody buys a third jar of pesto again.</p>
+      </article>
+
+      <article class="cell cell-md cell-gold reveal reveal-d2">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg>
+        </div>
+        <h3>Savings you can feel</h3>
+        <p>"You saved an estimated $9 this week. You avoided wasting ~6 items." Insights that celebrate wins, with zero calorie counting and zero clinical nutrition talk.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STATS + TESTIMONIALS ===================== -->
+<section id="loved" style="background: var(--surface);">
+  <div class="wrap">
+    <div class="stats-band reveal">
+      <div class="stat">
+        <div class="num"><span data-count="32" data-prefix="$">$0</span></div>
+        <div class="lbl">average saved per household, per month</div>
+      </div>
+      <div class="stat">
+        <div class="num"><span data-count="24">0</span></div>
+        <div class="lbl">items rescued from the bin monthly</div>
+      </div>
+      <div class="stat">
+        <div class="num"><span data-count="9" data-suffix="s">0</span></div>
+        <div class="lbl">from receipt photo to a filled fridge</div>
+      </div>
+    </div>
+
+    <div class="section-head center reveal" style="margin-top: 96px;">
+      <span class="eyebrow">Loved by</span>
+      <h2>Households that stopped wasting dinner-deciding energy</h2>
+    </div>
+
+    <div class="quotes">
+      <article class="quote reveal">
+        <blockquote>"I haven't typed a single grocery item into an app. I scan the receipt in the parking lot and I'm done. That's the whole reason it works."</blockquote>
+        <footer>
+          <span class="qa" style="background:#C8D5C2;">M</span>
+          <div class="who"><b>Mira</b><span>feeds a family of four</span></div>
+        </footer>
+      </article>
+      <article class="quote reveal reveal-d1">
+        <blockquote>"The eat-first shelf changed how we cook. 'Use your spinach tonight' feels like a friend's suggestion, not a nagging notification."</blockquote>
+        <footer>
+          <span class="qa" style="background:#F0DDA8;">A</span>
+          <div class="who"><b>Aleksandar</b><span>shares a fridge with two roommates</span></div>
+        </footer>
+      </article>
+      <article class="quote reveal reveal-d2">
+        <blockquote>"We argued about dinner every night. Now leftovr suggests something from what we already have and we just… cook it. Weirdly life-changing."</blockquote>
+        <footer>
+          <span class="qa" style="background:#E8B59E;">J</span>
+          <div class="who"><b>Jana</b><span>cooks for two, plans for none</span></div>
+        </footer>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FAQ ===================== -->
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head center reveal">
+      <span class="eyebrow">FAQ</span>
+      <h2>Fair questions</h2>
+    </div>
+    <div class="faq-list reveal">
+      <details>
+        <summary>Do I have to log every item manually?<span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body">No — that's the point. Receipts are the input. One photo covers the whole grocery run. You can add a single item by barcode or by hand if you want, but leftovr never requires it.</p>
+      </details>
+      <details>
+        <summary>Does leftovr use exact expiration dates?<span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body">No. leftovr uses gentle, approximate freshness windows like "best today" or "fine this week". Food is approximate; your app should be too. No countdown timers, no red alarms.</p>
+      </details>
+      <details>
+        <summary>Is this a calorie or nutrition tracker?<span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body">Deliberately not. leftovr tracks what you have and helps you eat it while it's good. No calories, no macros, no guilt — just fewer wasted groceries and faster dinner decisions.</p>
+      </details>
+      <details>
+        <summary>How does household sharing work?<span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body">Create a household, share an invite link, and everyone joins the same virtual fridge. Anyone can scan receipts, mark things eaten, and see tonight's suggestions. One fridge, shared brain.</p>
+      </details>
+      <details>
+        <summary>What languages does it speak?<span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body">English and Serbian at launch, with the architecture ready for more. leftovr follows your device language automatically.</p>
+      </details>
+      <details>
+        <summary>How much does it cost?<span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body">leftovr is free to start — scan receipts, manage your fridge, and get recipe ideas. A premium tier with extras is on the way; the core "stop wasting food" loop stays free.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FINAL CTA ===================== -->
+<section id="waitlist" style="padding-top: 0;">
+  <div class="wrap">
+    <div class="final-cta reveal">
+      <svg width="56" height="56" viewBox="0 0 36 36" fill="none" style="margin: 0 auto 24px;" aria-hidden="true">
+        <path d="M5 19 h26 a13 13 0 0 1 -26 0 Z" stroke="#F8F4EE" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M12.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
+        <path d="M21.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
+      </svg>
+      <h2>Tonight's dinner is already in your fridge.</h2>
+      <p>Join the waitlist — be first to scan a receipt when leftovr launches.</p>
+      <form class="waitlist-form" id="waitlistForm" novalidate>
+        <label class="sr-only" for="waitlistEmail">Email address</label>
+        <input
+          type="email"
+          id="waitlistEmail"
+          name="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          required
+        />
+        <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp-field" />
+        <button type="submit" class="btn btn-gold" id="waitlistSubmit">Join the waitlist</button>
+      </form>
+      <p class="form-msg" id="waitlistMsg" role="status" aria-live="polite"></p>
+      <p class="store-note">Free at launch · English &amp; Serbian · iOS and Android coming soon</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="nav-logo" href="#top" aria-label="leftovr home">
+          <svg width="30" height="30" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+            <path d="M5 19 h26 a13 13 0 0 1 -26 0 Z" stroke="#1B4332" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M12.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
+            <path d="M21.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
+          </svg>
+          leftovr
+        </a>
+        <p>The receipt-powered virtual fridge. Know what you have, eat it while it's wonderful.</p>
+      </div>
+      <div class="foot-links">
+        <div class="foot-col">
+          <b>Product</b>
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <div class="foot-col">
+          <b>Get leftovr</b>
+          <a href="#waitlist">Join the waitlist</a>
+        </div>
+        <div class="foot-col">
+          <b>Company</b>
+          <a href="mailto:hello@leftovr.app">Contact</a>
+          <a href="#" onclick="return false;">Privacy</a>
+          <a href="#" onclick="return false;">Terms</a>
+        </div>
+      </div>
+    </div>
+    <div class="legal">
+      <span>© 2026 leftovr. Made with leftovers in mind.</span>
+      <span>hello@leftovr.app</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Mobile menu
+  const menuBtn = document.getElementById("menuBtn");
+  const mobileMenu = document.getElementById("mobileMenu");
+  menuBtn.addEventListener("click", () => {
+    const open = mobileMenu.classList.toggle("open");
+    menuBtn.setAttribute("aria-expanded", String(open));
+  });
+  mobileMenu.querySelectorAll("a").forEach((a) =>
+    a.addEventListener("click", () => {
+      mobileMenu.classList.remove("open");
+      menuBtn.setAttribute("aria-expanded", "false");
+    })
+  );
+
+  // Scroll reveal
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const revealEls = document.querySelectorAll(".reveal:not(.in)");
+  if (reduceMotion) {
+    revealEls.forEach((el) => el.classList.add("in"));
+  } else {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("in");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    revealEls.forEach((el) => io.observe(el));
+  }
+
+  // Stat count-up
+  const counters = document.querySelectorAll("[data-count]");
+  const animateCount = (el) => {
+    const target = Number(el.dataset.count);
+    const prefix = el.dataset.prefix || "";
+    const suffix = el.dataset.suffix || "";
+    if (reduceMotion) {
+      el.textContent = prefix + target + suffix;
+      return;
+    }
+    const duration = 1400;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = prefix + Math.round(target * eased) + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+  const statIO = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          animateCount(e.target);
+          statIO.unobserve(e.target);
+        }
+      });
+    },
+    { threshold: 0.5 }
+  );
+  counters.forEach((el) => statIO.observe(el));
+
+  // Waitlist form → Supabase Edge Function → Resend.
+  // Local dev: supabase functions serve. Production: replace with your project's functions URL.
+  const WAITLIST_ENDPOINT = "http://127.0.0.1:55321/functions/v1/waitlist";
+  const waitlistForm = document.getElementById("waitlistForm");
+  const waitlistEmail = document.getElementById("waitlistEmail");
+  const waitlistSubmit = document.getElementById("waitlistSubmit");
+  const waitlistMsg = document.getElementById("waitlistMsg");
+
+  const showMsg = (text, ok) => {
+    waitlistMsg.textContent = text;
+    waitlistMsg.classList.toggle("ok", ok);
+    waitlistMsg.classList.toggle("err", !ok);
+  };
+
+  waitlistForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = waitlistEmail.value.trim();
+    if (!email || !waitlistEmail.checkValidity()) {
+      showMsg("Please enter a valid email address.", false);
+      waitlistEmail.focus();
+      return;
+    }
+    waitlistSubmit.disabled = true;
+    waitlistSubmit.textContent = "Joining…";
+    try {
+      const res = await fetch(WAITLIST_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          company: waitlistForm.elements.company.value,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        showMsg("You're on the list! Check your inbox for a hello from us.", true);
+        waitlistForm.reset();
+      } else {
+        showMsg(data.error || "Something went wrong. Please try again.", false);
+      }
+    } catch {
+      showMsg("Couldn't reach the waitlist right now. Please try again in a minute.", false);
+    } finally {
+      waitlistSubmit.disabled = false;
+      waitlistSubmit.textContent = "Join the waitlist";
+    }
+  });
+</script>
+</body>
+</html>
