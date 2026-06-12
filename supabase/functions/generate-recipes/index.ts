@@ -111,32 +111,55 @@ Deno.serve(async (req) => {
   const gate = await acquireGenerationAttempt(input, authHeader);
   if (gate.response) return gate.response;
 
-  const prompt = buildPrompt(input, gate.premium === true);
-  console.info("[generate-recipes] prompt\n" + prompt);
+  // Each call generates a single recipe: premium runs two variants in
+  // parallel, so wall-clock latency is one recipe instead of two. Input
+  // tokens are paid per call but are a rounding error next to output.
+  const prompts = gate.premium === true
+    ? [buildPrompt(input, "confident"), buildPrompt(input, "alternative")]
+    : [buildPrompt(input, "confident")];
 
   try {
     const client = new Anthropic({ apiKey });
-    const response = await client.messages.create({
-      model: "claude-haiku-4-5",
-      max_tokens: 12000,
-      messages: [{ role: "user", content: prompt }],
-      output_config: { format: { type: "json_schema", schema: RECIPE_SCHEMA } },
-    });
-
-    const text = response.content.find((block) => block.type === "text")?.text ?? "";
-    console.info("[generate-recipes] response text length", text.length);
-    const parsed = JSON.parse(text) as { recipes: AiRecipeCard[] };
-
-    const avoidances = input.avoidances ?? [];
-    const recipes = parsed.recipes.filter(
-      (recipe) =>
-        recipe.ingredients.length > 0 &&
-        recipe.steps.length > 0 &&
-        !violatesAvoidances(recipe, avoidances),
+    const settled = await Promise.allSettled(
+      prompts.map((prompt) =>
+        client.messages.create({
+          model: "claude-haiku-4-5",
+          max_tokens: 6000,
+          messages: [{ role: "user", content: prompt }],
+          output_config: { format: { type: "json_schema", schema: RECIPE_SCHEMA } },
+        })
+      ),
     );
 
+    const responses = settled
+      .filter((result) => result.status === "fulfilled")
+      .map((result) => (result as PromiseFulfilledResult<Anthropic.Message>).value);
+    // One variant failing shouldn't sink the whole generation for premium.
+    if (responses.length === 0) {
+      throw (settled[0] as PromiseRejectedResult).reason;
+    }
+
+    const allRecipes = responses.flatMap((response) => {
+      const text = response.content.find((block) => block.type === "text")?.text ?? "";
+      return (JSON.parse(text) as { recipes: AiRecipeCard[] }).recipes;
+    });
+
+    const avoidances = input.avoidances ?? [];
+    const seenTitles = new Set<string>();
+    const recipes = allRecipes.filter((recipe) => {
+      const titleKey = recipe.title.toLowerCase().trim();
+      if (seenTitles.has(titleKey)) return false;
+      seenTitles.add(titleKey);
+      return (
+        recipe.ingredients.length > 0 &&
+        recipe.steps.length > 0 &&
+        !violatesAvoidances(recipe, avoidances)
+      );
+    });
+
     console.info("[generate-recipes] returning recipes", {
-      raw: parsed.recipes.length,
+      calls: responses.length,
+      raw: allRecipes.length,
       kept: recipes.length,
       titles: recipes.map((recipe) => recipe.title),
     });
@@ -148,8 +171,14 @@ Deno.serve(async (req) => {
         .update({
           status: "completed",
           response_json: payload,
-          prompt_tokens: response.usage?.input_tokens ?? null,
-          completion_tokens: response.usage?.output_tokens ?? null,
+          prompt_tokens: responses.reduce(
+            (sum, response) => sum + (response.usage?.input_tokens ?? 0),
+            0,
+          ),
+          completion_tokens: responses.reduce(
+            (sum, response) => sum + (response.usage?.output_tokens ?? 0),
+            0,
+          ),
           completed_at: new Date().toISOString(),
         })
         .eq("id", gate.attemptId);
@@ -276,7 +305,7 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
   return { response: Response.json({ error: "generation_lock_conflict" }, { status: 409 }) };
 }
 
-function buildPrompt(input: GenerateRecipesRequest, premium: boolean) {
+function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alternative") {
   return [
     "Generate practical Leftovr recipe ideas from household fridge contents.",
     "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
@@ -297,9 +326,10 @@ function buildPrompt(input: GenerateRecipesRequest, premium: boolean) {
     `- max time: ${input.filters?.maxMinutes != null ? `${input.filters.maxMinutes} minutes` : "any"}`,
     `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
-    premium
-      ? "Return exactly 2 recipe cards with clearly distinct approaches (different main technique or cuisine)."
+    variant === "alternative"
+      ? "Return exactly 1 recipe card: a clearly different alternative to the most obvious dish for this fridge — pick a different main technique or cuisine than the predictable first choice."
       : "Return exactly 1 recipe card: your single most confident pick for this fridge.",
+    "Keep the description to one short sentence. Use at most 3 tags.",
     "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
     "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
     "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",

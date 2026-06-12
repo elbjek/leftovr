@@ -89,6 +89,8 @@ export default function RecipeDetailRoute() {
   const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
+  // Ingredient pill currently showing its amount (name-only pills otherwise).
+  const [expandedIngredient, setExpandedIngredient] = useState<number | null>(null);
 
   const showCookCoachMark =
     (profile?.prototype_day ?? 1) >= 3 && !profile?.cooked_coachmark_seen_at;
@@ -328,8 +330,17 @@ export default function RecipeDetailRoute() {
                 const inFridge = liveFridgeNames.has(normalizeFoodName(ing.name));
                 const isUrgent = matchedUrgentItems.includes(ing.name);
                 const missingRequired = !inFridge && ing.required;
+                const expanded = expandedIngredient === i;
                 return (
-                  <View key={i} style={[styles.ingredientChip, missingRequired && styles.ingredientChipMissing]}>
+                  // Name-only pills stay short enough to pack 2-3 per row;
+                  // tap to reveal the amount (steps spell amounts out anyway).
+                  <Pressable
+                    key={i}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded }}
+                    onPress={() => setExpandedIngredient(expanded ? null : i)}
+                    style={[styles.ingredientChip, missingRequired && styles.ingredientChipMissing]}
+                  >
                     <View style={[styles.dot, { backgroundColor: isUrgent ? colors.red : inFridge ? colors.green : missingRequired ? colors.red : colors.muted2 }]} />
                     <Text
                       variant="small"
@@ -338,17 +349,19 @@ export default function RecipeDetailRoute() {
                     >
                       {ing.name}
                     </Text>
-                    <Text variant="small" muted>· {isUrgent ? t("recipes.detail.bestToday") : ing.amount}</Text>
-                    {missingRequired ? (
-                      <Text variant="micro" color={colors.red} style={styles.missingLabel}>
-                        · {t("recipes.detail.missing")}
+                    {expanded ? (
+                      <Text variant="small" muted numberOfLines={1} style={styles.ingredientAmount}>
+                        · {isUrgent ? t("recipes.detail.bestToday") : ing.amount}
+                        {missingRequired
+                          ? ` · ${t("recipes.detail.missing")}`
+                          : !ing.required && !inFridge
+                            // "nice to have" only matters when you DON'T have
+                            // the optional item.
+                            ? ` · ${t("recipes.detail.niceToHave")}`
+                            : ""}
                       </Text>
-                    ) : !ing.required && !inFridge ? (
-                      // "nice to have" only matters when you DON'T have the
-                      // optional item — on an in-fridge chip it reads backwards.
-                      <Text variant="micro" muted>· {t("recipes.detail.niceToHave")}</Text>
                     ) : null}
-                  </View>
+                  </Pressable>
                 );
               })}
             </View>
@@ -721,7 +734,7 @@ const styles = StyleSheet.create({
   ingredientChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: spacing.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: colors.paper,
@@ -734,9 +747,6 @@ const styles = StyleSheet.create({
     borderColor: "rgba(199, 104, 69, 0.35)",
     borderStyle: "dashed",
   },
-  missingLabel: {
-    fontWeight: "700",
-  },
   dot: {
     width: 6,
     height: 6,
@@ -744,6 +754,9 @@ const styles = StyleSheet.create({
   },
   ingredientName: {
     fontWeight: "600",
+  },
+  ingredientAmount: {
+    flexShrink: 1,
   },
   steps: {
     gap: spacing.lg,

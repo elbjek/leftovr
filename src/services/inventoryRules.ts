@@ -163,37 +163,16 @@ export function normalizeFoodName(name: string) {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-// Common pantry items people own but rarely log. Recipes assume these exist,
-// so missing-ingredient UI should not nag about them. Keyword match on the
-// normalized name ("extra virgin olive oil" → "olive oil"/"oil").
+// Only salt, pepper, and cooking oil are assumed owned — recipes treat them
+// as universal. Other seasonings (herbs, spices, sauces) are real ingredients
+// people may not have, so they keep the missing-ingredient flow. Keyword
+// match on the normalized name ("extra virgin olive oil" → "oil").
 const PANTRY_STAPLE_KEYWORDS = [
   "salt",
   "black pepper",
   "white pepper",
   "peppercorn",
   "oil",
-  "vinegar",
-  "sugar",
-  "flour",
-  "soy sauce",
-  "honey",
-  "mustard",
-  "paprika",
-  "oregano",
-  "basil",
-  "thyme",
-  "rosemary",
-  "cumin",
-  "cinnamon",
-  "chili flakes",
-  "chilli flakes",
-  "curry powder",
-  "garlic powder",
-  "onion powder",
-  "baking powder",
-  "baking soda",
-  "stock cube",
-  "bouillon",
 ];
 
 export function isPantryStaple(name: string): boolean {

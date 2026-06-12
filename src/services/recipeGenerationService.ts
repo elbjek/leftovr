@@ -76,11 +76,6 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
     return null;
   }
 
-  const prompt = buildRecipeGenerationPrompt(input);
-  if (__DEV__) {
-    console.info("[recipes] client prompt\n" + prompt);
-  }
-
   try {
     // Lazy import keeps react-native-only supabase deps out of the node test env.
     const { getSupabaseClient } = await import("@/lib/supabase");
@@ -212,8 +207,9 @@ export function buildRecipeGenerationPrompt(input: RecipeGenerationInput) {
     "Prompt filters:",
     ...formatFilterLines(input.filters),
     input.isPremium
-      ? "Return exactly 2 recipe cards with clearly distinct approaches."
+      ? "Return exactly 1 recipe card per call; the server runs two parallel variants (confident pick + distinct alternative)."
       : "Return exactly 1 recipe card: your single most confident pick for this fridge.",
+    "Keep the description to one short sentence. Use at most 3 tags.",
     "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
     "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
     "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",

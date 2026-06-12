@@ -90,18 +90,24 @@ describe("resolveUrgency", () => {
 });
 
 describe("isPantryStaple", () => {
-  it("treats seasoning and oil staples as owned", () => {
+  it("treats only salt, pepper, and oil as owned", () => {
     expect(isPantryStaple("Salt")).toBe(true);
     expect(isPantryStaple("black pepper")).toBe(true);
     expect(isPantryStaple("pepper")).toBe(true);
     expect(isPantryStaple("extra virgin olive oil")).toBe(true);
-    expect(isPantryStaple("dried oregano")).toBe(true);
+  });
+
+  it("treats other seasonings as real ingredients", () => {
+    expect(isPantryStaple("dried oregano")).toBe(false);
+    expect(isPantryStaple("paprika")).toBe(false);
+    expect(isPantryStaple("soy sauce")).toBe(false);
+    expect(isPantryStaple("honey")).toBe(false);
+    expect(isPantryStaple("sugar")).toBe(false);
   });
 
   it("does not flag produce that shares staple words", () => {
     expect(isPantryStaple("bell pepper")).toBe(false);
     expect(isPantryStaple("red pepper")).toBe(false);
-    expect(isPantryStaple("sugar snap peas")).toBe(false);
     expect(isPantryStaple("lemon")).toBe(false);
     expect(isPantryStaple("chicken breast")).toBe(false);
   });
