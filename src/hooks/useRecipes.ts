@@ -156,7 +156,7 @@ export function useRecipes(
         setState((s) => ({ ...s, generating: true, error: null }));
 
         try {
-          const { matches, source, prompt } = await generateRecipeMatches({
+          const { matches, source } = await generateRecipeMatches({
             householdId,
             inventory,
             avoidances,
@@ -169,7 +169,6 @@ export function useRecipes(
             console.info("[recipes] generation result", {
               source,
               matchCount: matches.length,
-              prompt,
             });
           }
           // Premium sees two distinct options; free gets the single best pick
