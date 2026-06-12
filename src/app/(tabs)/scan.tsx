@@ -9,12 +9,14 @@ import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
 import { BackButton, BottomSheet, Button, Card, GeneratingLoader, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import { mockBarcodeProducts } from "@/mocks";
+import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
   addInventoryItem,
   completeHouseholdFirstFill,
   confirmNormalizedReceiptScan,
+  confirmReceiptScan,
   normalizeReceiptImage,
+  prepareReceiptScan,
   ReceiptDuplicate,
   ReceiptScanResult,
   setNotificationPermissionPreview,
@@ -112,6 +114,9 @@ export default function ScanRoute() {
   const receiptCameraRef = useRef<CameraView>(null);
   // Scan row created by the normalize-receipt edge function; confirm completes it.
   const [pendingScanId, setPendingScanId] = useState<string | null>(null);
+  // Dev-only demo receipt flow (simulator has no real camera): items come from
+  // the mock template and confirm goes through the legacy template path.
+  const [demoScan, setDemoScan] = useState(false);
 
   // Returning to the Scan tab should show the choice screen, not a leftover
   // post-scan terminal screen (success / notifications) from a previous flow.
@@ -217,6 +222,7 @@ export default function ScanRoute() {
     setConfirming(false);
     setDuplicate(null);
     setPendingScanId(null);
+    setDemoScan(false);
     setError(null);
     setMode("choice");
   }
@@ -255,7 +261,16 @@ export default function ScanRoute() {
         imageBase64: resized.base64,
       });
 
+      // Nothing readable on the photo (blurry, dark, or not a receipt):
+      // back to the camera with an explanation, never an empty confirm sheet.
+      if (scan.items.length === 0) {
+        setError(t("scan.emptyScan"));
+        setMode("camera");
+        return;
+      }
+
       setPendingScanId(scan.scanId);
+      setDemoScan(false);
       setConfirmItems(scan.items);
 
       if (scan.duplicate) {
@@ -285,6 +300,38 @@ export default function ScanRoute() {
     setMode("confirm");
   }
 
+  // Dev-only: simulator cameras return black frames, so demo data keeps the
+  // receipt flow testable without a physical device or an AI call.
+  async function captureDemoReceipt() {
+    if (!activeHousehold?.id) return;
+
+    setMode("processing");
+    setError(null);
+
+    try {
+      const preparation = await prepareReceiptScan({
+        householdId: activeHousehold.id,
+        templateKey: mockReceiptTemplates[0].key,
+      });
+
+      setDemoScan(true);
+      setPendingScanId(null);
+      setConfirmItems(preparation.items);
+
+      if (preparation.duplicate) {
+        setDuplicate(preparation.duplicate);
+        setMode("duplicate");
+        return;
+      }
+
+      setConfirmAllowsDuplicate(false);
+      setMode("confirm");
+    } catch (scanError) {
+      setError(errorMessage(scanError, t("auth.genericError")));
+      setMode("camera");
+    }
+  }
+
   async function handleConfirmScan(items: ReceiptConfirmItem[]) {
     if (!activeHousehold?.id || confirming) return;
 
@@ -292,15 +339,25 @@ export default function ScanRoute() {
     setError(null);
 
     try {
-      if (!pendingScanId) {
-        throw new Error(t("auth.genericError"));
+      let nextResult: ReceiptScanResult;
+      if (demoScan) {
+        nextResult = await confirmReceiptScan({
+          householdId: activeHousehold.id,
+          templateKey: mockReceiptTemplates[0].key,
+          items,
+          allowDuplicate: confirmAllowsDuplicate,
+        });
+      } else {
+        if (!pendingScanId) {
+          throw new Error(t("auth.genericError"));
+        }
+        nextResult = await confirmNormalizedReceiptScan({
+          householdId: activeHousehold.id,
+          scanId: pendingScanId,
+          items,
+          duplicateOf: confirmAllowsDuplicate ? duplicate?.id ?? null : null,
+        });
       }
-      const nextResult = await confirmNormalizedReceiptScan({
-        householdId: activeHousehold.id,
-        scanId: pendingScanId,
-        items,
-        duplicateOf: confirmAllowsDuplicate ? duplicate?.id ?? null : null,
-      });
 
       if (!activeHousehold.first_fill_completed_at) {
         await completeFirstFillIfNeeded();
@@ -524,6 +581,13 @@ export default function ScanRoute() {
             >
               <View style={styles.captureInner} />
             </Pressable>
+            {__DEV__ ? (
+              <Button
+                title={t("scan.demoReceipt")}
+                variant="text"
+                onPress={() => void captureDemoReceipt()}
+              />
+            ) : null}
           </View>
         </View>
       </Screen>
