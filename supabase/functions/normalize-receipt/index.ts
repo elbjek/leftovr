@@ -1,7 +1,324 @@
-Deno.serve(() => {
-  return Response.json({
-    source: "mock",
-    message: "normalize-receipt stub is ready for a future Anthropic-backed implementation.",
+import Anthropic from "npm:@anthropic-ai/sdk@^0.24.0";
+import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@^2.46.1";
+
+import { mergeWithCache, NormalizedLine, ReceiptLineCacheRow } from "./cache-merge.ts";
+
+type NormalizeReceiptRequest = {
+  householdId?: string;
+  imagePath?: string;
+};
+
+type ReceiptExtraction = {
+  storeChain: string;
+  purchaseDate: string | null;
+  total: number | null;
+  lines: NormalizedLine[];
+};
+
+const INVENTORY_CATEGORIES = [
+  "dairy_eggs",
+  "meat",
+  "fish",
+  "vegetables",
+  "fruit",
+  "bakery",
+  "pantry",
+  "frozen",
+  "drinks",
+  "snacks",
+  "other",
+];
+
+const nullable = (type: string) => ({ anyOf: [{ type }, { type: "null" }] });
+
+const RECEIPT_SCHEMA = {
+  type: "object",
+  properties: {
+    storeChain: { type: "string" },
+    purchaseDate: nullable("string"),
+    total: nullable("number"),
+    lines: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          rawText: { type: "string" },
+          confidence: { type: "number" },
+          item: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              normalizedName: { type: "string" },
+              category: { type: "string", enum: INVENTORY_CATEGORIES },
+              quantity: nullable("number"),
+              unit: nullable("string"),
+              netAmount: nullable("number"),
+              netUnit: { anyOf: [{ type: "string", enum: ["ml", "g"] }, { type: "null" }] },
+            },
+            required: [
+              "name",
+              "normalizedName",
+              "category",
+              "quantity",
+              "unit",
+              "netAmount",
+              "netUnit",
+            ],
+            additionalProperties: false,
+          },
+        },
+        required: ["rawText", "confidence", "item"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["storeChain", "purchaseDate", "total", "lines"],
+  additionalProperties: false,
+};
+
+const PROMPT = [
+  "Read this grocery receipt photo and normalize every purchased food line item.",
+  "Receipts may be in any language; keep `name` close to what a shopper would call the product in the receipt's language, but `normalizedName` must be a lowercase canonical English food name (e.g. \"milk\", \"chicken breast\").",
+  "`rawText` must be the receipt line exactly as printed, including abbreviations.",
+  "Pick `category` from the provided enum. Use `other` only when nothing else fits.",
+  "`quantity`/`unit` reflect purchased count and unit when printed (e.g. 2 x). `netAmount`/`netUnit` only when a metric size is printed on the line (1L -> 1000 ml, 400g -> 400 g); otherwise null.",
+  "Skip non-food lines: totals, deposits/pant, bags, discounts, loyalty points, payment rows.",
+  "`confidence` (0-1) is your certainty that the normalization of that line is correct; abbreviated or ambiguous lines get lower confidence.",
+  "`storeChain` is a lowercase slug of the retail chain (e.g. \"rema-1000\", \"lidl\"); use \"unknown\" if unreadable.",
+  "`purchaseDate` is the printed purchase date as YYYY-MM-DD, or null. `total` is the printed grand total as a number, or null.",
+].join("\n");
+
+Deno.serve(async (req) => {
+  if (req.method !== "POST") {
+    return Response.json({ error: "Method not allowed" }, { status: 405 });
+  }
+
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!apiKey || !supabaseUrl || !serviceRoleKey) {
+    return Response.json({ error: "missing_server_config" }, { status: 500 });
+  }
+
+  const input = await req.json().catch(() => ({})) as NormalizeReceiptRequest;
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return Response.json({ error: "missing_authorization" }, { status: 401 });
+  }
+  if (!input.householdId || !input.imagePath) {
+    return Response.json({ error: "missing_required_fields" }, { status: 400 });
+  }
+  // Image must live in the requesting household's folder.
+  if (!input.imagePath.startsWith(`${input.householdId}/`) || input.imagePath.includes("..")) {
+    return Response.json({ error: "invalid_image_path" }, { status: 400 });
+  }
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
   });
+
+  const { data: userResult, error: userError } = await supabase.auth.getUser(
+    authHeader.replace("Bearer ", ""),
+  );
+  const userId = userResult.user?.id;
+  if (userError || !userId) {
+    return Response.json({ error: "invalid_authorization" }, { status: 401 });
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, tier, active_household_id, free_receipt_scan_used_at")
+    .eq("id", userId)
+    .single();
+  if (!profile) {
+    return Response.json({ error: "profile_not_found" }, { status: 403 });
+  }
+  if (profile.active_household_id !== input.householdId) {
+    return Response.json({ error: "household_mismatch" }, { status: 403 });
+  }
+
+  const { data: household } = await supabase
+    .from("households")
+    .select("plan_tier")
+    .eq("id", input.householdId)
+    .maybeSingle();
+  const premium =
+    profile.tier === "premium" ||
+    profile.tier === "household_premium" ||
+    household?.plan_tier === "household_premium";
+  if (!premium && profile.free_receipt_scan_used_at) {
+    return Response.json({ error: "receipt_scan_quota_exceeded" }, { status: 402 });
+  }
+
+  const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
+  const { count: dailyCount } = await supabase
+    .from("receipt_scans")
+    .select("id", { count: "exact", head: true })
+    .eq("created_by", userId)
+    .gte("created_at", dayAgo);
+  if ((dailyCount ?? 0) >= 30) {
+    return Response.json({ error: "receipt_scan_rate_limited" }, { status: 429 });
+  }
+
+  // The scan row is the attempt record: created when the (paid) AI call is
+  // about to happen. The free-taste trigger fires here, not at confirm time.
+  const { data: scan, error: scanError } = await supabase
+    .from("receipt_scans")
+    .insert({
+      household_id: input.householdId,
+      created_by: userId,
+      status: "processing",
+      image_path: input.imagePath,
+    })
+    .select("id")
+    .single();
+  if (scanError || !scan) {
+    console.error("[normalize-receipt] scan insert failed", scanError);
+    return Response.json({ error: "scan_create_failed" }, { status: 500 });
+  }
+
+  try {
+    const { data: file, error: downloadError } = await supabase.storage
+      .from("receipt-images")
+      .download(input.imagePath);
+    if (downloadError || !file) {
+      throw new Error(`image_download_failed: ${downloadError?.message ?? "empty"}`);
+    }
+    const imageBase64 = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
+
+    const client = new Anthropic({ apiKey });
+    const response = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 6000,
+      messages: [{
+        role: "user",
+        content: [
+          {
+            type: "image",
+            source: { type: "base64", media_type: "image/jpeg", data: imageBase64 },
+          },
+          { type: "text", text: PROMPT },
+        ],
+      }],
+      output_config: { format: { type: "json_schema", schema: RECEIPT_SCHEMA } },
+    });
+
+    const text = response.content.find((block) => block.type === "text")?.text ?? "";
+    const extraction = JSON.parse(text) as ReceiptExtraction;
+
+    const merged = await applyCache(supabase, extraction);
+    const signature = await buildSignature(extraction, merged.lines);
+    const duplicate = await findDuplicate(supabase, input.householdId, scan.id, signature);
+
+    await supabase
+      .from("receipt_scans")
+      .update({
+        receipt_signature: signature,
+        prompt_tokens: response.usage?.input_tokens ?? null,
+      })
+      .eq("id", scan.id);
+
+    console.info("[normalize-receipt] normalized", {
+      scanId: scan.id,
+      storeChain: extraction.storeChain,
+      lines: merged.lines.length,
+      cacheHits: merged.hits.length,
+      cacheWrites: merged.writes.length,
+      duplicate: duplicate?.id ?? null,
+    });
+
+    return Response.json({
+      scanId: scan.id,
+      storeChain: extraction.storeChain,
+      receiptSignature: signature,
+      duplicate,
+      lines: merged.lines,
+    });
+  } catch (error) {
+    console.error("[normalize-receipt] normalization failed", error);
+    await supabase
+      .from("receipt_scans")
+      .update({
+        status: "failed",
+        error_message: error instanceof Error ? error.message : "normalization_failed",
+        processed_at: new Date().toISOString(),
+      })
+      .eq("id", scan.id);
+    return Response.json({ error: "normalization_failed" }, { status: 500 });
+  }
 });
 
+async function applyCache(supabase: SupabaseClient, extraction: ReceiptExtraction) {
+  const rawLines = extraction.lines.map((line) => line.rawText);
+  const { data: cacheRows } = await supabase
+    .from("receipt_line_cache")
+    .select(
+      "store_chain, raw_line_text, name, normalized_name, category, quantity, unit, net_amount, net_unit, confidence",
+    )
+    .eq("store_chain", extraction.storeChain)
+    .in("raw_line_text", rawLines);
+
+  const merged = mergeWithCache(
+    extraction.storeChain,
+    extraction.lines,
+    (cacheRows ?? []) as ReceiptLineCacheRow[],
+  );
+
+  if (merged.writes.length > 0) {
+    await supabase
+      .from("receipt_line_cache")
+      .upsert(merged.writes, { onConflict: "store_chain,raw_line_text", ignoreDuplicates: true });
+  }
+  if (merged.hits.length > 0) {
+    await supabase.rpc("bump_receipt_line_cache_hits", {
+      p_store_chain: extraction.storeChain,
+      p_raw_lines: merged.hits,
+    });
+  }
+
+  return merged;
+}
+
+async function findDuplicate(
+  supabase: SupabaseClient,
+  householdId: string,
+  scanId: string,
+  signature: string,
+) {
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const { data } = await supabase
+    .from("receipt_scans")
+    .select("id, created_at")
+    .eq("household_id", householdId)
+    .eq("receipt_signature", signature)
+    .eq("status", "completed")
+    .is("duplicate_of", null)
+    .neq("id", scanId)
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data ?? null;
+}
+
+async function buildSignature(extraction: ReceiptExtraction, lines: NormalizedLine[]) {
+  const stable = JSON.stringify({
+    store: extraction.storeChain,
+    date: extraction.purchaseDate,
+    total: extraction.total,
+    items: lines.map((line) => line.item.normalizedName).sort(),
+  });
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(stable));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function bytesToBase64(bytes: Uint8Array) {
+  let binary = "";
+  const chunk = 0x8000;
+  for (let index = 0; index < bytes.length; index += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunk));
+  }
+  return btoa(binary);
+}

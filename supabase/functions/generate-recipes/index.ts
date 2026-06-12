@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 8000,
+      max_tokens: 12000,
       messages: [{ role: "user", content: prompt }],
       output_config: { format: { type: "json_schema", schema: RECIPE_SCHEMA } },
     });
@@ -298,6 +298,9 @@ function buildPrompt(input: GenerateRecipesRequest) {
     `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
     "Return 3 to 5 recipe cards.",
+    "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
+    "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
+    "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
     "Every recipe must use at least one fridge item, and prefer items with higher urgency.",
     "Ingredient names must match the fridge item names where used; mark required=true only for ingredients taken from the fridge. Pantry staples (oil, salt, garlic, spices) are required=false.",
     "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",

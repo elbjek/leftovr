@@ -276,10 +276,10 @@ export const en = {
     cameraDenied: "Camera permission is needed to scan a receipt.",
     cameraTitle: "Receipt scan",
     coachTitle: "Line up the whole receipt",
-    coachBody: "For prototype testing, pick a mock receipt below, then tap the shutter.",
+    coachBody: "Make sure every line is readable and inside the frame, then tap the shutter.",
     capture: "Capture receipt",
     processingTitle: "Reading your receipt.",
-    processingBody: "Normalizing {{template}}.",
+    processingBody: "Normalizing your groceries.",
     confirm: {
       title: "Check your receipt",
       body: "Edit anything weird, skip anything wrong, then add it to your fridge.",

@@ -276,10 +276,10 @@ export const sr = {
     cameraDenied: "Dozvola za kameru je potrebna za skeniranje racuna.",
     cameraTitle: "Skeniranje racuna",
     coachTitle: "Uhvatite ceo racun",
-    coachBody: "Za prototype test izaberi mock racun ispod, pa dodirni okidac.",
+    coachBody: "Neka svaka stavka bude citljiva i unutar okvira, pa dodirni okidac.",
     capture: "Skeniraj racun",
     processingTitle: "Citamo racun.",
-    processingBody: "Normalizujemo {{template}}.",
+    processingBody: "Normalizujemo namirnice sa racuna.",
     confirm: {
       title: "Proveri racun",
       body: "Izmeni cudne stavke, preskoci pogresne, pa dodaj u frizider.",
