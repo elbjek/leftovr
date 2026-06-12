@@ -77,7 +77,7 @@ export function HouseholdSection({
     await Share.share({
       message: t("settings.household.shareMessage", {
         code,
-        link: `chomp://join?code=${code}`,
+        link: `leftovr://join?code=${code}`,
       }),
     });
   }

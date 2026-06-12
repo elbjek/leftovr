@@ -39,7 +39,7 @@ export async function generateRecipeMatches(input: RecipeGenerationInput): Promi
 
 export function buildRecipeGenerationPrompt(input: RecipeGenerationInput) {
   const lines = [
-    "Generate practical Chomp recipe ideas from household fridge contents.",
+    "Generate practical Leftovr recipe ideas from household fridge contents.",
     "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
     `Cooking mode: ${input.cookingMode}.`,
     `Servings: ${input.servings ?? 2}.`,
