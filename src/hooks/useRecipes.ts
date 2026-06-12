@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   createRecipe,
@@ -48,6 +48,7 @@ export function useRecipes(
   },
 ) {
   const { inventory, avoidances, isPremium, freeGenerationUsed, servings, userId } = options;
+  const generationInFlightRef = useRef(false);
 
   const [state, setState] = useState<RecipesState>({
     loading: Boolean(householdId),
@@ -147,11 +148,16 @@ export function useRecipes(
 
       generateSession: async (cookingMode: CookingMode, filters?: RecipeGenerationFilters) => {
         if (!householdId) return null;
+        if (generationInFlightRef.current) {
+          return { recipes: [], matches: [] };
+        }
 
+        generationInFlightRef.current = true;
         setState((s) => ({ ...s, generating: true, error: null }));
 
         try {
           const { matches, source, prompt } = await generateRecipeMatches({
+            householdId,
             inventory,
             avoidances,
             isPremium,
@@ -230,6 +236,8 @@ export function useRecipes(
             error: err instanceof Error ? err.message : "Could not generate recipes.",
           }));
           return null;
+        } finally {
+          generationInFlightRef.current = false;
         }
       },
 

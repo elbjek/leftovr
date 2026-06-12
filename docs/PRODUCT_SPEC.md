@@ -674,6 +674,20 @@ Recipe generation calls Anthropic (Haiku) through the `generate-recipes`
 Supabase Edge Function. The curated mock matcher remains as a silent fallback
 for any failure (missing key, network, rate limit), so Generate never breaks.
 
+AI generation cost controls:
+
+- client prevents duplicate in-flight requests
+- each generation request carries a stable idempotency key derived from fridge
+  snapshot, filters, servings, avoidances, household, and user context
+- the Edge Function authenticates the user, checks quota, and acquires a
+  server-side generation lock before calling Anthropic
+- duplicate completed requests return cached AI output instead of making a new
+  paid call
+- duplicate in-flight requests return a processing response instead of making a
+  parallel paid call
+- free users cannot call Anthropic again after their one-time generation is used
+- paid calls are rate-limited per user/day
+
 Recipe matcher must:
 
 - select from current household inventory

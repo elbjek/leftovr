@@ -1,4 +1,5 @@
 import Anthropic from "npm:@anthropic-ai/sdk@^0.24.0";
+import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 
 type GenerateRecipesRequest = {
   inventory?: Array<{
@@ -12,6 +13,9 @@ type GenerateRecipesRequest = {
     net_unit?: string | null;
     partial_state?: string | null;
   }>;
+  householdId?: string;
+  idempotencyKey?: string;
+  requestHash?: string;
   avoidances?: string[];
   isPremium?: boolean;
   cookingMode?: "household" | "just_me";
@@ -103,6 +107,10 @@ Deno.serve(async (req) => {
   }
 
   const input = await req.json().catch(() => ({})) as GenerateRecipesRequest;
+  const authHeader = req.headers.get("Authorization");
+  const gate = await acquireGenerationAttempt(input, authHeader);
+  if (gate.response) return gate.response;
+
   const prompt = buildPrompt(input);
   console.info("[generate-recipes] prompt\n" + prompt);
 
@@ -133,12 +141,140 @@ Deno.serve(async (req) => {
       titles: recipes.map((recipe) => recipe.title),
     });
 
-    return Response.json({ source: "ai", recipes });
+    const payload = { source: "ai", recipes };
+    if (gate.attemptId) {
+      await gate.supabase
+        ?.from("recipe_generation_attempts")
+        .update({
+          status: "completed",
+          response_json: payload,
+          prompt_tokens: response.usage?.input_tokens ?? null,
+          completion_tokens: response.usage?.output_tokens ?? null,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", gate.attemptId);
+    }
+
+    return Response.json(payload);
   } catch (error) {
     console.error("[generate-recipes] generation failed", error);
+    if (gate.attemptId) {
+      await gate.supabase
+        ?.from("recipe_generation_attempts")
+        .update({
+          status: "failed",
+          error_message: error instanceof Error ? error.message : "generation_failed",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", gate.attemptId);
+    }
     return Response.json({ error: "generation_failed" }, { status: 500 });
   }
 });
+
+async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeader: string | null) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return { response: Response.json({ error: "missing_supabase_service_config" }, { status: 500 }) };
+  }
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { response: Response.json({ error: "missing_authorization" }, { status: 401 }) };
+  }
+  if (!input.householdId || !input.idempotencyKey || !input.requestHash) {
+    return { response: Response.json({ error: "missing_generation_lock_fields" }, { status: 400 }) };
+  }
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false },
+  });
+  const jwt = authHeader.replace("Bearer ", "");
+  const { data: userResult, error: userError } = await supabase.auth.getUser(jwt);
+  const userId = userResult.user?.id;
+  if (userError || !userId) {
+    return { response: Response.json({ error: "invalid_authorization" }, { status: 401 }) };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, tier, active_household_id, free_recipe_generation_used_at")
+    .eq("id", userId)
+    .single();
+  if (profileError || !profile) {
+    return { response: Response.json({ error: "profile_not_found" }, { status: 403 }) };
+  }
+  if (profile.active_household_id !== input.householdId) {
+    return { response: Response.json({ error: "household_mismatch" }, { status: 403 }) };
+  }
+
+  const { data: household } = await supabase
+    .from("households")
+    .select("plan_tier")
+    .eq("id", input.householdId)
+    .maybeSingle();
+  const premium =
+    profile.tier === "premium" ||
+    profile.tier === "household_premium" ||
+    household?.plan_tier === "household_premium";
+  if (!premium && profile.free_recipe_generation_used_at) {
+    return { response: Response.json({ error: "recipe_generation_quota_exceeded" }, { status: 402 }) };
+  }
+
+  const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
+  const { count: dailyCount } = await supabase
+    .from("recipe_generation_attempts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("created_at", dayAgo);
+  const dailyLimit = premium ? 50 : 5;
+  if ((dailyCount ?? 0) >= dailyLimit) {
+    return { response: Response.json({ error: "recipe_generation_rate_limited" }, { status: 429 }) };
+  }
+
+  const insert = await supabase
+    .from("recipe_generation_attempts")
+    .insert({
+      user_id: userId,
+      household_id: input.householdId,
+      idempotency_key: input.idempotencyKey,
+      request_hash: input.requestHash,
+      status: "processing",
+    })
+    .select("id")
+    .single();
+
+  if (!insert.error) {
+    return { attemptId: insert.data.id as string, supabase };
+  }
+  if (insert.error.code !== "23505") {
+    return { response: Response.json({ error: "generation_lock_failed" }, { status: 500 }) };
+  }
+
+  const { data: existing } = await supabase
+    .from("recipe_generation_attempts")
+    .select("id, status, response_json, created_at")
+    .eq("user_id", userId)
+    .eq("idempotency_key", input.idempotencyKey)
+    .single();
+
+  if (existing?.status === "completed" && existing.response_json) {
+    return { response: Response.json(existing.response_json) };
+  }
+  if (existing?.status === "processing") {
+    return { response: Response.json({ source: "processing" }, { status: 202 }) };
+  }
+
+  if (existing?.id) {
+    await supabase
+      .from("recipe_generation_attempts")
+      .update({ status: "processing", error_message: null, completed_at: null })
+      .eq("id", existing.id);
+    return { attemptId: existing.id as string, supabase };
+  }
+
+  return { response: Response.json({ error: "generation_lock_conflict" }, { status: 409 }) };
+}
 
 function buildPrompt(input: GenerateRecipesRequest) {
   return [
