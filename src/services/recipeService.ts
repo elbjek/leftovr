@@ -30,7 +30,10 @@ export type RecipeMatcherInput = {
   };
 };
 
-export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
+export function matchRecipes(
+  input: RecipeMatcherInput,
+  library: MockRecipe[] = RECIPE_LIBRARY,
+): RecipeMatch[] {
   const { inventory, avoidances, isPremium } = input;
   // Key by canonical (alias-folded) name so a localized fridge item still
   // matches the English recipe library (CODE_REVIEW #7).
@@ -43,7 +46,7 @@ export function matchRecipes(input: RecipeMatcherInput): RecipeMatch[] {
   }
 
   const filters = input.filters;
-  const filtered = RECIPE_LIBRARY.filter((recipe) => {
+  const filtered = library.filter((recipe) => {
     if (recipe.avoidanceTags.some((tag) => avoidances.includes(tag))) return false;
     if (filters?.mealType && recipe.mealType !== filters.mealType) return false;
     if (filters?.maxMinutes != null && recipe.timeMinutes > filters.maxMinutes) return false;

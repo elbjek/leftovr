@@ -205,28 +205,3 @@ export async function toggleRecipeFavorite(recipeId: string, isFavorite: boolean
   if (error) throw error;
 }
 
-export async function getWeeklySessionCount(householdId: string) {
-  const supabase = getSupabaseClient();
-  const weekStart = getCalendarWeekStart();
-
-  const { count, error } = await supabase
-    .from("recipe_sessions")
-    .select("id", { count: "exact", head: true })
-    .eq("household_id", householdId)
-    .gte("created_at", weekStart.toISOString());
-
-  if (error) throw error;
-  return count ?? 0;
-}
-
-function getCalendarWeekStart() {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = day === 0 ? 6 : day - 1;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - diff);
-  monday.setHours(0, 0, 0, 0);
-  return monday;
-}
-
-export const FREE_WEEKLY_SESSION_LIMIT = 3;

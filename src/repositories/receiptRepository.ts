@@ -1,10 +1,10 @@
 import { getSupabaseClient } from "@/lib/supabase";
-import { normalizeMockReceipt } from "@/services";
 import {
-  getCatalogNet,
-  getShelfLifeRange,
-  normalizeFoodName,
-} from "@/services/inventoryRules";
+  buildReceiptConfirmItems,
+  buildConfirmedReceiptInventoryRows,
+  getMockReceiptTemplate,
+  ReceiptConfirmItem,
+} from "@/services";
 
 export type ReceiptDuplicate = {
   id: string;
@@ -14,7 +14,11 @@ export type ReceiptDuplicate = {
 export type ReceiptScanResult = {
   scanId: string;
   addedCount: number;
-  reviewCount: number;
+};
+
+export type ReceiptScanPreparation = {
+  items: ReceiptConfirmItem[];
+  duplicate: ReceiptDuplicate | null;
 };
 
 export async function findRecentReceiptDuplicate(
@@ -43,9 +47,26 @@ export async function findRecentReceiptDuplicate(
   return data ?? null;
 }
 
-export async function processMockReceiptScan(input: {
+export async function prepareReceiptScan(input: {
   householdId: string;
   templateKey: string;
+}): Promise<ReceiptScanPreparation> {
+  const template = getMockReceiptTemplate(input.templateKey);
+  const duplicate = await findRecentReceiptDuplicate(
+    input.householdId,
+    template.receiptSignature,
+  );
+
+  return {
+    items: buildReceiptConfirmItems(template.key),
+    duplicate,
+  };
+}
+
+export async function confirmReceiptScan(input: {
+  householdId: string;
+  templateKey: string;
+  items: ReceiptConfirmItem[];
   allowDuplicate?: boolean;
 }): Promise<ReceiptScanResult> {
   const supabase = getSupabaseClient();
@@ -61,10 +82,11 @@ export async function processMockReceiptScan(input: {
     throw new Error("No signed-in user.");
   }
 
-  const normalized = normalizeMockReceipt(input.templateKey);
+  const template = getMockReceiptTemplate(input.templateKey);
+  const kept = input.items.filter((item) => item.included);
   const duplicate = await findRecentReceiptDuplicate(
     input.householdId,
-    normalized.template.receiptSignature,
+    template.receiptSignature,
   );
 
   if (duplicate && !input.allowDuplicate) {
@@ -78,10 +100,10 @@ export async function processMockReceiptScan(input: {
       household_id: input.householdId,
       created_by: userId,
       status: "completed",
-      receipt_signature: normalized.template.receiptSignature,
-      template_key: normalized.template.key,
-      item_count: normalized.highConfidenceItems.length,
-      review_count: normalized.reviewItems.length,
+      receipt_signature: template.receiptSignature,
+      template_key: template.key,
+      item_count: kept.length,
+      review_count: 0,
       duplicate_of: duplicate?.id ?? null,
       processed_at: now,
     })
@@ -97,28 +119,15 @@ export async function processMockReceiptScan(input: {
     throw scanError;
   }
 
-  if (normalized.highConfidenceItems.length > 0) {
+  if (kept.length > 0) {
+    const inventoryRows = buildConfirmedReceiptInventoryRows(kept, {
+      householdId: input.householdId,
+      scanId: scan.id,
+      userId,
+      addedAt: now,
+    });
     const { error: inventoryError } = await supabase.from("inventory_items").insert(
-      normalized.highConfidenceItems.map((item) => {
-        const catalogNet = getCatalogNet(item.name);
-        return {
-        household_id: input.householdId,
-        name: item.name,
-        normalized_name: normalizeFoodName(item.name),
-        category: item.category,
-        quantity: item.quantity,
-        unit: item.unit,
-        net_amount: catalogNet ? catalogNet.netAmount * item.quantity : null,
-        net_unit: catalogNet?.netUnit ?? null,
-        partial_state: "full",
-        shelf_life_range: getShelfLifeRange(item.name, item.category),
-        source: "receipt",
-        source_scan_id: scan.id,
-        confidence: item.confidence,
-        added_by: userId,
-        added_at: now,
-        };
-      }),
+      inventoryRows,
     );
 
     if (inventoryError) {
@@ -126,27 +135,9 @@ export async function processMockReceiptScan(input: {
     }
   }
 
-  if (normalized.reviewItems.length > 0) {
-    const { error: reviewError } = await supabase.from("receipt_review_items").insert(
-      normalized.reviewItems.map((item) => ({
-        household_id: input.householdId,
-        scan_id: scan.id,
-        proposed_name: item.name,
-        normalized_name: normalizeFoodName(item.name),
-        proposed_category: item.category,
-        confidence: item.confidence,
-      })),
-    );
-
-    if (reviewError) {
-      throw reviewError;
-    }
-  }
-
   return {
     scanId: scan.id,
-    addedCount: normalized.highConfidenceItems.length,
-    reviewCount: normalized.reviewItems.length,
+    addedCount: kept.length,
   };
 }
 
@@ -179,4 +170,3 @@ export async function setNotificationPermissionPreview(input: {
     throw error;
   }
 }
-

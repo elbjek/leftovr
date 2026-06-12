@@ -51,8 +51,6 @@ export default function RecipesRoute() {
     savedRecipes,
     cookedRecipes,
     canGenerate,
-    remainingSessions,
-    freeLimit,
     refresh: refreshRecipes,
     generateSession,
     toggleFavorite,
@@ -62,6 +60,7 @@ export default function RecipesRoute() {
     inventory,
     avoidances: activeAvoidances,
     isPremium,
+    freeGenerationUsed: Boolean(profile?.free_recipe_generation_used_at),
     servings,
     userId: profile?.id,
   });
@@ -371,8 +370,8 @@ export default function RecipesRoute() {
                 <View>
                   <Text variant="small" color={colors.primary} style={styles.limitText}>
                     {canGenerate
-                      ? t("recipes.weeklyLimit", { remaining: remainingSessions, limit: freeLimit })
-                      : t("recipes.weeklyLimitReached")}
+                      ? t("recipes.freeGenerationLeft")
+                      : t("recipes.freeGenerationUsed")}
                   </Text>
                   <Text variant="small" muted style={styles.limitSub}>{t("recipes.freePlan")}</Text>
                 </View>

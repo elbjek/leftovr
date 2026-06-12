@@ -34,6 +34,10 @@ export const mockReceiptTemplates: MockReceiptTemplate[] = [
       { name: "Bananas", category: "fruit", quantity: 5, unit: "item", confidence: 0.95, urgency: "use_soon" },
       { name: "Sourdough", category: "bakery", quantity: 1, unit: "loaf", confidence: 0.94, urgency: "urgent" },
       { name: "Rice", category: "pantry", quantity: 1, unit: "bag", confidence: 0.97, urgency: "safe" },
+      // Low-confidence OCR-style lines: surfaced with a "Check this" badge on
+      // the scan confirmation list so the user fixes or excludes them.
+      { name: "Avcado", category: "fruit", quantity: 2, unit: "item", confidence: 0.58 },
+      { name: "Ot Mlk 1L", category: "drinks", quantity: 1, unit: "carton", confidence: 0.52 },
     ],
   },
 ];

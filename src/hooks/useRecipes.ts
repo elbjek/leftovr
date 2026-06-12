@@ -4,9 +4,7 @@ import {
   createRecipe,
   createRecipeSession,
   CookingMode,
-  FREE_WEEKLY_SESSION_LIMIT,
   listCookedEventRows,
-  getWeeklySessionCount,
   listHouseholdRecipes,
   listUserFavoriteRecipeIds,
   RecipeRow,
@@ -32,7 +30,8 @@ type RecipesState = {
   cookedRecipes: RecipeRow[];
   /** Household-wide cooked counts and cooks, keyed by recipe id. */
   cookedSummaries: Record<string, CookedSummary>;
-  weeklyCount: number;
+  /** True once a session was created this app session (free taste consumed). */
+  consumedFreeGeneration: boolean;
   error: string | null;
 };
 
@@ -42,11 +41,13 @@ export function useRecipes(
     inventory: InventoryLot[];
     avoidances: string[];
     isPremium: boolean;
+    /** Profile flag: the user's one-time free generation is already spent. */
+    freeGenerationUsed: boolean;
     servings?: number;
     userId?: string;
   },
 ) {
-  const { inventory, avoidances, isPremium, servings, userId } = options;
+  const { inventory, avoidances, isPremium, freeGenerationUsed, servings, userId } = options;
 
   const [state, setState] = useState<RecipesState>({
     loading: Boolean(householdId),
@@ -56,13 +57,13 @@ export function useRecipes(
     savedRecipes: [],
     cookedRecipes: [],
     cookedSummaries: {},
-    weeklyCount: 0,
+    consumedFreeGeneration: false,
     error: null,
   });
 
   const load = useCallback(async () => {
     if (!householdId) {
-      setState({
+      setState((s) => ({
         loading: false,
         generating: false,
         suggestions: [],
@@ -70,18 +71,17 @@ export function useRecipes(
         savedRecipes: [],
         cookedRecipes: [],
         cookedSummaries: {},
-        weeklyCount: 0,
+        consumedFreeGeneration: s.consumedFreeGeneration,
         error: null,
-      });
+      }));
       return;
     }
 
     setState((s) => ({ ...s, loading: true, error: null }));
 
     try {
-      const [recipes, count, favoriteIds, cookedEventRows] = await Promise.all([
+      const [recipes, favoriteIds, cookedEventRows] = await Promise.all([
         listHouseholdRecipes(householdId),
-        getWeeklySessionCount(householdId),
         listUserFavoriteRecipeIds(),
         listCookedEventRows(householdId),
       ]);
@@ -122,7 +122,6 @@ export function useRecipes(
         savedRecipes,
         cookedRecipes,
         cookedSummaries,
-        weeklyCount: count,
       }));
     } catch (err) {
       setState((s) => ({
@@ -137,8 +136,10 @@ export function useRecipes(
     load();
   }, [load]);
 
-  const canGenerate = isPremium || state.weeklyCount < FREE_WEEKLY_SESSION_LIMIT;
-  const remainingSessions = Math.max(0, FREE_WEEKLY_SESSION_LIMIT - state.weeklyCount);
+  // One-time free taste: free users get exactly one generation, ever. The
+  // profile flag covers past sessions; the local flag covers the one just
+  // created (profile refetch lags the DB trigger).
+  const canGenerate = isPremium || (!freeGenerationUsed && !state.consumedFreeGeneration);
 
   const actions = useMemo(
     () => ({
@@ -209,7 +210,7 @@ export function useRecipes(
             generating: false,
             suggestions: top,
             currentSessionId: session.id,
-            weeklyCount: s.weeklyCount + 1,
+            consumedFreeGeneration: true,
             savedRecipes: [...savedRecipes, ...s.savedRecipes],
           }));
 
@@ -263,8 +264,6 @@ export function useRecipes(
   return {
     ...state,
     canGenerate,
-    remainingSessions,
-    freeLimit: FREE_WEEKLY_SESSION_LIMIT,
     ...actions,
   };
 }

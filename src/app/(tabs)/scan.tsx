@@ -6,14 +6,15 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, PremiumSheet, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
+import { BackButton, BottomSheet, Button, Card, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
   addInventoryItem,
   completeHouseholdFirstFill,
+  confirmReceiptScan,
   findRecentReceiptDuplicate,
-  processMockReceiptScan,
+  prepareReceiptScan,
   ReceiptDuplicate,
   ReceiptScanResult,
   setNotificationPermissionPreview,
@@ -25,6 +26,7 @@ import {
   INVENTORY_CATEGORIES,
   InventoryCategory,
   lookupBarcodeProduct,
+  ReceiptConfirmItem,
   searchOpenFoodFactsProducts,
 } from "@/services";
 import { colors, radii, spacing } from "@/theme";
@@ -46,6 +48,7 @@ type ScanMode =
   | "barcodeFallback"
   | "manual"
   | "processing"
+  | "confirm"
   | "duplicate"
   | "success"
   | "addSuccess"
@@ -59,10 +62,12 @@ export default function ScanRoute() {
   const [permission, requestPermission] = useCameraPermissions();
   const paramChoice = getParamChoice(params.mode);
   const initialChoice = paramChoice ?? "receipt";
-  // Receipt scanning carries a per-scan AI cost → premium only, no free
-  // onboarding scan. Barcode (free OpenFoodFacts lookup) and manual entry are
-  // free for everyone.
-  const canScanReceipt = resolvePremium(profile, activeHousehold);
+  // Receipt scanning: one free scan per user (the activation taste), premium
+  // from the second (per-scan AI cost). The used_at flag is stamped by a DB
+  // trigger and refreshed via refresh() after each scan. Barcode (free
+  // OpenFoodFacts lookup) and manual entry are free for everyone.
+  const canScanReceipt =
+    resolvePremium(profile, activeHousehold) || !profile?.free_receipt_scan_used_at;
   // Deep-linking with a mode param (from first-fill / fridge) opens the action
   // directly instead of bouncing through the choice screen. A gated receipt
   // scan falls back to the choice screen (Premium sheet shown on mount).
@@ -80,6 +85,9 @@ export default function ScanRoute() {
   const [choice, setChoice] = useState<ScanChoice>(initialChoice);
   const [duplicate, setDuplicate] = useState<ReceiptDuplicate | null>(null);
   const [result, setResult] = useState<ReceiptScanResult | null>(null);
+  const [confirmItems, setConfirmItems] = useState<ReceiptConfirmItem[]>([]);
+  const [confirmAllowsDuplicate, setConfirmAllowsDuplicate] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manualQuery, setManualQuery] = useState("");
   const [manualCategory, setManualCategory] = useState<InventoryCategory>("other");
@@ -160,7 +168,7 @@ export default function ScanRoute() {
     setChoice(nextChoice);
     setError(null);
 
-    // Receipt scanning is premium-only (per-scan AI cost); barcode and manual are free.
+    // Receipt scanning: free once, then premium (per-scan AI cost); barcode and manual are free.
     if (nextChoice === "receipt" && !canScanReceipt && !options?.skipGate) {
       setScanPremiumVisible(true);
       return;
@@ -202,6 +210,11 @@ export default function ScanRoute() {
   function returnToChoice() {
     consumedModeRef.current = "choice";
     router.setParams({ mode: "choice" });
+    setConfirmItems([]);
+    setConfirmAllowsDuplicate(false);
+    setConfirming(false);
+    setDuplicate(null);
+    setError(null);
     setMode("choice");
   }
 
@@ -217,24 +230,42 @@ export default function ScanRoute() {
     setError(null);
 
     try {
-      if (!allowDuplicate) {
-        const existing = await findRecentReceiptDuplicate(
-          activeHousehold.id,
-          selectedTemplate.receiptSignature,
-        );
+      const preparation = await prepareReceiptScan({
+        householdId: activeHousehold.id,
+        templateKey: selectedTemplate.key,
+      });
 
-        if (existing) {
-          setDuplicate(existing);
-          setMode("duplicate");
-          return;
-        }
+      if (preparation.duplicate && !allowDuplicate) {
+        setDuplicate(preparation.duplicate);
+        setMode("duplicate");
+        return;
       }
 
       await delay(900);
-      const nextResult = await processMockReceiptScan({
+      // Nothing is persisted yet: the user confirms (and can edit/exclude)
+      // every scanned item first. The scan, and the one-time free scan,
+      // only counts once they confirm.
+      setConfirmItems(preparation.items);
+      setConfirmAllowsDuplicate(allowDuplicate);
+      setMode("confirm");
+    } catch (scanError) {
+      setError(errorMessage(scanError, t("auth.genericError")));
+      setMode("camera");
+    }
+  }
+
+  async function handleConfirmScan(items: ReceiptConfirmItem[]) {
+    if (!activeHousehold?.id || confirming) return;
+
+    setConfirming(true);
+    setError(null);
+
+    try {
+      const nextResult = await confirmReceiptScan({
         householdId: activeHousehold.id,
         templateKey: selectedTemplate.key,
-        allowDuplicate,
+        items,
+        allowDuplicate: confirmAllowsDuplicate,
       });
 
       if (!activeHousehold.first_fill_completed_at) {
@@ -252,8 +283,20 @@ export default function ScanRoute() {
         setScanPremiumVisible(true);
         return;
       }
+      // Concurrent scan of the same receipt slipped in while confirming
+      // (cross-device race), bounce to the duplicate screen.
+      if (scanError instanceof Error && scanError.message.includes("Duplicate receipt")) {
+        const existing = await findRecentReceiptDuplicate(
+          activeHousehold.id,
+          selectedTemplate.receiptSignature,
+        ).catch(() => null);
+        setDuplicate(existing);
+        setMode("duplicate");
+        return;
+      }
       setError(errorMessage(scanError, t("auth.genericError")));
-      setMode("camera");
+    } finally {
+      setConfirming(false);
     }
   }
 
@@ -832,6 +875,29 @@ export default function ScanRoute() {
     );
   }
 
+  if (mode === "confirm") {
+    return (
+      <Screen>
+        <ScreenHeader
+          title={t("scan.confirm.title")}
+          subtitle={t("scan.confirm.body")}
+        />
+        {error ? (
+          <Text variant="small" color={colors.red} center style={styles.confirmError}>
+            {error}
+          </Text>
+        ) : null}
+        <ReceiptConfirmList
+          key={`${selectedTemplate.key}-${confirmItems.length}`}
+          items={confirmItems}
+          confirming={confirming}
+          onConfirm={handleConfirmScan}
+          onCancel={returnToChoice}
+        />
+      </Screen>
+    );
+  }
+
   if (mode === "duplicate") {
     return (
       <Screen>
@@ -866,10 +932,7 @@ export default function ScanRoute() {
             {t("scan.successTitle")}
           </Text>
           <Text variant="body" muted center>
-            {t("scan.successBody", {
-              added: result?.addedCount ?? 0,
-              review: result?.reviewCount ?? 0,
-            })}
+            {t("scan.successBody", { added: result?.addedCount ?? 0 })}
           </Text>
           <Button title={t("common.continue")} onPress={() => setMode("notifications")} />
         </View>
@@ -1189,6 +1252,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing.sm,
     paddingVertical: spacing.sm,
+  },
+  confirmError: {
+    marginBottom: spacing.sm,
   },
   customAddRow: {
     flexDirection: "row",

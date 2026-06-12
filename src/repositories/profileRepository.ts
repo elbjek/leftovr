@@ -20,7 +20,7 @@ export async function getCurrentProfile() {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "id, display_name, avatar_initials, language, default_servings, cooking_for_seed, shopping_style, primary_goal, avoidances, tier, active_household_id, onboarding_completed_at, cooked_coachmark_seen_at, prototype_day",
+      "id, display_name, avatar_initials, language, default_servings, cooking_for_seed, shopping_style, primary_goal, avoidances, tier, active_household_id, onboarding_completed_at, cooked_coachmark_seen_at, prototype_day, free_receipt_scan_used_at, free_recipe_generation_used_at",
     )
     .eq("id", userResult.user.id)
     .single<Profile>();
