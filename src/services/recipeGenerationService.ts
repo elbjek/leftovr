@@ -48,18 +48,10 @@ export function mapAiRecipesToMatches(
   input: RecipeGenerationInput,
 ): RecipeMatch[] {
   const library: MockRecipe[] = cards.map((card, index) => ({
+    ...card,
     key: `ai-${index}-${card.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-    title: card.title,
-    description: card.description,
-    timeMinutes: card.timeMinutes,
-    complexity: card.complexity,
     servingsBaseline: card.servings,
-    category: card.category,
-    mealType: card.mealType,
-    tags: card.tags,
-    avoidanceTags: card.avoidanceTags,
-    ingredients: card.ingredients,
-    steps: card.steps,
+    tags: normalizeAiTags(card.tags, input.filters?.vibe),
   }));
 
   const matches = matchRecipes(input, library);
@@ -71,6 +63,11 @@ export function mapAiRecipesToMatches(
   // recipe to use fridge items; this preserves user-visible output while logs
   // expose the matching gap.
   return fridgeMatches.length > 0 ? fridgeMatches : matches;
+}
+
+function normalizeAiTags(tags: string[], requestedVibe: string | undefined) {
+  if (!requestedVibe || tags.includes(requestedVibe)) return tags;
+  return [...tags, requestedVibe];
 }
 
 async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMatch[] | null> {
@@ -128,7 +125,7 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
         titles: cards.map((card) => card.title),
       });
     }
-    return matches.length > 0 ? matches : null;
+    return matches;
   } catch (error) {
     if (__DEV__) console.warn("[recipes] AI generation failed, using mock matcher", error);
     return null;
@@ -168,7 +165,7 @@ function hashString(value: string) {
 
 export async function generateRecipeMatches(input: RecipeGenerationInput): Promise<RecipeGenerationResult> {
   const aiMatches = await generateAiMatches(input);
-  if (aiMatches) {
+  if (aiMatches !== null) {
     if (__DEV__) console.info("[recipes] using ai matches", { count: aiMatches.length });
     return {
       source: "ai",
@@ -215,6 +212,9 @@ export function buildRecipeGenerationPrompt(input: RecipeGenerationInput) {
     "Prompt filters:",
     ...formatFilterLines(input.filters),
     "Return multiple recipe cards with title, description, timeMinutes, complexity, servings, ingredients, steps, usedInventoryItemIds, tags, and avoidanceTags.",
+    "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
+    "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
+    "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
   ];
 
   return lines.join("\n");

@@ -1,0 +1,98 @@
+// Pure cache-merge logic for receipt line normalization. Deno-free so the
+// vitest suite can exercise it directly.
+
+export const CACHE_WRITE_CONFIDENCE = 0.8;
+
+export type NormalizedItem = {
+  name: string;
+  normalizedName: string;
+  category: string;
+  quantity: number | null;
+  unit: string | null;
+  netAmount: number | null;
+  netUnit: string | null;
+};
+
+export type NormalizedLine = {
+  rawText: string;
+  confidence: number;
+  item: NormalizedItem;
+};
+
+export type ReceiptLineCacheRow = {
+  store_chain: string;
+  raw_line_text: string;
+  name: string;
+  normalized_name: string;
+  category: string;
+  quantity: number | null;
+  unit: string | null;
+  net_amount: number | null;
+  net_unit: string | null;
+  confidence: number;
+};
+
+export type CacheMergeResult = {
+  lines: NormalizedLine[];
+  /** Rows to upsert: confident model output for lines the cache didn't know. */
+  writes: ReceiptLineCacheRow[];
+  /** raw_line_text values served from cache (for hit_count bookkeeping). */
+  hits: string[];
+};
+
+/**
+ * Cached entries override the model's per-line output so the same receipt line
+ * always normalizes to the same item. Misses qualify for write-back only when
+ * the model was confident, to avoid poisoning the cache with guesses.
+ */
+export function mergeWithCache(
+  storeChain: string,
+  lines: NormalizedLine[],
+  cacheRows: ReceiptLineCacheRow[],
+): CacheMergeResult {
+  const cacheByLine = new Map(cacheRows.map((row) => [row.raw_line_text, row]));
+  const merged: NormalizedLine[] = [];
+  const writes: ReceiptLineCacheRow[] = [];
+  const hits: string[] = [];
+  const written = new Set<string>();
+
+  for (const line of lines) {
+    const cached = cacheByLine.get(line.rawText);
+    if (cached) {
+      hits.push(line.rawText);
+      merged.push({
+        rawText: line.rawText,
+        confidence: cached.confidence,
+        item: {
+          name: cached.name,
+          normalizedName: cached.normalized_name,
+          category: cached.category,
+          quantity: cached.quantity,
+          unit: cached.unit,
+          netAmount: cached.net_amount,
+          netUnit: cached.net_unit,
+        },
+      });
+      continue;
+    }
+
+    merged.push(line);
+    if (line.confidence >= CACHE_WRITE_CONFIDENCE && !written.has(line.rawText)) {
+      written.add(line.rawText);
+      writes.push({
+        store_chain: storeChain,
+        raw_line_text: line.rawText,
+        name: line.item.name,
+        normalized_name: line.item.normalizedName,
+        category: line.item.category,
+        quantity: line.item.quantity,
+        unit: line.item.unit,
+        net_amount: line.item.netAmount,
+        net_unit: line.item.netUnit,
+        confidence: line.confidence,
+      });
+    }
+  }
+
+  return { lines: merged, writes, hits };
+}

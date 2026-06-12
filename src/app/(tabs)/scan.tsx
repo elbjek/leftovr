@@ -1,4 +1,5 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from "expo-camera";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -8,13 +9,12 @@ import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
 import { BackButton, BottomSheet, Button, Card, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
+import { mockBarcodeProducts } from "@/mocks";
 import {
   addInventoryItem,
   completeHouseholdFirstFill,
-  confirmReceiptScan,
-  findRecentReceiptDuplicate,
-  prepareReceiptScan,
+  confirmNormalizedReceiptScan,
+  normalizeReceiptImage,
   ReceiptDuplicate,
   ReceiptScanResult,
   setNotificationPermissionPreview,
@@ -109,6 +109,9 @@ export default function ScanRoute() {
   // Seeded with the initial param so the auto-open effect below does not re-run
   // for the deep-link already handled by initialMode (avoids a double permission prompt).
   const consumedModeRef = useRef<string | null>(params.mode ?? null);
+  const receiptCameraRef = useRef<CameraView>(null);
+  // Scan row created by the normalize-receipt edge function; confirm completes it.
+  const [pendingScanId, setPendingScanId] = useState<string | null>(null);
 
   // Returning to the Scan tab should show the choice screen, not a leftover
   // post-scan terminal screen (success / notifications) from a previous flow.
@@ -122,7 +125,6 @@ export default function ScanRoute() {
     }, []),
   );
 
-  const selectedTemplate = mockReceiptTemplates[0];
   const showCustomManualAdd = manualQuery.trim().length > 0
     && !offResults.some((product) => product.name.toLowerCase() === manualQuery.trim().toLowerCase());
 
@@ -214,6 +216,7 @@ export default function ScanRoute() {
     setConfirmAllowsDuplicate(false);
     setConfirming(false);
     setDuplicate(null);
+    setPendingScanId(null);
     setError(null);
     setMode("choice");
   }
@@ -223,35 +226,63 @@ export default function ScanRoute() {
     await completeHouseholdFirstFill(activeHousehold.id);
   }
 
-  async function captureReceipt(allowDuplicate = false) {
+  async function captureReceipt() {
     if (!activeHousehold?.id) return;
 
     setMode("processing");
     setError(null);
 
     try {
-      const preparation = await prepareReceiptScan({
+      const photo = await receiptCameraRef.current?.takePictureAsync({ quality: 0.8 });
+      if (!photo?.uri) {
+        throw new Error(t("auth.genericError"));
+      }
+      // Cap resolution before upload: controls storage size and vision tokens.
+      const resized = await manipulateAsync(photo.uri, [{ resize: { width: 1500 } }], {
+        compress: 0.7,
+        format: SaveFormat.JPEG,
+        base64: true,
+      });
+      if (!resized.base64) {
+        throw new Error(t("auth.genericError"));
+      }
+
+      // The edge function creates the scan row and makes the AI call here;
+      // the free scan is consumed now (when the cost happens), but nothing
+      // lands in inventory until the user confirms.
+      const scan = await normalizeReceiptImage({
         householdId: activeHousehold.id,
-        templateKey: selectedTemplate.key,
+        imageBase64: resized.base64,
       });
 
-      if (preparation.duplicate && !allowDuplicate) {
-        setDuplicate(preparation.duplicate);
+      setPendingScanId(scan.scanId);
+      setConfirmItems(scan.items);
+
+      if (scan.duplicate) {
+        setDuplicate(scan.duplicate);
         setMode("duplicate");
         return;
       }
 
-      await delay(900);
-      // Nothing is persisted yet: the user confirms (and can edit/exclude)
-      // every scanned item first. The scan, and the one-time free scan,
-      // only counts once they confirm.
-      setConfirmItems(preparation.items);
-      setConfirmAllowsDuplicate(allowDuplicate);
+      setConfirmAllowsDuplicate(false);
       setMode("confirm");
     } catch (scanError) {
+      // Edge function gate: free scan already used and not premium.
+      if (isReceiptQuotaError(scanError) && !canScanReceipt) {
+        setMode("choice");
+        setScanPremiumVisible(true);
+        return;
+      }
       setError(errorMessage(scanError, t("auth.genericError")));
       setMode("camera");
     }
+  }
+
+  // The duplicate screen reuses the items already normalized for this scan;
+  // re-invoking the edge function would pay for a second AI call.
+  function proceedWithDuplicate() {
+    setConfirmAllowsDuplicate(true);
+    setMode("confirm");
   }
 
   async function handleConfirmScan(items: ReceiptConfirmItem[]) {
@@ -261,11 +292,14 @@ export default function ScanRoute() {
     setError(null);
 
     try {
-      const nextResult = await confirmReceiptScan({
+      if (!pendingScanId) {
+        throw new Error(t("auth.genericError"));
+      }
+      const nextResult = await confirmNormalizedReceiptScan({
         householdId: activeHousehold.id,
-        templateKey: selectedTemplate.key,
+        scanId: pendingScanId,
         items,
-        allowDuplicate: confirmAllowsDuplicate,
+        duplicateOf: confirmAllowsDuplicate ? duplicate?.id ?? null : null,
       });
 
       if (!activeHousehold.first_fill_completed_at) {
@@ -276,21 +310,9 @@ export default function ScanRoute() {
       setResult(nextResult);
       setMode("success");
     } catch (scanError) {
-      // RLS rejection AND the client agrees the user isn't entitled = upsell.
-      // (A 42501 while canScanReceipt is true means a different problem, e.g. stale household.)
-      if (isPremiumGateError(scanError) && !canScanReceipt) {
-        setMode("choice");
-        setScanPremiumVisible(true);
-        return;
-      }
       // Concurrent scan of the same receipt slipped in while confirming
       // (cross-device race), bounce to the duplicate screen.
       if (scanError instanceof Error && scanError.message.includes("Duplicate receipt")) {
-        const existing = await findRecentReceiptDuplicate(
-          activeHousehold.id,
-          selectedTemplate.receiptSignature,
-        ).catch(() => null);
-        setDuplicate(existing);
         setMode("duplicate");
         return;
       }
@@ -461,7 +483,7 @@ export default function ScanRoute() {
     return (
       <Screen padded={false} backgroundColor={colors.black}>
         <View style={styles.cameraWrap}>
-          <CameraView style={styles.camera} facing="back" />
+          <CameraView ref={receiptCameraRef} style={styles.camera} facing="back" />
           <View style={styles.cameraOverlay}>
             <View style={styles.cameraTop}>
               <Button
@@ -868,7 +890,7 @@ export default function ScanRoute() {
             {t("scan.processingTitle")}
           </Text>
           <Text variant="body" muted center>
-            {t("scan.processingBody", { template: selectedTemplate.label })}
+            {t("scan.processingBody")}
           </Text>
         </View>
       </Screen>
@@ -888,7 +910,7 @@ export default function ScanRoute() {
           </Text>
         ) : null}
         <ReceiptConfirmList
-          key={`${selectedTemplate.key}-${confirmItems.length}`}
+          key={`${pendingScanId ?? "scan"}-${confirmItems.length}`}
           items={confirmItems}
           confirming={confirming}
           onConfirm={handleConfirmScan}
@@ -910,7 +932,7 @@ export default function ScanRoute() {
             {t("scan.duplicateBody")}
           </Text>
           <View style={styles.buttonStack}>
-            <Button title={t("scan.addAnyway")} onPress={() => captureReceipt(true)} />
+            <Button title={t("scan.addAnyway")} onPress={proceedWithDuplicate} />
             <Button title={t("common.cancel")} variant="ghost" onPress={returnToChoice} />
           </View>
           {duplicate ? (
@@ -1063,13 +1085,13 @@ function BellIcon() {
   );
 }
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-// Postgres row-level-security rejection (insufficient_privilege).
-function isPremiumGateError(err: unknown): boolean {
-  return typeof err === "object" && err !== null && (err as { code?: string }).code === "42501";
+// normalize-receipt edge function 402: free scan used and not premium.
+function isReceiptQuotaError(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { context?: { status?: number } }).context?.status === 402
+  );
 }
 
 function errorMessage(err: unknown, fallback: string): string {

@@ -130,4 +130,16 @@ describe("mapAiRecipesToMatches", () => {
     expect(mapAiRecipesToMatches([slowCard], input)).toHaveLength(0);
   });
 
+  it("keeps AI recipes when model uses different tag wording for requested vibe", () => {
+    const aiCard: AiRecipeCard = {
+      ...fridgeCard,
+      tags: ["protein-rich"],
+      timeMinutes: 30,
+    };
+
+    const [match] = mapAiRecipesToMatches([aiCard], input);
+
+    expect(match.title).toBe("Garlic spinach saute");
+    expect(match.tags).toContain("healthy");
+  });
 });

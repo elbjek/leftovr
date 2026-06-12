@@ -999,6 +999,38 @@ Future backend should enforce:
 - household scope
 - logging/cost tracking
 
+## Receipt Normalization Pipeline
+
+Real receipt scanning replaces mock templates with a single backend pipeline:
+
+- The client captures a photo, compresses it, and uploads it to a private
+  `receipt-images` Storage bucket scoped to the household.
+- The `normalize-receipt` Edge Function authenticates the user, enforces
+  receipt gating and scan limits server-side, and makes one Claude vision
+  call (structured JSON output) that returns the store chain, purchase date,
+  total, and per-line normalized items with confidence scores.
+- Receipt duplicate detection uses a signature hash of store chain, purchase
+  date, total, and normalized item hash (existing unique index on
+  `receipt_scans`).
+- On AI failure the scan fails visibly with a retry option. Mock templates
+  are never silently substituted for real scans.
+
+### Receipt Normalization Cache
+
+Receipt line text is highly repetitive per store chain, so normalization
+results are cached:
+
+- Table `receipt_line_cache`, keyed unique on `(store_chain, raw_line_text)`,
+  stores the canonical item (name, normalized name, category, quantity, unit,
+  net amount/unit), confidence, hit count, and last-seen timestamp.
+- On each scan, cached entries override the model's per-line output so the
+  same receipt line always normalizes to the same item.
+- Cache misses are written back only when model confidence is at or above
+  0.8, to avoid poisoning the cache with guesses.
+- The cache is global across households, accessed only with the service role,
+  and never exposed to clients. It also serves as an evaluation/training data
+  asset for future on-device OCR cost reduction.
+
 ## Settings
 
 Settings should include:
