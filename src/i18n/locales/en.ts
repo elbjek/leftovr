@@ -279,7 +279,7 @@ export const en = {
     coachBody: "Make sure every line is readable and inside the frame, then tap the shutter.",
     capture: "Capture receipt",
     processingTitle: "Reading your receipt.",
-    processingBody: "Normalizing your groceries.",
+    processingBody: "Sorting out what you bought.",
     confirm: {
       title: "Check your receipt",
       body: "Edit anything weird, skip anything wrong, then add it to your fridge.",

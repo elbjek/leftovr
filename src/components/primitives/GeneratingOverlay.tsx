@@ -5,33 +5,28 @@ import { colors, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations/FoodGlyph";
 import { Text } from "./Text";
 
-type GeneratingOverlayProps = {
-  title: string;
-  /** Rotating status lines shown under the title, in order. */
-  phrases: string[];
-};
-
 // Cycled through FoodGlyph's known shapes — feels like ingredients being considered.
 const GLYPHS = ["tomato", "carrot", "cheese", "milk", "spinach", "bread", "egg", "onion"];
 
 const GLYPH_INTERVAL_MS = 1100;
 const PHRASE_INTERVAL_MS = 3000;
 
+type GeneratingLoaderProps = {
+  /** Diameter of the halo; the glyph scales with it. */
+  size?: number;
+};
+
 /**
- * Full-screen loading state for AI recipe generation. One hero animation
- * (pulsing halo + cycling ingredient glyph) per the one-key-element rule;
- * everything else is static. Honors the system reduce-motion setting by
- * swapping content without pulses or fades.
+ * The animated brand loader on its own: pulsing halo + cycling ingredient
+ * glyph. Embed inline on screens that load in place; GeneratingOverlay wraps
+ * it for the full-screen generation state. Honors reduce-motion by swapping
+ * glyphs without pulses.
  */
-export function GeneratingOverlay({ title, phrases }: GeneratingOverlayProps) {
+export function GeneratingLoader({ size = 150 }: GeneratingLoaderProps) {
   const [reduceMotion, setReduceMotion] = useState(false);
   const [glyphIndex, setGlyphIndex] = useState(0);
-  const [phraseIndex, setPhraseIndex] = useState(0);
-
-  const [screenOpacity] = useState(() => new Animated.Value(0));
   const [halo] = useState(() => new Animated.Value(0));
   const [glyphPop] = useState(() => new Animated.Value(1));
-  const [phraseOpacity] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     let mounted = true;
@@ -42,14 +37,6 @@ export function GeneratingOverlay({ title, phrases }: GeneratingOverlayProps) {
       mounted = false;
     };
   }, []);
-
-  useEffect(() => {
-    Animated.timing(screenOpacity, {
-      toValue: 1,
-      duration: reduceMotion ? 0 : 200,
-      useNativeDriver: true,
-    }).start();
-  }, [reduceMotion, screenOpacity]);
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -89,6 +76,60 @@ export function GeneratingOverlay({ title, phrases }: GeneratingOverlayProps) {
     return () => clearInterval(timer);
   }, [glyphPop, reduceMotion]);
 
+  const haloScale = halo.interpolate({ inputRange: [0, 1], outputRange: [1, 1.16] });
+  const haloOpacity = halo.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0.3] });
+
+  return (
+    <Animated.View style={[styles.hero, { width: size, height: size }]}>
+      <Animated.View
+        style={[
+          styles.halo,
+          { borderRadius: size / 2 },
+          !reduceMotion && { transform: [{ scale: haloScale }], opacity: haloOpacity },
+        ]}
+      />
+      <Animated.View style={!reduceMotion && { transform: [{ scale: glyphPop }] }}>
+        <FoodGlyph name={GLYPHS[glyphIndex]} size={size * 0.43} color={colors.primary} />
+      </Animated.View>
+    </Animated.View>
+  );
+}
+
+type GeneratingOverlayProps = {
+  title: string;
+  /** Rotating status lines shown under the title, in order. */
+  phrases: string[];
+};
+
+/**
+ * Full-screen loading state for AI recipe generation. One hero animation
+ * (the GeneratingLoader) per the one-key-element rule; everything else is
+ * static. Honors the system reduce-motion setting.
+ */
+export function GeneratingOverlay({ title, phrases }: GeneratingOverlayProps) {
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [screenOpacity] = useState(() => new Animated.Value(0));
+  const [phraseOpacity] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    let mounted = true;
+    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (mounted) setReduceMotion(enabled);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    Animated.timing(screenOpacity, {
+      toValue: 1,
+      duration: reduceMotion ? 0 : 200,
+      useNativeDriver: true,
+    }).start();
+  }, [reduceMotion, screenOpacity]);
+
   useEffect(() => {
     if (phrases.length < 2) return;
     const timer = setInterval(() => {
@@ -112,9 +153,6 @@ export function GeneratingOverlay({ title, phrases }: GeneratingOverlayProps) {
     return () => clearInterval(timer);
   }, [phraseOpacity, phrases.length, reduceMotion]);
 
-  const haloScale = halo.interpolate({ inputRange: [0, 1], outputRange: [1, 1.16] });
-  const haloOpacity = halo.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0.3] });
-
   return (
     <Animated.View
       style={[styles.overlay, { opacity: screenOpacity }]}
@@ -122,17 +160,7 @@ export function GeneratingOverlay({ title, phrases }: GeneratingOverlayProps) {
       accessibilityLabel={title}
       accessibilityLiveRegion="polite"
     >
-      <Animated.View style={styles.hero}>
-        <Animated.View
-          style={[
-            styles.halo,
-            !reduceMotion && { transform: [{ scale: haloScale }], opacity: haloOpacity },
-          ]}
-        />
-        <Animated.View style={!reduceMotion && { transform: [{ scale: glyphPop }] }}>
-          <FoodGlyph name={GLYPHS[glyphIndex]} size={64} color={colors.primary} />
-        </Animated.View>
-      </Animated.View>
+      <GeneratingLoader />
       <Text variant="h2" center style={styles.title}>
         {title}
       </Text>
@@ -159,11 +187,8 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   hero: {
-    width: 150,
-    height: 150,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: spacing.huge,
   },
   halo: {
     position: "absolute",
@@ -171,11 +196,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 75,
     backgroundColor: colors.accentSoft,
     opacity: 0.55,
   },
   title: {
+    marginTop: spacing.huge,
     marginBottom: spacing.md,
   },
 });

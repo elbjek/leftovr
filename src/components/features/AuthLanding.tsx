@@ -4,6 +4,7 @@ import Svg, { Path, Rect } from "react-native-svg";
 
 import { colors, fonts, radii, spacing } from "@/theme";
 
+import { Logo } from "../illustrations";
 import { Text } from "../primitives";
 
 type Props = {
@@ -35,6 +36,7 @@ export function AuthLanding({
     <View style={styles.wrap}>
       <View style={styles.brandBlock}>
         <View style={styles.wordmarkRow}>
+          <Logo size={40} />
           <Text style={styles.wordmark}>leftovr</Text>
           <Text style={[styles.wordmark, styles.wordmarkDot]}>.</Text>
         </View>
@@ -159,7 +161,8 @@ const styles = StyleSheet.create({
   },
   wordmarkRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   wordmark: {
     color: colors.primary,

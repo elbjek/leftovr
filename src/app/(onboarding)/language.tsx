@@ -4,7 +4,7 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, ChoiceCard, Screen, Text } from "@/components";
+import { Button, ChoiceCard, Logo, Screen, Text } from "@/components";
 import { HAS_PICKED_LANGUAGE_KEY } from "@/features/onboardingGate";
 import { i18n } from "@/i18n";
 import { colors } from "@/theme";
@@ -38,6 +38,7 @@ export default function LanguageRoute() {
     >
       <View style={styles.wrap}>
         <View style={styles.wordmarkWrap}>
+          <Logo size={34} />
           <Text variant="display" color={colors.primary} italic style={styles.wordmark}>
             leftovr
             <Text variant="display" color={colors.accent} italic style={styles.wordmark}>
@@ -106,7 +107,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   wordmarkWrap: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
     marginBottom: 40,
   },
   wordmark: {

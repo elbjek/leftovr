@@ -7,7 +7,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
+import { BackButton, BottomSheet, Button, Card, GeneratingLoader, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { mockBarcodeProducts } from "@/mocks";
 import {
@@ -885,7 +885,7 @@ export default function ScanRoute() {
     return (
       <Screen>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} size="large" />
+          <GeneratingLoader size={130} />
           <Text variant="display" center>
             {t("scan.processingTitle")}
           </Text>
