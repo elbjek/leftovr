@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
 
 function buildPrompt(input: GenerateRecipesRequest) {
   return [
-    "Generate practical Chomp recipe ideas from household fridge contents.",
+    "Generate practical Leftovr recipe ideas from household fridge contents.",
     "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
     `Cooking mode: ${input.cookingMode ?? "household"}.`,
     `Servings: ${input.servings ?? 2}.`,

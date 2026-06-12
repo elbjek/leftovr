@@ -1,22 +1,22 @@
 {
   "expo": {
-    "name": "Chomp",
-    "slug": "chomp",
+    "name": "Leftovr",
+    "slug": "leftovr",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "chomp",
+    "scheme": "leftovr",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "app.chomp.mobile",
+      "bundleIdentifier": "app.leftovr.mobile",
       "infoPlist": {
-        "NSCameraUsageDescription": "Chomp uses your camera to scan receipts and barcodes."
+        "NSCameraUsageDescription": "Leftovr uses your camera to scan receipts and barcodes."
       }
     },
     "android": {
-      "package": "app.chomp.mobile",
+      "package": "app.leftovr.mobile",
       "permissions": [
         "CAMERA"
       ],

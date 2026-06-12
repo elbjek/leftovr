@@ -60,7 +60,7 @@ export async function lookupOpenFoodFactsBarcode(barcode: string): Promise<Barco
     const response = await fetch(`${OPEN_FOOD_FACTS_BASE_URL}/${encodeURIComponent(normalizedBarcode)}.json?${params}`, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "Chomp/1.0 (local-dev@chomp.app)",
+        "User-Agent": "Leftovr/1.0 (local-dev@leftovr.app)",
       },
       signal: controller.signal,
     });
@@ -196,7 +196,7 @@ export async function searchOpenFoodFactsProducts(query: string): Promise<Barcod
     const response = await fetch(`${OPEN_FOOD_FACTS_SEARCH_URL}?${params}`, {
       headers: {
         Accept: "application/json",
-        "User-Agent": "Chomp/1.0 (local-dev@chomp.app)",
+        "User-Agent": "Leftovr/1.0 (local-dev@leftovr.app)",
       },
       signal: controller.signal,
     });

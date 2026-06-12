@@ -39,7 +39,7 @@ export default function LanguageRoute() {
       <View style={styles.wrap}>
         <View style={styles.wordmarkWrap}>
           <Text variant="display" color={colors.primary} italic style={styles.wordmark}>
-            chomp
+            leftovr
             <Text variant="display" color={colors.accent} italic style={styles.wordmark}>
               .
             </Text>

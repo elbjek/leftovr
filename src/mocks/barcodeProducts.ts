@@ -15,7 +15,7 @@ export const mockBarcodeProducts: MockBarcodeProduct[] = [
   {
     barcode: "5901234123457",
     name: "Milk",
-    brandName: "Chomp Dairy",
+    brandName: "Leftovr Dairy",
     category: "dairy_eggs",
     quantity: 1,
     unit: "carton",
@@ -25,7 +25,7 @@ export const mockBarcodeProducts: MockBarcodeProduct[] = [
   {
     barcode: "5012345678900",
     name: "Greek yogurt",
-    brandName: "Chomp Dairy",
+    brandName: "Leftovr Dairy",
     category: "dairy_eggs",
     quantity: 1,
     unit: "tub",
@@ -45,7 +45,7 @@ export const mockBarcodeProducts: MockBarcodeProduct[] = [
   {
     barcode: "012345678905",
     name: "Hummus",
-    brandName: "Chomp Kitchen",
+    brandName: "Leftovr Kitchen",
     category: "snacks",
     quantity: 1,
     unit: "tub",

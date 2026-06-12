@@ -194,7 +194,7 @@ function WordmarkIllustration({ kicker }: { kicker?: string }) {
   return (
     <View style={styles.wordmarkIllustration}>
       <Text variant="display" color={colors.primary} italic style={styles.wordmark}>
-        chomp
+        leftovr
         <Text variant="display" color={colors.accent} italic style={styles.wordmark}>
           .
         </Text>

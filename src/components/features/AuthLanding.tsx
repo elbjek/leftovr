@@ -35,7 +35,7 @@ export function AuthLanding({
     <View style={styles.wrap}>
       <View style={styles.brandBlock}>
         <View style={styles.wordmarkRow}>
-          <Text style={styles.wordmark}>chomp</Text>
+          <Text style={styles.wordmark}>leftovr</Text>
           <Text style={[styles.wordmark, styles.wordmarkDot]}>.</Text>
         </View>
         <Text variant="body" muted center style={styles.body}>
