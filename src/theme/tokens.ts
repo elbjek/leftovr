@@ -33,6 +33,7 @@ export const fonts = {
   bodySemiBold: "PlusJakartaSansSemiBold",
   bodyBold: "PlusJakartaSansBold",
   bodyExtraBold: "PlusJakartaSansExtraBold",
+  wordmark: "YoungSerif",
   fallback: "System",
 } as const;
 

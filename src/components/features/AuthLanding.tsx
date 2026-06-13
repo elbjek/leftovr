@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 
-import { colors, fonts, radii, spacing } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 import { Logo } from "../illustrations";
 import { Text } from "../primitives";
@@ -37,8 +37,6 @@ export function AuthLanding({
       <View style={styles.brandBlock}>
         <View style={styles.wordmarkRow}>
           <Logo size={40} />
-          <Text style={styles.wordmark}>leftovr</Text>
-          <Text style={[styles.wordmark, styles.wordmarkDot]}>.</Text>
         </View>
         <Text variant="body" muted center style={styles.body}>
           {body}
@@ -163,16 +161,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  wordmark: {
-    color: colors.primary,
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 36,
-    lineHeight: 40,
-    fontWeight: "800",
-  },
-  wordmarkDot: {
-    color: colors.accent,
   },
   body: {
     marginTop: 18,

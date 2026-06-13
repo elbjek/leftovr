@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-i18n-title="meta.title" data-i18n-desc="meta.desc">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,10 +8,10 @@
 <meta property="og:title" content="leftovr — What's for dinner?" />
 <meta property="og:description" content="Scan a receipt. Your fridge fills itself. Dinner figures itself out." />
 <meta property="og:type" content="website" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cpath d='M5 19 h26 a13 13 0 0 1 -26 0 Z' fill='none' stroke='%231B4332' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M12.5 13 c0 -2.4 2 -2.4 2 -4.8' fill='none' stroke='%23D4A843' stroke-width='2.55' stroke-linecap='round'/%3E%3Cpath d='M21.5 13 c0 -2.4 2 -2.4 2 -4.8' fill='none' stroke='%23D4A843' stroke-width='2.55' stroke-linecap='round'/%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect x='10' y='10' width='16' height='16' rx='4' fill='%23D4A843' transform='rotate(45 18 18)'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Young+Serif&display=swap" rel="stylesheet" />
 <style>
   :root {
     --primary: #1B4332;
@@ -32,6 +32,7 @@
     --hairline: rgba(27, 67, 50, 0.10);
     --hairline-strong: rgba(27, 67, 50, 0.18);
     --display: "Fraunces", Georgia, serif;
+    --wordmark: "Young Serif", Georgia, serif;
     --body: "Plus Jakarta Sans", -apple-system, sans-serif;
     --radius-lg: 14px;
     --radius-xl: 18px;
@@ -96,7 +97,15 @@
     max-width: var(--max-w);
     width: 100%;
   }
-  .nav-logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 22px; font-weight: 600; color: var(--primary); }
+  .nav-logo { display: flex; align-items: baseline; font-family: var(--wordmark); font-size: 24px; font-weight: 400; color: var(--primary); }
+  .logo-diamond {
+    display: inline-block;
+    width: 0.26em; height: 0.26em;
+    border-radius: 0.07em;
+    background: var(--accent);
+    transform: rotate(45deg);
+    margin-left: 0.16em;
+  }
   .nav-links { display: flex; gap: 24px; margin-left: auto; }
   .nav-links a {
     font-size: 14px; font-weight: 600; color: var(--muted);
@@ -566,6 +575,38 @@
 
   :focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 
+  /* ---------- Language toggle ---------- */
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--hairline-strong);
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .lang-toggle button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 7px 13px;
+    min-height: 36px;
+    transition: background 200ms ease, color 200ms ease;
+  }
+  .lang-toggle button[aria-pressed="true"] {
+    background: var(--primary);
+    color: var(--surface);
+  }
+  .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--primary); }
+  .nav-lang { margin-left: 4px; }
+  .mobile-lang { margin: 8px 12px 4px; align-self: flex-start; }
+  @media (max-width: 960px) {
+    .nav-lang { display: none; }
+  }
+
   /* ---------- Responsive ---------- */
   @media (max-width: 960px) {
     .hero-grid { grid-template-columns: 1fr; gap: 64px; }
@@ -590,22 +631,19 @@
 <!-- ===================== NAV ===================== -->
 <div class="nav-shell">
   <nav aria-label="Main">
-    <a class="nav-logo" href="#top" aria-label="leftovr home">
-      <svg width="32" height="32" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-        <path d="M5 19 h26 a13 13 0 0 1 -26 0 Z" stroke="#1B4332" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M12.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
-        <path d="M21.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
-      </svg>
-      leftovr
-    </a>
+    <a class="nav-logo" href="#top" aria-label="leftovr home">leftovr<span class="logo-diamond" aria-hidden="true"></span></a>
     <div class="nav-links">
-      <a href="#how">How it works</a>
-      <a href="#features">Features</a>
-      <a href="#loved">Loved by</a>
-      <a href="#faq">FAQ</a>
+      <a href="#how" data-i18n="nav.how">How it works</a>
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#loved" data-i18n="nav.loved">Loved by</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
     </div>
-    <button class="nav-cta" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join waitlist</button>
-    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+    <div class="lang-toggle nav-lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="sr" aria-pressed="false">SR</button>
+    </div>
+    <button class="nav-cta" data-i18n="nav.cta" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join waitlist</button>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" data-i18n-aria="nav.menu" aria-expanded="false" aria-controls="mobileMenu">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
       </svg>
@@ -613,11 +651,15 @@
   </nav>
 </div>
 <div class="mobile-menu" id="mobileMenu">
-  <a href="#how">How it works</a>
-  <a href="#features">Features</a>
-  <a href="#loved">Loved by</a>
-  <a href="#faq">FAQ</a>
-  <a href="#waitlist" style="color: var(--primary); font-weight: 700;">Join the waitlist →</a>
+  <div class="lang-toggle mobile-lang" role="group" aria-label="Language">
+    <button type="button" data-lang="en" aria-pressed="true">EN</button>
+    <button type="button" data-lang="sr" aria-pressed="false">SR</button>
+  </div>
+  <a href="#how" data-i18n="nav.how">How it works</a>
+  <a href="#features" data-i18n="nav.features">Features</a>
+  <a href="#loved" data-i18n="nav.loved">Loved by</a>
+  <a href="#faq" data-i18n="nav.faq">FAQ</a>
+  <a href="#waitlist" style="color: var(--primary); font-weight: 700;" data-i18n="nav.mobileCta">Join the waitlist →</a>
 </div>
 
 <!-- ===================== HERO ===================== -->
@@ -625,15 +667,15 @@
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div>
-      <span class="kicker reveal in"><span class="dot"></span>Receipt-powered virtual fridge</span>
-      <h1 class="reveal in">Scan a receipt.<br />Dinner <em>figures itself out.<svg class="underline-svg" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 9 C 50 3, 150 3, 198 8" stroke="#D4A843" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg></em></h1>
-      <p class="hero-sub reveal in reveal-d1">leftovr turns your grocery receipt into a living fridge. It knows what you have, nudges you on what's best eaten today, and suggests recipes from food you already own — no barcoding every yogurt, no guilt, no spreadsheets.</p>
+      <span class="kicker reveal in"><span class="dot"></span><span data-i18n="hero.kicker">Receipt-powered virtual fridge</span></span>
+      <h1 class="reveal in" data-i18n-html="hero.h1">Scan a receipt.<br />Dinner <em>figures itself out.<svg class="underline-svg" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 9 C 50 3, 150 3, 198 8" stroke="#D4A843" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg></em></h1>
+      <p class="hero-sub reveal in reveal-d1" data-i18n="hero.sub">leftovr turns your grocery receipt into a living fridge. It knows what you have, nudges you on what's best eaten today, and suggests recipes from food you already own — no barcoding every yogurt, no guilt, no spreadsheets.</p>
       <div class="hero-ctas reveal in reveal-d2">
         <a class="btn btn-primary" href="#waitlist">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
-          Join the waitlist
+          <span data-i18n="hero.ctaPrimary">Join the waitlist</span>
         </a>
-        <a class="btn btn-ghost" href="#how">See how it works</a>
+        <a class="btn btn-ghost" href="#how" data-i18n="hero.ctaSecondary">See how it works</a>
       </div>
       <div class="hero-proof reveal in reveal-d3">
         <div class="avatars" aria-hidden="true">
@@ -642,86 +684,86 @@
           <span style="background:#E8B59E;">J</span>
           <span style="background:#C6D6DA;">S</span>
         </div>
-        <p><span class="stars" aria-hidden="true">★★★★★</span><br /><strong>4.8</strong> from households who stopped asking "what's for dinner?"</p>
+        <p data-i18n-html="hero.proof"><span class="stars" aria-hidden="true">★★★★★</span><br /><strong>4.8</strong> from households who stopped asking "what's for dinner?"</p>
       </div>
     </div>
 
     <div class="phone-zone reveal in reveal-d2">
-      <div class="phone" role="img" aria-label="leftovr app screen showing the virtual fridge with an eat-first shelf and a recipe suggestion">
+      <div class="phone" role="img" aria-label="leftovr app screen showing the virtual fridge with an eat-first shelf and a recipe suggestion" data-i18n-aria="phone.aria">
         <div class="phone-screen">
           <div class="phone-notch"></div>
-          <div class="app-greeting">Good evening, Lena</div>
-          <p class="app-sub">Your fridge: 23 items · 3 best eaten soon</p>
+          <div class="app-greeting" data-i18n="phone.greeting">Good evening, Lena</div>
+          <p class="app-sub" data-i18n="phone.sub">Your fridge: 23 items · 3 best eaten soon</p>
 
-          <div class="shelf-label"><span class="pip" style="background:#C76845;"></span>Eat first</div>
+          <div class="shelf-label"><span class="pip" style="background:#C76845;"></span><span data-i18n="phone.eatFirst">Eat first</span></div>
           <div class="food-row">
             <div class="food-card">
               <div class="food-glyph" style="background:#C8D5C2;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4c-4 3-6 6-6 9a6 6 0 0 0 12 0c0-3-2-6-6-9Z"/></svg>
               </div>
-              <h4>Spinach</h4>
-              <p style="color:#C76845;">Best today</p>
+              <h4 data-i18n="food.spinach">Spinach</h4>
+              <p style="color:#C76845;" data-i18n="urgency.today">Best today</p>
             </div>
             <div class="food-card">
               <div class="food-glyph" style="background:#F0DDA8;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 8h14l-1.5 11a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5L5 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
               </div>
-              <h4>Yogurt</h4>
-              <p style="color:#8a6a1d;">2–3 days</p>
+              <h4 data-i18n="food.yogurt">Yogurt</h4>
+              <p style="color:#8a6a1d;" data-i18n="urgency.days">2–3 days</p>
             </div>
             <div class="food-card">
               <div class="food-glyph" style="background:#E8B59E;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-3 3-3"/></svg>
               </div>
-              <h4>Peaches</h4>
-              <p style="color:#8a6a1d;">2–3 days</p>
+              <h4 data-i18n="food.peaches">Peaches</h4>
+              <p style="color:#8a6a1d;" data-i18n="urgency.days">2–3 days</p>
             </div>
           </div>
 
-          <div class="shelf-label"><span class="pip" style="background:#4F8A5B;"></span>Fresh &amp; fine</div>
+          <div class="shelf-label"><span class="pip" style="background:#4F8A5B;"></span><span data-i18n="phone.fresh">Fresh &amp; fine</span></div>
           <div class="food-row">
             <div class="food-card">
               <div class="food-glyph" style="background:#E8C3B0;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><ellipse cx="12" cy="12" rx="8" ry="6"/><path d="M7 10c2 1 8 1 10 0"/></svg>
               </div>
-              <h4>Chicken</h4>
-              <p style="color:#4F8A5B;">Fresh</p>
+              <h4 data-i18n="food.chicken">Chicken</h4>
+              <p style="color:#4F8A5B;" data-i18n="urgency.fresh">Fresh</p>
             </div>
             <div class="food-card">
               <div class="food-glyph" style="background:#E5D9C4;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 14c0-4 3.5-7 8-7s8 3 8 7c0 2-2 4-8 4s-8-2-8-4Z"/><path d="M8 11v2M12 10v2M16 11v2"/></svg>
               </div>
-              <h4>Bread</h4>
-              <p style="color:#4F8A5B;">Fresh</p>
+              <h4 data-i18n="food.bread">Bread</h4>
+              <p style="color:#4F8A5B;" data-i18n="urgency.fresh">Fresh</p>
             </div>
             <div class="food-card">
               <div class="food-glyph" style="background:#C6D6DA;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12c3-4 7-6 11-6 3 0 5 1 7 3-2 2-4 3-7 3-4 0-8 0-11 0Z"/><path d="M3 12c3 4 7 6 11 6"/></svg>
               </div>
-              <h4>Salmon</h4>
-              <p style="color:#4F8A5B;">Fresh</p>
+              <h4 data-i18n="food.salmon">Salmon</h4>
+              <p style="color:#4F8A5B;" data-i18n="urgency.fresh">Fresh</p>
             </div>
           </div>
 
           <div class="recipe-banner">
-            <span class="tag">Tonight's idea</span>
-            <h4>Creamy spinach &amp; salmon pasta</h4>
-            <p>Uses 3 things from your eat-first shelf · 25 min</p>
+            <span class="tag" data-i18n="recipe.tag">Tonight's idea</span>
+            <h4 data-i18n="recipe.title">Creamy spinach &amp; salmon pasta</h4>
+            <p data-i18n="recipe.meta">Uses 3 things from your eat-first shelf · 25 min</p>
           </div>
         </div>
       </div>
 
       <div class="float-chip chip-1" aria-hidden="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>
-        Receipt added · 14 items
+        <span data-i18n="chip.added">Receipt added · 14 items</span>
       </div>
       <div class="float-chip chip-2" aria-hidden="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-        Use your spinach tonight
+        <span data-i18n="chip.spinach">Use your spinach tonight</span>
       </div>
       <div class="float-chip chip-3" aria-hidden="true">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M7 8c0-2 2-3 5-3s5 1 5 3-2 3-5 3-5 1-5 3 2 3 5 3 5-1 5-3"/></svg>
-        You saved ~$9 this week
+        <span data-i18n="chip.saved">You saved ~$9 this week</span>
       </div>
     </div>
   </div>
@@ -731,9 +773,9 @@
 <section id="how">
   <div class="wrap">
     <div class="section-head reveal">
-      <span class="eyebrow">How it works</span>
-      <h2>Three steps. Zero inventory chores.</h2>
-      <p>leftovr is built to feel low-effort and approximate — useful without becoming a tracking job.</p>
+      <span class="eyebrow" data-i18n="how.eyebrow">How it works</span>
+      <h2 data-i18n="how.title">Three steps. Zero inventory chores.</h2>
+      <p data-i18n="how.sub">leftovr is built to feel low-effort and approximate — useful without becoming a tracking job.</p>
     </div>
     <div class="steps">
       <article class="step reveal">
@@ -741,24 +783,24 @@
         <div class="step-icon">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5V3Z"/><path d="M10 8h4M10 12h4"/></svg>
         </div>
-        <h3>Snap your receipt</h3>
-        <p>One photo after the grocery run. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.</p>
+        <h3 data-i18n="step1.title">Snap your receipt</h3>
+        <p data-i18n="step1.body">One photo after the grocery run. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.</p>
       </article>
       <article class="step reveal reveal-d1">
         <div class="step-num">02</div>
         <div class="step-icon">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 11h14M9 7h.01M9 15h.01"/></svg>
         </div>
-        <h3>Your fridge fills itself</h3>
-        <p>Everything lands on shelves with gentle freshness windows — "best today", "this week" — never scary expiration countdowns.</p>
+        <h3 data-i18n="step2.title">Your fridge fills itself</h3>
+        <p data-i18n="step2.body">Everything lands on shelves with gentle freshness windows — "best today", "this week" — never scary expiration countdowns.</p>
       </article>
       <article class="step reveal reveal-d2">
         <div class="step-num">03</div>
         <div class="step-icon">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 h14 a7 7 0 0 1 -14 0 Z"/><path d="M10 14c0-1.6 1.3-1.6 1.3-3.2M14 14c0-1.6 1.3-1.6 1.3-3.2"/></svg>
         </div>
-        <h3>Cook what you have</h3>
-        <p>AI recipes built from your actual fridge, starring whatever should be eaten first. Dinner answered in one tap.</p>
+        <h3 data-i18n="step3.title">Cook what you have</h3>
+        <p data-i18n="step3.body">AI recipes built from your actual fridge, starring whatever should be eaten first. Dinner answered in one tap.</p>
       </article>
     </div>
   </div>
@@ -768,9 +810,9 @@
 <section id="features">
   <div class="wrap">
     <div class="section-head reveal">
-      <span class="eyebrow">Features</span>
-      <h2>Everything a fridge wishes it could tell you</h2>
-      <p>Opportunity-framing only. leftovr celebrates what you save — it never scolds you for what you waste.</p>
+      <span class="eyebrow" data-i18n="feat.eyebrow">Features</span>
+      <h2 data-i18n="feat.title">Everything a fridge wishes it could tell you</h2>
+      <p data-i18n="feat.sub">Opportunity-framing only. leftovr celebrates what you save — it never scolds you for what you waste.</p>
     </div>
 
     <div class="bento">
@@ -778,13 +820,13 @@
         <div class="icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5V3Z"/><path d="M10 8h4M10 12h4M10 16h2"/></svg>
         </div>
-        <h3>Receipt scanning that just works</h3>
-        <p>Point your camera at the receipt. leftovr normalizes cryptic store abbreviations into real food, guesses quantities, and lets you confirm in seconds.</p>
+        <h3 data-i18n="f1.title">Receipt scanning that just works</h3>
+        <p data-i18n="f1.body">Point your camera at the receipt. leftovr normalizes cryptic store abbreviations into real food, guesses quantities, and lets you confirm in seconds.</p>
         <div class="mini-receipt" aria-hidden="true">
-          <div><span>ORG BBY SPNCH 250G</span><span class="ok">→ Baby spinach</span></div>
-          <div><span>GRK YGT 4PK</span><span class="ok">→ Greek yogurt ×4</span></div>
-          <div><span>CHKN BRST FLT</span><span class="ok">→ Chicken breast</span></div>
-          <div><span>SHMPOO 400ML</span><span style="opacity:0.5;">skipped — not food</span></div>
+          <div><span>ORG BBY SPNCH 250G</span><span class="ok" data-i18n="f1.r1">→ Baby spinach</span></div>
+          <div><span>GRK YGT 4PK</span><span class="ok" data-i18n="f1.r2">→ Greek yogurt ×4</span></div>
+          <div><span>CHKN BRST FLT</span><span class="ok" data-i18n="f1.r3">→ Chicken breast</span></div>
+          <div><span>SHMPOO 400ML</span><span style="opacity:0.5;" data-i18n="f1.r4">skipped — not food</span></div>
         </div>
       </article>
 
@@ -792,11 +834,11 @@
         <div class="icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F8F4EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 1 6 6c0 4-6 12-6 12S6 13 6 9a6 6 0 0 1 6-6Z"/><circle cx="12" cy="9" r="2"/></svg>
         </div>
-        <h3>Eat-first shelf</h3>
-        <p>A gentle front-row for food at its peak. "Use your spinach tonight" — opportunity, not alarm.</p>
+        <h3 data-i18n="f2.title">Eat-first shelf</h3>
+        <p data-i18n="f2.body">A gentle front-row for food at its peak. "Use your spinach tonight" — opportunity, not alarm.</p>
         <div class="urgency-demo">
-          <span class="u-today" style="background:rgba(248,244,238,0.12); color:#F0DDA8;">Best today</span>
-          <span class="u-soon" style="background:rgba(248,244,238,0.12); color:#F0DDA8;">This week</span>
+          <span class="u-today" style="background:rgba(248,244,238,0.12); color:#F0DDA8;" data-i18n="urgency.today">Best today</span>
+          <span class="u-soon" style="background:rgba(248,244,238,0.12); color:#F0DDA8;" data-i18n="urgency.week">This week</span>
         </div>
       </article>
 
@@ -804,24 +846,24 @@
         <div class="icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.7 2.6 2.4 4.3 5 5-2.6.7-4.3 2.4-5 5-.7-2.6-2.4-4.3-5-5 2.6-.7 4.3-2.4 5-5Z"/><path d="M19 14c.4 1.5 1.4 2.5 3 3-1.6.5-2.6 1.5-3 3-.4-1.5-1.4-2.5-3-3 1.6-.5 2.6-1.5 3-3Z"/></svg>
         </div>
-        <h3>AI dinner ideas</h3>
-        <p>Recipes generated from what's actually in your fridge — prioritizing the eat-first shelf, matched to your taste and time.</p>
+        <h3 data-i18n="f3.title">AI dinner ideas</h3>
+        <p data-i18n="f3.body">Recipes generated from what's actually in your fridge — prioritizing the eat-first shelf, matched to your taste and time.</p>
       </article>
 
       <article class="cell cell-md reveal reveal-d1">
         <div class="icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.5c2.8.3 5 2.6 5 5.5"/></svg>
         </div>
-        <h3>One fridge, whole household</h3>
-        <p>Invite your people with a link. Everyone sees the same fridge, anyone can scan, and nobody buys a third jar of pesto again.</p>
+        <h3 data-i18n="f4.title">One fridge, whole household</h3>
+        <p data-i18n="f4.body">Invite your people with a link. Everyone sees the same fridge, anyone can scan, and nobody buys a third jar of pesto again.</p>
       </article>
 
       <article class="cell cell-md cell-gold reveal reveal-d2">
         <div class="icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg>
         </div>
-        <h3>Savings you can feel</h3>
-        <p>"You saved an estimated $9 this week. You avoided wasting ~6 items." Insights that celebrate wins, with zero calorie counting and zero clinical nutrition talk.</p>
+        <h3 data-i18n="f5.title">Savings you can feel</h3>
+        <p data-i18n="f5.body">"You saved an estimated $9 this week. You avoided wasting ~6 items." Insights that celebrate wins, with zero calorie counting and zero clinical nutrition talk.</p>
       </article>
     </div>
   </div>
@@ -832,44 +874,44 @@
   <div class="wrap">
     <div class="stats-band reveal">
       <div class="stat">
-        <div class="num"><span data-count="32" data-prefix="$">$0</span></div>
-        <div class="lbl">average saved per household, per month</div>
+        <div class="num"><span data-count="32" data-prefix="$" data-i18n-prefix="stat.currency">$0</span></div>
+        <div class="lbl" data-i18n="stat1.lbl">average saved per household, per month</div>
       </div>
       <div class="stat">
         <div class="num"><span data-count="24">0</span></div>
-        <div class="lbl">items rescued from the bin monthly</div>
+        <div class="lbl" data-i18n="stat2.lbl">items rescued from the bin monthly</div>
       </div>
       <div class="stat">
         <div class="num"><span data-count="9" data-suffix="s">0</span></div>
-        <div class="lbl">from receipt photo to a filled fridge</div>
+        <div class="lbl" data-i18n="stat3.lbl">from receipt photo to a filled fridge</div>
       </div>
     </div>
 
     <div class="section-head center reveal" style="margin-top: 96px;">
-      <span class="eyebrow">Loved by</span>
-      <h2>Households that stopped wasting dinner-deciding energy</h2>
+      <span class="eyebrow" data-i18n="loved.eyebrow">Loved by</span>
+      <h2 data-i18n="loved.title">Households that stopped wasting dinner-deciding energy</h2>
     </div>
 
     <div class="quotes">
       <article class="quote reveal">
-        <blockquote>"I haven't typed a single grocery item into an app. I scan the receipt in the parking lot and I'm done. That's the whole reason it works."</blockquote>
+        <blockquote data-i18n="q1.text">"I haven't typed a single grocery item into an app. I scan the receipt in the parking lot and I'm done. That's the whole reason it works."</blockquote>
         <footer>
           <span class="qa" style="background:#C8D5C2;">M</span>
-          <div class="who"><b>Mira</b><span>feeds a family of four</span></div>
+          <div class="who"><b>Mira</b><span data-i18n="q1.who">feeds a family of four</span></div>
         </footer>
       </article>
       <article class="quote reveal reveal-d1">
-        <blockquote>"The eat-first shelf changed how we cook. 'Use your spinach tonight' feels like a friend's suggestion, not a nagging notification."</blockquote>
+        <blockquote data-i18n="q2.text">"The eat-first shelf changed how we cook. 'Use your spinach tonight' feels like a friend's suggestion, not a nagging notification."</blockquote>
         <footer>
           <span class="qa" style="background:#F0DDA8;">A</span>
-          <div class="who"><b>Aleksandar</b><span>shares a fridge with two roommates</span></div>
+          <div class="who"><b>Aleksandar</b><span data-i18n="q2.who">shares a fridge with two roommates</span></div>
         </footer>
       </article>
       <article class="quote reveal reveal-d2">
-        <blockquote>"We argued about dinner every night. Now leftovr suggests something from what we already have and we just… cook it. Weirdly life-changing."</blockquote>
+        <blockquote data-i18n="q3.text">"We argued about dinner every night. Now leftovr suggests something from what we already have and we just… cook it. Weirdly life-changing."</blockquote>
         <footer>
           <span class="qa" style="background:#E8B59E;">J</span>
-          <div class="who"><b>Jana</b><span>cooks for two, plans for none</span></div>
+          <div class="who"><b>Jana</b><span data-i18n="q3.who">cooks for two, plans for none</span></div>
         </footer>
       </article>
     </div>
@@ -880,33 +922,33 @@
 <section id="faq">
   <div class="wrap">
     <div class="section-head center reveal">
-      <span class="eyebrow">FAQ</span>
-      <h2>Fair questions</h2>
+      <span class="eyebrow" data-i18n="faq.eyebrow">FAQ</span>
+      <h2 data-i18n="faq.title">Fair questions</h2>
     </div>
     <div class="faq-list reveal">
       <details>
-        <summary>Do I have to log every item manually?<span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body">No — that's the point. Receipts are the input. One photo covers the whole grocery run. You can add a single item by barcode or by hand if you want, but leftovr never requires it.</p>
+        <summary><span data-i18n="faq.q1">Do I have to log every item manually?</span><span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body" data-i18n="faq.a1">No — that's the point. Receipts are the input. One photo covers the whole grocery run. You can add a single item by barcode or by hand if you want, but leftovr never requires it.</p>
       </details>
       <details>
-        <summary>Does leftovr use exact expiration dates?<span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body">No. leftovr uses gentle, approximate freshness windows like "best today" or "fine this week". Food is approximate; your app should be too. No countdown timers, no red alarms.</p>
+        <summary><span data-i18n="faq.q2">Does leftovr use exact expiration dates?</span><span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body" data-i18n="faq.a2">No. leftovr uses gentle, approximate freshness windows like "best today" or "fine this week". Food is approximate; your app should be too. No countdown timers, no red alarms.</p>
       </details>
       <details>
-        <summary>Is this a calorie or nutrition tracker?<span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body">Deliberately not. leftovr tracks what you have and helps you eat it while it's good. No calories, no macros, no guilt — just fewer wasted groceries and faster dinner decisions.</p>
+        <summary><span data-i18n="faq.q3">Is this a calorie or nutrition tracker?</span><span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body" data-i18n="faq.a3">Deliberately not. leftovr tracks what you have and helps you eat it while it's good. No calories, no macros, no guilt — just fewer wasted groceries and faster dinner decisions.</p>
       </details>
       <details>
-        <summary>How does household sharing work?<span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body">Create a household, share an invite link, and everyone joins the same virtual fridge. Anyone can scan receipts, mark things eaten, and see tonight's suggestions. One fridge, shared brain.</p>
+        <summary><span data-i18n="faq.q4">How does household sharing work?</span><span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body" data-i18n="faq.a4">Create a household, share an invite link, and everyone joins the same virtual fridge. Anyone can scan receipts, mark things eaten, and see tonight's suggestions. One fridge, shared brain.</p>
       </details>
       <details>
-        <summary>What languages does it speak?<span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body">English and Serbian at launch, with the architecture ready for more. leftovr follows your device language automatically.</p>
+        <summary><span data-i18n="faq.q5">What languages does it speak?</span><span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body" data-i18n="faq.a5">English and Serbian at launch, with the architecture ready for more. leftovr follows your device language automatically.</p>
       </details>
       <details>
-        <summary>How much does it cost?<span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body">leftovr is free to start — scan receipts, manage your fridge, and get recipe ideas. A premium tier with extras is on the way; the core "stop wasting food" loop stays free.</p>
+        <summary><span data-i18n="faq.q6">How much does it cost?</span><span class="plus" aria-hidden="true"></span></summary>
+        <p class="faq-body" data-i18n="faq.a6">leftovr is free to start — scan receipts, manage your fridge, and get recipe ideas. A premium tier with extras is on the way; the core "stop wasting food" loop stays free.</p>
       </details>
     </div>
   </div>
@@ -916,28 +958,25 @@
 <section id="waitlist" style="padding-top: 0;">
   <div class="wrap">
     <div class="final-cta reveal">
-      <svg width="56" height="56" viewBox="0 0 36 36" fill="none" style="margin: 0 auto 24px;" aria-hidden="true">
-        <path d="M5 19 h26 a13 13 0 0 1 -26 0 Z" stroke="#F8F4EE" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M12.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
-        <path d="M21.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
-      </svg>
-      <h2>Tonight's dinner is already in your fridge.</h2>
-      <p>Join the waitlist — be first to scan a receipt when leftovr launches.</p>
+      <p class="nav-logo" style="justify-content: center; color: var(--surface); font-size: 32px; margin-bottom: 20px;" aria-hidden="true">leftovr<span class="logo-diamond"></span></p>
+      <h2 data-i18n="cta.title">Tonight's dinner is already in your fridge.</h2>
+      <p data-i18n="cta.sub">Join the waitlist — be first to scan a receipt when leftovr launches.</p>
       <form class="waitlist-form" id="waitlistForm" novalidate>
-        <label class="sr-only" for="waitlistEmail">Email address</label>
+        <label class="sr-only" for="waitlistEmail" data-i18n="cta.emailLabel">Email address</label>
         <input
           type="email"
           id="waitlistEmail"
           name="email"
           placeholder="you@example.com"
+          data-i18n-ph="cta.placeholder"
           autocomplete="email"
           required
         />
         <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp-field" />
-        <button type="submit" class="btn btn-gold" id="waitlistSubmit">Join the waitlist</button>
+        <button type="submit" class="btn btn-gold" id="waitlistSubmit" data-i18n="cta.submit">Join the waitlist</button>
       </form>
       <p class="form-msg" id="waitlistMsg" role="status" aria-live="polite"></p>
-      <p class="store-note">Free at launch · English &amp; Serbian · iOS and Android coming soon</p>
+      <p class="store-note" data-i18n="cta.note">Free at launch · English &amp; Serbian · iOS and Android coming soon</p>
     </div>
   </div>
 </section>
@@ -947,37 +986,30 @@
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a class="nav-logo" href="#top" aria-label="leftovr home">
-          <svg width="30" height="30" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-            <path d="M5 19 h26 a13 13 0 0 1 -26 0 Z" stroke="#1B4332" stroke-width="3" stroke-linejoin="round"/>
-            <path d="M12.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
-            <path d="M21.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#D4A843" stroke-width="2.55" stroke-linecap="round"/>
-          </svg>
-          leftovr
-        </a>
-        <p>The receipt-powered virtual fridge. Know what you have, eat it while it's wonderful.</p>
+        <a class="nav-logo" href="#top" aria-label="leftovr home">leftovr<span class="logo-diamond" aria-hidden="true"></span></a>
+        <p data-i18n="foot.desc">The receipt-powered virtual fridge. Know what you have, eat it while it's wonderful.</p>
       </div>
       <div class="foot-links">
         <div class="foot-col">
-          <b>Product</b>
-          <a href="#how">How it works</a>
-          <a href="#features">Features</a>
-          <a href="#faq">FAQ</a>
+          <b data-i18n="foot.product">Product</b>
+          <a href="#how" data-i18n="nav.how">How it works</a>
+          <a href="#features" data-i18n="nav.features">Features</a>
+          <a href="#faq" data-i18n="nav.faq">FAQ</a>
         </div>
         <div class="foot-col">
-          <b>Get leftovr</b>
-          <a href="#waitlist">Join the waitlist</a>
+          <b data-i18n="foot.get">Get leftovr</b>
+          <a href="#waitlist" data-i18n="foot.join">Join the waitlist</a>
         </div>
         <div class="foot-col">
-          <b>Company</b>
-          <a href="mailto:hello@leftovr.app">Contact</a>
-          <a href="#" onclick="return false;">Privacy</a>
-          <a href="#" onclick="return false;">Terms</a>
+          <b data-i18n="foot.company">Company</b>
+          <a href="mailto:hello@leftovr.app" data-i18n="foot.contact">Contact</a>
+          <a href="#" onclick="return false;" data-i18n="foot.privacy">Privacy</a>
+          <a href="#" onclick="return false;" data-i18n="foot.terms">Terms</a>
         </div>
       </div>
     </div>
     <div class="legal">
-      <span>© 2026 leftovr. Made with leftovers in mind.</span>
+      <span data-i18n="foot.legal">© 2026 leftovr. Made with leftovers in mind.</span>
       <span>hello@leftovr.app</span>
     </div>
   </div>
@@ -1025,7 +1057,8 @@
     const prefix = el.dataset.prefix || "";
     const suffix = el.dataset.suffix || "";
     if (reduceMotion) {
-      el.textContent = prefix + target + suffix;
+      el.textContent = (el.dataset.prefix || "") + target + suffix;
+      el.dataset.done = "1";
       return;
     }
     const duration = 1400;
@@ -1033,8 +1066,12 @@
     const tick = (now) => {
       const p = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = prefix + Math.round(target * eased) + suffix;
-      if (p < 1) requestAnimationFrame(tick);
+      el.textContent = (el.dataset.prefix || "") + Math.round(target * eased) + suffix;
+      if (p < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        el.dataset.done = "1";
+      }
     };
     requestAnimationFrame(tick);
   };
@@ -1069,12 +1106,12 @@
     e.preventDefault();
     const email = waitlistEmail.value.trim();
     if (!email || !waitlistEmail.checkValidity()) {
-      showMsg("Please enter a valid email address.", false);
+      showMsg(t("wl.invalid"), false);
       waitlistEmail.focus();
       return;
     }
     waitlistSubmit.disabled = true;
-    waitlistSubmit.textContent = "Joining…";
+    waitlistSubmit.textContent = t("wl.joining");
     try {
       const res = await fetch(WAITLIST_ENDPOINT, {
         method: "POST",
@@ -1082,22 +1119,325 @@
         body: JSON.stringify({
           email,
           company: waitlistForm.elements.company.value,
+          lang: currentLang,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        showMsg("You're on the list! Check your inbox for a hello from us.", true);
+        showMsg(t("wl.success"), true);
         waitlistForm.reset();
       } else {
-        showMsg(data.error || "Something went wrong. Please try again.", false);
+        showMsg((currentLang === "en" && data.error) || t("wl.generic"), false);
       }
     } catch {
-      showMsg("Couldn't reach the waitlist right now. Please try again in a minute.", false);
+      showMsg(t("wl.network"), false);
     } finally {
       waitlistSubmit.disabled = false;
-      waitlistSubmit.textContent = "Join the waitlist";
+      waitlistSubmit.textContent = t("cta.submit");
     }
   });
+
+  // ---------- i18n ----------
+  const SVG_UNDERLINE =
+    '<svg class="underline-svg" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 9 C 50 3, 150 3, 198 8" stroke="#D4A843" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>';
+  const STARS = '<span class="stars" aria-hidden="true">★★★★★</span><br />';
+
+  const I18N = {
+    en: {
+      "meta.title": "leftovr — What's for dinner?",
+      "meta.desc": "leftovr is a receipt-powered virtual fridge. Scan your grocery receipt, see what you have, and cook what should be eaten first — no manual tracking, no guilt.",
+      "nav.how": "How it works",
+      "nav.features": "Features",
+      "nav.loved": "Loved by",
+      "nav.faq": "FAQ",
+      "nav.cta": "Join waitlist",
+      "nav.mobileCta": "Join the waitlist →",
+      "nav.menu": "Open menu",
+      "hero.kicker": "Receipt-powered virtual fridge",
+      "hero.h1": "Scan a receipt.<br />Dinner <em>figures itself out." + SVG_UNDERLINE + "</em>",
+      "hero.sub": "leftovr turns your grocery receipt into a living fridge. It knows what you have, nudges you on what's best eaten today, and suggests recipes from food you already own — no barcoding every yogurt, no guilt, no spreadsheets.",
+      "hero.ctaPrimary": "Join the waitlist",
+      "hero.ctaSecondary": "See how it works",
+      "hero.proof": STARS + '<strong>4.8</strong> from households who stopped asking "what\'s for dinner?"',
+      "phone.aria": "leftovr app screen showing the virtual fridge with an eat-first shelf and a recipe suggestion",
+      "phone.greeting": "Good evening, Lena",
+      "phone.sub": "Your fridge: 23 items · 3 best eaten soon",
+      "phone.eatFirst": "Eat first",
+      "phone.fresh": "Fresh & fine",
+      "food.spinach": "Spinach",
+      "food.yogurt": "Yogurt",
+      "food.peaches": "Peaches",
+      "food.chicken": "Chicken",
+      "food.bread": "Bread",
+      "food.salmon": "Salmon",
+      "urgency.today": "Best today",
+      "urgency.days": "2–3 days",
+      "urgency.fresh": "Fresh",
+      "urgency.week": "This week",
+      "recipe.tag": "Tonight's idea",
+      "recipe.title": "Creamy spinach & salmon pasta",
+      "recipe.meta": "Uses 3 things from your eat-first shelf · 25 min",
+      "chip.added": "Receipt added · 14 items",
+      "chip.spinach": "Use your spinach tonight",
+      "chip.saved": "You saved ~$9 this week",
+      "how.eyebrow": "How it works",
+      "how.title": "Three steps. Zero inventory chores.",
+      "how.sub": "leftovr is built to feel low-effort and approximate — useful without becoming a tracking job.",
+      "step1.title": "Snap your receipt",
+      "step1.body": "One photo after the grocery run. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.",
+      "step2.title": "Your fridge fills itself",
+      "step2.body": 'Everything lands on shelves with gentle freshness windows — "best today", "this week" — never scary expiration countdowns.',
+      "step3.title": "Cook what you have",
+      "step3.body": "AI recipes built from your actual fridge, starring whatever should be eaten first. Dinner answered in one tap.",
+      "feat.eyebrow": "Features",
+      "feat.title": "Everything a fridge wishes it could tell you",
+      "feat.sub": "Opportunity-framing only. leftovr celebrates what you save — it never scolds you for what you waste.",
+      "f1.title": "Receipt scanning that just works",
+      "f1.body": "Point your camera at the receipt. leftovr normalizes cryptic store abbreviations into real food, guesses quantities, and lets you confirm in seconds.",
+      "f1.r1": "→ Baby spinach",
+      "f1.r2": "→ Greek yogurt ×4",
+      "f1.r3": "→ Chicken breast",
+      "f1.r4": "skipped — not food",
+      "f2.title": "Eat-first shelf",
+      "f2.body": 'A gentle front-row for food at its peak. "Use your spinach tonight" — opportunity, not alarm.',
+      "f3.title": "AI dinner ideas",
+      "f3.body": "Recipes generated from what's actually in your fridge — prioritizing the eat-first shelf, matched to your taste and time.",
+      "f4.title": "One fridge, whole household",
+      "f4.body": "Invite your people with a link. Everyone sees the same fridge, anyone can scan, and nobody buys a third jar of pesto again.",
+      "f5.title": "Savings you can feel",
+      "f5.body": '"You saved an estimated $9 this week. You avoided wasting ~6 items." Insights that celebrate wins, with zero calorie counting and zero clinical nutrition talk.',
+      "stat.currency": "$",
+      "stat1.lbl": "average saved per household, per month",
+      "stat2.lbl": "items rescued from the bin monthly",
+      "stat3.lbl": "from receipt photo to a filled fridge",
+      "loved.eyebrow": "Loved by",
+      "loved.title": "Households that stopped wasting dinner-deciding energy",
+      "q1.text": '"I haven\'t typed a single grocery item into an app. I scan the receipt in the parking lot and I\'m done. That\'s the whole reason it works."',
+      "q1.who": "feeds a family of four",
+      "q2.text": '"The eat-first shelf changed how we cook. \'Use your spinach tonight\' feels like a friend\'s suggestion, not a nagging notification."',
+      "q2.who": "shares a fridge with two roommates",
+      "q3.text": '"We argued about dinner every night. Now leftovr suggests something from what we already have and we just… cook it. Weirdly life-changing."',
+      "q3.who": "cooks for two, plans for none",
+      "faq.eyebrow": "FAQ",
+      "faq.title": "Fair questions",
+      "faq.q1": "Do I have to log every item manually?",
+      "faq.a1": "No — that's the point. Receipts are the input. One photo covers the whole grocery run. You can add a single item by barcode or by hand if you want, but leftovr never requires it.",
+      "faq.q2": "Does leftovr use exact expiration dates?",
+      "faq.a2": 'No. leftovr uses gentle, approximate freshness windows like "best today" or "fine this week". Food is approximate; your app should be too. No countdown timers, no red alarms.',
+      "faq.q3": "Is this a calorie or nutrition tracker?",
+      "faq.a3": "Deliberately not. leftovr tracks what you have and helps you eat it while it's good. No calories, no macros, no guilt — just fewer wasted groceries and faster dinner decisions.",
+      "faq.q4": "How does household sharing work?",
+      "faq.a4": "Create a household, share an invite link, and everyone joins the same virtual fridge. Anyone can scan receipts, mark things eaten, and see tonight's suggestions. One fridge, shared brain.",
+      "faq.q5": "What languages does it speak?",
+      "faq.a5": "English and Serbian at launch, with the architecture ready for more. leftovr follows your device language automatically.",
+      "faq.q6": "How much does it cost?",
+      "faq.a6": 'leftovr is free to start — scan receipts, manage your fridge, and get recipe ideas. A premium tier with extras is on the way; the core "stop wasting food" loop stays free.',
+      "cta.title": "Tonight's dinner is already in your fridge.",
+      "cta.sub": "Join the waitlist — be first to scan a receipt when leftovr launches.",
+      "cta.emailLabel": "Email address",
+      "cta.placeholder": "you@example.com",
+      "cta.submit": "Join the waitlist",
+      "cta.note": "Free at launch · English & Serbian · iOS and Android coming soon",
+      "foot.desc": "The receipt-powered virtual fridge. Know what you have, eat it while it's wonderful.",
+      "foot.product": "Product",
+      "foot.get": "Get leftovr",
+      "foot.join": "Join the waitlist",
+      "foot.company": "Company",
+      "foot.contact": "Contact",
+      "foot.privacy": "Privacy",
+      "foot.terms": "Terms",
+      "foot.legal": "© 2026 leftovr. Made with leftovers in mind.",
+      "wl.invalid": "Please enter a valid email address.",
+      "wl.joining": "Joining…",
+      "wl.success": "You're on the list! Check your inbox for a hello from us.",
+      "wl.generic": "Something went wrong. Please try again.",
+      "wl.network": "Couldn't reach the waitlist right now. Please try again in a minute.",
+    },
+    sr: {
+      "meta.title": "leftovr — Šta ima za večeru?",
+      "meta.desc": "leftovr je virtuelni frižider pokretan računom. Skeniraj račun, vidi šta imaš i skuvaj ono što prvo treba pojesti — bez ručnog vođenja zaliha, bez griže savesti.",
+      "nav.how": "Kako radi",
+      "nav.features": "Mogućnosti",
+      "nav.loved": "Omiljen kod",
+      "nav.faq": "Pitanja",
+      "nav.cta": "Prijavi se",
+      "nav.mobileCta": "Prijavi se na listu →",
+      "nav.menu": "Otvori meni",
+      "hero.kicker": "Virtuelni frižider pokretan računom",
+      "hero.h1": "Skeniraj račun.<br />Večera se <em>sama smisli." + SVG_UNDERLINE + "</em>",
+      "hero.sub": "leftovr pretvara tvoj račun iz prodavnice u živi frižider. Zna šta imaš, podseti te šta je najbolje pojesti danas i predlaže recepte od hrane koju već imaš — bez skeniranja bar-koda na svakom jogurtu, bez griže savesti, bez tabela.",
+      "hero.ctaPrimary": "Prijavi se na listu čekanja",
+      "hero.ctaSecondary": "Pogledaj kako radi",
+      "hero.proof": STARS + "<strong>4.8</strong> od domaćinstava koja su prestala da se pitaju „šta ima za večeru?“",
+      "phone.aria": "Ekran leftovr aplikacije sa virtuelnim frižiderom, policom „pojedi prvo“ i predlogom recepta",
+      "phone.greeting": "Dobro veče, Lena",
+      "phone.sub": "Tvoj frižider: 23 stavke · 3 uskoro",
+      "phone.eatFirst": "Pojedi prvo",
+      "phone.fresh": "Sveže i fino",
+      "food.spinach": "Spanać",
+      "food.yogurt": "Jogurt",
+      "food.peaches": "Breskve",
+      "food.chicken": "Piletina",
+      "food.bread": "Hleb",
+      "food.salmon": "Losos",
+      "urgency.today": "Danas najbolje",
+      "urgency.days": "2–3 dana",
+      "urgency.fresh": "Sveže",
+      "urgency.week": "Ove nedelje",
+      "recipe.tag": "Ideja za večeras",
+      "recipe.title": "Kremasta pasta sa spanaćem i lososom",
+      "recipe.meta": "Koristi 3 stvari sa police „pojedi prvo“ · 25 min",
+      "chip.added": "Račun dodat · 14 stavki",
+      "chip.spinach": "Iskoristi spanać večeras",
+      "chip.saved": "Ušteda ~9 € ove nedelje",
+      "how.eyebrow": "Kako radi",
+      "how.title": "Tri koraka. Nula vođenja zaliha.",
+      "how.sub": "leftovr je pravljen da bude lagan i okviran — koristan, a da ne postane posao praćenja.",
+      "step1.title": "Slikaj račun",
+      "step1.body": "Jedna fotografija posle kupovine. leftovr je pročita, prepozna hranu i preskoči šampon. Radi i skeniranje bar-koda za pojedinačne stvari.",
+      "step2.title": "Frižider se sam puni",
+      "step2.body": "Sve se smesti na police sa blagim oznakama svežine — „danas najbolje“, „ove nedelje“ — nikad strašnog odbrojavanja roka.",
+      "step3.title": "Skuvaj šta imaš",
+      "step3.body": "AI recepti napravljeni od tvog stvarnog frižidera, sa naglaskom na ono što prvo treba pojesti. Večera rešena jednim dodirom.",
+      "feat.eyebrow": "Mogućnosti",
+      "feat.title": "Sve što bi frižider voleo da ti kaže",
+      "feat.sub": "Samo prilike, nikad prekor. leftovr slavi ono što uštediš — nikad te ne grdi za ono što baciš.",
+      "f1.title": "Skeniranje računa koje prosto radi",
+      "f1.body": "Usmeri kameru na račun. leftovr pretvara nejasne skraćenice iz prodavnice u pravu hranu, proceni količine i pusti te da potvrdiš za par sekundi.",
+      "f1.r1": "→ Mladi spanać",
+      "f1.r2": "→ Grčki jogurt ×4",
+      "f1.r3": "→ Pileća prsa",
+      "f1.r4": "preskočeno — nije hrana",
+      "f2.title": "Polica „pojedi prvo“",
+      "f2.body": "Blagi prvi red za hranu na vrhuncu. „Iskoristi spanać večeras“ — prilika, ne alarm.",
+      "f3.title": "AI ideje za večeru",
+      "f3.body": "Recepti napravljeni od onoga što je stvarno u tvom frižideru — sa prednošću za policu „pojedi prvo“, prilagođeni tvom ukusu i vremenu.",
+      "f4.title": "Jedan frižider, cela kuća",
+      "f4.body": "Pozovi svoje preko linka. Svi vide isti frižider, svako može da skenira i niko više ne kupi treću teglu pesta.",
+      "f5.title": "Ušteda koja se oseti",
+      "f5.body": "„Uštedeo si oko 9 € ove nedelje. Izbegao si bacanje ~6 stvari.“ Uvidi koji slave pobede, bez brojanja kalorija i bez kliničke priče o ishrani.",
+      "stat.currency": "€",
+      "stat1.lbl": "prosečna ušteda po domaćinstvu, mesečno",
+      "stat2.lbl": "stvari spasenih od kante mesečno",
+      "stat3.lbl": "od slike računa do punog frižidera",
+      "loved.eyebrow": "Omiljen kod",
+      "loved.title": "Domaćinstva koja više ne troše energiju na odluku šta za večeru",
+      "q1.text": "„Nisam ukucao nijednu namirnicu u aplikaciju. Skeniram račun na parkingu i gotovo. To je ceo razlog zašto radi.“",
+      "q1.who": "hrani četvoročlanu porodicu",
+      "q2.text": "„Polica ‘pojedi prvo’ promenila je kako kuvamo. ‘Iskoristi spanać večeras’ deluje kao predlog prijatelja, ne kao dosadno obaveštenje.“",
+      "q2.who": "deli frižider sa dvoje cimera",
+      "q3.text": "„Svađali smo se oko večere svako veče. Sad leftovr predloži nešto od onoga što već imamo i mi to prosto… skuvamo. Čudno, ali menja život.“",
+      "q3.who": "kuva za dvoje, ne planira ništa",
+      "faq.eyebrow": "Pitanja",
+      "faq.title": "Poštena pitanja",
+      "faq.q1": "Moram li ručno da unosim svaku stavku?",
+      "faq.a1": "Ne — to je poenta. Računi su ulaz. Jedna fotografija pokriva celu kupovinu. Možeš da dodaš pojedinačnu stvar bar-kodom ili ručno ako želiš, ali leftovr to nikad ne zahteva.",
+      "faq.q2": "Da li leftovr koristi tačne datume isteka?",
+      "faq.a2": "Ne. leftovr koristi blage, okvirne oznake svežine poput „danas najbolje“ ili „dobro ove nedelje“. Hrana je okvirna; i tvoja aplikacija treba da bude. Bez tajmera za odbrojavanje, bez crvenih alarma.",
+      "faq.q3": "Da li je ovo brojač kalorija ili nutritivni treker?",
+      "faq.a3": "Namerno nije. leftovr prati šta imaš i pomaže ti da to pojedeš dok je dobro. Bez kalorija, bez makroa, bez griže savesti — samo manje bačene hrane i brže odluke o večeri.",
+      "faq.q4": "Kako funkcioniše deljenje sa domaćinstvom?",
+      "faq.a4": "Napravi domaćinstvo, podeli link za poziv i svi se pridruže istom virtuelnom frižideru. Svako može da skenira račune, označi pojedeno i vidi večerašnje predloge. Jedan frižider, zajednički mozak.",
+      "faq.q5": "Koje jezike govori?",
+      "faq.a5": "Engleski i srpski na startu, sa arhitekturom spremnom za još. leftovr automatski prati jezik tvog uređaja.",
+      "faq.q6": "Koliko košta?",
+      "faq.a6": "leftovr je besplatan za početak — skeniraj račune, vodi frižider i dobijaj ideje za recepte. Premium nivo sa dodacima stiže; osnovna petlja „prestani da bacaš hranu“ ostaje besplatna.",
+      "cta.title": "Večera je već u tvom frižideru.",
+      "cta.sub": "Prijavi se na listu čekanja — skeniraj prvi račun čim leftovr krene.",
+      "cta.emailLabel": "Imejl adresa",
+      "cta.placeholder": "ti@primer.rs",
+      "cta.submit": "Prijavi se na listu čekanja",
+      "cta.note": "Besplatno na startu · Engleski i srpski · iOS i Android uskoro",
+      "foot.desc": "Virtuelni frižider pokretan računom. Znaj šta imaš, pojedi dok je divno.",
+      "foot.product": "Proizvod",
+      "foot.get": "Preuzmi leftovr",
+      "foot.join": "Prijavi se na listu",
+      "foot.company": "Kompanija",
+      "foot.contact": "Kontakt",
+      "foot.privacy": "Privatnost",
+      "foot.terms": "Uslovi",
+      "foot.legal": "© 2026 leftovr. Napravljeno misleći na ostatke.",
+      "wl.invalid": "Unesi ispravnu imejl adresu.",
+      "wl.joining": "Prijavljujem…",
+      "wl.success": "Na listi si! Proveri sanduče za pozdrav od nas.",
+      "wl.generic": "Nešto je pošlo naopako. Pokušaj ponovo.",
+      "wl.network": "Trenutno ne mogu da dođem do liste. Pokušaj ponovo za minut.",
+    },
+  };
+
+  let currentLang = "en";
+  const LANG_KEY = "leftovr-lang";
+  const t = (key) => (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || "";
+
+  const descMeta = document.querySelector('meta[name="description"]');
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  const ogDesc = document.querySelector('meta[property="og:description"]');
+
+  function applyLanguage(lang) {
+    if (!I18N[lang]) lang = "en";
+    currentLang = lang;
+    const dict = I18N[lang];
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const v = dict[el.dataset.i18n];
+      if (v != null) el.textContent = v;
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+      const v = dict[el.dataset.i18nHtml];
+      if (v != null) el.innerHTML = v;
+    });
+    document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
+      const v = dict[el.dataset.i18nPh];
+      if (v != null) el.placeholder = v;
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+      const v = dict[el.dataset.i18nAria];
+      if (v != null) el.setAttribute("aria-label", v);
+    });
+
+    // Head metadata
+    document.title = dict[document.documentElement.dataset.i18nTitle] || document.title;
+    const desc = dict[document.documentElement.dataset.i18nDesc];
+    if (desc) {
+      if (descMeta) descMeta.content = desc;
+      if (ogDesc) ogDesc.content = desc;
+    }
+    if (ogTitle) ogTitle.content = document.title;
+
+    // Localized currency prefix on stat counters
+    document.querySelectorAll("[data-i18n-prefix]").forEach((el) => {
+      const v = dict[el.dataset.i18nPrefix];
+      if (v != null) {
+        el.dataset.prefix = v;
+        if (el.dataset.done === "1") {
+          el.textContent = v + el.dataset.count + (el.dataset.suffix || "");
+        }
+      }
+    });
+
+    // Toggle button states
+    document.querySelectorAll("[data-lang]").forEach((btn) => {
+      btn.setAttribute("aria-pressed", String(btn.dataset.lang === lang));
+    });
+
+    try {
+      localStorage.setItem(LANG_KEY, lang);
+    } catch {}
+  }
+
+  document.querySelectorAll("[data-lang]").forEach((btn) =>
+    btn.addEventListener("click", () => applyLanguage(btn.dataset.lang))
+  );
+
+  let initial = "en";
+  try {
+    initial = localStorage.getItem(LANG_KEY) || "";
+  } catch {}
+  if (!initial) {
+    initial = (navigator.language || "").toLowerCase().startsWith("sr") ? "sr" : "en";
+  }
+  applyLanguage(initial);
 </script>
 </body>
 </html>
