@@ -8,33 +8,122 @@ const RESEND_API_URL = "https://api.resend.com";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 function welcomeEmail(lang) {
-  const wrap = (h1, p1, p2, sign) => `
-<div style="font-family: Georgia, serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1C1C1A;">
-  <h1 style="color: #1B4332; font-weight: 500; font-size: 28px; margin-bottom: 16px;">${h1}</h1>
-  <p style="font-size: 16px; line-height: 1.6; color: #5D6C60;">${p1}</p>
-  <p style="font-size: 16px; line-height: 1.6; color: #5D6C60;">${p2}</p>
-  <p style="font-size: 14px; color: #9AA59C; margin-top: 32px;">${sign}</p>
-</div>`;
+  // Email-client-safe: table layout, inline styles, hosted PNG logo, web-safe font fallbacks.
+  const render = (c) => {
+    const SERIF = "'Fraunces', Georgia, 'Times New Roman', serif";
+    const SANS = "'Plus Jakarta Sans', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif";
+    const step = (n, t) => `
+              <tr>
+                <td width="44" valign="top" style="font-family: ${SERIF}; font-size: 19px; font-weight: 600; color: #D4A843; padding: 0 0 16px;">${n}</td>
+                <td valign="top" style="font-family: ${SANS}; font-size: 16px; font-weight:500; color: #1C1C1A; padding: 2px 0 16px;">${t}</td>
+              </tr>`;
+    return `
+<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light only" />
+<meta name="supported-color-schemes" content="light only" />
+<title>${c.subject}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+  body { margin:0; padding:0; }
+  img { border:0; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
+  a { text-decoration:none; }
+</style>
+</head>
+<body style="margin:0; padding:0; background:#EFE9DD;">
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">${c.preheader}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EFE9DD;">
+    <tr>
+      <td align="center" style="padding: 40px 16px;">
+        <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="width:520px; max-width:520px; background:#FFFEFB; border:1px solid rgba(27,67,50,0.10); border-radius:20px; overflow:hidden;">
+          <!-- logo -->
+          <tr>
+            <td align="center" style="background:#FFFEFB; padding: 48px 40px 0;">
+              <img src="https://leftovr.co/email-logo.png" width="148" alt="leftovr" style="display:block; margin:0 auto; width:148px; max-width:148px; height:auto; border:0;" />
+            </td>
+          </tr>
+          <!-- body -->
+          <tr>
+            <td align="center" style="padding: 22px 46px 4px;">
+              <h1 style="margin:0 0 16px; font-family: ${SERIF}; font-weight:600; font-size:32px; line-height:1.18; color:#1B4332;">${c.h1}</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 46px 8px;">
+              <p style="margin:0 0 16px; font-family: ${SANS}; font-size:16px; line-height:1.65; color:#5D6C60;">${c.p1}</p>
+              <p style="margin:0 0 26px; font-family: ${SANS}; font-size:16px; line-height:1.65; color:#5D6C60;">${c.p2}</p>
+            </td>
+          </tr>
+          <!-- steps card -->
+          <tr>
+            <td style="padding: 0 46px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F8F4EE; border:1px solid rgba(27,67,50,0.08); border-radius:16px;">
+                <tr><td style="padding: 24px 26px 10px;">
+                  <div style="font-family: ${SANS}; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#9AA59C; padding-bottom:18px;">${c.stepsTitle}</div>
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    ${step("01", c.s1)}${step("02", c.s2)}${step("03", c.s3)}
+                  </table>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+          <!-- signoff -->
+          <tr>
+            <td style="padding: 22px 46px 34px;">
+              <p style="margin:0; font-family: ${SERIF}; font-size:16px; font-style:italic; color:#5D6C60;">${c.sign}</p>
+            </td>
+          </tr>
+          <!-- footer -->
+          <tr>
+            <td align="center" style="padding: 24px 46px; border-top:1px solid rgba(27,67,50,0.10); background:#FFFEFB;">
+              <a href="https://leftovr.co" style="font-family: ${SANS}; font-size:14px; font-weight:600; color:#1B4332; text-decoration:none;">leftovr.co</a>
+              <p style="margin:8px 0 0; font-family: ${SANS}; font-size:12px; line-height:1.5; color:#9AA59C;">${c.footer}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+  };
 
   if (lang === "sr") {
     return {
       subject: "Na listi čekanja za leftovr si",
-      html: wrap(
-        "Na listi si.",
-        "Hvala što si se prijavio/la na leftovr listu čekanja. Pravimo virtuelni frižider pokretan računom: skeniraj račun, vidi šta imaš i skuvaj ono što prvo treba pojesti.",
-        "Javićemo ti se čim leftovr bude spreman. Do tada &mdash; pojedi spanać dok je divan.",
-        "&mdash; leftovr tim",
-      ),
+      html: render({
+        subject: "Na listi čekanja za leftovr si",
+        preheader: "Skeniraj račun, vidi šta imaš, skuvaj ono što prvo treba pojesti.",
+        h1: "Na listi si.",
+        p1: "Hvala što si se prijavio/la na leftovr listu čekanja. Pravimo virtuelni frižider pokretan računom — bez ručnog unosa, bez tabela.",
+        p2: "Javićemo ti se čim leftovr bude spreman. Do tada — pojedi spanać dok je divan.",
+        stepsTitle: "Kako radi",
+        s1: "Slikaj račun",
+        s2: "Frižider se sam puni",
+        s3: "Skuvaj ono što imaš",
+        sign: "— leftovr tim",
+        footer: "Dobijaš ovaj mejl jer si se prijavio/la na leftovr listu čekanja.",
+      }),
     };
   }
   return {
     subject: "You're on the leftovr waitlist",
-    html: wrap(
-      "You're on the list.",
-      "Thanks for joining the leftovr waitlist. We're building a receipt-powered virtual fridge: scan your grocery receipt, see what you have, and cook what should be eaten first.",
-      "We'll email you the moment leftovr is ready. Until then &mdash; eat your spinach while it's wonderful.",
-      "&mdash; the leftovr team",
-    ),
+    html: render({
+      subject: "You're on the leftovr waitlist",
+      preheader: "Scan a receipt, see what you have, cook what should go first.",
+      h1: "You're on the list.",
+      p1: "Thanks for joining the leftovr waitlist. We're building a receipt-powered virtual fridge — no manual tracking, no spreadsheets, no guilt.",
+      p2: "We'll email you the moment leftovr is ready. Until then — eat your spinach while it's wonderful.",
+      stepsTitle: "How it works",
+      s1: "Snap your receipt",
+      s2: "Your fridge fills itself",
+      s3: "Cook what you have",
+      sign: "— the leftovr team",
+      footer: "You're getting this because you joined the leftovr waitlist.",
+    }),
   };
 }
 
