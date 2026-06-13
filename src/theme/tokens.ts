@@ -27,8 +27,8 @@ export const colors = {
 export const fonts = {
   display: "Fraunces",
   displaySemiBold: "FrauncesSemiBold",
-  body: "PlusJakartaSans",
   displayItalic: "FrauncesItalic",
+  body: "PlusJakartaSans",
   bodyMedium: "PlusJakartaSansMedium",
   bodySemiBold: "PlusJakartaSansSemiBold",
   bodyBold: "PlusJakartaSansBold",

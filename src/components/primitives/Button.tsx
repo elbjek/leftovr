@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.body.fontSize,
-    fontFamily: fonts.bodyBold,
+    fontFamily: fonts.body,
   },
   textTitle: {
     color: colors.muted,
