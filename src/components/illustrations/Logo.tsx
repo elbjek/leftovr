@@ -10,33 +10,36 @@ type Props = {
 };
 
 /**
- * Brand mark: "leftovr" wordmark in Young Serif with a gold diamond full stop.
- * Colors come from theme tokens so a colorscheme change carries the logo with it.
+ * Brand mark: "leftovr" wordmark in Fraunces SemiBold — "leftov" in the brand
+ * color, trailing "r" in gold rotated 9° (the intentional "crooked r"), same
+ * size as the other letters. Colors come from theme tokens so a colorscheme
+ * change carries the logo with it. (Source: docs/Q _ Fridge magnet export.)
  */
 export function Logo({ size = 48, variant = "primary" }: Props) {
-  const text = variant === "inverse" ? colors.surface : colors.primary;
-  const diamond = size * 0.22;
+  const head = variant === "inverse" ? colors.surface : colors.primary;
   return (
     <View style={styles.row}>
       <Text
-        style={[styles.word, { fontSize: size, color: text }]}
+        style={[styles.word, { fontSize: size, color: head }]}
         allowFontScaling={false}
         accessibilityRole="image"
         accessibilityLabel="leftovr"
       >
-        leftovr
+        leftov
       </Text>
-      <View
-        style={{
-          width: diamond,
-          height: diamond,
-          borderRadius: diamond * 0.28,
-          backgroundColor: colors.accent,
-          transform: [{ rotate: "45deg" }],
-          marginLeft: size * 0.12,
-          marginBottom: size * 0.06,
-        }}
-      />
+      <Text
+        allowFontScaling={false}
+        style={[
+          styles.word,
+          {
+            fontSize: size,
+            color: colors.accent,
+            transform: [{ rotate: "9deg" }, { translateY: size * 0.03 }],
+          },
+        ]}
+      >
+        r
+      </Text>
     </View>
   );
 }
@@ -44,10 +47,11 @@ export function Logo({ size = 48, variant = "primary" }: Props) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "baseline",
   },
   word: {
-    fontFamily: fonts.wordmark,
+    fontFamily: fonts.displaySemiBold,
+    letterSpacing: -0.5,
     includeFontPadding: false,
   },
 });
