@@ -47,6 +47,3 @@ inspector_port = 55325
 enabled = true
 port = 55327
 backend = "postgres"
-
-[functions.waitlist]
-verify_jwt = false

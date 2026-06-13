@@ -1,23 +1,14 @@
+// Vercel serverless function: waitlist signup → Resend.
+// Env vars (set in Vercel project settings):
+//   RESEND_API_KEY    (required)
+//   RESEND_AUDIENCE_ID (optional — adds the contact to a Resend audience)
+//   WAITLIST_FROM     (optional — defaults to onboarding@resend.dev; use a verified domain in prod)
+
 const RESEND_API_URL = "https://api.resend.com";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
-
-function json(status: number, body: Record<string, unknown>): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-function welcomeEmail(lang: string): { subject: string; html: string } {
-  const sr = lang === "sr";
-  const wrap = (h1: string, p1: string, p2: string, sign: string) => `
+function welcomeEmail(lang) {
+  const wrap = (h1, p1, p2, sign) => `
 <div style="font-family: Georgia, serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1C1C1A;">
   <h1 style="color: #1B4332; font-weight: 500; font-size: 28px; margin-bottom: 16px;">${h1}</h1>
   <p style="font-size: 16px; line-height: 1.6; color: #5D6C60;">${p1}</p>
@@ -25,7 +16,7 @@ function welcomeEmail(lang: string): { subject: string; html: string } {
   <p style="font-size: 14px; color: #9AA59C; margin-top: 32px;">${sign}</p>
 </div>`;
 
-  if (sr) {
+  if (lang === "sr") {
     return {
       subject: "Na listi čekanja za leftovr si",
       html: wrap(
@@ -47,36 +38,32 @@ function welcomeEmail(lang: string): { subject: string; html: string } {
   };
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders });
-  }
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
-    return json(405, { error: "Method not allowed" });
+    res.status(405).json({ error: "Method not allowed" });
+    return;
   }
 
-  const apiKey = Deno.env.get("RESEND_API_KEY");
+  const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error("RESEND_API_KEY is not set");
-    return json(500, { error: "Waitlist is not configured yet" });
+    res.status(500).json({ error: "Waitlist is not configured yet" });
+    return;
   }
 
-  let email: string | undefined;
-  let lang = "en";
-  try {
-    const body = await req.json();
-    email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : undefined;
-    if (body?.lang === "sr") lang = "sr";
-    // Honeypot field: real users never fill it, bots do.
-    if (typeof body?.company === "string" && body.company.length > 0) {
-      return json(200, { ok: true });
-    }
-  } catch {
-    return json(400, { error: "Invalid JSON body" });
+  const body = typeof req.body === "string" ? safeParse(req.body) : req.body || {};
+  // Honeypot: real users never fill it, bots do.
+  if (typeof body.company === "string" && body.company.length > 0) {
+    res.status(200).json({ ok: true });
+    return;
   }
+
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  const lang = body.lang === "sr" ? "sr" : "en";
 
   if (!email || !EMAIL_RE.test(email) || email.length > 254) {
-    return json(400, { error: "Please enter a valid email address" });
+    res.status(400).json({ error: "Please enter a valid email address" });
+    return;
   }
 
   const authHeaders = {
@@ -84,37 +71,46 @@ Deno.serve(async (req) => {
     "Content-Type": "application/json",
   };
 
-  const audienceId = Deno.env.get("RESEND_AUDIENCE_ID");
+  const audienceId = process.env.RESEND_AUDIENCE_ID;
   if (audienceId) {
     const contactRes = await fetch(`${RESEND_API_URL}/audiences/${audienceId}/contacts`, {
       method: "POST",
       headers: authHeaders,
       body: JSON.stringify({ email, unsubscribed: false }),
     });
-    // 409 = already on the list; treat as success so re-submits stay friendly.
+    // 409 = already on the list; treat as success.
     if (!contactRes.ok && contactRes.status !== 409) {
       console.error("Resend contact create failed", contactRes.status, await contactRes.text());
-      return json(502, { error: "Could not join the waitlist right now. Try again in a minute." });
+      res.status(502).json({ error: "Could not join the waitlist right now. Try again in a minute." });
+      return;
     }
   }
 
-  const from = Deno.env.get("WAITLIST_FROM") ?? "leftovr <onboarding@resend.dev>";
+  const from = process.env.WAITLIST_FROM || "leftovr <onboarding@resend.dev>";
   const welcome = welcomeEmail(lang);
   const emailRes = await fetch(`${RESEND_API_URL}/emails`, {
     method: "POST",
     headers: authHeaders,
-    body: JSON.stringify({
-      from,
-      to: [email],
-      subject: welcome.subject,
-      html: welcome.html,
-    }),
+    body: JSON.stringify({ from, to: [email], subject: welcome.subject, html: welcome.html }),
   });
   if (!emailRes.ok) {
     console.error("Resend email send failed", emailRes.status, await emailRes.text());
-    // Contact was saved (if audience configured) — still report success to the visitor.
-    return json(audienceId ? 200 : 502, audienceId ? { ok: true } : { error: "Could not join the waitlist right now. Try again in a minute." });
+    if (audienceId) {
+      // Contact was saved — still report success to the visitor.
+      res.status(200).json({ ok: true });
+    } else {
+      res.status(502).json({ error: "Could not join the waitlist right now. Try again in a minute." });
+    }
+    return;
   }
 
-  return json(200, { ok: true });
-});
+  res.status(200).json({ ok: true });
+};
+
+function safeParse(s) {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return {};
+  }
+}

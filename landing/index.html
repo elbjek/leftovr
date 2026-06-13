@@ -1091,9 +1091,8 @@
   );
   counters.forEach((el) => statIO.observe(el));
 
-  // Waitlist form → Supabase Edge Function → Resend.
-  // Local dev: supabase functions serve. Production: replace with your project's functions URL.
-  const WAITLIST_ENDPOINT = "http://127.0.0.1:55321/functions/v1/waitlist";
+  // Waitlist form → Vercel serverless function (/api/waitlist) → Resend.
+  const WAITLIST_ENDPOINT = "/api/waitlist";
   const waitlistForm = document.getElementById("waitlistForm");
   const waitlistEmail = document.getElementById("waitlistEmail");
   const waitlistSubmit = document.getElementById("waitlistSubmit");
