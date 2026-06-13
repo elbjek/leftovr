@@ -1,0 +1,258 @@
+- generic [active] [ref=e1]:
+  - navigation "Main" [ref=e2]:
+    - link "leftovr home" [ref=e3] [cursor=pointer]:
+      - /url: "#top"
+      - text: leftovr
+    - generic [ref=e5]:
+      - link "How it works" [ref=e6] [cursor=pointer]:
+        - /url: "#how"
+      - link "Features" [ref=e7] [cursor=pointer]:
+        - /url: "#features"
+      - link "Loved by" [ref=e8] [cursor=pointer]:
+        - /url: "#loved"
+      - link "FAQ" [ref=e9] [cursor=pointer]:
+        - /url: "#faq"
+    - group "Language" [ref=e10]:
+      - button "EN" [pressed] [ref=e11] [cursor=pointer]
+      - button "SR" [ref=e12] [cursor=pointer]
+    - button "Join waitlist" [ref=e13] [cursor=pointer]
+  - banner [ref=e14]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e20]: Receipt-powered virtual fridge
+        - heading "Scan a receipt. Dinner figures itself out." [level=1] [ref=e21]:
+          - text: Scan a receipt.
+          - text: Dinner
+          - emphasis [ref=e22]:
+            - text: figures itself out.
+            - img [ref=e23]
+        - paragraph [ref=e25]: leftovr turns your grocery receipt into a living fridge. It knows what you have, nudges you on what's best eaten today, and suggests recipes from food you already own — no barcoding every yogurt, no guilt, no spreadsheets.
+        - generic [ref=e26]:
+          - link "Join the waitlist" [ref=e27] [cursor=pointer]:
+            - /url: "#waitlist"
+            - img [ref=e28]
+            - generic [ref=e31]: Join the waitlist
+          - link "See how it works" [ref=e32] [cursor=pointer]:
+            - /url: "#how"
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]: M
+            - generic [ref=e36]: A
+            - generic [ref=e37]: J
+            - generic [ref=e38]: S
+          - paragraph [ref=e39]:
+            - text: ★★★★★
+            - strong [ref=e40]: "4.8"
+            - text: from households who stopped asking "what's for dinner?"
+      - generic [ref=e41]:
+        - img "leftovr app screen showing the virtual fridge with an eat-first shelf and a recipe suggestion" [ref=e42]:
+          - generic [ref=e43]:
+            - generic [ref=e45]: Good evening, Lena
+            - paragraph [ref=e46]: "Your fridge: 23 items · 3 best eaten soon"
+            - generic [ref=e49]: Eat first
+            - generic [ref=e50]:
+              - generic [ref=e51]:
+                - img [ref=e53]
+                - heading "Spinach" [level=4] [ref=e55]
+                - paragraph [ref=e56]: Best today
+              - generic [ref=e57]:
+                - img [ref=e59]
+                - heading "Yogurt" [level=4] [ref=e62]
+                - paragraph [ref=e63]: 2–3 days
+              - generic [ref=e64]:
+                - img [ref=e66]
+                - heading "Peaches" [level=4] [ref=e69]
+                - paragraph [ref=e70]: 2–3 days
+            - generic [ref=e73]: Fresh & fine
+            - generic [ref=e74]:
+              - generic [ref=e75]:
+                - img [ref=e77]
+                - heading "Chicken" [level=4] [ref=e80]
+                - paragraph [ref=e81]: Fresh
+              - generic [ref=e82]:
+                - img [ref=e84]
+                - heading "Bread" [level=4] [ref=e87]
+                - paragraph [ref=e88]: Fresh
+              - generic [ref=e89]:
+                - img [ref=e91]
+                - heading "Salmon" [level=4] [ref=e94]
+                - paragraph [ref=e95]: Fresh
+            - generic [ref=e96]:
+              - text: Tonight's idea
+              - heading "Creamy spinach & salmon pasta" [level=4] [ref=e97]
+              - paragraph [ref=e98]: Uses 3 things from your eat-first shelf · 25 min
+        - generic [ref=e99]:
+          - img [ref=e100]
+          - generic [ref=e102]: Receipt added · 14 items
+        - generic [ref=e103]:
+          - img [ref=e104]
+          - generic [ref=e107]: Use your spinach tonight
+        - generic [ref=e108]:
+          - img [ref=e109]
+          - generic [ref=e111]: You saved ~$9 this week
+  - generic [ref=e113]:
+    - generic [ref=e114]:
+      - generic [ref=e115]: How it works
+      - heading "Three steps. Zero inventory chores." [level=2] [ref=e116]
+      - paragraph [ref=e117]: leftovr is built to feel low-effort and approximate — useful without becoming a tracking job.
+    - generic [ref=e118]:
+      - article [ref=e119]:
+        - generic [ref=e120]: "01"
+        - img [ref=e122]
+        - heading "Snap your receipt" [level=3] [ref=e125]
+        - paragraph [ref=e126]: One photo after the grocery run. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.
+      - article [ref=e127]:
+        - generic [ref=e128]: "02"
+        - img [ref=e130]
+        - heading "Your fridge fills itself" [level=3] [ref=e133]
+        - paragraph [ref=e134]: Everything lands on shelves with gentle freshness windows — "best today", "this week" — never scary expiration countdowns.
+      - article [ref=e135]:
+        - generic [ref=e136]: "03"
+        - img [ref=e138]
+        - heading "Cook what you have" [level=3] [ref=e141]
+        - paragraph [ref=e142]: AI recipes built from your actual fridge, starring whatever should be eaten first. Dinner answered in one tap.
+  - generic [ref=e144]:
+    - generic [ref=e145]:
+      - generic [ref=e146]: Features
+      - heading "Everything a fridge wishes it could tell you" [level=2] [ref=e147]
+      - paragraph [ref=e148]: Opportunity-framing only. leftovr celebrates what you save — it never scolds you for what you waste.
+    - generic [ref=e149]:
+      - article [ref=e150]:
+        - img [ref=e152]
+        - heading "Receipt scanning that just works" [level=3] [ref=e155]
+        - paragraph [ref=e156]: Point your camera at the receipt. leftovr normalizes cryptic store abbreviations into real food, guesses quantities, and lets you confirm in seconds.
+        - generic [ref=e157]:
+          - generic [ref=e158]:
+            - generic [ref=e159]: ORG BBY SPNCH 250G
+            - generic [ref=e160]: → Baby spinach
+          - generic [ref=e161]:
+            - generic [ref=e162]: GRK YGT 4PK
+            - generic [ref=e163]: → Greek yogurt ×4
+          - generic [ref=e164]:
+            - generic [ref=e165]: CHKN BRST FLT
+            - generic [ref=e166]: → Chicken breast
+          - generic [ref=e167]:
+            - generic [ref=e168]: SHMPOO 400ML
+            - generic [ref=e169]: skipped — not food
+      - article [ref=e170]:
+        - img [ref=e172]
+        - heading "Eat-first shelf" [level=3] [ref=e175]
+        - paragraph [ref=e176]: A gentle front-row for food at its peak. "Use your spinach tonight" — opportunity, not alarm.
+        - generic [ref=e177]:
+          - generic [ref=e178]: Best today
+          - generic [ref=e179]: This week
+      - article [ref=e180]:
+        - img [ref=e182]
+        - heading "AI dinner ideas" [level=3] [ref=e185]
+        - paragraph [ref=e186]: Recipes generated from what's actually in your fridge — prioritizing the eat-first shelf, matched to your taste and time.
+      - article [ref=e187]:
+        - img [ref=e189]
+        - heading "One fridge, whole household" [level=3] [ref=e194]
+        - paragraph [ref=e195]: Invite your people with a link. Everyone sees the same fridge, anyone can scan, and nobody buys a third jar of pesto again.
+      - article [ref=e196]:
+        - img [ref=e198]
+        - heading "Savings you can feel" [level=3] [ref=e201]
+        - paragraph [ref=e202]: "\"You saved an estimated $9 this week. You avoided wasting ~6 items.\" Insights that celebrate wins, with zero calorie counting and zero clinical nutrition talk."
+  - generic [ref=e204]:
+    - generic [ref=e205]:
+      - generic [ref=e206]:
+        - generic [ref=e207]: $0
+        - generic [ref=e208]: average saved per household, per month
+      - generic [ref=e209]:
+        - generic [ref=e210]: "0"
+        - generic [ref=e211]: items rescued from the bin monthly
+      - generic [ref=e212]:
+        - generic [ref=e213]: "0"
+        - generic [ref=e214]: from receipt photo to a filled fridge
+    - generic [ref=e215]:
+      - generic [ref=e216]: Loved by
+      - heading "Households that stopped wasting dinner-deciding energy" [level=2] [ref=e217]
+    - generic [ref=e218]:
+      - article [ref=e219]:
+        - blockquote [ref=e220]: "\"I haven't typed a single grocery item into an app. I scan the receipt in the parking lot and I'm done. That's the whole reason it works.\""
+        - generic [ref=e221]:
+          - generic [ref=e222]: M
+          - generic [ref=e223]:
+            - generic [ref=e224]: Mira
+            - text: feeds a family of four
+      - article [ref=e225]:
+        - blockquote [ref=e226]: "\"The eat-first shelf changed how we cook. 'Use your spinach tonight' feels like a friend's suggestion, not a nagging notification.\""
+        - generic [ref=e227]:
+          - generic [ref=e228]: A
+          - generic [ref=e229]:
+            - generic [ref=e230]: Aleksandar
+            - text: shares a fridge with two roommates
+      - article [ref=e231]:
+        - blockquote [ref=e232]: "\"We argued about dinner every night. Now leftovr suggests something from what we already have and we just… cook it. Weirdly life-changing.\""
+        - generic [ref=e233]:
+          - generic [ref=e234]: J
+          - generic [ref=e235]:
+            - generic [ref=e236]: Jana
+            - text: cooks for two, plans for none
+  - generic [ref=e238]:
+    - generic [ref=e239]:
+      - generic [ref=e240]: FAQ
+      - heading "Fair questions" [level=2] [ref=e241]
+    - generic [ref=e242]:
+      - group [ref=e243]:
+        - generic "Do I have to log every item manually?" [ref=e244] [cursor=pointer]:
+          - generic [ref=e245]: Do I have to log every item manually?
+      - group [ref=e247]:
+        - generic "Does leftovr use exact expiration dates?" [ref=e248] [cursor=pointer]:
+          - generic [ref=e249]: Does leftovr use exact expiration dates?
+      - group [ref=e251]:
+        - generic "Is this a calorie or nutrition tracker?" [ref=e252] [cursor=pointer]:
+          - generic [ref=e253]: Is this a calorie or nutrition tracker?
+      - group [ref=e255]:
+        - generic "How does household sharing work?" [ref=e256] [cursor=pointer]:
+          - generic [ref=e257]: How does household sharing work?
+      - group [ref=e259]:
+        - generic "What languages does it speak?" [ref=e260] [cursor=pointer]:
+          - generic [ref=e261]: What languages does it speak?
+      - group [ref=e263]:
+        - generic "How much does it cost?" [ref=e264] [cursor=pointer]:
+          - generic [ref=e265]: How much does it cost?
+  - generic [ref=e269]:
+    - paragraph [ref=e270]: leftovr
+    - heading "Tonight's dinner is already in your fridge." [level=2] [ref=e272]
+    - paragraph [ref=e273]: Join the waitlist — be first to scan a receipt when leftovr launches.
+    - generic [ref=e274]:
+      - generic [ref=e275]: Email address
+      - textbox "Email address" [ref=e276]:
+        - /placeholder: you@example.com
+      - textbox [ref=e277]
+      - button "Join the waitlist" [ref=e278] [cursor=pointer]
+    - status [ref=e279]
+    - paragraph [ref=e280]: Free at launch · English & Serbian · iOS and Android coming soon
+  - contentinfo [ref=e281]:
+    - generic [ref=e282]:
+      - generic [ref=e283]:
+        - generic [ref=e284]:
+          - link "leftovr home" [ref=e285] [cursor=pointer]:
+            - /url: "#top"
+            - text: leftovr
+          - paragraph [ref=e287]: The receipt-powered virtual fridge. Know what you have, eat it while it's wonderful.
+        - generic [ref=e288]:
+          - generic [ref=e289]:
+            - generic [ref=e290]: Product
+            - link "How it works" [ref=e291] [cursor=pointer]:
+              - /url: "#how"
+            - link "Features" [ref=e292] [cursor=pointer]:
+              - /url: "#features"
+            - link "FAQ" [ref=e293] [cursor=pointer]:
+              - /url: "#faq"
+          - generic [ref=e294]:
+            - generic [ref=e295]: Get leftovr
+            - link "Join the waitlist" [ref=e296] [cursor=pointer]:
+              - /url: "#waitlist"
+          - generic [ref=e297]:
+            - generic [ref=e298]: Company
+            - link "Contact" [ref=e299] [cursor=pointer]:
+              - /url: mailto:hello@leftovr.app
+            - link "Privacy" [ref=e300] [cursor=pointer]:
+              - /url: "#"
+            - link "Terms" [ref=e301] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e302]:
+        - generic [ref=e303]: © 2026 leftovr. Made with leftovers in mind.
+        - generic [ref=e304]: hello@leftovr.app

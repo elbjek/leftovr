@@ -13,6 +13,7 @@ import {
   PlusJakartaSans_700Bold,
   PlusJakartaSans_800ExtraBold,
 } from "@expo-google-fonts/plus-jakarta-sans";
+import { YoungSerif_400Regular } from "@expo-google-fonts/young-serif";
 import { useFonts } from "expo-font";
 
 export function useChompFonts() {
@@ -28,6 +29,7 @@ export function useChompFonts() {
     PlusJakartaSansSemiBold: PlusJakartaSans_600SemiBold,
     PlusJakartaSansBold: PlusJakartaSans_700Bold,
     PlusJakartaSansExtraBold: PlusJakartaSans_800ExtraBold,
+    YoungSerif: YoungSerif_400Regular,
   });
 }
 
