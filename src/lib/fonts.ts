@@ -17,12 +17,14 @@ import { useFonts } from "expo-font";
 
 export function useChompFonts() {
   return useFonts({
+    // Fraunces — display / headlines only.
     Fraunces: Fraunces_500Medium,
     FrauncesRegular: Fraunces_400Regular,
     FrauncesItalic: Fraunces_500Medium_Italic,
     FrauncesRegularItalic: Fraunces_400Regular_Italic,
     FrauncesSemiBold: Fraunces_600SemiBold,
     FrauncesBold: Fraunces_700Bold,
+    // Plus Jakarta Sans — subtitles, body, labels, buttons.
     PlusJakartaSans: PlusJakartaSans_400Regular,
     PlusJakartaSansMedium: PlusJakartaSans_500Medium,
     PlusJakartaSansSemiBold: PlusJakartaSans_600SemiBold,
@@ -30,4 +32,3 @@ export function useChompFonts() {
     PlusJakartaSansExtraBold: PlusJakartaSans_800ExtraBold,
   });
 }
-

@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 
-import { colors, radii, spacing } from "@/theme";
+import { colors, fonts, radii, spacing } from "@/theme";
 
 import { Logo } from "../illustrations";
 import { Text } from "../primitives";
@@ -183,6 +183,7 @@ const styles = StyleSheet.create({
   },
   authButtonLabel: {
     fontSize: 16,
+    fontFamily: fonts.body,
   },
   spacer: {
     flex: 1,
