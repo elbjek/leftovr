@@ -8,10 +8,10 @@
 <meta property="og:title" content="leftovr — What's for dinner?" />
 <meta property="og:description" content="Scan a receipt. Your fridge fills itself. Dinner figures itself out." />
 <meta property="og:type" content="website" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect x='10' y='10' width='16' height='16' rx='4' fill='%23D4A843' transform='rotate(45 18 18)'/%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect width='36' height='36' rx='8' fill='%23F8F4EE'/%3E%3Cg fill='none'%3E%3Cpath d='M7 20 h22 a11 11 0 0 1 -22 0 Z' stroke='%231B4332' stroke-width='2.6' stroke-linejoin='round'/%3E%3Cpath d='M14 15 c0 -2 1.7 -2 1.7 -4' stroke='%23D4A843' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M21.3 15 c0 -2 1.7 -2 1.7 -4' stroke='%23D4A843' stroke-width='2.2' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Young+Serif&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root {
     --primary: #1B4332;
@@ -32,7 +32,6 @@
     --hairline: rgba(27, 67, 50, 0.10);
     --hairline-strong: rgba(27, 67, 50, 0.18);
     --display: "Fraunces", Georgia, serif;
-    --wordmark: "Young Serif", Georgia, serif;
     --body: "Plus Jakarta Sans", -apple-system, sans-serif;
     --radius-lg: 14px;
     --radius-xl: 18px;
@@ -97,14 +96,12 @@
     max-width: var(--max-w);
     width: 100%;
   }
-  .nav-logo { display: flex; align-items: baseline; font-family: var(--wordmark); font-size: 24px; font-weight: 400; color: var(--primary); }
-  .logo-diamond {
+  .nav-logo { display: inline-flex; align-items: baseline; font-family: var(--display); font-size: 25px; font-weight: 600; letter-spacing: -0.01em; color: var(--primary); }
+  .nav-logo .logo-r {
+    color: var(--accent);
     display: inline-block;
-    width: 0.26em; height: 0.26em;
-    border-radius: 0.07em;
-    background: var(--accent);
-    transform: rotate(45deg);
-    margin-left: 0.16em;
+    transform: rotate(9deg) translateY(0.03em);
+    transform-origin: 50% 60%;
   }
   .nav-links { display: flex; gap: 24px; margin-left: auto; }
   .nav-links a {
@@ -631,7 +628,7 @@
 <!-- ===================== NAV ===================== -->
 <div class="nav-shell">
   <nav aria-label="Main">
-    <a class="nav-logo" href="#top" aria-label="leftovr home">leftovr<span class="logo-diamond" aria-hidden="true"></span></a>
+    <a class="nav-logo" href="#top" aria-label="leftovr home">leftov<span class="logo-r">r</span></a>
     <div class="nav-links">
       <a href="#how" data-i18n="nav.how">How it works</a>
       <a href="#features" data-i18n="nav.features">Features</a>
@@ -958,7 +955,7 @@
 <section id="waitlist" style="padding-top: 0;">
   <div class="wrap">
     <div class="final-cta reveal">
-      <p class="nav-logo" style="justify-content: center; color: var(--surface); font-size: 32px; margin-bottom: 20px;" aria-hidden="true">leftovr<span class="logo-diamond"></span></p>
+      <p class="nav-logo" style="justify-content: center; color: var(--surface); font-size: 34px; margin-bottom: 20px;" aria-hidden="true">leftov<span class="logo-r">r</span></p>
       <h2 data-i18n="cta.title">Tonight's dinner is already in your fridge.</h2>
       <p data-i18n="cta.sub">Join the waitlist — be first to scan a receipt when leftovr launches.</p>
       <form class="waitlist-form" id="waitlistForm" novalidate>
@@ -986,7 +983,7 @@
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a class="nav-logo" href="#top" aria-label="leftovr home">leftovr<span class="logo-diamond" aria-hidden="true"></span></a>
+        <a class="nav-logo" href="#top" aria-label="leftovr home">leftov<span class="logo-r">r</span></a>
         <p data-i18n="foot.desc">The receipt-powered virtual fridge. Know what you have, eat it while it's wonderful.</p>
       </div>
       <div class="foot-links">
