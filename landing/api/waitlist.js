@@ -169,7 +169,7 @@ module.exports = async function handler(req, res) {
     });
     // 409 = already on the list; treat as success.
     if (!contactRes.ok && contactRes.status !== 409) {
-      console.error("Resend contact create failed", contactRes.status, await contactRes.text());
+      console.error(`Resend contact create FAILED for ${email} — status ${contactRes.status}: ${await contactRes.text()}`);
       res.status(502).json({ error: "Could not join the waitlist right now. Try again in a minute." });
       return;
     }
@@ -183,9 +183,11 @@ module.exports = async function handler(req, res) {
     body: JSON.stringify({ from, to: [email], subject: welcome.subject, html: welcome.html }),
   });
   if (!emailRes.ok) {
-    console.error("Resend email send failed", emailRes.status, await emailRes.text());
+    const detail = await emailRes.text();
+    console.error(`Resend welcome email FAILED for ${email} — status ${emailRes.status}: ${detail}`);
     if (audienceId) {
-      // Contact was saved — still report success to the visitor.
+      // Contact was saved but the welcome email did not send — log loudly so it can be resent manually.
+      console.error(`ACTION NEEDED: ${email} is on the waitlist but never got the welcome email — resend it.`);
       res.status(200).json({ ok: true });
     } else {
       res.status(502).json({ error: "Could not join the waitlist right now. Try again in a minute." });
@@ -193,6 +195,8 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  const sent = await emailRes.json().catch(() => ({}));
+  console.log(`Welcome email sent to ${email}${sent.id ? ` (id ${sent.id})` : ""}`);
   res.status(200).json({ ok: true });
 };
 
