@@ -12,7 +12,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "app.leftovr.mobile",
       "infoPlist": {
-        "NSCameraUsageDescription": "Leftovr uses your camera to scan receipts and barcodes."
+        "NSCameraUsageDescription": "Leftovr uses your camera to scan receipts and barcodes.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -46,6 +47,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d6d15123-a635-4062-9d73-5e2944c11758"
+      }
+    },
+    "owner": "elbjek"
   }
 }

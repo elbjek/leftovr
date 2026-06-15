@@ -29,6 +29,7 @@
     "expo-camera": "~56.0.5",
     "expo-clipboard": "~56.0.3",
     "expo-constants": "~56.0.16",
+    "expo-dev-client": "~56.0.20",
     "expo-device": "~56.0.4",
     "expo-font": "~56.0.5",
     "expo-image": "~56.0.9",
@@ -60,6 +61,7 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.39.4",
     "eslint-config-expo": "~56.0.4",
+    "sharp": "^0.35.1",
     "typescript": "~6.0.3",
     "vitest": "^3.2.6"
   }
