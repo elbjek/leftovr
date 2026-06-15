@@ -15,7 +15,7 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { useFonts } from "expo-font";
 
-export function useChompFonts() {
+export function useLeftovrFonts() {
   return useFonts({
     // Fraunces — display / headlines only.
     Fraunces: Fraunces_500Medium,

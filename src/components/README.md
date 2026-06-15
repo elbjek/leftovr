@@ -1,4 +1,4 @@
-# Chomp Design System
+# Leftovr Design System
 
 This folder translates the Claude prototype into native React Native building blocks.
 
@@ -13,7 +13,7 @@ Structure:
 
 - `primitives/`: generic UI blocks such as `Screen`, `Text`, `Button`, `Card`, `BottomSheet`, `ChoiceCard`, and `SegmentedControl`.
 - `illustrations/`: reusable native SVG illustrations and glyphs.
-- `features/`: Chomp-specific composed components such as `FoodCard`, `ShelfRow`, `EatFirstShelf`, `PremiumSheet`, `RecipeCard`, review cards, and retention cards.
+- `features/`: Leftovr-specific composed components such as `FoodCard`, `ShelfRow`, `EatFirstShelf`, `PremiumSheet`, `RecipeCard`, review cards, and retention cards.
 
 Example:
 

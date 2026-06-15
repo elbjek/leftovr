@@ -1,2 +1,2 @@
-select 'Chomp local Supabase seed ready' as message;
+select 'Leftovr local Supabase seed ready' as message;
 

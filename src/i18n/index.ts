@@ -13,7 +13,7 @@ export const resources = {
 
 export const supportedLanguages = ["en", "sr"] as const;
 export type SupportedLanguage = (typeof supportedLanguages)[number];
-const languageStorageKey = "chomp.language";
+const languageStorageKey = "leftovr.language";
 
 export function isSupportedLanguage(language: string | null | undefined): language is SupportedLanguage {
   return supportedLanguages.includes(language as SupportedLanguage);

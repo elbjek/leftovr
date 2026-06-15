@@ -7,13 +7,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "@/i18n";
 import { AuthProvider } from "@/features";
-import { useChompFonts } from "@/lib";
+import { useLeftovrFonts } from "@/lib";
 import { colors } from "@/theme";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useChompFonts();
+  const [fontsLoaded, fontError] = useLeftovrFonts();
 
   useEffect(() => {
     if (fontsLoaded || fontError) {

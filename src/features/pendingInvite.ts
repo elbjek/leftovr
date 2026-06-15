@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const PENDING_INVITE_CODE_KEY = "chomp.pendingInviteCode";
+const PENDING_INVITE_CODE_KEY = "leftovr.pendingInviteCode";
 
 export async function setPendingInviteCode(code: string): Promise<void> {
   await AsyncStorage.setItem(PENDING_INVITE_CODE_KEY, code);

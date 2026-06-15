@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { MeasurementSystem } from "@/services";
 
-const KEY = "chomp.measurementSystem";
+const KEY = "leftovr.measurementSystem";
 const listeners = new Set<(value: MeasurementSystem) => void>();
 
 export function useMeasurementSystem() {

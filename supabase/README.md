@@ -1,6 +1,6 @@
-# Chomp Supabase Foundation
+# Leftovr Supabase Foundation
 
-This folder contains the local Supabase foundation for Chomp.
+This folder contains the local Supabase foundation for Leftovr.
 
 ## What Exists Now
 
@@ -62,7 +62,7 @@ supabase start
 supabase db reset
 ```
 
-Chomp uses non-default local ports so it can run beside another Supabase project:
+Leftovr uses non-default local ports so it can run beside another Supabase project:
 
 - API: `55321`
 - DB: `55322`

@@ -188,6 +188,6 @@ export const tokens = {
   categoryColors,
 } as const;
 
-export type ChompColor = keyof typeof colors;
+export type LeftovrColor = keyof typeof colors;
 export type Urgency = keyof typeof urgencyColors;
 export type CategoryTone = keyof typeof categoryColors;

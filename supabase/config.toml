@@ -1,4 +1,4 @@
-project_id = "chomp-local"
+project_id = "leftovr-local"
 
 [api]
 enabled = true
@@ -26,7 +26,7 @@ port = 55324
 
 [auth]
 enabled = true
-site_url = "chomp://auth"
+site_url = "leftovr://auth"
 additional_redirect_urls = ["exp://127.0.0.1:8081", "http://localhost:8081"]
 enable_signup = true
 

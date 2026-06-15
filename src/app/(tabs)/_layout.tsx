@@ -29,7 +29,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      tabBar={(props) => <ChompTabBar {...props} />}
+      tabBar={(props) => <LeftovrTabBar {...props} />}
       screenOptions={{
         headerShown: false,
       }}
@@ -81,7 +81,7 @@ export default function TabsLayout() {
   );
 }
 
-function ChompTabBar({ state, navigation }: TabBarProps) {
+function LeftovrTabBar({ state, navigation }: TabBarProps) {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ mode?: string }>();
   const activeRoute = state.routes[state.index]?.name;
