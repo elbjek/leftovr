@@ -15,7 +15,14 @@ export function getSupabaseClient() {
     return client;
   }
 
-  client = createClient(getRequiredEnv("supabaseUrl"), getRequiredEnv("supabaseAnonKey"), {
+  const supabaseUrl = getRequiredEnv("supabaseUrl");
+
+  client = createClient(supabaseUrl, getRequiredEnv("supabaseAnonKey"), {
+    // ngrok free tunnels serve an HTML browser-warning interstitial to
+    // browser-like requests; this header skips it so we get JSON back.
+    global: supabaseUrl.includes("ngrok")
+      ? { headers: { "ngrok-skip-browser-warning": "true" } }
+      : undefined,
     auth: {
       // Encrypted-at-rest session storage (SECURITY_REVIEW S5).
       storage: new LargeSecureStore(),

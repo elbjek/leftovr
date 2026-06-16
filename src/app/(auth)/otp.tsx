@@ -1,9 +1,9 @@
 import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, Screen, Text, TextField } from "@/components";
+import { Button, GeneratingLoader, Screen, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import { useFirstRunOnboardingGate } from "@/features/onboardingGate";
 import { colors, spacing } from "@/theme";
@@ -67,7 +67,7 @@ export default function OtpRoute() {
     return (
       <Screen>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+          <GeneratingLoader size={110} />
           <Text variant="small" muted>
             {t("common.loading")}
           </Text>

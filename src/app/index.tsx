@@ -1,8 +1,8 @@
 import { Redirect } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, Screen, Text } from "@/components";
+import { Button, GeneratingLoader, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useFirstRunOnboardingGate } from "@/features/onboardingGate";
 import { colors, spacing } from "@/theme";
@@ -17,7 +17,7 @@ export default function IndexRoute() {
     return (
       <Screen>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.lg }}>
-          <ActivityIndicator color={colors.primary} />
+          <GeneratingLoader size={110} />
           <Text variant="small" muted>
             {t("common.loading")}
           </Text>

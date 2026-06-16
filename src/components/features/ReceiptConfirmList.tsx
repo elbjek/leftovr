@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import Svg, { Path } from "react-native-svg";
 
+import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import { ReceiptConfirmItem } from "@/services";
 import { colors, radii, spacing } from "../../theme";
-import { Button, Card, Text, TextField } from "../primitives";
+import { Button, Card, Text, TextField, UnitPicker } from "../primitives";
 
 type Props = {
   items: ReceiptConfirmItem[];
@@ -18,13 +20,21 @@ type EditableRow = ReceiptConfirmItem & { quantityText: string };
 export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: Props) {
   const { t } = useTranslation();
   const [rows, setRows] = useState<EditableRow[]>(() =>
-    items.map((item) => ({ ...item, quantityText: String(item.quantity) })),
+    items.map((item) => ({
+      ...item,
+      unit: normalizeUnit(item.unit),
+      quantityText: String(item.quantity),
+    })),
   );
 
-  const includedCount = rows.filter((row) => row.included).length;
+  const itemCount = rows.length;
 
   function patchRow(id: string, patch: Partial<EditableRow>) {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...patch } : row)));
+  }
+
+  function removeRow(id: string) {
+    setRows((current) => current.filter((row) => row.id !== id));
   }
 
   function handleConfirm() {
@@ -34,10 +44,12 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
       const name = item.name.trim();
       return {
         ...item,
+        // Every remaining row is kept; the rest were removed by the user.
+        included: true,
         // Blank or invalid edits fall back to the scanned values.
         name: name.length > 0 ? name : items.find((i) => i.id === item.id)?.name ?? item.name,
         quantity: Number.isFinite(parsed) && parsed > 0 ? parsed : item.quantity,
-        unit: item.unit.trim() || "item",
+        unit: item.unit || DEFAULT_UNIT,
       };
     });
     onConfirm(finalItems);
@@ -50,18 +62,15 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
       </View>
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {rows.map((row) => (
-          <Card key={row.id} style={[styles.row, !row.included && styles.rowExcluded]}>
+          <Card key={row.id} style={styles.row}>
             <Pressable
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: row.included }}
-              onPress={() => patchRow(row.id, { included: !row.included })}
-              style={[styles.check, row.included && styles.checkOn]}
+              accessibilityRole="button"
+              accessibilityLabel={t("scan.confirm.removeItem")}
+              onPress={() => removeRow(row.id)}
+              hitSlop={8}
+              style={styles.remove}
             >
-              {row.included ? (
-                <Text variant="micro" color={colors.surface}>
-                  ✓
-                </Text>
-              ) : null}
+              <CloseIcon color={colors.muted} />
             </Pressable>
 
             <View style={styles.fields}>
@@ -75,8 +84,6 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
               <TextField
                 label={t("scan.confirm.nameLabel")}
                 value={row.name}
-                editable={row.included}
-                style={!row.included && styles.excludedInput}
                 onChangeText={(text) => patchRow(row.id, { name: text })}
               />
               <View style={styles.inlineFields}>
@@ -84,20 +91,15 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
                   <TextField
                     label={t("scan.manual.quantityLabel")}
                     value={row.quantityText}
-                    editable={row.included}
                     keyboardType="decimal-pad"
-                    style={!row.included && styles.excludedInput}
                     onChangeText={(text) => patchRow(row.id, { quantityText: text })}
                   />
                 </View>
                 <View style={styles.unitField}>
-                  <TextField
+                  <UnitPicker
                     label={t("scan.manual.unitLabel")}
                     value={row.unit}
-                    editable={row.included}
-                    autoCapitalize="none"
-                    style={!row.included && styles.excludedInput}
-                    onChangeText={(text) => patchRow(row.id, { unit: text })}
+                    onChange={(unit) => patchRow(row.id, { unit })}
                   />
                 </View>
               </View>
@@ -108,11 +110,11 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
 
       <Pressable
         accessibilityRole="button"
-        disabled={includedCount === 0 || confirming}
+        disabled={itemCount === 0 || confirming}
         onPress={handleConfirm}
         style={({ pressed }) => [
           styles.confirmButton,
-          (includedCount === 0 || confirming) && styles.confirmButtonDisabled,
+          (itemCount === 0 || confirming) && styles.confirmButtonDisabled,
           pressed && styles.confirmButtonPressed,
         ]}
       >
@@ -120,11 +122,19 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
           <ActivityIndicator color={colors.surface} />
         ) : (
           <Text variant="label" color={colors.surface}>
-            {t("scan.confirm.addCta", { count: includedCount })}
+            {t("scan.confirm.addCta", { count: itemCount })}
           </Text>
         )}
       </Pressable>
     </View>
+  );
+}
+
+function CloseIcon({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14">
+      <Path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
   );
 }
 
@@ -141,32 +151,20 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.md,
+    position: "relative",
   },
-  rowExcluded: {
-    opacity: 0.45,
-  },
-  excludedInput: {
-    textDecorationLine: "line-through",
-  },
-  check: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 2,
-    borderColor: colors.hairlineStrong,
+  remove: {
+    position: "absolute",
+    top: spacing.sm,
+    right: spacing.sm,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: spacing.sm,
-  },
-  checkOn: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    zIndex: 1,
   },
   fields: {
-    flex: 1,
     gap: spacing.sm,
   },
   badge: {

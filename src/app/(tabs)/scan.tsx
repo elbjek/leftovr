@@ -7,8 +7,9 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, GeneratingLoader, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField } from "@/components";
+import { BackButton, BottomSheet, Button, Card, GeneratingLoader, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
+import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
 import {
   addInventoryItem,
@@ -95,7 +96,7 @@ export default function ScanRoute() {
   const [manualCategory, setManualCategory] = useState<InventoryCategory>("other");
   const [offResults, setOffResults] = useState<BarcodeProduct[]>([]);
   const [manualQuantity, setManualQuantity] = useState(1);
-  const [manualUnit, setManualUnit] = useState("item");
+  const [manualUnit, setManualUnit] = useState<string>(DEFAULT_UNIT);
   const [manualExpiry, setManualExpiry] = useState<Date | null>(null);
   const [manualExpiryEnabled, setManualExpiryEnabled] = useState(true);
   const [showExpiryPicker, setShowExpiryPicker] = useState(false);
@@ -440,7 +441,7 @@ export default function ScanRoute() {
     setDraftProduct(product);
     if (product) {
       setManualCategory(product.category);
-      setManualUnit(product.unit);
+      setManualUnit(normalizeUnit(product.unit));
     }
     setManualQuantity(1);
     setManualExpiry(null);
@@ -848,10 +849,10 @@ export default function ScanRoute() {
                 </View>
               </View>
 
-              <TextField
+              <UnitPicker
                 label={t("scan.manual.unitLabel")}
                 value={manualUnit}
-                onChangeText={setManualUnit}
+                onChange={setManualUnit}
                 containerStyle={styles.fieldBoxGrow}
               />
             </View>
@@ -923,7 +924,7 @@ export default function ScanRoute() {
                   name: sheetItemName,
                   category: manualCategory,
                   quantity: manualQuantity,
-                  unit: manualUnit.trim() || "item",
+                  unit: normalizeUnit(manualUnit),
                   brandName: draftProduct?.brandName,
                   netAmount: draftProduct?.netAmount,
                   netUnit: draftProduct?.netUnit,
