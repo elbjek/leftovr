@@ -84,4 +84,29 @@ describe("receipt service", () => {
       shelf_life_range: "4-7 days",
     });
   });
+
+  it("carries a user-picked expiry onto the inventory row", () => {
+    const rows = buildConfirmedReceiptInventoryRows(
+      [{ ...baseItems[0], included: true, expiresAt: "2026-07-01" }],
+      {
+        householdId: "household-1",
+        scanId: "scan-1",
+        userId: "user-1",
+        addedAt: "2026-06-12T10:00:00.000Z",
+      },
+    );
+
+    expect(rows[0]).toMatchObject({ expires_at: "2026-07-01" });
+  });
+
+  it("defaults expiry to null when none is picked", () => {
+    const rows = buildConfirmedReceiptInventoryRows(baseItems, {
+      householdId: "household-1",
+      scanId: "scan-1",
+      userId: "user-1",
+      addedAt: "2026-06-12T10:00:00.000Z",
+    });
+
+    expect(rows[0].expires_at).toBeNull();
+  });
 });

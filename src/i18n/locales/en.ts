@@ -304,6 +304,7 @@ export const en = {
       nameLabel: "Item",
       addCta: "Add {{count}} items",
       removeItem: "Remove item",
+      addExpiry: "Add date",
     },
     duplicateTitle: "Already added?",
     duplicateBody: "Looks like this receipt was already added.",

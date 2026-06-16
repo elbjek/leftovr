@@ -304,6 +304,7 @@ export const sr = {
       nameLabel: "Stavka",
       addCta: "Dodaj {{count}} stavki",
       removeItem: "Ukloni stavku",
+      addExpiry: "Dodaj datum",
     },
     duplicateTitle: "Vec dodato?",
     duplicateBody: "Izgleda da je ovaj racun vec dodat.",

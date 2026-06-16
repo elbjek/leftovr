@@ -16,6 +16,8 @@ export type ReceiptConfirmItem = {
   confidence: number;
   lowConfidence: boolean;
   included: boolean;
+  // Optional user-picked expiry (YYYY-MM-DD); falls back to shelf-life range.
+  expiresAt?: string | null;
 };
 
 export type ReceiptInventoryRowInput = {
@@ -103,6 +105,7 @@ export function buildConfirmedReceiptInventoryRows(
         net_unit: catalogNet?.netUnit ?? null,
         partial_state: "full" as const,
         shelf_life_range: getShelfLifeRange(name, item.category),
+        expires_at: item.expiresAt ?? null,
         source: "receipt" as const,
         source_scan_id: input.scanId,
         confidence: item.confidence,

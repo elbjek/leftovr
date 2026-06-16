@@ -10,7 +10,7 @@ import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 import { BackButton, BottomSheet, Button, Card, GeneratingLoader, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
-import { mockBarcodeProducts, mockReceiptTemplates } from "@/mocks";
+import { mockReceiptTemplates } from "@/mocks";
 import {
   addInventoryItem,
   completeHouseholdFirstFill,
@@ -399,15 +399,6 @@ export default function ScanRoute() {
     setBarcodeLocked(false);
   }
 
-  async function addMockBarcodeProduct(product: BarcodeProduct) {
-    if (!activeHousehold?.id || barcodeLocked) return;
-
-    setBarcodeLocked(true);
-    setError(null);
-    await addResolvedBarcodeProduct(product);
-    setBarcodeLocked(false);
-  }
-
   async function addResolvedBarcodeProduct(product: BarcodeProduct) {
     if (!activeHousehold?.id) return;
 
@@ -647,31 +638,6 @@ export default function ScanRoute() {
                 {t("scan.barcodeCoachBody")}
               </Text>
             </View>
-
-            {__DEV__ ? (
-              // Simulator helper: the camera can't scan there, so these chips
-              // simulate hits/misses. Production scans come from the camera +
-              // live Open Food Facts lookup only.
-              <View style={styles.templateRail}>
-                {mockBarcodeProducts.map((product) => (
-                  <Pressable
-                    key={product.barcode}
-                    accessibilityRole="button"
-                    onPress={() => addMockBarcodeProduct(product)}
-                    style={styles.templateChip}
-                  >
-                    <Text variant="small">{product.name}</Text>
-                  </Pressable>
-                ))}
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => addInventoryFromBarcode("unknown-demo-code")}
-                  style={styles.templateChip}
-                >
-                  <Text variant="small">{t("scan.unknownBarcode")}</Text>
-                </Pressable>
-              </View>
-            ) : null}
 
             {error ? (
               <Text variant="small" color={colors.red} center>
@@ -1269,17 +1235,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     padding: spacing.lg,
     gap: spacing.xs,
-  },
-  templateRail: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  templateChip: {
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.paper,
   },
   captureButton: {
     width: 76,
