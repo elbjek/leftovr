@@ -299,7 +299,7 @@ export const en = {
     processingBody: "Sorting out what you bought.",
     confirm: {
       title: "Check your receipt",
-      body: "Edit anything weird, skip anything wrong, then add it to your fridge.",
+      body: "Edit anything weird, remove anything wrong, then add it to your fridge.",
       checkThis: "Check this",
       nameLabel: "Item",
       addCta: "Add {{count}} items",

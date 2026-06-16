@@ -15,6 +15,7 @@ import {
   RecipeMatch,
 } from "@/services/recipeService";
 import { generateRecipeMatches, RecipeGenerationFilters } from "@/services/recipeGenerationService";
+import { ingredientSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 
@@ -49,6 +50,9 @@ export function useRecipes(
 ) {
   const { inventory, avoidances, isPremium, freeGenerationUsed, servings, userId } = options;
   const generationInFlightRef = useRef(false);
+  // Mirrors saved recipes so a generation can dedupe against them without the
+  // callback closing over a stale state snapshot.
+  const savedRecipesRef = useRef<RecipeRow[]>([]);
 
   const [state, setState] = useState<RecipesState>({
     loading: Boolean(householdId),
@@ -137,6 +141,10 @@ export function useRecipes(
     load();
   }, [load]);
 
+  useEffect(() => {
+    savedRecipesRef.current = state.savedRecipes;
+  }, [state.savedRecipes]);
+
   // One-time free taste: free users get exactly one generation, ever. The
   // profile flag covers past sessions; the local flag covers the one just
   // created (profile refetch lags the DB trigger).
@@ -173,10 +181,28 @@ export function useRecipes(
           }
           // Premium sees two distinct options; free gets the single best pick
           // (fewer cards also keeps complex generations fast).
-          const top = matches.slice(0, isPremium ? 2 : 1);
+          const candidates = matches.slice(0, isPremium ? 2 : 1);
 
-          // Nothing makeable from the current fridge: don't create a session
-          // (so it doesn't burn a weekly count) and signal the empty result.
+          // Drop recipes whose ingredient set already exists — saved in a past
+          // generation, or duplicated across this run's premium variants — so
+          // the recipe list doesn't accumulate same-dish-different-title dupes.
+          const existingSignatures = new Set(
+            savedRecipesRef.current.map((recipe) =>
+              ingredientSignature(recipe.ingredients as { name?: string }[]),
+            ),
+          );
+          const runSignatures = new Set<string>();
+          const top = candidates.filter((match) => {
+            const signature = ingredientSignature(match.ingredients);
+            if (!signature || existingSignatures.has(signature) || runSignatures.has(signature)) {
+              return false;
+            }
+            runSignatures.add(signature);
+            return true;
+          });
+
+          // Nothing new makeable (all duplicates or empty): don't create a
+          // session (so it doesn't burn a weekly count) and signal empty.
           if (top.length === 0) {
             setState((s) => ({ ...s, generating: false }));
             return { recipes: [], matches: [] };

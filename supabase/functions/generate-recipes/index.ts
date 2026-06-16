@@ -1,4 +1,4 @@
-import Anthropic from "npm:@anthropic-ai/sdk@^0.24.0";
+import OpenAI from "npm:openai@^4.77.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 
 type GenerateRecipesRequest = {
@@ -101,9 +101,9 @@ Deno.serve(async (req) => {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) {
-    return Response.json({ error: "missing_anthropic_api_key" }, { status: 500 });
+    return Response.json({ error: "missing_openai_api_key" }, { status: 500 });
   }
 
   const input = await req.json().catch(() => ({})) as GenerateRecipesRequest;
@@ -119,44 +119,65 @@ Deno.serve(async (req) => {
     : [buildPrompt(input, "confident")];
 
   try {
-    const client = new Anthropic({ apiKey });
+    const client = new OpenAI({ apiKey });
     const settled = await Promise.allSettled(
       prompts.map((prompt) =>
-        client.messages.create({
-          model: "claude-haiku-4-5",
+        client.chat.completions.create({
+          model: "gpt-4o-mini",
           max_tokens: 6000,
           messages: [{ role: "user", content: prompt }],
-          output_config: { format: { type: "json_schema", schema: RECIPE_SCHEMA } },
+          response_format: {
+            type: "json_schema",
+            json_schema: { name: "recipes", strict: true, schema: RECIPE_SCHEMA },
+          },
         })
       ),
     );
 
     const responses = settled
       .filter((result) => result.status === "fulfilled")
-      .map((result) => (result as PromiseFulfilledResult<Anthropic.Message>).value);
+      .map((result) =>
+        (result as PromiseFulfilledResult<OpenAI.Chat.Completions.ChatCompletion>).value
+      );
     // One variant failing shouldn't sink the whole generation for premium.
     if (responses.length === 0) {
       throw (settled[0] as PromiseRejectedResult).reason;
     }
 
     const allRecipes = responses.flatMap((response) => {
-      const text = response.content.find((block) => block.type === "text")?.text ?? "";
+      const text = response.choices[0]?.message?.content ?? "";
       return (JSON.parse(text) as { recipes: AiRecipeCard[] }).recipes;
     });
 
     const avoidances = input.avoidances ?? [];
-    const seenTitles = new Set<string>();
+    // Dedupe by ingredient set, not title: the premium variants often share the
+    // same ingredients under different names (e.g. "...sourdough toast" vs
+    // "...toast"), which is a duplicate, not a real alternative.
+    const seenSignatures = new Set<string>();
     const recipes = allRecipes.filter((recipe) => {
-      const titleKey = recipe.title.toLowerCase().trim();
-      if (seenTitles.has(titleKey)) return false;
-      seenTitles.add(titleKey);
-      return (
-        recipe.ingredients.length > 0 &&
-        recipe.steps.length > 0 &&
-        !violatesAvoidances(recipe, avoidances)
-      );
+      if (recipe.ingredients.length === 0 || recipe.steps.length === 0) return false;
+      if (violatesAvoidances(recipe, avoidances)) return false;
+      const signature = ingredientSignature(recipe.ingredients);
+      if (seenSignatures.has(signature)) return false;
+      seenSignatures.add(signature);
+      return true;
     });
 
+    const promptTokens = responses.reduce(
+      (sum, response) => sum + (response.usage?.prompt_tokens ?? 0),
+      0,
+    );
+    const completionTokens = responses.reduce(
+      (sum, response) => sum + (response.usage?.completion_tokens ?? 0),
+      0,
+    );
+
+    console.info("[generate-recipes] token usage", {
+      calls: responses.length,
+      promptTokens,
+      completionTokens,
+      totalTokens: promptTokens + completionTokens,
+    });
     console.info("[generate-recipes] returning recipes", {
       calls: responses.length,
       raw: allRecipes.length,
@@ -171,14 +192,8 @@ Deno.serve(async (req) => {
         .update({
           status: "completed",
           response_json: payload,
-          prompt_tokens: responses.reduce(
-            (sum, response) => sum + (response.usage?.input_tokens ?? 0),
-            0,
-          ),
-          completion_tokens: responses.reduce(
-            (sum, response) => sum + (response.usage?.output_tokens ?? 0),
-            0,
-          ),
+          prompt_tokens: promptTokens,
+          completion_tokens: completionTokens,
           completed_at: new Date().toISOString(),
         })
         .eq("id", gate.attemptId);
@@ -319,6 +334,7 @@ function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alte
         : "none"
     }`,
     "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated fridge items into the same recipe just because they are available; it is better to use fewer well-matched fridge items. Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but avoid awkward sweet-savory combinations unless they are a familiar dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it.",
+    "Ready-to-eat rule: items with category `snacks` or `drinks`, and any sweet/confectionery/chocolate/candy/pastry product (e.g. a chocolate-filled croissant, a candy bar, soda), are finished products, NOT savory cooking ingredients. Never cook or combine them into savory dishes (e.g. never make an egg-and-chocolate-croissant dish). Use them only on their own or inside a fitting sweet/dessert context, and only when it reads as a real treat — otherwise ignore them and build the recipe from the actual cooking ingredients.",
     "Fridge contents:",
     ...formatInventory(input.inventory ?? []),
     "Prompt filters:",
@@ -338,6 +354,16 @@ function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alte
     "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",
     "Respect the prompt filters: matching mealType, timeMinutes within max time, and include the vibe/tag in tags when one is set.",
   ].join("\n");
+}
+
+// Sorted, normalized ingredient-name set — identifies recipes that are the
+// same dish under a different title.
+function ingredientSignature(ingredients: { name: string }[]) {
+  return ingredients
+    .map((ingredient) => ingredient.name.toLowerCase().trim().replace(/\s+/g, " "))
+    .filter(Boolean)
+    .sort()
+    .join("|");
 }
 
 function violatesAvoidances(recipe: AiRecipeCard, avoidances: string[]) {

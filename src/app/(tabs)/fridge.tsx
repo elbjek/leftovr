@@ -5,7 +5,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { BottomSheet, Button, EatFirstShelf, FoodCard, GeneratingLoader, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth, useMeasurementSystem } from "@/features";
-import { updateInventoryNetAmount } from "@/repositories";
+import { seedDemoInventory, updateInventoryNetAmount } from "@/repositories";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
 import {
   formatAmount,
@@ -61,6 +61,7 @@ export default function FridgeRoute() {
   const [removeGroupTarget, setRemoveGroupTarget] = useState<InventoryGroup | null>(null);
   const [expandedShelf, setExpandedShelf] = useState<{ name: string; groups: InventoryGroup[] } | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const filteredGroups = categoryFilter === "all" ? groups : groups.filter((group) => group.category === categoryFilter);
   const isPremium = resolvePremium(profile, activeHousehold);
@@ -77,6 +78,19 @@ export default function FridgeRoute() {
       void refreshInsights();
     }, [refresh, refreshInsights]),
   );
+
+  async function handleSeedDemo() {
+    if (!activeHousehold?.id || seeding) return;
+    setSeeding(true);
+    try {
+      await seedDemoInventory(activeHousehold.id);
+      await refresh();
+    } catch (seedError) {
+      if (__DEV__) console.error("[fridge] seed demo failed", seedError);
+    } finally {
+      setSeeding(false);
+    }
+  }
 
   return (
     <Screen scroll padded={false} contentContainerStyle={styles.content}>
@@ -211,6 +225,17 @@ export default function FridgeRoute() {
           onMorePress={() => setExpandedShelf({ name: shelf.name, groups: shelf.groups })}
         />
       ))}
+
+      {__DEV__ ? (
+        <View style={styles.devSeed}>
+          <Button
+            title="+ Seed 42 demo items"
+            variant="text"
+            loading={seeding}
+            onPress={handleSeedDemo}
+          />
+        </View>
+      ) : null}
 
       <ItemActionSheet
         group={actionGroup}
@@ -698,6 +723,11 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.screenX,
+  },
+  devSeed: {
+    alignItems: "center",
+    paddingHorizontal: spacing.screenX,
+    paddingVertical: spacing.lg,
   },
   refreshButton: {
     minHeight: 38,

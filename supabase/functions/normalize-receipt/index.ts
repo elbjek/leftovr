@@ -1,4 +1,4 @@
-import Anthropic from "npm:@anthropic-ai/sdk@^0.24.0";
+import OpenAI from "npm:openai@^4.77.0";
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@^2.46.1";
 
 import { mergeWithCache, NormalizedLine, ReceiptLineCacheRow } from "./cache-merge.ts";
@@ -79,8 +79,10 @@ const RECEIPT_SCHEMA = {
 const PROMPT = [
   "Read this grocery receipt photo and normalize every purchased food line item.",
   "Receipts may be in any language; keep `name` close to what a shopper would call the product in the receipt's language, but `normalizedName` must be a lowercase canonical English food name (e.g. \"milk\", \"chicken breast\").",
+  "`normalizedName` MUST keep any qualifier that changes how the food is used or eaten: \"chocolate croissant\" not \"croissant\", \"chocolate milk\" not \"milk\", \"greek yogurt\" not \"yogurt\", \"smoked salmon\" not \"salmon\". Brand names (Milka, Coco, Nutella, etc.) signal the product type even when the base word looks plain — a \"kroasan coco milka\" is a chocolate-filled croissant snack, normalizedName \"chocolate croissant\".",
   "`rawText` must be the receipt line exactly as printed, including abbreviations.",
   "Pick `category` from the provided enum. Use `other` only when nothing else fits.",
+  "Sweet/confectionery products — chocolate, candy, biscuits, wafers, chips, chocolate-filled or sweet pastries (e.g. \"kroasan coco milka\") — are `snacks`, not `bakery`. Sweet drinks, juice, and soda are `drinks`. Reserve `bakery` for plain bread and savory baked goods.",
   "`quantity`/`unit` reflect purchased count and unit when printed (e.g. 2 x). `netAmount`/`netUnit` only when a metric size is printed on the line (1L -> 1000 ml, 400g -> 400 g); otherwise null.",
   "Skip non-food lines: totals, deposits/pant, bags, discounts, loyalty points, payment rows.",
   "`confidence` (0-1) is your certainty that the normalization of that line is correct; abbreviated or ambiguous lines get lower confidence.",
@@ -93,7 +95,7 @@ Deno.serve(async (req) => {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!apiKey || !supabaseUrl || !serviceRoleKey) {
@@ -186,25 +188,35 @@ Deno.serve(async (req) => {
     }
     const imageBase64 = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
 
-    const client = new Anthropic({ apiKey });
-    const response = await client.messages.create({
-      model: "claude-haiku-4-5",
+    const client = new OpenAI({ apiKey });
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
       max_tokens: 6000,
       messages: [{
         role: "user",
         content: [
-          {
-            type: "image",
-            source: { type: "base64", media_type: "image/jpeg", data: imageBase64 },
-          },
           { type: "text", text: PROMPT },
+          {
+            type: "image_url",
+            image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
+          },
         ],
       }],
-      output_config: { format: { type: "json_schema", schema: RECEIPT_SCHEMA } },
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "receipt", strict: true, schema: RECEIPT_SCHEMA },
+      },
     });
 
-    const text = response.content.find((block) => block.type === "text")?.text ?? "";
+    const text = response.choices[0]?.message?.content ?? "";
     const extraction = JSON.parse(text) as ReceiptExtraction;
+
+    console.info("[normalize-receipt] token usage", {
+      scanId: scan.id,
+      promptTokens: response.usage?.prompt_tokens ?? 0,
+      completionTokens: response.usage?.completion_tokens ?? 0,
+      totalTokens: response.usage?.total_tokens ?? 0,
+    });
 
     const merged = await applyCache(supabase, extraction);
     const signature = await buildSignature(extraction, merged.lines);
@@ -214,7 +226,7 @@ Deno.serve(async (req) => {
       .from("receipt_scans")
       .update({
         receipt_signature: signature,
-        prompt_tokens: response.usage?.input_tokens ?? null,
+        prompt_tokens: response.usage?.prompt_tokens ?? null,
       })
       .eq("id", scan.id);
 

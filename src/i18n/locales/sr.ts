@@ -299,7 +299,7 @@ export const sr = {
     processingBody: "Sredjujemo tvoju kupovinu.",
     confirm: {
       title: "Proveri racun",
-      body: "Izmeni cudne stavke, preskoci pogresne, pa dodaj u frizider.",
+      body: "Izmeni cudne stavke, ukloni pogresne, pa dodaj u frizider.",
       checkThis: "Proveri ovo",
       nameLabel: "Stavka",
       addCta: "Dodaj {{count}} stavki",
