@@ -38,6 +38,17 @@ enable_confirmations = true
 otp_expiry = 600
 max_frequency = "1m0s"
 
+# Google OAuth (native signInWithIdToken). client_id must list the Web client ID
+# first, then the iOS client ID, comma-separated. Secret comes from env.
+# skip_nonce_check = true is required: the @react-native-google-signin flow does
+# not send a nonce, so Supabase must not enforce one (mirror this in the hosted
+# dashboard: Google provider → "Skip nonce check").
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+skip_nonce_check = true
+
 [edge_runtime]
 enabled = true
 policy = "oneshot"

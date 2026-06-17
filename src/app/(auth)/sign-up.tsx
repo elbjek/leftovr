@@ -10,13 +10,23 @@ import { colors, spacing } from "@/theme";
 
 export default function SignUpRoute() {
   const { t } = useTranslation();
-  const { error } = useAuth();
+  const { error, signInWithGoogle } = useAuth();
   const {
     loading: onboardingGateLoading,
     hasPickedLanguage,
     hasSeenHook,
   } = useFirstRunOnboardingGate();
   const [formError, setFormError] = useState<string | null>(null);
+
+  async function handleGoogle() {
+    setFormError(null);
+    try {
+      await signInWithGoogle();
+      router.replace("/");
+    } catch {
+      setFormError(t("auth.genericError"));
+    }
+  }
 
   if (onboardingGateLoading) {
     return (
@@ -50,7 +60,7 @@ export default function SignUpRoute() {
         termsLabel={t("auth.terms")}
         privacyLabel={t("auth.privacy")}
         onApple={() => setFormError(t("auth.oauthPlaceholder"))}
-        onGoogle={() => setFormError(t("auth.oauthPlaceholder"))}
+        onGoogle={handleGoogle}
         onEmail={() => router.push({ pathname: "/(auth)/otp", params: { mode: "sign-up" } })}
       />
       {formError || error ? (

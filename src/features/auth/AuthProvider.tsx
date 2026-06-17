@@ -14,7 +14,7 @@ import {
   getHouseholdById,
   getHouseholdItemCount,
 } from "@/repositories";
-import { sendEmailOtp, signInWithEmail, signOut, signUpWithEmail, verifyEmailOtp } from "@/services";
+import { sendEmailOtp, signInWithEmail, signInWithGoogle, signOut, signUpWithEmail, verifyEmailOtp } from "@/services";
 import { getSupabaseClient, hasSupabaseConfig } from "@/lib/supabase";
 import { i18n } from "@/i18n";
 
@@ -49,6 +49,7 @@ type AuthContextValue = AuthState & {
   verifyOtp: (input: { email: string; token: string }) => Promise<void>;
   signIn: (input: { email: string; password: string }) => Promise<void>;
   signUp: (input: { displayName: string; email: string; password: string }) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -228,6 +229,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setState((current) => ({ ...current, loading: true, error: null }));
         await signUpWithEmail(input);
         await loadSessionProfile();
+      },
+      signInWithGoogle: async () => {
+        setState((current) => ({ ...current, loading: true, error: null }));
+        try {
+          const result = await signInWithGoogle();
+          if (!result) {
+            // User cancelled the Google picker.
+            setState((current) => ({ ...current, loading: false, error: null }));
+            return;
+          }
+          await loadSessionProfile();
+        } catch (error) {
+          if (__DEV__) console.error("[auth] signInWithGoogle failed", error);
+          setState((current) => ({
+            ...current,
+            loading: false,
+            error: resolveErrorMessage(error),
+          }));
+          throw error;
+        }
       },
       signOut: async () => {
         setState((current) => ({ ...current, loading: true, error: null }));
