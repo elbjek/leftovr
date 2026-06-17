@@ -751,6 +751,7 @@ export default function ScanRoute() {
   if (mode === "emptyScan") {
     return (
       <Screen>
+        <BackButton onPress={returnToChoice} style={styles.backButton} />
         <View style={styles.center}>
           <ScanMethodIcon method={choice === "ereceipt" ? "ereceipt" : "receipt"} />
           <Text variant="display" center>

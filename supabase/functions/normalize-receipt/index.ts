@@ -243,6 +243,30 @@ Deno.serve(async (req) => {
       totalTokens: response.usage?.total_tokens ?? 0,
     });
 
+    // Not a usable receipt (empty or non-receipt): retain nothing about it.
+    // Keep the row for rate-limit accounting but strip every receipt-derived
+    // field, and never touch the line cache.
+    if (extraction.lines.length === 0) {
+      await supabase
+        .from("receipt_scans")
+        .update({
+          status: "failed",
+          image_path: null,
+          receipt_signature: null,
+          error_message: "no_receipt_items",
+          prompt_tokens: response.usage?.prompt_tokens ?? null,
+          processed_at: new Date().toISOString(),
+        })
+        .eq("id", scan.id);
+      return Response.json({
+        scanId: scan.id,
+        storeChain: "unknown",
+        receiptSignature: null,
+        duplicate: null,
+        lines: [],
+      });
+    }
+
     const merged = await applyCache(supabase, extraction);
     const signature = await buildSignature(extraction, merged.lines);
     const duplicate = await findDuplicate(supabase, input.householdId, scan.id, signature);
@@ -272,12 +296,16 @@ Deno.serve(async (req) => {
       lines: merged.lines,
     });
   } catch (error) {
+    // Real error stays in operational logs only; the DB row keeps a generic
+    // code (never model output) and no receipt-derived fields.
     console.error("[normalize-receipt] normalization failed", error);
     await supabase
       .from("receipt_scans")
       .update({
         status: "failed",
-        error_message: error instanceof Error ? error.message : "normalization_failed",
+        image_path: null,
+        receipt_signature: null,
+        error_message: "normalization_failed",
         processed_at: new Date().toISOString(),
       })
       .eq("id", scan.id);
