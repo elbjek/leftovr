@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
   BottomSheet,
@@ -18,27 +17,15 @@ import {
   TextField,
 } from "@/components";
 import { canShareHousehold, useAuth, useMeasurementSystem } from "@/features";
-import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
 import {
-  resetCurrentUserOnboardingForDev,
   setPreviewTier,
-  setPrototypeDay,
   updateHouseholdDefaultServings,
   updateProfileAvoidances,
   updateProfileField,
-  PlanTier,
 } from "@/repositories";
 import { colors, fonts, radii, spacing } from "@/theme";
-
-const TIER_OPTIONS: { label: string; value: PlanTier; key: string }[] = [
-  { label: "tierFree", value: "free", key: "free" },
-  { label: "tierPremium", value: "premium", key: "premium" },
-  { label: "tierHouseholdPremium", value: "household_premium", key: "household_premium" },
-];
-
-const PROTOTYPE_DAYS = [1, 2, 3, 4, 5, 6, 7];
 
 const PRIMARY_GOAL_OPTIONS = ["waste", "money", "quick", "all"] as const;
 const SHOPPING_STYLE_OPTIONS = ["weekly", "few", "asneed"] as const;
@@ -56,9 +43,8 @@ export default function SettingsRoute() {
     value: language,
   }));
 
-  const [tierLoading, setTierLoading] = useState(false);
-  const [dayLoading, setDayLoading] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
+  const [premiumPlan, setPremiumPlan] = useState<"individual" | "household">("individual");
   const [saving, setSaving] = useState(false);
 
   // Editable state
@@ -84,35 +70,6 @@ export default function SettingsRoute() {
 
   function handleLanguageChange(language: SupportedLanguage) {
     i18n.changeLanguage(language);
-  }
-
-  async function handleResetOnboarding() {
-    if (session) {
-      await resetCurrentUserOnboardingForDev();
-    }
-    await AsyncStorage.multiRemove([HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY]);
-    await signOut();
-    router.replace("/");
-  }
-
-  async function handleTierChange(tier: PlanTier) {
-    setTierLoading(true);
-    try {
-      await setPreviewTier(tier);
-      await refresh();
-    } finally {
-      setTierLoading(false);
-    }
-  }
-
-  async function handleDayChange(day: number) {
-    setDayLoading(true);
-    try {
-      await setPrototypeDay(day);
-      await refresh();
-    } finally {
-      setDayLoading(false);
-    }
   }
 
   async function saveName() {
@@ -185,7 +142,12 @@ export default function SettingsRoute() {
     activeHousehold?.plan_tier === "household_premium"
       ? "household_premium"
       : profile?.tier ?? "free";
-  const currentDay = profile?.prototype_day ?? 1;
+  const currentTierLabel =
+    currentTier === "premium"
+      ? t("settings.tierPremium")
+      : currentTier === "household_premium"
+        ? t("settings.tierHouseholdPremium")
+        : t("settings.tierFree");
 
   const goalLabel = profile?.primary_goal
     ? t(`settings.primaryGoalChoices.${profile.primary_goal}` as any)
@@ -284,14 +246,7 @@ export default function SettingsRoute() {
 
         {/* Account actions */}
         <SettingsGroup>
-          <SettingsRow label={t("common.signOut")} onPress={signOut} danger />
-          {__DEV__ ? (
-            <SettingsRow
-              label={t("settings.resetOnboarding")}
-              onPress={handleResetOnboarding}
-              last
-            />
-          ) : null}
+          <SettingsRow label={t("common.signOut")} onPress={signOut} danger last />
         </SettingsGroup>
 
         {/* Household */}
@@ -309,7 +264,10 @@ export default function SettingsRoute() {
               await household.joinHousehold(code, moveItems);
               await refresh();
             }}
-            onPremiumGate={() => setShowPremium(true)}
+            onPremiumGate={() => {
+              setPremiumPlan("household");
+              setShowPremium(true);
+            }}
             initialJoinCode={typeof joinCode === "string" ? joinCode : undefined}
           />
         ) : null}
@@ -391,76 +349,44 @@ export default function SettingsRoute() {
           </View>
         </Card>
 
-        {/* Prototype controls */}
+        {/* Subscription */}
         <Card>
           <View style={styles.cardInner}>
             <View style={styles.sectionHeader}>
-              <Text variant="label">{t("settings.prototypeControls")}</Text>
+              <Text variant="label">{t("settings.subscriptionTitle")}</Text>
               <Text variant="small" muted>
-                {t("settings.prototypeControlsBody")}
+                {t("settings.subscriptionBody")}
               </Text>
             </View>
 
-            <View style={styles.sectionHeader}>
-              <Text variant="small" color={colors.primary} style={styles.controlLabel}>
-                {t("settings.tierLabel")}
-              </Text>
-            </View>
-            <View style={styles.tierButtons}>
-              {TIER_OPTIONS.map((option) => (
-                <Pressable
-                  key={option.key}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: currentTier === option.value }}
-                  disabled={tierLoading}
-                  onPress={() => handleTierChange(option.value)}
-                  style={[
-                    styles.tierOption,
-                    currentTier === option.value && styles.tierOptionActive,
-                  ]}
+            <View style={styles.settingRow}>
+              <View style={styles.settingCopy}>
+                <Text variant="small">{currentTierLabel}</Text>
+              </View>
+              <View
+                style={[
+                  styles.tierBadge,
+                  currentTier !== "free" && styles.tierBadgePremium,
+                ]}
+              >
+                <Text
+                  variant="micro"
+                  color={currentTier === "free" ? colors.primary : colors.accent}
                 >
-                  <Text
-                    variant="small"
-                    color={currentTier === option.value ? colors.surface : colors.primary}
-                    style={styles.tierOptionText}
-                  >
-                    {t(`settings.${option.label}`)}
-                  </Text>
-                </Pressable>
-              ))}
+                  {currentTier === "free" ? t("settings.tierFree") : `★ ${currentTierLabel}`}
+                </Text>
+              </View>
             </View>
 
-            <View style={styles.sectionHeader}>
-              <Text variant="small" color={colors.primary} style={styles.controlLabel}>
-                {t("settings.prototypeDayLabel")}
-              </Text>
-              <Text variant="small" muted>
-                {t("settings.prototypeDayBody")}
-              </Text>
-            </View>
-            <View style={styles.dayButtons}>
-              {PROTOTYPE_DAYS.map((day) => (
-                <Pressable
-                  key={day}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: currentDay === day }}
-                  disabled={dayLoading}
-                  onPress={() => handleDayChange(day)}
-                  style={[
-                    styles.dayOption,
-                    currentDay === day && styles.dayOptionActive,
-                  ]}
-                >
-                  <Text
-                    variant="small"
-                    color={currentDay === day ? colors.surface : colors.primary}
-                    center
-                  >
-                    {day}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+            {currentTier === "free" ? (
+              <Button
+                title={t("settings.upgrade")}
+                onPress={() => {
+                  setPremiumPlan("individual");
+                  setShowPremium(true);
+                }}
+              />
+            ) : null}
           </View>
         </Card>
       </View>
@@ -610,9 +536,9 @@ export default function SettingsRoute() {
 
       <PremiumSheet
         visible={showPremium}
-        plan="household"
+        plan={premiumPlan}
         onPreview={async () => {
-          await setPreviewTier("household_premium");
+          await setPreviewTier(premiumPlan === "household" ? "household_premium" : "premium");
           await refresh();
         }}
         onDismiss={() => setShowPremium(false)}
@@ -751,49 +677,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary50,
     borderRadius: radii.pill,
   },
+  tierBadgePremium: {
+    backgroundColor: colors.accentSoft,
+  },
   sectionHeader: {
     gap: spacing.xs,
-  },
-  controlLabel: {
-    fontWeight: "600",
-  },
-  tierButtons: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  tierOption: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairlineStrong,
-    alignItems: "center",
-  },
-  tierOptionActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  tierOptionText: {
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  dayButtons: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  dayOption: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.hairlineStrong,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dayOptionActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   settingRow: {
     flexDirection: "row",

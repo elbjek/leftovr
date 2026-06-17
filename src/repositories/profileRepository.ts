@@ -197,16 +197,3 @@ export async function updateHouseholdDefaultServings(
 
   if (error) throw error;
 }
-
-export async function setPrototypeDay(day: number) {
-  const supabase = getSupabaseClient();
-  const profile = await getCurrentProfile();
-  const clampedDay = Math.max(1, Math.min(7, day));
-
-  const { error } = await supabase
-    .from("profiles")
-    .update({ prototype_day: clampedDay })
-    .eq("id", profile.id);
-
-  if (error) throw error;
-}

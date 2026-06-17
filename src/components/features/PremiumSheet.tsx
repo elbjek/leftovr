@@ -92,11 +92,18 @@ export function PremiumSheet({ visible, plan = "individual", onPreview, onDismis
         </Text>
       ) : null}
 
-      <Button
-        title={household ? t("premium.previewHousehold") : t("premium.previewIndividual")}
-        onPress={handlePreview}
-        style={styles.cta}
-      />
+      {/* TODO(billing): integrate RevenueCat so the selected plan is purchasable.
+         The buy CTA should call RevenueCat purchase → on success sync the tier
+         server-side. Until then prod has no working purchase action (only the
+         dev preview grant below). App Store review will reject a paywall with
+         prices but no real purchase, so wire this before public release. */}
+      {__DEV__ ? (
+        <Button
+          title={household ? t("premium.previewHousehold") : t("premium.previewIndividual")}
+          onPress={handlePreview}
+          style={styles.cta}
+        />
+      ) : null}
       <Button title={t("premium.dismiss")} variant="text" onPress={onDismiss} />
     </BottomSheet>
   );
