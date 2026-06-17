@@ -144,7 +144,7 @@ export default function OnboardingRoute() {
       }
 
       await refresh();
-      router.replace("/(first-fill)");
+      router.replace("/(tabs)/scan");
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : t("auth.genericError"),

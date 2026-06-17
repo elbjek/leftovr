@@ -1,10 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Redirect, router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { AuthLanding, Button, Screen, Text } from "@/components";
+import { AuthLanding, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useFirstRunOnboardingGate } from "@/features/onboardingGate";
 import { colors, spacing } from "@/theme";
@@ -61,15 +60,6 @@ export default function SignUpRoute() {
           </Text>
         </View>
       ) : null}
-      {/* TODO: Remove this dev-only reset button before production */}
-      <Button
-        title="DEV: Reset Onboarding"
-        variant="text"
-        onPress={async () => {
-          await AsyncStorage.clear();
-          router.replace("/");
-        }}
-      />
     </Screen>
   );
 }

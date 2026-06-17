@@ -62,7 +62,7 @@ export default function IndexRoute() {
   }
 
   if (!activeHousehold?.first_fill_completed_at) {
-    return <Redirect href="/(first-fill)" />;
+    return <Redirect href="/(tabs)/scan" />;
   }
 
   return <Redirect href="/(tabs)/fridge" />;

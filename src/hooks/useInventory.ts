@@ -76,11 +76,6 @@ export function useInventory(householdId?: string | null) {
   const actions = useMemo(
     () => ({
       refresh: load,
-      addDemoItem: async (name: string) => {
-        if (!householdId) return;
-        await addInventoryItem({ householdId, name });
-        await reloadAndBroadcast();
-      },
       addExpiringDemoItem: async () => {
         if (!householdId) return;
         const addedAt = new Date();

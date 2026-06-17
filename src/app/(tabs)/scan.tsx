@@ -79,7 +79,7 @@ export default function ScanRoute() {
   // OpenFoodFacts lookup) and manual entry are free for everyone.
   const canScanReceipt =
     resolvePremium(profile, activeHousehold) || !profile?.free_receipt_scan_used_at;
-  // Deep-linking with a mode param (from first-fill / fridge) opens the action
+  // Deep-linking with a mode param (from fridge) opens the action
   // directly instead of bouncing through the choice screen. A gated receipt
   // scan falls back to the choice screen (Premium sheet shown on mount).
   const initialMode: ScanMode =

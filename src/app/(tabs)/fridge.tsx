@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, EatFirstShelf, FoodCard, GeneratingLoader, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
+import { BottomSheet, Button, EatFirstShelf, FoodCard, GeneratingLoader, IconButton, RetentionCard, ScanNudgeBanner, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth, useMeasurementSystem } from "@/features";
 import { seedDemoInventory, updateInventoryNetAmount } from "@/repositories";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -43,7 +43,6 @@ export default function FridgeRoute() {
     loading,
     groups,
     error,
-    addDemoItem,
     useFirstLot: consumeFirstLot,
     setFirstLotPartialState,
     removeGroup,
@@ -105,6 +104,8 @@ export default function FridgeRoute() {
           </>
         }
       />
+
+      <ScanNudgeBanner style={styles.bannerInset} />
 
       {weeklySummary && weeklySummary.itemsSaved > 0 ? (
         <Pressable
@@ -192,14 +193,12 @@ export default function FridgeRoute() {
           <Text variant="body" muted center>
             {t("fridge.emptyBody")}
           </Text>
-          <FoodCard
-            name={t("fridge.demoItemName")}
-            category="dairy-eggs"
-            meta={t("fridge.emptyMeta")}
-            urgency="useSoon"
-            size="large"
-            onPress={() => addDemoItem(t("fridge.demoItemName"))}
-          />
+          {activeHousehold?.first_fill_completed_at ? (
+            <Button
+              title={t("fridge.emptyCta")}
+              onPress={() => router.push("/(tabs)/scan")}
+            />
+          ) : null}
         </View>
       ) : null}
 
@@ -699,6 +698,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.screenTop,
     paddingBottom: spacing.tabBarClearance,
     gap: spacing.xl,
+  },
+  bannerInset: {
+    marginTop: 0,
+    marginBottom: 0,
   },
   retentionWrap: {
     paddingHorizontal: spacing.screenX,

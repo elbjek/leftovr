@@ -188,31 +188,15 @@ export const en = {
       },
     },
   },
-  firstFill: {
-    title: "Let's fill your fridge.",
-    titleStart: "Let's fill",
-    titleAccent: "your fridge.",
-    body: "Quickest way is a receipt - Leftovr reads it and adds everything for you.",
-    receipt: {
-      title: "Scan a receipt",
-      subtitle: "20-30 items in 10 seconds",
-    },
-    barcode: {
-      title: "Scan a barcode",
-      subtitle: "One item at a time. Free, unlimited.",
-    },
-    manual: {
-      title: "Add manually",
-      subtitle: "Search and tap. Free, unlimited.",
-    },
-    footer: "Tap a card above, or hit Continue to use a receipt now.",
-  },
   scanMethods: {
     recommended: "Recommended",
     receipt: { title: "Scan a receipt" },
     ereceipt: { title: "Import e-receipt" },
     barcode: { title: "Scan a barcode" },
     manual: { title: "Add manually" },
+  },
+  scanBanner: {
+    message: "Tap to scan and fill your fridge",
   },
   fridge: {
     title: "Hey, your fridge.",
@@ -223,10 +207,9 @@ export const en = {
     body: "Grouped by shelf, with rough quantities and no date math homework.",
     search: "Search fridge",
     refresh: "Refresh",
-    emptyTitle: "Fridge is ready.",
-    emptyBody: "Add a few demo foods to test grouping, urgency, and depletion.",
-    emptyMeta: "Tap to add",
-    demoItemName: "Greek yogurt",
+    emptyTitle: "Your fridge is empty.",
+    emptyBody: "Scan a receipt to fill it in seconds.",
+    emptyCta: "Tap to scan and fill your fridge",
     expiringDemo: "+ Expiring spinach",
     expiringEmpty: "Nothing urgent right now.",
     eatFirstPremium: "★ Premium",

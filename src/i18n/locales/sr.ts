@@ -188,31 +188,15 @@ export const sr = {
       },
     },
   },
-  firstFill: {
-    title: "Hajde da napunimo frizider.",
-    titleStart: "Hajde da napunimo",
-    titleAccent: "tvoj frizider.",
-    body: "Najbrze je racun - Leftovr ga cita i dodaje sve za tebe.",
-    receipt: {
-      title: "Skeniraj racun",
-      subtitle: "20-30 stavki za 10 sekundi",
-    },
-    barcode: {
-      title: "Skeniraj barkod",
-      subtitle: "Jedna stavka odjednom. Besplatno, bez limita.",
-    },
-    manual: {
-      title: "Dodaj rucno",
-      subtitle: "Pretrazi i dodirni. Besplatno, bez limita.",
-    },
-    footer: "Dodirni karticu iznad ili Continue za racun.",
-  },
   scanMethods: {
     recommended: "Preporuceno",
     receipt: { title: "Skeniraj racun" },
     ereceipt: { title: "Uvezi e-racun" },
     barcode: { title: "Skeniraj barkod" },
     manual: { title: "Dodaj rucno" },
+  },
+  scanBanner: {
+    message: "Dodirni za skeniranje i punjenje frizidera",
   },
   fridge: {
     title: "Hej, tvoj frizider.",
@@ -223,10 +207,9 @@ export const sr = {
     body: "Grupisano po policama, sa grubim kolicinama bez tacnih datuma.",
     search: "Pretrazi frizider",
     refresh: "Osvezi",
-    emptyTitle: "Frizider je spreman.",
-    emptyBody: "Dodaj nekoliko demo namirnica da proveris grupisanje, hitnost i trosenje.",
-    emptyMeta: "Dodirni za dodavanje",
-    demoItemName: "Grcki jogurt",
+    emptyTitle: "Tvoj frizider je prazan.",
+    emptyBody: "Skeniraj racun da ga napunis za par sekundi.",
+    emptyCta: "Dodirni za skeniranje i punjenje frizidera",
     expiringDemo: "+ Spanać ističe",
     expiringEmpty: "Nista hitno trenutno.",
     eatFirstPremium: "★ Premium",

@@ -4,7 +4,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, GeneratingOverlay, PremiumSheet, RecipeCard, RecipeGlyph, Screen, ScreenHeader, Text } from "@/components";
+import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, GeneratingOverlay, PremiumSheet, RecipeCard, RecipeGlyph, ScanNudgeBanner, Screen, ScreenHeader, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
@@ -262,6 +262,7 @@ export default function RecipesRoute() {
 
   return (
     <Screen padded={false} bottomInset={false}>
+      <ScanNudgeBanner />
       {isEmpty ? (
         <View style={styles.emptyWrap}>
           <EmptyState
