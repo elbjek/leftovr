@@ -280,7 +280,6 @@ export const sr = {
     emptyScanTitle: "Nismo nasli namirnice",
     emptyScan: "Nismo nasli namirnice. Proveri da je u pitanju racun za namirnice — za fotografije koristi jasnu, dobro osvetljenu sliku.",
     tryAgain: "Pokusaj ponovo",
-    demoReceipt: "Koristi demo racun",
     processingTitle: "Citamo racun.",
     processingBody: "Sredjujemo tvoju kupovinu.",
     confirm: {

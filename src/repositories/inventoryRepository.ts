@@ -1,5 +1,4 @@
 import { getSupabaseClient } from "@/lib/supabase";
-import { mockReceiptTemplates } from "@/mocks";
 import {
   getCatalogFood,
   getCatalogNet,
@@ -122,48 +121,6 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
   }
 
   return data;
-}
-
-// Dev-only seed: bulk-inserts the demo receipt template's items straight into
-// the active household's fridge, bypassing the scan flow. Used by the __DEV__
-// button on the fridge screen.
-export async function seedDemoInventory(householdId: string) {
-  const supabase = getSupabaseClient();
-  const { data: userResult, error: userError } = await supabase.auth.getUser();
-  if (userError) {
-    throw userError;
-  }
-  const userId = userResult.user?.id;
-  if (!userId) {
-    throw new Error("No signed-in user.");
-  }
-
-  const addedAt = new Date().toISOString();
-  const rows = mockReceiptTemplates[0].items.map((item) => {
-    const name = item.name.trim();
-    const catalogNet = getCatalogNet(name);
-    return {
-      household_id: householdId,
-      name,
-      normalized_name: normalizeFoodName(name),
-      category: item.category,
-      quantity: item.quantity,
-      unit: item.unit,
-      net_amount: catalogNet ? catalogNet.netAmount * item.quantity : null,
-      net_unit: catalogNet?.netUnit ?? null,
-      partial_state: "full" satisfies PartialState,
-      shelf_life_range: getShelfLifeRange(name, item.category),
-      source: "manual" satisfies InventorySource,
-      added_by: userId,
-      added_at: addedAt,
-    };
-  });
-
-  const { error } = await supabase.from("inventory_items").insert(rows);
-  if (error) {
-    throw error;
-  }
-  return rows.length;
 }
 
 export async function removeInventoryLot(itemId: string, reason = "removed") {

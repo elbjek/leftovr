@@ -280,7 +280,6 @@ export const en = {
     emptyScanTitle: "Couldn't find groceries",
     emptyScan: "We couldn't find any groceries there. Make sure it's a grocery receipt — for photos, use a clear, well-lit shot.",
     tryAgain: "Try again",
-    demoReceipt: "Use demo receipt",
     processingTitle: "Reading your receipt.",
     processingBody: "Sorting out what you bought.",
     confirm: {

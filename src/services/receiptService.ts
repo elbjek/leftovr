@@ -1,7 +1,7 @@
-import { mockReceiptTemplates, MockReceiptItem } from "@/mocks";
 import {
   getCatalogNet,
   getShelfLifeRange,
+  InventoryCategory,
   normalizeFoodName,
 } from "./inventoryRules";
 
@@ -10,7 +10,7 @@ const HIGH_CONFIDENCE_THRESHOLD = 0.75;
 export type ReceiptConfirmItem = {
   id: string;
   name: string;
-  category: MockReceiptItem["category"];
+  category: InventoryCategory;
   quantity: number;
   unit: string;
   confidence: number;
@@ -59,25 +59,6 @@ export function buildReceiptConfirmItemsFromLines(
     unit: line.item.unit ?? "item",
     confidence: line.confidence,
     lowConfidence: line.confidence < HIGH_CONFIDENCE_THRESHOLD,
-    included: true,
-  }));
-}
-
-export function getMockReceiptTemplate(key: string) {
-  return mockReceiptTemplates.find((template) => template.key === key) ?? mockReceiptTemplates[0];
-}
-
-export function buildReceiptConfirmItems(templateKey: string): ReceiptConfirmItem[] {
-  const template = getMockReceiptTemplate(templateKey);
-
-  return template.items.map((item, index) => ({
-    id: `${template.key}-${index}`,
-    name: item.name,
-    category: item.category,
-    quantity: item.quantity,
-    unit: item.unit,
-    confidence: item.confidence,
-    lowConfidence: item.confidence < HIGH_CONFIDENCE_THRESHOLD,
     included: true,
   }));
 }

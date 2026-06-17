@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
-  addInventoryItem,
   advanceInventoryPartialState,
   depleteItemQuantity,
   listActiveHouseholdInventory,
@@ -76,13 +75,6 @@ export function useInventory(householdId?: string | null) {
   const actions = useMemo(
     () => ({
       refresh: load,
-      addExpiringDemoItem: async () => {
-        if (!householdId) return;
-        const addedAt = new Date();
-        addedAt.setDate(addedAt.getDate() - 5);
-        await addInventoryItem({ householdId, name: "Spinach", addedAt: addedAt.toISOString() });
-        await reloadAndBroadcast();
-      },
       useFirstLot: async (group: InventoryGroup) => {
         if (!householdId || !group.lots[0]) return;
         await depleteItemQuantity(householdId, group.normalizedName, 1, group.unit);
