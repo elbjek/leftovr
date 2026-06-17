@@ -52,6 +52,7 @@ type ScanMode =
   | "camera"
   | "barcodeCamera"
   | "barcodeFallback"
+  | "emptyScan"
   | "manual"
   | "processing"
   | "confirm"
@@ -215,8 +216,7 @@ export default function ScanRoute() {
       });
 
       if (scan.items.length === 0) {
-        setError(t("scan.emptyScan"));
-        setMode("choice");
+        setMode("emptyScan");
         return;
       }
 
@@ -342,10 +342,9 @@ export default function ScanRoute() {
       });
 
       // Nothing readable on the photo (blurry, dark, or not a receipt):
-      // back to the camera with an explanation, never an empty confirm sheet.
+      // a full-screen explanation with a retry, never an empty confirm sheet.
       if (scan.items.length === 0) {
-        setError(t("scan.emptyScan"));
-        setMode("camera");
+        setMode("emptyScan");
         return;
       }
 
@@ -743,6 +742,29 @@ export default function ScanRoute() {
           <View style={styles.buttonStack}>
             <Button title={t("scan.manual.title")} onPress={() => setMode("manual")} />
             <Button title={t("scan.tryAnotherBarcode")} variant="ghost" onPress={() => setMode("barcodeCamera")} />
+          </View>
+        </View>
+      </Screen>
+    );
+  }
+
+  if (mode === "emptyScan") {
+    return (
+      <Screen>
+        <View style={styles.center}>
+          <ScanMethodIcon method={choice === "ereceipt" ? "ereceipt" : "receipt"} />
+          <Text variant="display" center>
+            {t("scan.emptyScanTitle")}
+          </Text>
+          <Text variant="body" muted center>
+            {t("scan.emptyScan")}
+          </Text>
+          <View style={styles.buttonStack}>
+            <Button
+              title={t("scan.tryAgain")}
+              onPress={() => (choice === "ereceipt" ? importEReceipt() : setMode("camera"))}
+            />
+            <Button title={t("common.cancel")} variant="ghost" onPress={returnToChoice} />
           </View>
         </View>
       </Screen>

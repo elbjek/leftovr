@@ -128,23 +128,37 @@ Deno.serve(async (req) => {
     return Response.json({ error: "invalid_authorization" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, tier, active_household_id, free_receipt_scan_used_at")
-    .eq("id", userId)
-    .single();
+  // These three reads are independent (keyed on userId/householdId), so run
+  // them concurrently. Auth is already validated above; the gate checks below
+  // still run in the same order and reject before any write/AI call.
+  const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
+  const [profileResult, householdResult, dailyCountResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, tier, active_household_id, free_receipt_scan_used_at")
+      .eq("id", userId)
+      .single(),
+    supabase
+      .from("households")
+      .select("plan_tier")
+      .eq("id", input.householdId)
+      .maybeSingle(),
+    supabase
+      .from("receipt_scans")
+      .select("id", { count: "exact", head: true })
+      .eq("created_by", userId)
+      .gte("created_at", dayAgo),
+  ]);
+  const profile = profileResult.data;
+  const household = householdResult.data;
+  const dailyCount = dailyCountResult.count;
+
   if (!profile) {
     return Response.json({ error: "profile_not_found" }, { status: 403 });
   }
   if (profile.active_household_id !== input.householdId) {
     return Response.json({ error: "household_mismatch" }, { status: 403 });
   }
-
-  const { data: household } = await supabase
-    .from("households")
-    .select("plan_tier")
-    .eq("id", input.householdId)
-    .maybeSingle();
   const premium =
     profile.tier === "premium" ||
     profile.tier === "household_premium" ||
@@ -153,12 +167,6 @@ Deno.serve(async (req) => {
     return Response.json({ error: "receipt_scan_quota_exceeded" }, { status: 402 });
   }
 
-  const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
-  const { count: dailyCount } = await supabase
-    .from("receipt_scans")
-    .select("id", { count: "exact", head: true })
-    .eq("created_by", userId)
-    .gte("created_at", dayAgo);
   if ((dailyCount ?? 0) >= 30) {
     return Response.json({ error: "receipt_scan_rate_limited" }, { status: 429 });
   }
