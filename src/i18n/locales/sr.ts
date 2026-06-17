@@ -210,6 +210,7 @@ export const sr = {
   scanMethods: {
     recommended: "Preporuceno",
     receipt: { title: "Skeniraj racun" },
+    ereceipt: { title: "Uvezi e-racun" },
     barcode: { title: "Skeniraj barkod" },
     manual: { title: "Dodaj rucno" },
   },
@@ -293,7 +294,7 @@ export const sr = {
     coachTitle: "Uhvatite ceo racun",
     coachBody: "Neka svaka stavka bude citljiva i unutar okvira, pa dodirni okidac.",
     capture: "Skeniraj racun",
-    emptyScan: "Nismo nasli namirnice na ovom racunu. Probaj jasniju, dobro osvetljenu fotografiju.",
+    emptyScan: "Nismo nasli namirnice. Proveri da je u pitanju racun za namirnice — za fotografije koristi jasnu, dobro osvetljenu sliku.",
     demoReceipt: "Koristi demo racun",
     processingTitle: "Citamo racun.",
     processingBody: "Sredjujemo tvoju kupovinu.",
@@ -331,6 +332,11 @@ export const sr = {
     receipt: {
       title: "Skeniraj racun",
       body: "Najbrzi nacin da napunis frizider.",
+    },
+    ereceipt: {
+      title: "Uvezi e-racun",
+      body: "Dodaj PDF e-racun iz aplikacije prodavnice.",
+      tooLarge: "Taj PDF je prevelik. Otpremi racun manji od 10 MB.",
     },
     barcode: {
       title: "Skeniraj barkod",

@@ -210,6 +210,7 @@ export const en = {
   scanMethods: {
     recommended: "Recommended",
     receipt: { title: "Scan a receipt" },
+    ereceipt: { title: "Import e-receipt" },
     barcode: { title: "Scan a barcode" },
     manual: { title: "Add manually" },
   },
@@ -293,7 +294,7 @@ export const en = {
     coachTitle: "Line up the whole receipt",
     coachBody: "Make sure every line is readable and inside the frame, then tap the shutter.",
     capture: "Capture receipt",
-    emptyScan: "We couldn't find any groceries on that receipt. Try a clearer, well-lit photo.",
+    emptyScan: "We couldn't find any groceries there. Make sure it's a grocery receipt — for photos, use a clear, well-lit shot.",
     demoReceipt: "Use demo receipt",
     processingTitle: "Reading your receipt.",
     processingBody: "Sorting out what you bought.",
@@ -331,6 +332,11 @@ export const en = {
     receipt: {
       title: "Scan a receipt",
       body: "Fastest way to fill your fridge.",
+    },
+    ereceipt: {
+      title: "Import e-receipt",
+      body: "Add a PDF e-receipt from your store app.",
+      tooLarge: "That PDF is too large. Please upload a receipt under 10 MB.",
     },
     barcode: {
       title: "Scan a barcode",

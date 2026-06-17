@@ -235,12 +235,19 @@ export default function RecipeDetailRoute() {
         amount: v.amount,
         unit: v.unit,
       }));
-      await recordCookedEventAndDepleteInventory({
-        householdId: activeHousehold.id,
-        recipeId: recipeId || null,
-        servings,
-        usedItems,
-      });
+      // Time-box the save: a hung network call (no rejection) would otherwise
+      // leave the CTA spinning forever with no feedback.
+      await Promise.race([
+        recordCookedEventAndDepleteInventory({
+          householdId: activeHousehold.id,
+          recipeId: recipeId || null,
+          servings,
+          usedItems,
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(t("common.fridgeUpdateError"))), 20000),
+        ),
+      ]);
       notifyInventoryChanged();
       setShowCooked(false);
       router.replace("/(tabs)/fridge");
@@ -440,7 +447,15 @@ export default function RecipeDetailRoute() {
         />
       </View>
 
-      <BottomSheet visible={showCooked} onDismiss={() => setShowCooked(false)}>
+      <BottomSheet
+        visible={showCooked}
+        onDismiss={() => {
+          setShowCooked(false);
+          // Closing the sheet abandons the save; don't leave the CTA spinning
+          // for the next open.
+          setCooking(false);
+        }}
+      >
         {swapIndex === null ? (
           <>
             <Text variant="micro" color={colors.accent} style={styles.cookedEyebrow}>

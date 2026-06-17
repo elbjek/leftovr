@@ -86,7 +86,8 @@ function LeftovrTabBar({ state, navigation }: TabBarProps) {
   const params = useLocalSearchParams<{ mode?: string }>();
   const activeRoute = state.routes[state.index]?.name;
   const hideForScanCamera =
-    activeRoute === "scan" && (params.mode === "receipt" || params.mode === "barcode");
+    activeRoute === "scan" &&
+    (params.mode === "receipt" || params.mode === "ereceipt" || params.mode === "barcode");
 
   if (hideForScanCamera) return null;
 
@@ -261,11 +262,7 @@ const styles = StyleSheet.create({
     borderColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: colors.primary,
-    shadowOpacity: 0.32,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    boxShadow: "0px 8px 20px rgba(27, 67, 50, 0.32)",
   },
   scanLabel: {
     fontSize: 10.5,

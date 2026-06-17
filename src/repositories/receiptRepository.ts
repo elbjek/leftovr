@@ -98,6 +98,47 @@ export async function normalizeReceiptImage(input: {
 }
 
 /**
+ * Imports a digital e-receipt PDF: uploads it to the receipt-images bucket and
+ * runs the same normalize-receipt pipeline as a photo scan (the edge function
+ * branches on the .pdf extension and sends a `file` content part to OpenAI).
+ */
+export async function normalizeReceiptPdf(input: {
+  householdId: string;
+  pdfBase64: string;
+}): Promise<NormalizedReceiptScan> {
+  const supabase = getSupabaseClient();
+  const imagePath = `${input.householdId}/${Date.now()}-${Math.random().toString(36).slice(2)}.pdf`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("receipt-images")
+    .upload(imagePath, base64ToBytes(input.pdfBase64).buffer as ArrayBuffer, {
+      contentType: "application/pdf",
+    });
+  if (uploadError) {
+    throw uploadError;
+  }
+
+  const { data, error } = await supabase.functions.invoke("normalize-receipt", {
+    body: { householdId: input.householdId, imagePath },
+  });
+  if (error) {
+    throw error;
+  }
+
+  const response = data as {
+    scanId: string;
+    duplicate: ReceiptDuplicate | null;
+    lines: NormalizedReceiptLine[];
+  };
+
+  return {
+    scanId: response.scanId,
+    items: buildReceiptConfirmItemsFromLines(response.lines),
+    duplicate: response.duplicate,
+  };
+}
+
+/**
  * Completes a scan the edge function already created: marks it completed and
  * inserts the confirmed items into inventory. `duplicateOf` dodges the unique
  * signature index when the user explicitly accepts a duplicate receipt.

@@ -131,25 +131,13 @@ export const radii = {
 
 export const shadows = {
   primaryButton: {
-    shadowColor: colors.primary,
-    shadowOpacity: 0.18,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
+    boxShadow: "0px 8px 24px rgba(27, 67, 50, 0.18)",
   },
   card: {
-    shadowColor: colors.black,
-    shadowOpacity: 0.04,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 1,
+    boxShadow: "0px 6px 14px rgba(28, 28, 26, 0.04)",
   },
   sheet: {
-    shadowColor: colors.black,
-    shadowOpacity: 0.18,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: -8 },
-    elevation: 10,
+    boxShadow: "0px -8px 28px rgba(28, 28, 26, 0.18)",
   },
 } as const;
 

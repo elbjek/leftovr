@@ -5,7 +5,7 @@ import Svg, { Circle, Line, Path } from "react-native-svg";
 import { colors, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
 
-export type ScanMethod = "receipt" | "barcode" | "manual";
+export type ScanMethod = "receipt" | "ereceipt" | "barcode" | "manual";
 
 type Props = {
   method: ScanMethod;
@@ -66,6 +66,17 @@ export function ScanMethodIcon({ method, color = colors.primary }: { method: Sca
         <Path d="M4 3h14v16l-2-2-2 2-2-2-2 2-2-2-2 2-2-2V3z" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
         <Line x1={7} y1={8} x2={15} y2={8} stroke={color} strokeWidth={1.6} strokeLinecap="round" />
         <Line x1={7} y1={12} x2={13} y2={12} stroke={color} strokeWidth={1.6} strokeLinecap="round" />
+      </Svg>
+    );
+  }
+
+  if (method === "ereceipt") {
+    return (
+      <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+        <Path d="M5 2.5h8l4 4v13H5V2.5z" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
+        <Path d="M13 2.5v4h4" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
+        <Line x1={8} y1={11} x2={14} y2={11} stroke={color} strokeWidth={1.6} strokeLinecap="round" />
+        <Line x1={8} y1={14.5} x2={14} y2={14.5} stroke={color} strokeWidth={1.6} strokeLinecap="round" />
       </Svg>
     );
   }

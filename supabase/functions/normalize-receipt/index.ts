@@ -77,7 +77,8 @@ const RECEIPT_SCHEMA = {
 };
 
 const PROMPT = [
-  "Read this grocery receipt photo and normalize every purchased food line item.",
+  "Read this grocery receipt (a photo or a PDF e-receipt) and normalize every purchased food line item.",
+  "If this is NOT a grocery receipt (e.g. an ID, a bank statement, a menu, or any other document), return storeChain \"unknown\" and an empty `lines` array. Never invent items.",
   "Receipts may be in any language; keep `name` close to what a shopper would call the product in the receipt's language, but `normalizedName` must be a lowercase canonical English food name (e.g. \"milk\", \"chicken breast\").",
   "`normalizedName` MUST keep any qualifier that changes how the food is used or eaten: \"chocolate croissant\" not \"croissant\", \"chocolate milk\" not \"milk\", \"greek yogurt\" not \"yogurt\", \"smoked salmon\" not \"salmon\". Brand names (Milka, Coco, Nutella, etc.) signal the product type even when the base word looks plain — a \"kroasan coco milka\" is a chocolate-filled croissant snack, normalizedName \"chocolate croissant\".",
   "`rawText` must be the receipt line exactly as printed, including abbreviations.",
@@ -186,7 +187,26 @@ Deno.serve(async (req) => {
     if (downloadError || !file) {
       throw new Error(`image_download_failed: ${downloadError?.message ?? "empty"}`);
     }
-    const imageBase64 = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
+    const fileBase64 = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
+    // We don't retain receipt files: delete as soon as it's decoded so a wrong
+    // upload (an ID, a random PDF) never lingers in storage. Runs before the AI
+    // call, so success, empty, and failure paths all leave nothing behind.
+    // Cleanup failure is non-fatal — the scan continues.
+    const { error: removeError } = await supabase.storage
+      .from("receipt-images")
+      .remove([input.imagePath]);
+    if (removeError) {
+      console.error("[normalize-receipt] receipt file cleanup failed", removeError);
+    }
+    const isPdf = input.imagePath.toLowerCase().endsWith(".pdf");
+    // Digital e-receipts come as PDFs; OpenAI reads them via a `file` content
+    // part. Camera scans stay on the `image_url` (vision) path.
+    const receiptContent = isPdf
+      ? {
+        type: "file",
+        file: { filename: "receipt.pdf", file_data: `data:application/pdf;base64,${fileBase64}` },
+      }
+      : { type: "image_url", image_url: { url: `data:image/jpeg;base64,${fileBase64}` } };
 
     const client = new OpenAI({ apiKey });
     const response = await client.chat.completions.create({
@@ -196,11 +216,8 @@ Deno.serve(async (req) => {
         role: "user",
         content: [
           { type: "text", text: PROMPT },
-          {
-            type: "image_url",
-            image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
-          },
-        ],
+          receiptContent,
+        ] as OpenAI.Chat.Completions.ChatCompletionContentPart[],
       }],
       response_format: {
         type: "json_schema",

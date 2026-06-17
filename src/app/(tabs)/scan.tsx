@@ -1,4 +1,6 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from "expo-camera";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -17,6 +19,7 @@ import {
   confirmNormalizedReceiptScan,
   confirmReceiptScan,
   normalizeReceiptImage,
+  normalizeReceiptPdf,
   prepareReceiptScan,
   ReceiptDuplicate,
   ReceiptScanResult,
@@ -56,7 +59,11 @@ type ScanMode =
   | "success"
   | "addSuccess"
   | "notifications";
-type ScanChoice = "receipt" | "barcode" | "manual";
+type ScanChoice = "receipt" | "ereceipt" | "barcode" | "manual";
+
+// E-receipts are a few small pages; cap the upload to bound the (paid) AI call
+// and block oversized/wrong documents before they reach storage or OpenAI.
+const MAX_ERECEIPT_PDF_BYTES = 10 * 1024 * 1024;
 
 export default function ScanRoute() {
   const { t } = useTranslation();
@@ -170,20 +177,92 @@ export default function ScanRoute() {
   }, [sheetItemName, manualCategory]);
   const expiryValue = manualExpiry ?? defaultExpiry;
 
+  const importEReceipt = useCallback(async () => {
+    const householdId = activeHousehold?.id;
+    if (!householdId) return;
+
+    let picked: DocumentPicker.DocumentPickerResult;
+    try {
+      picked = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+        copyToCacheDirectory: true,
+      });
+    } catch {
+      setMode("choice");
+      setError(t("auth.genericError"));
+      return;
+    }
+
+    const asset = picked.canceled ? null : picked.assets[0];
+    if (!asset) {
+      setMode("choice");
+      return;
+    }
+
+    if (asset.size != null && asset.size > MAX_ERECEIPT_PDF_BYTES) {
+      setMode("choice");
+      setError(t("scan.ereceipt.tooLarge"));
+      return;
+    }
+
+    setMode("processing");
+    setError(null);
+    try {
+      const pdfBase64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: "base64" });
+      const scan = await normalizeReceiptPdf({
+        householdId,
+        pdfBase64,
+      });
+
+      if (scan.items.length === 0) {
+        setError(t("scan.emptyScan"));
+        setMode("choice");
+        return;
+      }
+
+      setPendingScanId(scan.scanId);
+      setDemoScan(false);
+      setConfirmItems(scan.items);
+
+      if (scan.duplicate) {
+        setDuplicate(scan.duplicate);
+        setMode("duplicate");
+        return;
+      }
+
+      setConfirmAllowsDuplicate(false);
+      setMode("confirm");
+    } catch (scanError) {
+      if (isReceiptQuotaError(scanError) && !canScanReceipt) {
+        setMode("choice");
+        setScanPremiumVisible(true);
+        return;
+      }
+      setError(errorMessage(scanError, t("auth.genericError")));
+      setMode("choice");
+    }
+  }, [activeHousehold?.id, canScanReceipt, t]);
+
   const openSelectedChoice = useCallback(async (nextChoice = choice, options?: { skipGate?: boolean }) => {
     consumedModeRef.current = nextChoice;
     router.setParams({ mode: nextChoice });
     setChoice(nextChoice);
     setError(null);
 
-    // Receipt scanning: free once, then premium (per-scan AI cost); barcode and manual are free.
-    if (nextChoice === "receipt" && !canScanReceipt && !options?.skipGate) {
+    // Receipt scanning (photo or PDF): free once, then premium (per-scan AI
+    // cost); barcode and manual are free.
+    if ((nextChoice === "receipt" || nextChoice === "ereceipt") && !canScanReceipt && !options?.skipGate) {
       setScanPremiumVisible(true);
       return;
     }
 
     if (nextChoice === "manual") {
       setMode("manual");
+      return;
+    }
+
+    if (nextChoice === "ereceipt") {
+      await importEReceipt();
       return;
     }
 
@@ -199,7 +278,7 @@ export default function ScanRoute() {
     }
 
     setMode(nextChoice === "barcode" ? "barcodeCamera" : "camera");
-  }, [canScanReceipt, choice, permission?.granted, requestPermission, t]);
+  }, [canScanReceipt, choice, importEReceipt, permission?.granted, requestPermission, t]);
 
   useEffect(() => {
     const paramMode = params.mode;
@@ -1057,6 +1136,11 @@ export default function ScanRoute() {
           onPress={() => openSelectedChoice("receipt")}
         />
         <ScanMethodCard
+          method="ereceipt"
+          body={t("scan.ereceipt.body")}
+          onPress={() => openSelectedChoice("ereceipt")}
+        />
+        <ScanMethodCard
           method="barcode"
           body={t("scan.barcode.body")}
           onPress={() => openSelectedChoice("barcode")}
@@ -1134,7 +1218,9 @@ function errorMessage(err: unknown, fallback: string): string {
 }
 
 function getParamChoice(mode?: string): ScanChoice | null {
-  if (mode === "barcode" || mode === "manual" || mode === "receipt") return mode;
+  if (mode === "barcode" || mode === "manual" || mode === "receipt" || mode === "ereceipt") {
+    return mode;
+  }
   return null;
 }
 
