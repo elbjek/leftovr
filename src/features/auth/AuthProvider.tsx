@@ -14,7 +14,7 @@ import {
   getHouseholdById,
   getHouseholdItemCount,
 } from "@/repositories";
-import { sendEmailOtp, signInWithApple, signInWithEmail, signInWithGoogle, signOut, signUpWithEmail, verifyEmailOtp } from "@/services";
+import { configurePurchases, identifyPurchaser, resetPurchaser, sendEmailOtp, signInWithApple, signInWithEmail, signInWithGoogle, signOut, signUpWithEmail, verifyEmailOtp } from "@/services";
 import { getSupabaseClient, hasSupabaseConfig } from "@/lib/supabase";
 import { i18n } from "@/i18n";
 
@@ -106,6 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Tie RevenueCat purchases to this user so the billing webhook can map
+      // app_user_id → tier. Fire-and-forget: never block the auth UI on it.
+      void identifyPurchaser(session.user.id).catch((error) => {
+        if (__DEV__) console.error("[purchases] identify failed", error);
+      });
+
       const profile = await getCurrentProfile();
       let activeHousehold: Household | null = null;
 
@@ -174,6 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       return;
     }
+
+    configurePurchases();
 
     const supabase = getSupabaseClient();
     const {
@@ -273,6 +281,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       signOut: async () => {
         setState((current) => ({ ...current, loading: true, error: null }));
+        void resetPurchaser().catch((error) => {
+          if (__DEV__) console.error("[purchases] reset failed", error);
+        });
         await signOut();
         setState({
           configured: hasSupabaseConfig(),

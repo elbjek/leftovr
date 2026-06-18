@@ -1125,6 +1125,10 @@ export default function ScanRoute() {
 
       <PremiumSheet
         visible={scanPremiumVisible}
+        onPurchased={async () => {
+          await refresh();
+          void openSelectedChoice(choice, { skipGate: true });
+        }}
         onPreview={async () => {
           await setPreviewTier("premium");
           await refresh();

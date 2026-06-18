@@ -49,6 +49,7 @@ export default function InsightsRoute() {
           />
           <PremiumSheet
             visible={showPremium}
+            onPurchased={refresh}
             onPreview={async () => {
               await setPreviewTier("premium");
               await refresh();

@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
+import type { PurchasesOffering } from "react-native-purchases";
 
+import { findPackage, getCurrentOffering, PRODUCT_IDS, purchasePackage, restorePurchases } from "@/services";
 import { colors, radii, spacing } from "../../theme";
 import { BottomSheet, Button, Text } from "../primitives";
 
@@ -12,14 +14,80 @@ type BillingPeriod = "monthly" | "yearly";
 type Props = {
   visible: boolean;
   plan?: PremiumPlan;
+  /** Called after a successful purchase or restore so the caller can refresh
+   *  the (server-controlled) tier. Entitlement itself is set by the webhook. */
+  onPurchased?: () => Promise<void> | void;
+  /** Dev-only preview grant; rendered only under __DEV__. */
   onPreview?: () => void;
   onDismiss: () => void;
 };
 
-export function PremiumSheet({ visible, plan = "individual", onPreview, onDismiss }: Props) {
+export function PremiumSheet({ visible, plan = "individual", onPurchased, onPreview, onDismiss }: Props) {
   const { t } = useTranslation();
   const [period, setPeriod] = useState<BillingPeriod>("yearly");
   const household = plan === "household";
+
+  const [offering, setOffering] = useState<PurchasesOffering | null>(null);
+  const [loadingOffering, setLoadingOffering] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!visible) return;
+    let active = true;
+    async function load() {
+      setError(null);
+      setLoadingOffering(true);
+      try {
+        const result = await getCurrentOffering();
+        if (active) setOffering(result);
+      } catch {
+        if (active) setError(t("premium.unavailable"));
+      } finally {
+        if (active) setLoadingOffering(false);
+      }
+    }
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [visible, t]);
+
+  const productIds = household ? PRODUCT_IDS.household : PRODUCT_IDS.individual;
+  const monthlyPkg = findPackage(offering, productIds.monthly);
+  const yearlyPkg = findPackage(offering, productIds.yearly);
+  const selectedPkg = period === "monthly" ? monthlyPkg : yearlyPkg;
+
+  async function handleSubscribe() {
+    if (!selectedPkg) return;
+    setError(null);
+    setBusy(true);
+    try {
+      const purchased = await purchasePackage(selectedPkg);
+      if (purchased) {
+        await onPurchased?.();
+        onDismiss();
+      }
+    } catch {
+      setError(t("premium.purchaseError"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleRestore() {
+    setError(null);
+    setBusy(true);
+    try {
+      await restorePurchases();
+      await onPurchased?.();
+      onDismiss();
+    } catch {
+      setError(t("premium.purchaseError"));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   const features = household
     ? [
@@ -71,14 +139,14 @@ export function PremiumSheet({ visible, plan = "individual", onPreview, onDismis
       <View style={styles.planCards}>
         <PlanCard
           label={t("premium.monthly")}
-          price={household ? "$7.99" : "$4.99"}
+          price={monthlyPkg?.product.priceString ?? (household ? "$7.99" : "$4.99")}
           sub={t("premium.perMonth")}
           selected={period === "monthly"}
           onPress={() => setPeriod("monthly")}
         />
         <PlanCard
           label={t("premium.yearly")}
-          price={household ? "$49.99" : "$29.99"}
+          price={yearlyPkg?.product.priceString ?? (household ? "$49.99" : "$29.99")}
           sub={t("premium.perYear")}
           selected={period === "yearly"}
           badge={t("premium.saveBadge")}
@@ -92,16 +160,33 @@ export function PremiumSheet({ visible, plan = "individual", onPreview, onDismis
         </Text>
       ) : null}
 
-      {/* TODO(billing): integrate RevenueCat so the selected plan is purchasable.
-         The buy CTA should call RevenueCat purchase → on success sync the tier
-         server-side. Until then prod has no working purchase action (only the
-         dev preview grant below). App Store review will reject a paywall with
-         prices but no real purchase, so wire this before public release. */}
+      {error ? (
+        <Text variant="small" color={colors.red} center style={styles.error}>
+          {error}
+        </Text>
+      ) : null}
+
+      {loadingOffering ? (
+        <ActivityIndicator color={colors.primary} style={styles.cta} />
+      ) : (
+        <Button
+          title={t("premium.subscribe")}
+          onPress={handleSubscribe}
+          disabled={!selectedPkg || busy}
+          loading={busy}
+          style={styles.cta}
+        />
+      )}
+
+      <Button title={t("premium.restore")} variant="text" onPress={handleRestore} disabled={busy} />
+
+      {/* Dev-only tier grant for testing without the App Store sandbox. Gated by
+         __DEV__, so it never ships to TestFlight/production. */}
       {__DEV__ ? (
         <Button
           title={household ? t("premium.previewHousehold") : t("premium.previewIndividual")}
+          variant="text"
           onPress={handlePreview}
-          style={styles.cta}
         />
       ) : null}
       <Button title={t("premium.dismiss")} variant="text" onPress={onDismiss} />
@@ -228,6 +313,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   cta: {
+    marginBottom: spacing.sm,
+  },
+  error: {
     marginBottom: spacing.sm,
   },
 });

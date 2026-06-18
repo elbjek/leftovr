@@ -537,6 +537,7 @@ export default function SettingsRoute() {
       <PremiumSheet
         visible={showPremium}
         plan={premiumPlan}
+        onPurchased={refresh}
         onPreview={async () => {
           await setPreviewTier(premiumPlan === "household" ? "household_premium" : "premium");
           await refresh();

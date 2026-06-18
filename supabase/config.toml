@@ -61,6 +61,11 @@ client_id = "app.leftovr.mobile"
 secret = ""
 skip_nonce_check = true
 
+# RevenueCat calls this with its own Authorization header value, not a Supabase
+# JWT — disable JWT verification; the function checks REVENUECAT_WEBHOOK_SECRET.
+[functions.revenuecat-webhook]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 policy = "oneshot"

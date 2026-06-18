@@ -647,6 +647,7 @@ export default function RecipesRoute() {
 
       <PremiumSheet
         visible={showPremium}
+        onPurchased={refresh}
         onPreview={async () => {
           await setPreviewTier("premium");
           await refresh();
