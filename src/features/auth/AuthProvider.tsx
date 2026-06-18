@@ -14,7 +14,7 @@ import {
   getHouseholdById,
   getHouseholdItemCount,
 } from "@/repositories";
-import { sendEmailOtp, signInWithEmail, signInWithGoogle, signOut, signUpWithEmail, verifyEmailOtp } from "@/services";
+import { sendEmailOtp, signInWithApple, signInWithEmail, signInWithGoogle, signOut, signUpWithEmail, verifyEmailOtp } from "@/services";
 import { getSupabaseClient, hasSupabaseConfig } from "@/lib/supabase";
 import { i18n } from "@/i18n";
 
@@ -50,6 +50,7 @@ type AuthContextValue = AuthState & {
   signIn: (input: { email: string; password: string }) => Promise<void>;
   signUp: (input: { displayName: string; email: string; password: string }) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -242,6 +243,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await loadSessionProfile();
         } catch (error) {
           if (__DEV__) console.error("[auth] signInWithGoogle failed", error);
+          setState((current) => ({
+            ...current,
+            loading: false,
+            error: resolveErrorMessage(error),
+          }));
+          throw error;
+        }
+      },
+      signInWithApple: async () => {
+        setState((current) => ({ ...current, loading: true, error: null }));
+        try {
+          const result = await signInWithApple();
+          if (!result) {
+            // User cancelled the Apple flow.
+            setState((current) => ({ ...current, loading: false, error: null }));
+            return;
+          }
+          await loadSessionProfile();
+        } catch (error) {
+          if (__DEV__) console.error("[auth] signInWithApple failed", error);
           setState((current) => ({
             ...current,
             loading: false,

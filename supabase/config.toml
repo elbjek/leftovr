@@ -49,6 +49,18 @@ client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 skip_nonce_check = true
 
+# Apple Sign-In (native expo-apple-authentication → signInWithIdToken). For the
+# native iOS flow the identity token's audience is the app bundle ID, so
+# client_id must be the bundle ID. No secret is needed locally for native-only
+# verification. skip_nonce_check = true: the native flow sends no nonce.
+[auth.external.apple]
+enabled = true
+client_id = "app.leftovr.mobile"
+# Explicit empty secret: native flow needs none. Stops the CLI defaulting to
+# env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET) and warning that it's unset.
+secret = ""
+skip_nonce_check = true
+
 [edge_runtime]
 enabled = true
 policy = "oneshot"

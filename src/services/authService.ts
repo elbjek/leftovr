@@ -62,6 +62,60 @@ export async function signInWithGoogle() {
   }
 }
 
+/**
+ * Native Apple sign-in (iOS only): opens the system Apple flow, then exchanges
+ * the returned identity token for a Supabase session via signInWithIdToken.
+ * Requires a dev client / native build (not Expo Go) and `usesAppleSignIn` in
+ * app.json. Apple only returns the user's name on the first sign-in, so we
+ * persist it to user metadata when present. Returns null when the user cancels.
+ */
+export async function signInWithApple() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const AppleAuthentication = require("expo-apple-authentication");
+  const supabase = getSupabaseClient();
+
+  try {
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+    });
+
+    if (!credential.identityToken) {
+      throw new Error("Apple sign-in did not return an identity token.");
+    }
+
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: "apple",
+      token: credential.identityToken,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    // Apple only provides the full name on the very first authorization; persist
+    // it as display_name so the profile matches the email/Google paths.
+    const fullName = credential.fullName;
+    const displayName = [fullName?.givenName, fullName?.familyName]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    if (displayName) {
+      await supabase.auth.updateUser({ data: { display_name: displayName } });
+    }
+
+    return data;
+  } catch (error) {
+    if ((error as { code?: string })?.code === "ERR_REQUEST_CANCELED") {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export async function signUpWithEmail({
   displayName,
   email,

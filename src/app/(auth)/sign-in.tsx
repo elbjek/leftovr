@@ -10,7 +10,7 @@ import { colors, spacing } from "@/theme";
 
 export default function SignInRoute() {
   const { t } = useTranslation();
-  const { error, signInWithGoogle } = useAuth();
+  const { error, signInWithGoogle, signInWithApple } = useAuth();
   const {
     loading: onboardingGateLoading,
     hasPickedLanguage,
@@ -22,6 +22,16 @@ export default function SignInRoute() {
     setFormError(null);
     try {
       await signInWithGoogle();
+      router.replace("/");
+    } catch {
+      setFormError(t("auth.genericError"));
+    }
+  }
+
+  async function handleApple() {
+    setFormError(null);
+    try {
+      await signInWithApple();
       router.replace("/");
     } catch {
       setFormError(t("auth.genericError"));
@@ -59,7 +69,7 @@ export default function SignInRoute() {
         termsCopy={t("auth.termsCopy")}
         termsLabel={t("auth.terms")}
         privacyLabel={t("auth.privacy")}
-        onApple={() => setFormError(t("auth.oauthPlaceholder"))}
+        onApple={handleApple}
         onGoogle={handleGoogle}
         onEmail={() => router.push({ pathname: "/(auth)/otp", params: { mode: "sign-in" } })}
       />

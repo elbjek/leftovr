@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.leftovr.mobile",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Leftovr uses your camera to scan receipts and barcodes.",
         "ITSAppUsesNonExemptEncryption": false
@@ -71,6 +72,7 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      "expo-apple-authentication",
       "expo-secure-store",
       "expo-image",
       [
