@@ -1,13 +1,16 @@
 import { Stack } from "expo-router";
+import * as Notifications from "expo-notifications";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { AppState, Platform, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "@/i18n";
 import { AuthProvider } from "@/features";
 import { useLeftovrFonts } from "@/lib";
+import { updateLastActive } from "@/repositories/notificationRepository";
+import { registerDevice } from "@/services";
 import { colors } from "@/theme";
 
 SplashScreen.preventAutoHideAsync();
@@ -20,6 +23,16 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontError, fontsLoaded]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", async (state) => {
+      if (state !== "active") return;
+      void updateLastActive();
+      const perm = await Notifications.getPermissionsAsync();
+      if (perm.status === "granted") void registerDevice(); // refresh token if it rotated
+    });
+    return () => sub.remove();
+  }, []);
 
   if (!fontsLoaded && !fontError) {
     return null;

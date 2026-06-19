@@ -75,6 +75,7 @@
       "expo-apple-authentication",
       "expo-secure-store",
       "expo-image",
+      "expo-notifications",
       [
         "@react-native-google-signin/google-signin",
         {

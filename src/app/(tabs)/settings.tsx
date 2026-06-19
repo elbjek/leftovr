@@ -18,6 +18,7 @@ import {
 } from "@/components";
 import { canShareHousehold, useAuth, useMeasurementSystem } from "@/features";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
+import { registerDevice } from "@/services";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
 import {
   setPreviewTier,
@@ -64,6 +65,7 @@ export default function SettingsRoute() {
     preferences: notifPrefs,
     householdSettings: notifHouseholdSettings,
     toggleSmartSuggestions,
+    toggleMemberActivity,
     toggleDailySuggestion,
   } = useNotifications(activeHousehold?.id);
   const isHouseholdPremium = canShareHousehold(activeHousehold);
@@ -290,7 +292,11 @@ export default function SettingsRoute() {
               <Pressable
                 accessibilityRole="switch"
                 accessibilityState={{ checked: notifPrefs?.smart_suggestions_enabled ?? false }}
-                onPress={() => toggleSmartSuggestions(!notifPrefs?.smart_suggestions_enabled)}
+                onPress={async () => {
+                  const next = !notifPrefs?.smart_suggestions_enabled;
+                  if (next) await registerDevice();
+                  toggleSmartSuggestions(next);
+                }}
                 style={[
                   styles.toggle,
                   notifPrefs?.smart_suggestions_enabled && styles.toggleActive,
@@ -302,6 +308,33 @@ export default function SettingsRoute() {
                 ]} />
               </Pressable>
             </View>
+
+            {household.members.length > 1 ? (
+              <View style={styles.settingRow}>
+                <View style={styles.settingCopy}>
+                  <Text variant="small">{t("notifications.memberActivity")}</Text>
+                  <Text variant="micro" muted>{t("notifications.memberActivityBody")}</Text>
+                </View>
+                <Pressable
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: notifPrefs?.member_activity_enabled ?? true }}
+                  onPress={async () => {
+                    const next = !(notifPrefs?.member_activity_enabled ?? true);
+                    if (next) await registerDevice();
+                    toggleMemberActivity(next);
+                  }}
+                  style={[
+                    styles.toggle,
+                    (notifPrefs?.member_activity_enabled ?? true) && styles.toggleActive,
+                  ]}
+                >
+                  <View style={[
+                    styles.toggleThumb,
+                    (notifPrefs?.member_activity_enabled ?? true) && styles.toggleThumbActive,
+                  ]} />
+                </Pressable>
+              </View>
+            ) : null}
 
             <View style={styles.settingRow}>
               <View style={styles.settingCopy}>

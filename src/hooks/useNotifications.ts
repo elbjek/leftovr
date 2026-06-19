@@ -43,6 +43,11 @@ export function useNotifications(householdId: string | undefined) {
     setPreferences((prev) => prev ? { ...prev, smart_suggestions_enabled: enabled } : prev);
   }, []);
 
+  const toggleMemberActivity = useCallback(async (enabled: boolean) => {
+    await updateNotificationPreferences({ member_activity_enabled: enabled });
+    setPreferences((prev) => prev ? { ...prev, member_activity_enabled: enabled } : prev);
+  }, []);
+
   const toggleDailySuggestion = useCallback(async (enabled: boolean) => {
     if (!householdId) return;
     await updateHouseholdNotificationSettings(householdId, { daily_suggestion_enabled: enabled });
@@ -63,6 +68,7 @@ export function useNotifications(householdId: string | undefined) {
     preferences,
     householdSettings,
     toggleSmartSuggestions,
+    toggleMemberActivity,
     toggleDailySuggestion,
     updateSendWindow,
   };

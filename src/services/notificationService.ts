@@ -1,3 +1,7 @@
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
+
+import { updateNotificationPreferences } from "@/repositories/notificationRepository";
 import { InventoryGroup } from "./inventoryRules";
 
 export type DailySuggestion = {
@@ -6,8 +10,19 @@ export type DailySuggestion = {
   items: string[];
 };
 
-export function registerDevice(_token: string, _platform: string): void {
-  // Stub for future FCM/Expo push registration
+/** Requests permission, fetches the Expo push token, and persists it. Idempotent. */
+export async function registerDevice(): Promise<boolean> {
+  const existing = await Notifications.getPermissionsAsync();
+  let status = existing.status;
+  if (status !== "granted") {
+    status = (await Notifications.requestPermissionsAsync()).status;
+  }
+  await updateNotificationPreferences({ permission_status: status === "granted" ? "granted" : "denied" });
+  if (status !== "granted") return false;
+
+  const token = (await Notifications.getExpoPushTokenAsync()).data;
+  await updateNotificationPreferences({ push_token: token, platform: Platform.OS });
+  return true;
 }
 
 export function scheduleSmartSuggestion(_householdId: string): void {

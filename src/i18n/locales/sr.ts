@@ -671,6 +671,8 @@ export const sr = {
     smartSuggestionsBody: "Dobij obavestenje kad nesto treba pojesti prvo.",
     dailySuggestion: "Dnevni predlog za veceru",
     dailySuggestionBody: "Jedna ideja za recept svaki dan na osnovu frizider.",
+    memberActivity: "Aktivnost domacinstva",
+    memberActivityBody: "Dobij obavestenje kad neko doda namirnice u frizider.",
     sendWindow: "Vreme predloga",
     sendWindowValue: "{{start}} – {{end}}",
     permissionStatus: "Dozvola",

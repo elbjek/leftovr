@@ -14,7 +14,9 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts", "supabase/functions/**/*.test.ts"],
+    // Edge-function tests run under Deno (`deno test supabase/functions/...`); they
+    // use Deno.test + https std imports that vitest's node loader can't resolve.
+    include: ["src/**/*.test.ts"],
     globals: true,
   },
   define: {

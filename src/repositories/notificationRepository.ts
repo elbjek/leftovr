@@ -5,6 +5,7 @@ export type NotificationPreferences = {
   user_id: string;
   permission_status: "not_determined" | "granted" | "denied" | "provisional";
   smart_suggestions_enabled: boolean;
+  member_activity_enabled: boolean;
   push_token: string | null;
   platform: string | null;
 };
@@ -26,7 +27,7 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
 
   const { data, error } = await supabase
     .from("notification_preferences")
-    .select("id, user_id, permission_status, smart_suggestions_enabled, push_token, platform")
+    .select("id, user_id, permission_status, smart_suggestions_enabled, member_activity_enabled, push_token, platform")
     .eq("user_id", userResult.user.id)
     .single<NotificationPreferences>();
 
@@ -35,7 +36,7 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
 }
 
 export async function updateNotificationPreferences(
-  updates: Partial<Pick<NotificationPreferences, "permission_status" | "smart_suggestions_enabled" | "push_token" | "platform">>,
+  updates: Partial<Pick<NotificationPreferences, "permission_status" | "smart_suggestions_enabled" | "member_activity_enabled" | "push_token" | "platform">>,
 ): Promise<void> {
   const supabase = getSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();
@@ -47,6 +48,13 @@ export async function updateNotificationPreferences(
     .eq("user_id", userResult.user.id);
 
   if (error) throw error;
+}
+
+export async function updateLastActive(): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { data: userResult } = await supabase.auth.getUser();
+  if (!userResult.user) return;
+  await supabase.from("profiles").update({ last_active_at: new Date().toISOString() }).eq("id", userResult.user.id);
 }
 
 export async function getHouseholdNotificationSettings(

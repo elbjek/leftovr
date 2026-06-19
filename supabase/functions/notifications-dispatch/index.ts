@@ -1,0 +1,177 @@
+import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
+import { sendPush } from "../_shared/sendPush.ts";
+import {
+  isWithinSendWindow, isRecapDay, sentToday, buildDailySuggestion,
+} from "../_shared/notificationRules.ts";
+
+// Hourly cron entrypoint. Service-role only (invoked via pg_net with the service key).
+Deno.serve(async () => {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    { auth: { persistSession: false } },
+  );
+  const now = new Date();
+  const results: Record<string, number> = { daily: 0, recap: 0, topup: 0, reengagement: 0 };
+
+  // --- Household premium rules: daily + recap ---
+  const { data: households } = await supabase
+    .from("household_notification_settings")
+    .select("household_id, daily_suggestion_enabled, send_window_start, send_window_end, timezone, households!inner(plan_tier)")
+    .eq("daily_suggestion_enabled", true);
+
+  for (const h of households ?? []) {
+    const tier = (h as any).households?.plan_tier;
+    if (tier !== "premium" && tier !== "household_premium") continue;
+    if (!isWithinSendWindow(now, h.send_window_start, h.send_window_end, h.timezone)) continue;
+
+    const recap = isRecapDay(now, h.timezone);
+    const type = recap ? "recap" : "daily";
+
+    const { data: members } = await supabase
+      .from("household_members")
+      .select("user_id, profiles!inner(primary_goal), notification_preferences!inner(push_token)")
+      .eq("household_id", h.household_id)
+      .eq("status", "active");
+
+    // One suggestion per household, not per person.
+    const { data: inv } = await supabase
+      .from("inventory_items")
+      .select("name, expires_at")
+      .eq("household_id", h.household_id)
+      .is("removed_at", null);
+    const groups = toUrgencyGroups(inv ?? []);
+    const goal = (members?.[0] as any)?.profiles?.primary_goal ?? null;
+    const payload = recap
+      ? { title: "Your week with leftovr", body: "See what you used and saved this week.", data: { type } }
+      : buildDailyPayload(groups, goal);
+    if (!payload) continue;
+
+    const tokens: string[] = [];
+    const sendUserIds: string[] = [];
+    for (const m of members ?? []) {
+      const prefs = (m as any).notification_preferences;
+      if (!prefs?.push_token) continue;
+      const { data: rows } = await supabase
+        .from("notification_sends")
+        .select("sent_at")
+        .eq("user_id", m.user_id)
+        .gte("sent_at", startOfDayUtcFloor(now));
+      if (sentToday(rows ?? [], now, h.timezone)) continue; // 1/user/day cap
+      tokens.push(prefs.push_token);
+      sendUserIds.push(m.user_id);
+    }
+    if (tokens.length === 0) continue;
+
+    const dead = await sendPush(tokens, payload);
+    await recordSends(supabase, sendUserIds, h.household_id, type, now);
+    await nullDeadTokens(supabase, dead);
+    results[type] += tokens.length;
+  }
+
+  // --- Free rules: top-up + re-engagement ---
+  results.topup = await runTopUp(supabase, now);
+  results.reengagement = await runReengagement(supabase, now);
+
+  return Response.json({ ok: true, results });
+});
+
+// Mirrors client inventoryRules urgency derivation from expires_at.
+function toUrgencyGroups(items: { name: string; expires_at: string | null }[]) {
+  const dayMs = 86400000;
+  const now = Date.now();
+  return items.map((i) => {
+    let urgency = "fresh";
+    if (i.expires_at) {
+      const days = (new Date(i.expires_at).getTime() - now) / dayMs;
+      urgency = days <= 1 ? "urgent" : days <= 3 ? "use_soon" : "fresh";
+    }
+    return { name: i.name, urgency };
+  });
+}
+
+function buildDailyPayload(groups: { name: string; urgency: string }[], goal: string | null) {
+  const s = buildDailySuggestion(groups, goal);
+  return s ? { title: s.title, body: s.body, data: { type: "daily", items: s.items } } : null;
+}
+
+// Coarse UTC floor for the notification_sends query; sentToday filters precisely by tz.
+function startOfDayUtcFloor(now: Date): string {
+  return new Date(now.getTime() - 36 * 3600 * 1000).toISOString();
+}
+
+async function recordSends(supabase: any, userIds: string[], householdId: string | null, type: string, now: Date) {
+  if (userIds.length === 0) return;
+  await supabase.from("notification_sends").insert(
+    userIds.map((user_id) => ({ user_id, household_id: householdId, type, sent_at: now.toISOString() })),
+  );
+}
+
+async function nullDeadTokens(supabase: any, dead: string[]) {
+  for (const token of dead) {
+    await supabase.from("notification_preferences").update({ push_token: null }).eq("push_token", token);
+  }
+}
+
+async function runTopUp(supabase: any, now: Date): Promise<number> {
+  // Households created 3-7 days ago with <2 completed scans, never sent a topup.
+  const since = new Date(now.getTime() - 7 * 86400000).toISOString();
+  const until = new Date(now.getTime() - 3 * 86400000).toISOString();
+  const { data: households } = await supabase
+    .from("households")
+    .select("id, created_at")
+    .gte("created_at", since)
+    .lte("created_at", until);
+  let count = 0;
+  for (const h of households ?? []) {
+    const { count: scans } = await supabase
+      .from("receipt_scans").select("id", { count: "exact", head: true })
+      .eq("household_id", h.id).eq("status", "completed");
+    if ((scans ?? 0) >= 2) continue;
+    const { data: already } = await supabase
+      .from("notification_sends").select("id").eq("household_id", h.id).eq("type", "topup").limit(1);
+    if ((already ?? []).length > 0) continue;
+    count += await pushToHousehold(supabase, h.id, now, "topup",
+      { title: "Keep your suggestions sharp", body: "Scan a receipt so leftovr knows what's in your fridge.", data: { type: "topup" } });
+  }
+  return count;
+}
+
+async function runReengagement(supabase: any, now: Date): Promise<number> {
+  const cutoff = new Date(now.getTime() - 5 * 86400000).toISOString();
+  const { data: users } = await supabase
+    .from("profiles")
+    .select("id, notification_preferences!inner(push_token)")
+    .lt("last_active_at", cutoff);
+  let count = 0;
+  for (const u of users ?? []) {
+    const token = (u as any).notification_preferences?.push_token;
+    if (!token) continue;
+    const { data: recent } = await supabase
+      .from("notification_sends").select("id")
+      .eq("user_id", u.id).eq("type", "reengagement").gte("sent_at", cutoff).limit(1);
+    if ((recent ?? []).length > 0) continue;
+    const dead = await sendPush([token], { title: "What's for dinner?", body: "Open leftovr for a quick idea from your fridge.", data: { type: "reengagement" } });
+    await recordSends(supabase, [u.id], null, "reengagement", now);
+    await nullDeadTokens(supabase, dead);
+    count += 1;
+  }
+  return count;
+}
+
+async function pushToHousehold(supabase: any, householdId: string, now: Date, type: string, payload: any): Promise<number> {
+  const { data: members } = await supabase
+    .from("household_members")
+    .select("user_id, notification_preferences!inner(push_token)")
+    .eq("household_id", householdId).eq("status", "active");
+  const tokens: string[] = [], userIds: string[] = [];
+  for (const m of members ?? []) {
+    const token = (m as any).notification_preferences?.push_token;
+    if (token) { tokens.push(token); userIds.push(m.user_id); }
+  }
+  if (tokens.length === 0) return 0;
+  const dead = await sendPush(tokens, payload);
+  await recordSends(supabase, userIds, householdId, type, now);
+  await nullDeadTokens(supabase, dead);
+  return tokens.length;
+}

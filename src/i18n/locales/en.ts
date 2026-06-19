@@ -670,6 +670,8 @@ export const en = {
     smartSuggestionsBody: "Get notified when something should be eaten first.",
     dailySuggestion: "Daily dinner suggestion",
     dailySuggestionBody: "One recipe idea each day based on your fridge.",
+    memberActivity: "Household activity",
+    memberActivityBody: "Get notified when someone adds items to the fridge.",
     sendWindow: "Suggestion window",
     sendWindowValue: "{{start}} – {{end}}",
     permissionStatus: "Permission",
