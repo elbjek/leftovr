@@ -8,7 +8,9 @@ import { env } from "@/lib/env";
 // resolved server-side by the RevenueCat webhook, never trusted from the client.
 export const PRODUCT_IDS = {
   individual: { monthly: "monthly_individual", yearly: "yearly_individual" },
-  household: { monthly: "monthly_household", yearly: "yearly_household" },
+  // `yearly_household` was deleted in App Store Connect; Apple permanently
+  // reserves product IDs, so the replacement uses a new id.
+  household: { monthly: "monthly_household", yearly: "yearly_household_v2" },
 } as const;
 
 let configured = false;
