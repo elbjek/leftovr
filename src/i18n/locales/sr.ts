@@ -42,7 +42,6 @@ export const sr = {
     emailContinue: "Nastavi uz email",
     backToChoices: "Nazad na opcije prijave",
     goToSignIn: "Vec imam nalog",
-    goToSignUp: "Napravi nalog",
     apple: "Nastavi uz Apple",
     google: "Nastavi uz Google",
     oauthPlaceholder: "Uskoro",
@@ -393,6 +392,7 @@ export const sr = {
     noMakeable: "Jos nema sta da se skuva iz frizidera. Skeniraj racun ili dodaj par stavki, pa pokusaj ponovo.",
     emptyAction: "Sta da kuvam?",
     generateCta: "Sta da kuvam?",
+    scanCta: "Skeniraj nesto",
     generatingOverlay: {
       title: "Smisljamo ideje",
       phrase1: "Virimo u tvoj frizider...",

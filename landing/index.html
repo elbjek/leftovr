@@ -19,6 +19,10 @@
 <meta name="twitter:title" content="leftovr — What's for dinner?" />
 <meta name="twitter:description" content="One receipt becomes a fridge that tracks itself, then turns what you have into tonight's dinner. Waste-free, decision-free." />
 <meta name="twitter:image" content="https://leftovr.co/og-image.jpg" />
+<meta name="twitter:image:alt" content="leftovr app — one receipt fills your fridge and figures out dinner from what you already have" />
+<link rel="canonical" href="https://leftovr.co/" />
+<meta name="robots" content="index, follow" />
+<meta property="og:locale" content="en_US" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect width='36' height='36' rx='8' fill='%23F8F4EE'/%3E%3Cg fill='none'%3E%3Cpath d='M7 20 h22 a11 11 0 0 1 -22 0 Z' stroke='%231B4332' stroke-width='2.6' stroke-linejoin='round'/%3E%3Cpath d='M14 15 c0 -2 1.7 -2 1.7 -4' stroke='%23D4A843' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M21.3 15 c0 -2 1.7 -2 1.7 -4' stroke='%23D4A843' stroke-width='2.2' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E" />
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
@@ -644,6 +648,38 @@
     .chip-2 { right: -2%; }
   }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://leftovr.co/#org",
+      "name": "leftovr",
+      "url": "https://leftovr.co/",
+      "logo": "https://leftovr.co/icon-512.png"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://leftovr.co/#website",
+      "url": "https://leftovr.co/",
+      "name": "leftovr",
+      "inLanguage": "en",
+      "publisher": { "@id": "https://leftovr.co/#org" }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "leftovr",
+      "url": "https://leftovr.co/",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "iOS, Android",
+      "description": "leftovr turns one grocery receipt into a self-updating fridge, then plans dinner from what you already have — less food wasted, no guessing what to cook.",
+      "publisher": { "@id": "https://leftovr.co/#org" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 

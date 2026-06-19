@@ -42,7 +42,6 @@ export const en = {
     emailContinue: "Continue with email",
     backToChoices: "Back to sign in options",
     goToSignIn: "I already have an account",
-    goToSignUp: "Create an account",
     apple: "Continue with Apple",
     google: "Continue with Google",
     oauthPlaceholder: "Coming soon",
@@ -393,6 +392,7 @@ export const en = {
     noMakeable: "Nothing to cook from your fridge yet. Scan a receipt or add a few items, then try again.",
     emptyAction: "What should I cook?",
     generateCta: "What should I cook?",
+    scanCta: "Scan something",
     generatingOverlay: {
       title: "Cooking up ideas",
       phrase1: "Peeking into your fridge...",

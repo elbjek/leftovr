@@ -4,7 +4,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, GeneratingOverlay, PremiumSheet, RecipeCard, RecipeGlyph, ScanNudgeBanner, Screen, ScreenHeader, Text } from "@/components";
+import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, GeneratingOverlay, PremiumSheet, RecipeCard, RecipeGlyph, Screen, ScreenHeader, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
@@ -235,6 +235,7 @@ export default function RecipesRoute() {
       matchesQuery(recipe.title, parseRecipeIngredients(recipe.ingredients).map((ing) => ing.name)),
   );
   const isEmpty = !hasSuggestions && !hasOwnRecipes && !loading;
+  const fridgeEmpty = inventory.length === 0;
 
   const inventoryNames = new Set(inventory.map((lot) => lot.normalized_name));
   // "Cook again" hero: the recipe you've returned to most (favorites break ties).
@@ -262,14 +263,13 @@ export default function RecipesRoute() {
 
   return (
     <Screen padded={false} bottomInset={false}>
-      <ScanNudgeBanner />
       {isEmpty ? (
         <View style={styles.emptyWrap}>
           <EmptyState
             title={t("recipes.emptyTitle")}
             body={generateNotice ?? recipeError ?? t("recipes.emptyBody")}
-            actionLabel={t("recipes.emptyAction")}
-            onAction={openCookPrompt}
+            actionLabel={fridgeEmpty ? t("recipes.scanCta") : t("recipes.emptyAction")}
+            onAction={fridgeEmpty ? () => router.push("/(tabs)/scan") : openCookPrompt}
           />
         </View>
       ) : (
@@ -528,11 +528,18 @@ export default function RecipesRoute() {
 
       {isEmpty ? null : (
         <BottomDock>
-          <Button
-            title={t("recipes.generateCta")}
-            onPress={openCookPrompt}
-            loading={generating}
-          />
+          {fridgeEmpty ? (
+            <Button
+              title={t("recipes.scanCta")}
+              onPress={() => router.push("/(tabs)/scan")}
+            />
+          ) : (
+            <Button
+              title={t("recipes.generateCta")}
+              onPress={openCookPrompt}
+              loading={generating}
+            />
+          )}
         </BottomDock>
       )}
 

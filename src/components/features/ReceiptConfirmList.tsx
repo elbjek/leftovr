@@ -70,24 +70,28 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {rows.map((row) => (
           <Card key={row.id} style={styles.row}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("scan.confirm.removeItem")}
-              onPress={() => removeRow(row.id)}
-              hitSlop={8}
-              style={styles.remove}
-            >
-              <CloseIcon color={colors.muted} />
-            </Pressable>
-
-            <View style={styles.fields}>
+            <View style={styles.header}>
               {row.lowConfidence ? (
                 <View style={styles.badge}>
                   <Text variant="micro" color={colors.text}>
                     {t("scan.confirm.checkThis")}
                   </Text>
                 </View>
-              ) : null}
+              ) : (
+                <View />
+              )}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("scan.confirm.removeItem")}
+                onPress={() => removeRow(row.id)}
+                hitSlop={8}
+                style={styles.remove}
+              >
+                <CloseIcon color={colors.muted} />
+              </Pressable>
+            </View>
+
+            <View style={styles.fields}>
               <TextField
                 label={t("scan.confirm.nameLabel")}
                 value={row.name}
@@ -242,16 +246,18 @@ const styles = StyleSheet.create({
   row: {
     position: "relative",
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.sm,
+  },
   remove: {
-    position: "absolute",
-    top: spacing.sm,
-    right: spacing.sm,
     width: 28,
     height: 28,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 1,
   },
   fields: {
     gap: spacing.sm,
