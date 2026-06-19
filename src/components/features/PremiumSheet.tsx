@@ -41,7 +41,8 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onPrev
       try {
         const result = await getCurrentOffering();
         if (active) setOffering(result);
-      } catch {
+      } catch (e) {
+        console.warn("[PremiumSheet] getOfferings failed:", e); // ponytail: temp diag, remove once cause known
         if (active) setError(t("premium.unavailable"));
       } finally {
         if (active) setLoadingOffering(false);

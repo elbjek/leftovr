@@ -11,6 +11,7 @@ import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
 import { BackButton, BottomSheet, Button, Card, GeneratingLoader, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
+import { useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import {
   addInventoryItem,
@@ -67,6 +68,13 @@ export default function ScanRoute() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ mode?: string }>();
   const { profile, activeHousehold, refresh } = useAuth();
+  const { preferences: notifPrefs } = useNotifications(activeHousehold?.id);
+  // The post-scan notification prompt is a one-time ask. Skip it once the user
+  // has answered (granted or denied), here or in a prior session.
+  const [notifHandled, setNotifHandled] = useState(false);
+  const notificationsDecided =
+    notifHandled ||
+    (notifPrefs != null && notifPrefs.permission_status !== "not_determined");
   const [permission, requestPermission] = useCameraPermissions();
   const paramChoice = getParamChoice(params.mode);
   const initialChoice = paramChoice ?? "receipt";
@@ -524,6 +532,7 @@ export default function ScanRoute() {
 
   async function finishNotifications(enabled: boolean) {
     setError(null);
+    setNotifHandled(true);
 
     try {
       await setNotificationPermissionPreview({
@@ -1031,7 +1040,12 @@ export default function ScanRoute() {
           <Text variant="body" muted center>
             {t("scan.successBody", { added: result?.addedCount ?? 0 })}
           </Text>
-          <Button title={t("common.continue")} onPress={() => setMode("notifications")} />
+          <Button
+            title={t("common.continue")}
+            onPress={() =>
+              notificationsDecided ? router.replace("/(tabs)/fridge") : setMode("notifications")
+            }
+          />
         </View>
       </Screen>
     );
