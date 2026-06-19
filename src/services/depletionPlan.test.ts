@@ -52,3 +52,26 @@ describe("planDepletion - fallback", () => {
     expect(ops).toEqual([{ kind: "setPartial", id: "a", partialState: "some_used" }]);
   });
 });
+
+describe("planDepletion - counted produce (onion problem)", () => {
+  it("converts a recipe mass to an item count via gramsPerItem", () => {
+    const lots = [lot({ id: "a", quantity: 3, unit: "item" })];
+    // 200g / 110g per onion ≈ 1.8 → 2 onions
+    const ops = planDepletion(lots, { amount: 200, unit: "g" }, { gramsPerItem: 110 });
+    expect(ops).toEqual([{ kind: "setQuantity", id: "a", quantity: 1 }]);
+  });
+
+  it("consumes at least one item for a small mass need", () => {
+    const lots = [lot({ id: "a", quantity: 3, unit: "item" })];
+    // 50g / 110g ≈ 0.45 → rounds to 0 → clamped to 1 onion
+    const ops = planDepletion(lots, { amount: 50, unit: "g" }, { gramsPerItem: 110 });
+    expect(ops).toEqual([{ kind: "setQuantity", id: "a", quantity: 2 }]);
+  });
+
+  it("does not nuke a counted lot when a mass need has no conversion", () => {
+    const lots = [lot({ id: "a", quantity: 3, unit: "item" })];
+    // No gramsPerItem: must fall back to a single use, not Math.round(200) items
+    const ops = planDepletion(lots, { amount: 200, unit: "g" });
+    expect(ops).toEqual([{ kind: "setQuantity", id: "a", quantity: 2 }]);
+  });
+});

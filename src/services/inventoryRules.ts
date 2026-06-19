@@ -30,6 +30,9 @@ export type CatalogFood = {
   unit?: string;
   netAmount?: number;
   netUnit?: "ml" | "g";
+  // Average weight of one whole item, for counted produce that recipes express
+  // by mass ("200g onion"). Lets depletion convert grams back to item counts.
+  gramsPerItem?: number;
 };
 
 export type InventoryLot = {
@@ -98,17 +101,17 @@ export const demoFoodCatalog: CatalogFood[] = [
   { name: "Salmon", category: "fish", shelfLifeDays: [1, 2], unit: "fillet" },
   { name: "Tuna", category: "fish", shelfLifeDays: [90, 365], unit: "can", netAmount: 160, netUnit: "g" },
   { name: "Spinach", category: "vegetables", shelfLifeDays: [2, 4], unit: "bag", netAmount: 200, netUnit: "g" },
-  { name: "Tomatoes", category: "vegetables", shelfLifeDays: [4, 7], unit: "item" },
+  { name: "Tomatoes", category: "vegetables", shelfLifeDays: [4, 7], unit: "item", gramsPerItem: 120 },
   { name: "Carrots", category: "vegetables", shelfLifeDays: [14, 30], unit: "bag", netAmount: 1000, netUnit: "g" },
-  { name: "Broccoli", category: "vegetables", shelfLifeDays: [3, 5], unit: "head" },
-  { name: "Bell peppers", category: "vegetables", shelfLifeDays: [5, 8], unit: "item" },
-  { name: "Zucchini", category: "vegetables", shelfLifeDays: [4, 7], unit: "item" },
+  { name: "Broccoli", category: "vegetables", shelfLifeDays: [3, 5], unit: "head", gramsPerItem: 300 },
+  { name: "Bell peppers", category: "vegetables", shelfLifeDays: [5, 8], unit: "item", gramsPerItem: 120 },
+  { name: "Zucchini", category: "vegetables", shelfLifeDays: [4, 7], unit: "item", gramsPerItem: 200 },
   { name: "Mushrooms", category: "vegetables", shelfLifeDays: [2, 5], unit: "box", netAmount: 250, netUnit: "g" },
-  { name: "Red onion", category: "vegetables", shelfLifeDays: [14, 30], unit: "item" },
-  { name: "Garlic", category: "vegetables", shelfLifeDays: [21, 60], unit: "bulb" },
-  { name: "Bananas", category: "fruit", shelfLifeDays: [3, 5], unit: "item" },
-  { name: "Apples", category: "fruit", shelfLifeDays: [14, 30], unit: "item" },
-  { name: "Lemons", category: "fruit", shelfLifeDays: [14, 30], unit: "item" },
+  { name: "Red onion", category: "vegetables", shelfLifeDays: [14, 30], unit: "item", gramsPerItem: 110 },
+  { name: "Garlic", category: "vegetables", shelfLifeDays: [21, 60], unit: "bulb", gramsPerItem: 50 },
+  { name: "Bananas", category: "fruit", shelfLifeDays: [3, 5], unit: "item", gramsPerItem: 120 },
+  { name: "Apples", category: "fruit", shelfLifeDays: [14, 30], unit: "item", gramsPerItem: 180 },
+  { name: "Lemons", category: "fruit", shelfLifeDays: [14, 30], unit: "item", gramsPerItem: 100 },
   { name: "Blueberries", category: "fruit", shelfLifeDays: [3, 5], unit: "punnet", netAmount: 125, netUnit: "g" },
   { name: "Sourdough", category: "bakery", shelfLifeDays: [2, 4], unit: "loaf" },
   { name: "Tortillas", category: "bakery", shelfLifeDays: [7, 14], unit: "pack" },
@@ -213,6 +216,12 @@ export function getCatalogNet(name: string): { netAmount: number; netUnit: "ml" 
     return { netAmount: food.netAmount, netUnit: food.netUnit };
   }
   return null;
+}
+
+// Average weight of one whole item, for counted produce a recipe expresses by
+// mass. Used by depletion to turn "200g onion" into a sane item count.
+export function getGramsPerItem(name: string): number | undefined {
+  return getCatalogFood(name)?.gramsPerItem;
 }
 
 export function inferCategory(name: string): InventoryCategory {

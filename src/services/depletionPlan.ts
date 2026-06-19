@@ -20,12 +20,25 @@ export type DepletionOp =
 export function planDepletion(
   lots: PlanLot[],
   need: { amount: number; unit: string },
+  opts: { gramsPerItem?: number } = {},
 ): DepletionOp[] {
   const ops: DepletionOp[] = [];
   const metric = toMetric(need.amount, need.unit);
-  let remainingMetric =
-    metric.dimension === "volume" || metric.dimension === "mass" ? metric.value : 0;
-  let remainingCount = Math.max(1, Math.round(need.amount));
+  const isMassOrVolume = metric.dimension === "volume" || metric.dimension === "mass";
+  let remainingMetric = isMassOrVolume ? metric.value : 0;
+  // How many whole items a counted lot (no net_amount) should give up.
+  //   - count units (item/egg)       -> the recipe's own count
+  //   - mass + a known gramsPerItem   -> grams converted to items (the onion case)
+  //   - anything else (volume, mass
+  //     without a conversion, "handful") -> a single use, never the raw metric
+  let remainingCount: number;
+  if (metric.dimension === "mass" && opts.gramsPerItem) {
+    remainingCount = Math.max(1, Math.round(metric.value / opts.gramsPerItem));
+  } else if (metric.dimension === "count") {
+    remainingCount = Math.max(1, Math.round(need.amount));
+  } else {
+    remainingCount = 1;
+  }
 
   for (const lot of lots) {
     const precise =

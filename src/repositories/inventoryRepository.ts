@@ -2,6 +2,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import {
   getCatalogFood,
   getCatalogNet,
+  getGramsPerItem,
   getNextPartialState,
   getShelfLifeRange,
   inferCategory,
@@ -221,7 +222,7 @@ async function computeDepletionOps(
     return a.added_at.localeCompare(b.added_at);
   });
 
-  return planDepletion(lots, { amount, unit });
+  return planDepletion(lots, { amount, unit }, { gramsPerItem: getGramsPerItem(normalizedName) });
 }
 
 export async function depleteItemQuantity(
