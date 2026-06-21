@@ -123,6 +123,12 @@ export default function ScanRoute() {
   );
   const [barcodeLocked, setBarcodeLocked] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
+  // iOS continuous AF can lock; pulsing the mode off→on forces a refocus.
+  const [focusMode, setFocusMode] = useState<"on" | "off">("on");
+  const refocus = useCallback(() => {
+    setFocusMode("off");
+    setTimeout(() => setFocusMode("on"), 50);
+  }, []);
   // Seeded with the initial param so the auto-open effect below does not re-run
   // for the deep-link already handled by initialMode (avoids a double permission prompt).
   const consumedModeRef = useRef<string | null>(params.mode ?? null);
@@ -641,8 +647,8 @@ export default function ScanRoute() {
           <CameraView
             style={styles.camera}
             facing="back"
-            autofocus="on"
-            zoom={0.15}
+            autofocus={focusMode}
+            zoom={0.25}
             enableTorch={torchOn}
             barcodeScannerSettings={{
               barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128"],
@@ -666,9 +672,14 @@ export default function ScanRoute() {
               />
             </View>
 
-            <View style={styles.barcodeFrame}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("scan.tapToFocus")}
+              onPress={refocus}
+              style={styles.barcodeFrame}
+            >
               <View style={styles.scanLine} />
-            </View>
+            </Pressable>
 
             <View style={styles.coachCard}>
               <Text variant="label">{t("scan.barcodeCoachTitle")}</Text>

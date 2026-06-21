@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import type { PurchasesOffering } from "react-native-purchases";
 
+import { isPremium, useAuth } from "@/features";
 import { findPackage, getCurrentOffering, PRODUCT_IDS, purchasePackage, restorePurchases } from "@/services";
 import { colors, radii, spacing } from "../../theme";
 import { BottomSheet, Button, Text } from "../primitives";
+
+// iOS deep link to the system Manage Subscriptions screen.
+const MANAGE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
 
 type PremiumPlan = "individual" | "household";
 type BillingPeriod = "monthly" | "yearly";
@@ -24,8 +28,17 @@ type Props = {
 
 export function PremiumSheet({ visible, plan = "individual", onPurchased, onPreview, onDismiss }: Props) {
   const { t } = useTranslation();
+  const { profile, activeHousehold } = useAuth();
+  // Three states: no premium, individual premium (offer Household upgrade),
+  // household premium (fully covered → managed view only).
+  const hasHouseholdPlan =
+    profile?.tier === "household_premium" || activeHousehold?.plan_tier === "household_premium";
+  const hasAnyPremium = isPremium(profile, activeHousehold);
+  const individualOnly = hasAnyPremium && !hasHouseholdPlan;
   const [period, setPeriod] = useState<BillingPeriod>("yearly");
-  const household = plan === "household";
+  // Individual subscribers see the Household plans (the upgrade); everyone else
+  // follows the caller's prop.
+  const household = plan === "household" || individualOnly;
 
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
   const [loadingOffering, setLoadingOffering] = useState(false);
@@ -68,7 +81,8 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onPrev
         await onPurchased?.();
         onDismiss();
       }
-    } catch {
+    } catch (e) {
+      console.warn("[purchase] failed", e);
       setError(t("premium.purchaseError"));
     } finally {
       setBusy(false);
@@ -117,10 +131,22 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onPrev
       </View>
 
       <Text variant="h1" center style={styles.headline}>
-        {household ? t("premium.householdHeadline") : t("premium.headline")}
+        {hasHouseholdPlan
+          ? t("premium.subscribedHeadline")
+          : individualOnly
+            ? t("premium.upgradeHeadline")
+            : household
+              ? t("premium.householdHeadline")
+              : t("premium.headline")}
       </Text>
       <Text variant="body" muted center style={styles.subtitle}>
-        {household ? t("premium.householdSubtitle") : t("premium.subtitle")}
+        {hasHouseholdPlan
+          ? t("premium.subscribedSubtitle")
+          : individualOnly
+            ? t("premium.upgradeSubtitle")
+            : household
+              ? t("premium.householdSubtitle")
+              : t("premium.subtitle")}
       </Text>
 
       <View style={styles.featureList}>
@@ -136,60 +162,88 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onPrev
         ))}
       </View>
 
-      <View style={styles.planCards}>
-        <PlanCard
-          label={t("premium.monthly")}
-          price={monthlyPkg?.product.priceString ?? (household ? "$7.99" : "$4.99")}
-          sub={t("premium.perMonth")}
-          selected={period === "monthly"}
-          onPress={() => setPeriod("monthly")}
-        />
-        <PlanCard
-          label={t("premium.yearly")}
-          price={yearlyPkg?.product.priceString ?? (household ? "$49.99" : "$29.99")}
-          sub={t("premium.perYear")}
-          selected={period === "yearly"}
-          badge={t("premium.saveBadge")}
-          onPress={() => setPeriod("yearly")}
-        />
-      </View>
-
-      {household ? (
-        <Text variant="small" muted center style={styles.memberNote}>
-          {t("premium.upToMembers")}
-        </Text>
-      ) : null}
-
-      {error ? (
-        <Text variant="small" color={colors.red} center style={styles.error}>
-          {error}
-        </Text>
-      ) : null}
-
-      {loadingOffering ? (
-        <ActivityIndicator color={colors.primary} style={styles.cta} />
+      {hasHouseholdPlan ? (
+        <>
+          <Button
+            title={t("premium.manage")}
+            onPress={() => Linking.openURL(MANAGE_SUBSCRIPTIONS_URL)}
+            style={styles.cta}
+          />
+          <Button title={t("premium.dismiss")} variant="text" onPress={onDismiss} />
+        </>
       ) : (
-        <Button
-          title={t("premium.subscribe")}
-          onPress={handleSubscribe}
-          disabled={!selectedPkg || busy}
-          loading={busy}
-          style={styles.cta}
-        />
+        <>
+          {individualOnly ? (
+            <View style={styles.currentPlanBanner}>
+              <Text variant="small" center>
+                {t("premium.currentPlanIndividual")}
+              </Text>
+            </View>
+          ) : null}
+          <View style={styles.planCards}>
+            <PlanCard
+              label={t("premium.monthly")}
+              price={monthlyPkg?.product.priceString ?? (household ? "$7.99" : "$4.99")}
+              sub={t("premium.perMonth")}
+              selected={period === "monthly"}
+              onPress={() => setPeriod("monthly")}
+            />
+            <PlanCard
+              label={t("premium.yearly")}
+              price={yearlyPkg?.product.priceString ?? (household ? "$49.99" : "$29.99")}
+              sub={t("premium.perYear")}
+              selected={period === "yearly"}
+              badge={t("premium.saveBadge")}
+              onPress={() => setPeriod("yearly")}
+            />
+          </View>
+
+          {household ? (
+            <Text variant="small" muted center style={styles.memberNote}>
+              {t("premium.upToMembers")}
+            </Text>
+          ) : null}
+
+          {error ? (
+            <Text variant="small" color={colors.red} center style={styles.error}>
+              {error}
+            </Text>
+          ) : null}
+
+          {loadingOffering ? (
+            <ActivityIndicator color={colors.primary} style={styles.cta} />
+          ) : (
+            <Button
+              title={individualOnly ? t("premium.upgradeToHousehold") : t("premium.subscribe")}
+              onPress={handleSubscribe}
+              disabled={!selectedPkg || busy}
+              loading={busy}
+              style={styles.cta}
+            />
+          )}
+
+          {individualOnly ? (
+            <Button
+              title={t("premium.manage")}
+              variant="text"
+              onPress={() => Linking.openURL(MANAGE_SUBSCRIPTIONS_URL)}
+            />
+          ) : (
+            <Button title={t("premium.restore")} variant="text" onPress={handleRestore} disabled={busy} />
+          )}
+
+          {/* Dev-only tier grant for testing without the App Store sandbox. Gated by
+             __DEV__, so it never ships to TestFlight/production. */}
+          {__DEV__ ? (
+            <Button
+              title={household ? t("premium.previewHousehold") : t("premium.previewIndividual")}
+              variant="text"
+              onPress={handlePreview}
+            />
+          ) : null}
+          <Button title={t("premium.dismiss")} variant="text" onPress={onDismiss} />
+        </>
       )}
-
-      <Button title={t("premium.restore")} variant="text" onPress={handleRestore} disabled={busy} />
-
-      {/* Dev-only tier grant for testing without the App Store sandbox. Gated by
-         __DEV__, so it never ships to TestFlight/production. */}
-      {__DEV__ ? (
-        <Button
-          title={household ? t("premium.previewHousehold") : t("premium.previewIndividual")}
-          variant="text"
-          onPress={handlePreview}
-        />
-      ) : null}
-      <Button title={t("premium.dismiss")} variant="text" onPress={onDismiss} />
     </BottomSheet>
   );
 }
@@ -311,6 +365,13 @@ const styles = StyleSheet.create({
   },
   memberNote: {
     marginBottom: spacing.lg,
+  },
+  currentPlanBanner: {
+    backgroundColor: colors.primary50,
+    borderRadius: radii.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
   },
   cta: {
     marginBottom: spacing.sm,
