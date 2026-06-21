@@ -304,6 +304,7 @@ export const sr = {
     barcodeCameraTitle: "Skeniranje barkoda",
     barcodeCoachTitle: "Poravnaj barkod",
     barcodeCoachBody: "Skeniraj pravi barkod. Leftovr prvo proverava Open Food Facts; simulator dugmad rade offline.",
+    torch: "Svetlo",
     unknownBarcode: "Nepoznat barkod",
     unknownBarcodeTitle: "Ovo jos ne znamo.",
     unknownBarcodeBody: "Dodaj rucno sada. Kasnija skeniranja mogu da koriste ovaj fallback.",

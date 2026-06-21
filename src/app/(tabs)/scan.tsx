@@ -122,6 +122,7 @@ export default function ScanRoute() {
     paramChoice === "receipt" && !canScanReceipt,
   );
   const [barcodeLocked, setBarcodeLocked] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
   // Seeded with the initial param so the auto-open effect below does not re-run
   // for the deep-link already handled by initialMode (avoids a double permission prompt).
   const consumedModeRef = useRef<string | null>(params.mode ?? null);
@@ -640,6 +641,9 @@ export default function ScanRoute() {
           <CameraView
             style={styles.camera}
             facing="back"
+            autofocus="on"
+            zoom={0.15}
+            enableTorch={torchOn}
             barcodeScannerSettings={{
               barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128"],
             }}
@@ -655,6 +659,11 @@ export default function ScanRoute() {
               <Text variant="label" color={colors.surface}>
                 {t("scan.barcodeCameraTitle")}
               </Text>
+              <Button
+                title={t("scan.torch")}
+                variant="text"
+                onPress={() => setTorchOn((on) => !on)}
+              />
             </View>
 
             <View style={styles.barcodeFrame}>
@@ -1100,10 +1109,12 @@ export default function ScanRoute() {
   return (
     <Screen contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <BackButton
-          onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/fridge"))}
-          style={styles.backButton}
-        />
+        {!activeHousehold?.first_fill_completed_at ? (
+          <BackButton
+            onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/fridge"))}
+            style={styles.backButton}
+          />
+        ) : null}
         <ScreenHeader title={t("scan.title")} subtitle={t("scan.body")} />
       </View>
 

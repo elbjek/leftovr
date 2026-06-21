@@ -304,6 +304,7 @@ export const en = {
     barcodeCameraTitle: "Barcode scan",
     barcodeCoachTitle: "Line up the barcode",
     barcodeCoachBody: "Scan a real barcode. Leftovr checks Open Food Facts first; simulator buttons still work offline.",
+    torch: "Light",
     unknownBarcode: "Unknown barcode",
     unknownBarcodeTitle: "We do not know this one yet.",
     unknownBarcodeBody: "Add it manually now. Future scans can learn from this fallback.",
