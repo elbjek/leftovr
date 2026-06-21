@@ -556,6 +556,24 @@ export const en = {
     subscriptionTitle: "Subscription",
     subscriptionBody: "Your current plan.",
     upgrade: "Upgrade to Premium",
+    legal: {
+      title: "Legal",
+      privacy: "Privacy Policy",
+      terms: "Terms of Service",
+    },
+    account: {
+      title: "Account & data",
+      export: "Export my data",
+      delete: "Delete account",
+      exportErrorTitle: "Export failed",
+      exportError: "Couldn't export your data. Please try again.",
+      deleteConfirmTitle: "Delete account?",
+      deleteConfirmBody:
+        "This permanently deletes your account and personal data. This can't be undone.",
+      deleteConfirm: "Delete",
+      deleteErrorTitle: "Delete failed",
+      deleteError: "Couldn't delete your account. Please try again.",
+    },
     household: {
       title: "Household",
       memberCount: "{{count}} of 3 members",
@@ -668,8 +686,6 @@ export const en = {
     purchaseError: "Purchase couldn't be completed. Please try again.",
     loadingPlans: "Loading plans…",
     unavailable: "Plans aren't available right now.",
-    previewIndividual: "Preview Premium",
-    previewHousehold: "Preview Household Premium",
     dismiss: "Maybe later",
   },
   notifications: {

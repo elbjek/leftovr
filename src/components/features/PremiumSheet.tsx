@@ -21,12 +21,10 @@ type Props = {
   /** Called after a successful purchase or restore so the caller can refresh
    *  the (server-controlled) tier. Entitlement itself is set by the webhook. */
   onPurchased?: () => Promise<void> | void;
-  /** Dev-only preview grant; rendered only under __DEV__. */
-  onPreview?: () => void;
   onDismiss: () => void;
 };
 
-export function PremiumSheet({ visible, plan = "individual", onPurchased, onPreview, onDismiss }: Props) {
+export function PremiumSheet({ visible, plan = "individual", onPurchased, onDismiss }: Props) {
   const { t } = useTranslation();
   const { profile, activeHousehold } = useAuth();
   // Three states: no premium, individual premium (offer Household upgrade),
@@ -117,10 +115,6 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onPrev
         t("premium.features.insights"),
       ];
 
-  function handlePreview() {
-    onPreview?.();
-    onDismiss();
-  }
 
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
@@ -232,15 +226,6 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onPrev
             <Button title={t("premium.restore")} variant="text" onPress={handleRestore} disabled={busy} />
           )}
 
-          {/* Dev-only tier grant for testing without the App Store sandbox. Gated by
-             __DEV__, so it never ships to TestFlight/production. */}
-          {__DEV__ ? (
-            <Button
-              title={household ? t("premium.previewHousehold") : t("premium.previewIndividual")}
-              variant="text"
-              onPress={handlePreview}
-            />
-          ) : null}
           <Button title={t("premium.dismiss")} variant="text" onPress={onDismiss} />
         </>
       )}

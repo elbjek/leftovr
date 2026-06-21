@@ -557,6 +557,24 @@ export const sr = {
     subscriptionTitle: "Pretplata",
     subscriptionBody: "Tvoj trenutni plan.",
     upgrade: "Pređi na Premium",
+    legal: {
+      title: "Pravno",
+      privacy: "Politika privatnosti",
+      terms: "Uslovi koriscenja",
+    },
+    account: {
+      title: "Nalog i podaci",
+      export: "Izvezi moje podatke",
+      delete: "Obrisi nalog",
+      exportErrorTitle: "Izvoz nije uspeo",
+      exportError: "Nismo mogli da izvezemo tvoje podatke. Pokusaj ponovo.",
+      deleteConfirmTitle: "Obrisati nalog?",
+      deleteConfirmBody:
+        "Ovo trajno brise tvoj nalog i licne podatke. Ne moze se ponistiti.",
+      deleteConfirm: "Obrisi",
+      deleteErrorTitle: "Brisanje nije uspelo",
+      deleteError: "Nismo mogli da obrisemo tvoj nalog. Pokusaj ponovo.",
+    },
     household: {
       title: "Domacinstvo",
       memberCount: "{{count}} od 3 clana",
@@ -669,8 +687,6 @@ export const sr = {
     purchaseError: "Kupovina nije uspela. Pokusajte ponovo.",
     loadingPlans: "Ucitavanje planova…",
     unavailable: "Planovi trenutno nisu dostupni.",
-    previewIndividual: "Pregledaj Premium",
-    previewHousehold: "Pregledaj Household Premium",
     dismiss: "Mozda kasnije",
   },
   notifications: {

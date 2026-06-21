@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Alert, Linking, Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -18,10 +18,9 @@ import {
 } from "@/components";
 import { canShareHousehold, useAuth, useMeasurementSystem } from "@/features";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
-import { registerDevice } from "@/services";
+import { deleteAccount, exportAccountData, registerDevice } from "@/services";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
 import {
-  setPreviewTier,
   updateHouseholdDefaultServings,
   updateProfileAvoidances,
   updateProfileField,
@@ -32,6 +31,9 @@ const PRIMARY_GOAL_OPTIONS = ["waste", "money", "quick", "all"] as const;
 const SHOPPING_STYLE_OPTIONS = ["weekly", "few", "asneed"] as const;
 const AVOIDANCE_OPTIONS = ["meat", "fish", "dairy", "gluten", "nuts"] as const;
 const SERVINGS_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
+
+const PRIVACY_URL = "https://leftovr.co/privacy/";
+const TERMS_URL = "https://leftovr.co/terms/";
 
 export default function SettingsRoute() {
   const { t, i18n } = useTranslation();
@@ -132,6 +134,36 @@ export default function SettingsRoute() {
       setSaving(false);
       setEditingServings(false);
     }
+  }
+
+  async function handleExportData() {
+    try {
+      await exportAccountData();
+    } catch {
+      Alert.alert(t("settings.account.exportErrorTitle"), t("settings.account.exportError"));
+    }
+  }
+
+  function handleDeleteAccount() {
+    Alert.alert(
+      t("settings.account.deleteConfirmTitle"),
+      t("settings.account.deleteConfirmBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("settings.account.deleteConfirm"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteAccount();
+              await signOut();
+            } catch {
+              Alert.alert(t("settings.account.deleteErrorTitle"), t("settings.account.deleteError"));
+            }
+          },
+        },
+      ],
+    );
   }
 
   function toggleAvoidance(value: string) {
@@ -244,11 +276,6 @@ export default function SettingsRoute() {
               last
             />
           ) : null}
-        </SettingsGroup>
-
-        {/* Account actions */}
-        <SettingsGroup>
-          <SettingsRow label={t("common.signOut")} onPress={signOut} danger last />
         </SettingsGroup>
 
         {/* Household */}
@@ -411,17 +438,36 @@ export default function SettingsRoute() {
               </View>
             </View>
 
-            {currentTier === "free" ? (
-              <Button
-                title={t("settings.upgrade")}
-                onPress={() => {
-                  setPremiumPlan("individual");
-                  setShowPremium(true);
-                }}
-              />
-            ) : null}
+            <Button
+              title={currentTier === "free" ? t("settings.upgrade") : t("premium.manage")}
+              variant={currentTier === "free" ? "primary" : "ghost"}
+              onPress={() => {
+                setPremiumPlan(currentTier === "household_premium" ? "household" : "individual");
+                setShowPremium(true);
+              }}
+            />
           </View>
         </Card>
+
+        {/* Legal */}
+        <SettingsGroup label={t("settings.legal.title")}>
+          <SettingsRow
+            label={t("settings.legal.privacy")}
+            onPress={() => Linking.openURL(PRIVACY_URL)}
+          />
+          <SettingsRow
+            label={t("settings.legal.terms")}
+            onPress={() => Linking.openURL(TERMS_URL)}
+            last
+          />
+        </SettingsGroup>
+
+        {/* Account & data */}
+        <SettingsGroup label={t("settings.account.title")}>
+          <SettingsRow label={t("settings.account.export")} onPress={handleExportData} />
+          <SettingsRow label={t("settings.account.delete")} onPress={handleDeleteAccount} danger />
+          <SettingsRow label={t("common.signOut")} onPress={signOut} danger last />
+        </SettingsGroup>
       </View>
 
       {/* Edit name sheet */}
@@ -571,10 +617,6 @@ export default function SettingsRoute() {
         visible={showPremium}
         plan={premiumPlan}
         onPurchased={refresh}
-        onPreview={async () => {
-          await setPreviewTier(premiumPlan === "household" ? "household_premium" : "premium");
-          await refresh();
-        }}
         onDismiss={() => setShowPremium(false)}
       />
     </Screen>

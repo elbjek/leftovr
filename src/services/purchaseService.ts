@@ -38,10 +38,7 @@ export function configurePurchases(): void {
 export async function identifyPurchaser(userId: string): Promise<void> {
   if (!isAvailable()) return;
   configurePurchases();
-  const before = await getPurchases().getAppUserID();
   await getPurchases().logIn(userId);
-  const after = await getPurchases().getAppUserID();
-  console.warn("[purchase] identify", { supabaseId: userId, rcBefore: before, rcAfter: after });
 }
 
 /** Detach the user from the SDK on sign-out (back to an anonymous id). */

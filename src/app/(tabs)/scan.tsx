@@ -22,7 +22,6 @@ import {
   ReceiptDuplicate,
   ReceiptScanResult,
   setNotificationPermissionPreview,
-  setPreviewTier,
 } from "@/repositories";
 import {
   BarcodeProduct,
@@ -1163,12 +1162,6 @@ export default function ScanRoute() {
         visible={scanPremiumVisible}
         onPurchased={async () => {
           await refresh();
-          void openSelectedChoice(choice, { skipGate: true });
-        }}
-        onPreview={async () => {
-          await setPreviewTier("premium");
-          await refresh();
-          setScanPremiumVisible(false);
           void openSelectedChoice(choice, { skipGate: true });
         }}
         onDismiss={() => setScanPremiumVisible(false)}

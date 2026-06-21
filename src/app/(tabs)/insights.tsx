@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { EmptyState, PremiumSheet, RecipeGlyph, Screen, ScreenHeader, SegmentedControl, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useHousehold, useInsights } from "@/hooks";
-import { setPreviewTier } from "@/repositories";
 import { formatCategoryLabel, InsightsSummary } from "@/services/insightsService";
 import { colors, radii, spacing } from "@/theme";
 
@@ -50,10 +49,6 @@ export default function InsightsRoute() {
           <PremiumSheet
             visible={showPremium}
             onPurchased={refresh}
-            onPreview={async () => {
-              await setPreviewTier("premium");
-              await refresh();
-            }}
             onDismiss={() => setShowPremium(false)}
           />
         </View>

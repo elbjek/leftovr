@@ -132,18 +132,6 @@ export async function resetCurrentUserOnboardingForDev() {
   }
 }
 
-export type PlanTier = "free" | "premium" | "household_premium";
-
-export async function setPreviewTier(tier: PlanTier) {
-  const supabase = getSupabaseClient();
-
-  // tier/plan_tier columns are locked to clients; the preview goes through the
-  // prototype-only set_preview_tier RPC (revoked entirely at launch).
-  const { error } = await supabase.rpc("set_preview_tier", { p_tier: tier });
-
-  if (error) throw error;
-}
-
 export async function updateProfileField(
   field: "display_name" | "primary_goal" | "shopping_style",
   value: string,

@@ -6,7 +6,6 @@ import Svg, { Circle, Path } from "react-native-svg";
 
 import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, GeneratingOverlay, PremiumSheet, RecipeCard, RecipeGlyph, Screen, ScreenHeader, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import { setPreviewTier } from "@/repositories";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
 import {
@@ -655,10 +654,6 @@ export default function RecipesRoute() {
       <PremiumSheet
         visible={showPremium}
         onPurchased={refresh}
-        onPreview={async () => {
-          await setPreviewTier("premium");
-          await refresh();
-        }}
         onDismiss={() => setShowPremium(false)}
       />
 
