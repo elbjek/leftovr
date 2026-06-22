@@ -76,6 +76,10 @@ const RECEIPT_SCHEMA = {
   additionalProperties: false,
 };
 
+// Upper bound on the receipt AI call. Typical scans finish in a few seconds;
+// 45s is generous headroom for a long receipt while still failing a hung call.
+const RECEIPT_AI_TIMEOUT_MS = 45_000;
+
 const PROMPT = [
   "Read this grocery receipt (a photo or a PDF e-receipt) and normalize every purchased food line item.",
   "If this is NOT a grocery receipt (e.g. an ID, a bank statement, a menu, or any other document), return storeChain \"unknown\" and an empty `lines` array. Never invent items.",
@@ -86,7 +90,9 @@ const PROMPT = [
   "Sweet/confectionery products — chocolate, candy, biscuits, wafers, chips, chocolate-filled or sweet pastries (e.g. \"kroasan coco milka\") — are `snacks`, not `bakery`. Sweet drinks, juice, and soda are `drinks`. Reserve `bakery` for plain bread and savory baked goods.",
   "`quantity`/`unit` reflect purchased count and unit when printed (e.g. 2 x). `netAmount`/`netUnit` only when a metric size is printed on the line (1L -> 1000 ml, 400g -> 400 g); otherwise null.",
   "Skip non-food lines: totals, deposits/pant, bags, discounts, loyalty points, payment rows.",
-  "`confidence` (0-1) is your certainty that the normalization of that line is correct; abbreviated or ambiguous lines get lower confidence.",
+  "Only return edible food and drink. Exclude every non-food / household product even when purchased on its own line (e.g. cleaning supplies, toiletries, cosmetics, paper goods, pet supplies, batteries, household goods, tobacco, medicine). Account for abbreviated non-food names in the receipt's language. If a line is not clearly food, do not return it.",
+  "Correct obvious misspellings or OCR errors to the real food name, and set `name` to the corrected human-readable product.",
+  "`confidence` (0-1) is your certainty that the normalization is correct. Set LOW confidence (< 0.6) whenever the product name is NOT a clearly recognizable food word — garbled text, ambiguous abbreviations you cannot confidently expand, or anything you are guessing at. Never silently invent a confident food name from unclear text; flag it low so the user reviews and edits it.",
   "`storeChain` is a lowercase slug of the retail chain (e.g. \"rema-1000\", \"lidl\"); use \"unknown\" if unreadable.",
   "`purchaseDate` is the printed purchase date as YYYY-MM-DD, or null. `total` is the printed grand total as a number, or null.",
 ].join("\n");
@@ -231,6 +237,12 @@ Deno.serve(async (req) => {
         type: "json_schema",
         json_schema: { name: "receipt", strict: true, schema: RECEIPT_SCHEMA },
       },
+    }, {
+      // Bound the (paid) AI call so a hung request can't keep the user waiting
+      // forever; on timeout it throws and the catch below fails the scan cleanly.
+      // maxRetries 0 — fail fast instead of silently retrying past the timeout.
+      timeout: RECEIPT_AI_TIMEOUT_MS,
+      maxRetries: 0,
     });
 
     const text = response.choices[0]?.message?.content ?? "";

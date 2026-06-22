@@ -27,6 +27,8 @@ export type RecipeGenerationInput = {
   isPremium: boolean;
   cookingMode: CookingMode;
   servings?: number;
+  /** BCP-47 language for recipe output; defaults to the device locale. */
+  language?: string;
   filters?: RecipeGenerationFilters;
 };
 
@@ -77,9 +79,20 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
   }
 
   try {
-    // Lazy import keeps react-native-only supabase deps out of the node test env.
+    // Lazy import keeps react-native-only deps out of the node test env.
     const { getSupabaseClient } = await import("@/lib/supabase");
-    const requestHash = buildRecipeGenerationRequestHash(input);
+    // Recipes follow the device locale ("location of the person"), not the app
+    // UI language — so a Spanish phone gets Spanish recipes even with no ES UI.
+    let language = input.language;
+    if (!language) {
+      try {
+        const { getLocales } = await import("expo-localization");
+        language = getLocales()[0]?.languageCode ?? undefined;
+      } catch {
+        // Localization unavailable (e.g. tests): fall back to model default.
+      }
+    }
+    const requestHash = buildRecipeGenerationRequestHash({ ...input, language });
     const { data, error } = await getSupabaseClient().functions.invoke("generate-recipes", {
       body: {
         householdId: input.householdId,
@@ -100,6 +113,7 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
         isPremium: input.isPremium,
         cookingMode: input.cookingMode,
         servings: input.servings,
+        language,
         filters: input.filters,
       },
     });
@@ -144,6 +158,7 @@ export function buildRecipeGenerationRequestHash(input: RecipeGenerationInput) {
     avoidances: [...input.avoidances].sort(),
     cookingMode: input.cookingMode,
     servings: input.servings ?? 2,
+    language: input.language ?? null,
     filters: input.filters ?? null,
   });
 

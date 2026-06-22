@@ -20,6 +20,8 @@ type GenerateRecipesRequest = {
   isPremium?: boolean;
   cookingMode?: "household" | "just_me";
   servings?: number;
+  // BCP-47 language code from the user's device locale (e.g. "sr", "es").
+  language?: string;
   filters?: {
     mealType?: "breakfast" | "lunch" | "dinner" | "snack";
     maxMinutes?: number;
@@ -27,6 +29,27 @@ type GenerateRecipesRequest = {
     vibe?: string;
   };
 };
+
+// Human-readable name for the prompt; falls back to English for anything unmapped.
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  sr: "Serbian",
+  es: "Spanish",
+  de: "German",
+  fr: "French",
+  it: "Italian",
+  pt: "Portuguese",
+  nl: "Dutch",
+  hr: "Croatian",
+  bs: "Bosnian",
+  sl: "Slovenian",
+  mk: "Macedonian",
+};
+
+function languageName(code: string | undefined): string {
+  if (!code) return "English";
+  return LANGUAGE_NAMES[code.split("-")[0].toLowerCase()] ?? "English";
+}
 
 type AiRecipeCard = {
   title: string;
@@ -330,8 +353,10 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
 }
 
 function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alternative") {
+  const lang = languageName(input.language);
   return [
     "Generate practical Leftovr recipe ideas from household fridge contents.",
+    `Language: write the ENTIRE recipe in ${lang} — title, description, every step, all tags, AND all ingredient names. Do NOT mix languages within a recipe. If a fridge item name is in another language, translate it into ${lang} (keep it the natural name a ${lang} cook would use). The only exception is proper brand names, which stay as-is.`,
     "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
     `Cooking mode: ${input.cookingMode ?? "household"}.`,
     `Servings: ${input.servings ?? 2}.`,
