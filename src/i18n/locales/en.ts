@@ -360,6 +360,7 @@ export const en = {
   },
   recipes: {
     title: "Recipes",
+    subtitle: "Ideas from what's in your fridge.",
     body: "Recipe sessions will live here.",
     countLabel: "{{count}} recipes",
     suggestionsEyebrow: "{{count}} ideas from your fridge",
@@ -507,6 +508,7 @@ export const en = {
   },
   settings: {
     title: "Settings",
+    subtitle: "Manage your account, household, and preferences.",
     body: "Account, household, language, and prototype controls will live here.",
     languageTitle: "Language",
     languageBody: "Switch the prototype between English and Serbian.",
@@ -700,6 +702,8 @@ export const en = {
     memberActivityBody: "Get notified when someone adds items to the fridge.",
     sendWindow: "Suggestion window",
     sendWindowValue: "{{start}} – {{end}}",
+    sendWindowStart: "Window start time",
+    sendWindowEnd: "Window end time",
     permissionStatus: "Permission",
     permissionGranted: "Allowed",
     permissionDenied: "Denied",

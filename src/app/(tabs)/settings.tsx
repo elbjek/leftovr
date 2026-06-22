@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Alert, Linking, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Linking, Platform, Pressable, StyleSheet, View } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import Svg, { Path } from "react-native-svg";
 import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -69,7 +70,9 @@ export default function SettingsRoute() {
     toggleSmartSuggestions,
     toggleMemberActivity,
     toggleDailySuggestion,
+    updateSendWindow,
   } = useNotifications(activeHousehold?.id);
+  const [windowPicker, setWindowPicker] = useState<"start" | "end" | null>(null);
   const isHouseholdPremium = canShareHousehold(activeHousehold);
 
   function handleLanguageChange(language: SupportedLanguage) {
@@ -196,7 +199,7 @@ export default function SettingsRoute() {
   return (
     <Screen scroll contentContainerStyle={styles.content}>
       <View style={styles.sections}>
-        <ScreenHeader title={t("settings.title")} />
+        <ScreenHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
         {/* Profile */}
         <Pressable
@@ -387,13 +390,53 @@ export default function SettingsRoute() {
             {notifHouseholdSettings?.daily_suggestion_enabled ? (
               <View style={styles.settingRow}>
                 <Text variant="small">{t("notifications.sendWindow")}</Text>
-                <Text variant="small" muted>
-                  {t("notifications.sendWindowValue", {
-                    start: notifHouseholdSettings.send_window_start?.slice(0, 5) ?? "13:00",
-                    end: notifHouseholdSettings.send_window_end?.slice(0, 5) ?? "14:00",
-                  })}
-                </Text>
+                <View style={styles.windowPills}>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("notifications.sendWindowStart")}
+                    onPress={() => setWindowPicker("start")}
+                    style={({ pressed }) => [styles.windowPill, pressed && styles.filterChoicePressed]}
+                  >
+                    <Text variant="small" color={colors.primary}>
+                      {notifHouseholdSettings.send_window_start?.slice(0, 5) ?? "13:00"}
+                    </Text>
+                  </Pressable>
+                  <Text variant="small" muted>–</Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("notifications.sendWindowEnd")}
+                    onPress={() => setWindowPicker("end")}
+                    style={({ pressed }) => [styles.windowPill, pressed && styles.filterChoicePressed]}
+                  >
+                    <Text variant="small" color={colors.primary}>
+                      {notifHouseholdSettings.send_window_end?.slice(0, 5) ?? "14:00"}
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
+            ) : null}
+
+            {windowPicker !== null && notifHouseholdSettings ? (
+              <DateTimePicker
+                mode="time"
+                display="spinner"
+                value={hhmmToDate(
+                  (windowPicker === "start"
+                    ? notifHouseholdSettings.send_window_start
+                    : notifHouseholdSettings.send_window_end) ?? (windowPicker === "start" ? "13:00" : "14:00"),
+                )}
+                onChange={(event, date) => {
+                  setWindowPicker(Platform.OS === "ios" ? windowPicker : null);
+                  if (event.type === "dismissed" || !date) return;
+                  const picked = dateToHHMM(date);
+                  const start = windowPicker === "start" ? picked : notifHouseholdSettings.send_window_start?.slice(0, 5) ?? "13:00";
+                  const end = windowPicker === "end" ? picked : notifHouseholdSettings.send_window_end?.slice(0, 5) ?? "14:00";
+                  void updateSendWindow(`${start}:00`, `${end}:00`);
+                }}
+              />
+            ) : null}
+            {windowPicker !== null && Platform.OS === "ios" ? (
+              <Button title={t("common.continue")} variant="text" onPress={() => setWindowPicker(null)} />
             ) : null}
 
             <View style={styles.settingRow}>
@@ -681,9 +724,33 @@ function SettingsRow({
   );
 }
 
+function hhmmToDate(value: string) {
+  const [h, m] = value.split(":").map(Number);
+  const date = new Date();
+  date.setHours(h ?? 13, m ?? 0, 0, 0);
+  return date;
+}
+
+function dateToHHMM(date: Date) {
+  return `${`${date.getHours()}`.padStart(2, "0")}:${`${date.getMinutes()}`.padStart(2, "0")}`;
+}
+
 const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing.tabBarClearance,
+  },
+  windowPills: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  windowPill: {
+    backgroundColor: colors.primary50,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    minHeight: 32,
+    justifyContent: "center",
   },
   sections: {
     gap: spacing.xl,

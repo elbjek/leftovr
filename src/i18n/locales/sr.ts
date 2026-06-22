@@ -360,6 +360,7 @@ export const sr = {
   },
   recipes: {
     title: "Recepti",
+    subtitle: "Ideje na osnovu onoga sto imas u frizideru.",
     body: "Ovde ce ziveti recipe sessions.",
     countLabel: "{{count}} recepata",
     suggestionsEyebrow: "{{count}} ideja iz vaseg frizidera",
@@ -508,6 +509,7 @@ export const sr = {
   },
   settings: {
     title: "Podesavanja",
+    subtitle: "Upravljaj nalogom, domacinstvom i podesavanjima.",
     body: "Nalog, domacinstvo, jezik i kontrole prototipa ce biti ovde.",
     languageTitle: "Jezik",
     languageBody: "Prebaci prototype izmedju engleskog i srpskog.",
@@ -701,6 +703,8 @@ export const sr = {
     memberActivityBody: "Dobij obavestenje kad neko doda namirnice u frizider.",
     sendWindow: "Vreme predloga",
     sendWindowValue: "{{start}} – {{end}}",
+    sendWindowStart: "Pocetak intervala",
+    sendWindowEnd: "Kraj intervala",
     permissionStatus: "Dozvola",
     permissionGranted: "Dozvoljeno",
     permissionDenied: "Odbijeno",

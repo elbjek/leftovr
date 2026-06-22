@@ -293,6 +293,7 @@ export default function RecipesRoute() {
                   style={styles.headerCopy}
                   eyebrow={t("recipes.countLabel", { count: listedMyRecipes.length + suggestions.length })}
                   title={t("recipes.title")}
+                  subtitle={t("recipes.subtitle")}
                 />
               </View>
 

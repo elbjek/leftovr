@@ -12,7 +12,7 @@ Deno.serve(async () => {
     { auth: { persistSession: false } },
   );
   const now = new Date();
-  const results: Record<string, number> = { daily: 0, recap: 0, topup: 0, reengagement: 0 };
+  const results: Record<string, number> = { daily: 0, recap: 0, eatfirst: 0, topup: 0, reengagement: 0 };
 
   // --- Household premium rules: daily + recap ---
   const { data: households } = await supabase
@@ -69,6 +69,9 @@ Deno.serve(async () => {
     results[type] += tokens.length;
   }
 
+  // --- Smart "eat first" pushes (per-user opt-in) ---
+  results.eatfirst = await runEatFirst(supabase, now);
+
   // --- Free rules: top-up + re-engagement ---
   results.topup = await runTopUp(supabase, now);
   results.reengagement = await runReengagement(supabase, now);
@@ -111,6 +114,61 @@ async function nullDeadTokens(supabase: any, dead: string[]) {
   for (const token of dead) {
     await supabase.from("notification_preferences").update({ push_token: null }).eq("push_token", token);
   }
+}
+
+// Per-user "eat first" nudge: users who opted in get one push when their
+// household has items expiring today. Premium-only, respects the household send
+// window, and shares the global 1-notification/user/day cap with the daily
+// suggestion (daily wins when both could fire on the same day).
+async function runEatFirst(supabase: any, now: Date): Promise<number> {
+  const { data: prefs } = await supabase
+    .from("notification_preferences")
+    .select("user_id, push_token, profiles!inner(active_household_id)")
+    .eq("smart_suggestions_enabled", true)
+    .not("push_token", "is", null);
+
+  let count = 0;
+  for (const p of prefs ?? []) {
+    const householdId = (p as any).profiles?.active_household_id;
+    if (!householdId) continue;
+
+    const { data: hs } = await supabase
+      .from("household_notification_settings")
+      .select("send_window_start, send_window_end, timezone, households!inner(plan_tier)")
+      .eq("household_id", householdId)
+      .maybeSingle();
+    if (!hs) continue;
+    const tier = (hs as any).households?.plan_tier;
+    if (tier !== "premium" && tier !== "household_premium") continue;
+    if (!isWithinSendWindow(now, hs.send_window_start, hs.send_window_end, hs.timezone)) continue;
+
+    // Global 1/user/day cap (no type filter) — daily suggestion shares it.
+    const { data: rows } = await supabase
+      .from("notification_sends")
+      .select("sent_at")
+      .eq("user_id", p.user_id)
+      .gte("sent_at", startOfDayUtcFloor(now));
+    if (sentToday(rows ?? [], now, hs.timezone)) continue;
+
+    const { data: inv } = await supabase
+      .from("inventory_items")
+      .select("name, expires_at")
+      .eq("household_id", householdId)
+      .is("removed_at", null);
+    const urgent = toUrgencyGroups(inv ?? []).filter((g) => g.urgency === "urgent");
+    if (urgent.length === 0) continue;
+
+    const names = urgent.slice(0, 3).map((g) => g.name);
+    const dead = await sendPush([p.push_token], {
+      title: "Eat these first",
+      body: `${names.join(", ")} ${urgent.length > 1 ? "need" : "needs"} using today.`,
+      data: { type: "eatfirst", items: names },
+    });
+    await recordSends(supabase, [p.user_id], householdId, "eatfirst", now);
+    await nullDeadTokens(supabase, dead);
+    count += 1;
+  }
+  return count;
 }
 
 async function runTopUp(supabase: any, now: Date): Promise<number> {
