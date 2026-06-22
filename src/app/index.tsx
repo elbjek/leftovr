@@ -9,7 +9,7 @@ import { colors, spacing } from "@/theme";
 
 export default function IndexRoute() {
   const { t } = useTranslation();
-  const { configured, loading, session, profile, activeHousehold, error, refresh } = useAuth();
+  const { configured, loading, session, profile, error, refresh } = useAuth();
   const { loading: onboardingGateLoading, hasPickedLanguage, hasSeenHook } =
     useFirstRunOnboardingGate();
 
@@ -59,10 +59,6 @@ export default function IndexRoute() {
 
   if (!profile?.onboarding_completed_at) {
     return <Redirect href="/(onboarding)" />;
-  }
-
-  if (!activeHousehold?.first_fill_completed_at) {
-    return <Redirect href="/(tabs)/scan" />;
   }
 
   return <Redirect href="/(tabs)/fridge" />;

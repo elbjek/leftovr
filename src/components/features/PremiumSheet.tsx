@@ -108,19 +108,15 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
     }
   }
 
-  const features = household
-    ? [
-        t("premium.features.eatFirst"),
-        t("premium.features.unlimitedRecipes"),
-        t("premium.features.dailyNotification"),
-        t("premium.features.householdSharing"),
-      ]
-    : [
-        t("premium.features.eatFirst"),
-        t("premium.features.unlimitedRecipes"),
-        t("premium.features.dailyNotification"),
-        t("premium.features.insights"),
-      ];
+  // Household is a superset of Individual (everything + sharing) so the higher
+  // price is clearly justified.
+  const features = [
+    t("premium.features.eatFirst"),
+    t("premium.features.unlimitedRecipes"),
+    t("premium.features.dailyNotification"),
+    t("premium.features.insights"),
+    ...(household ? [t("premium.features.householdSharing")] : []),
+  ];
 
 
   return (
@@ -173,26 +169,20 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
       <View style={styles.planCards}>
         <PlanCard
           label={t("premium.monthly")}
-          price={monthlyPkg?.product.priceString ?? (household ? "$7.99" : "$4.99")}
+          price={monthlyPkg?.product.priceString ?? "—"}
           sub={t("premium.perMonth")}
           selected={period === "monthly"}
           onPress={() => setPeriod("monthly")}
         />
         <PlanCard
           label={t("premium.yearly")}
-          price={yearlyPkg?.product.priceString ?? (household ? "$49.99" : "$29.99")}
+          price={yearlyPkg?.product.priceString ?? "—"}
           sub={t("premium.perYear")}
           selected={period === "yearly"}
           badge={t("premium.saveBadge")}
           onPress={() => setPeriod("yearly")}
         />
       </View>
-
-      {household ? (
-        <Text variant="small" muted center style={styles.memberNote}>
-          {t("premium.upToMembers")}
-        </Text>
-      ) : null}
 
       {error ? (
         <Text variant="small" color={colors.red} center style={styles.error}>
@@ -352,9 +342,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "baseline",
     gap: 3,
-  },
-  memberNote: {
-    marginBottom: spacing.lg,
   },
   currentPlanBanner: {
     backgroundColor: colors.primary50,
