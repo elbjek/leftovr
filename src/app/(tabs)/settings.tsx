@@ -67,12 +67,21 @@ export default function SettingsRoute() {
   const {
     preferences: notifPrefs,
     householdSettings: notifHouseholdSettings,
+    toggleAllNotifications,
     toggleSmartSuggestions,
     toggleMemberActivity,
+    toggleTips,
     toggleDailySuggestion,
+    toggleRecap,
     updateSendWindow,
   } = useNotifications(activeHousehold?.id);
   const [windowPicker, setWindowPicker] = useState<"start" | "end" | null>(null);
+  const notifMaster = notifPrefs?.notifications_enabled ?? true;
+  // Registering the device (push token) only matters when turning something on.
+  const onToggleWith = (fn: (enabled: boolean) => Promise<void> | void) => async (next: boolean) => {
+    if (next) await registerDevice();
+    await fn(next);
+  };
   const isHouseholdPremium = canShareHousehold(activeHousehold);
 
   function handleLanguageChange(language: SupportedLanguage) {
@@ -167,6 +176,22 @@ export default function SettingsRoute() {
         },
       ],
     );
+  }
+
+  function applyWindowTime(date: Date) {
+    if (!notifHouseholdSettings || windowPicker === null) return;
+    const picked = dateToHHMM(date);
+    const start = windowPicker === "start" ? picked : notifHouseholdSettings.send_window_start?.slice(0, 5) ?? "13:00";
+    const end = windowPicker === "end" ? picked : notifHouseholdSettings.send_window_end?.slice(0, 5) ?? "14:00";
+    void updateSendWindow(`${start}:00`, `${end}:00`);
+  }
+
+  function windowPickerValue() {
+    const current =
+      windowPicker === "start"
+        ? notifHouseholdSettings?.send_window_start
+        : notifHouseholdSettings?.send_window_end;
+    return hhmmToDate(current ?? (windowPicker === "start" ? "13:00" : "14:00"));
   }
 
   function toggleAvoidance(value: string) {
@@ -314,80 +339,42 @@ export default function SettingsRoute() {
               </Text>
             </View>
 
-            <View style={styles.settingRow}>
-              <View style={styles.settingCopy}>
-                <Text variant="small">{t("notifications.smartSuggestions")}</Text>
-                <Text variant="micro" muted>{t("notifications.smartSuggestionsBody")}</Text>
-              </View>
-              <Pressable
-                accessibilityRole="switch"
-                accessibilityState={{ checked: notifPrefs?.smart_suggestions_enabled ?? false }}
-                onPress={async () => {
-                  const next = !notifPrefs?.smart_suggestions_enabled;
-                  if (next) await registerDevice();
-                  toggleSmartSuggestions(next);
-                }}
-                style={[
-                  styles.toggle,
-                  notifPrefs?.smart_suggestions_enabled && styles.toggleActive,
-                ]}
-              >
-                <View style={[
-                  styles.toggleThumb,
-                  notifPrefs?.smart_suggestions_enabled && styles.toggleThumbActive,
-                ]} />
-              </Pressable>
-            </View>
+            <ToggleRow
+              title={t("notifications.allTitle")}
+              body={t("notifications.allBody")}
+              value={notifMaster}
+              onToggle={onToggleWith(toggleAllNotifications)}
+            />
+
+            <View style={styles.notifDivider} />
+
+            <ToggleRow
+              title={t("notifications.smartSuggestions")}
+              body={t("notifications.smartSuggestionsBody")}
+              value={notifPrefs?.smart_suggestions_enabled ?? false}
+              disabled={!notifMaster}
+              onToggle={onToggleWith(toggleSmartSuggestions)}
+            />
 
             {household.members.length > 1 ? (
-              <View style={styles.settingRow}>
-                <View style={styles.settingCopy}>
-                  <Text variant="small">{t("notifications.memberActivity")}</Text>
-                  <Text variant="micro" muted>{t("notifications.memberActivityBody")}</Text>
-                </View>
-                <Pressable
-                  accessibilityRole="switch"
-                  accessibilityState={{ checked: notifPrefs?.member_activity_enabled ?? true }}
-                  onPress={async () => {
-                    const next = !(notifPrefs?.member_activity_enabled ?? true);
-                    if (next) await registerDevice();
-                    toggleMemberActivity(next);
-                  }}
-                  style={[
-                    styles.toggle,
-                    (notifPrefs?.member_activity_enabled ?? true) && styles.toggleActive,
-                  ]}
-                >
-                  <View style={[
-                    styles.toggleThumb,
-                    (notifPrefs?.member_activity_enabled ?? true) && styles.toggleThumbActive,
-                  ]} />
-                </Pressable>
-              </View>
+              <ToggleRow
+                title={t("notifications.memberActivity")}
+                body={t("notifications.memberActivityBody")}
+                value={notifPrefs?.member_activity_enabled ?? true}
+                disabled={!notifMaster}
+                onToggle={onToggleWith(toggleMemberActivity)}
+              />
             ) : null}
 
-            <View style={styles.settingRow}>
-              <View style={styles.settingCopy}>
-                <Text variant="small">{t("notifications.dailySuggestion")}</Text>
-                <Text variant="micro" muted>{t("notifications.dailySuggestionBody")}</Text>
-              </View>
-              <Pressable
-                accessibilityRole="switch"
-                accessibilityState={{ checked: notifHouseholdSettings?.daily_suggestion_enabled ?? false }}
-                onPress={() => toggleDailySuggestion(!notifHouseholdSettings?.daily_suggestion_enabled)}
-                style={[
-                  styles.toggle,
-                  notifHouseholdSettings?.daily_suggestion_enabled && styles.toggleActive,
-                ]}
-              >
-                <View style={[
-                  styles.toggleThumb,
-                  notifHouseholdSettings?.daily_suggestion_enabled && styles.toggleThumbActive,
-                ]} />
-              </Pressable>
-            </View>
+            <ToggleRow
+              title={t("notifications.dailySuggestion")}
+              body={t("notifications.dailySuggestionBody")}
+              value={notifHouseholdSettings?.daily_suggestion_enabled ?? false}
+              disabled={!notifMaster}
+              onToggle={onToggleWith(toggleDailySuggestion)}
+            />
 
-            {notifHouseholdSettings?.daily_suggestion_enabled ? (
+            {notifHouseholdSettings?.daily_suggestion_enabled && notifMaster ? (
               <View style={styles.settingRow}>
                 <Text variant="small">{t("notifications.sendWindow")}</Text>
                 <View style={styles.windowPills}>
@@ -416,28 +403,34 @@ export default function SettingsRoute() {
               </View>
             ) : null}
 
-            {windowPicker !== null && notifHouseholdSettings ? (
+            {/* Android: native time dialog, render only while open. */}
+            {windowPicker !== null && Platform.OS === "android" ? (
               <DateTimePicker
                 mode="time"
-                display="spinner"
-                value={hhmmToDate(
-                  (windowPicker === "start"
-                    ? notifHouseholdSettings.send_window_start
-                    : notifHouseholdSettings.send_window_end) ?? (windowPicker === "start" ? "13:00" : "14:00"),
-                )}
+                value={windowPickerValue()}
                 onChange={(event, date) => {
-                  setWindowPicker(Platform.OS === "ios" ? windowPicker : null);
+                  setWindowPicker(null);
                   if (event.type === "dismissed" || !date) return;
-                  const picked = dateToHHMM(date);
-                  const start = windowPicker === "start" ? picked : notifHouseholdSettings.send_window_start?.slice(0, 5) ?? "13:00";
-                  const end = windowPicker === "end" ? picked : notifHouseholdSettings.send_window_end?.slice(0, 5) ?? "14:00";
-                  void updateSendWindow(`${start}:00`, `${end}:00`);
+                  applyWindowTime(date);
                 }}
               />
             ) : null}
-            {windowPicker !== null && Platform.OS === "ios" ? (
-              <Button title={t("common.continue")} variant="text" onPress={() => setWindowPicker(null)} />
-            ) : null}
+
+            <ToggleRow
+              title={t("notifications.recap")}
+              body={t("notifications.recapBody")}
+              value={notifHouseholdSettings?.recap_enabled ?? true}
+              disabled={!notifMaster}
+              onToggle={onToggleWith(toggleRecap)}
+            />
+
+            <ToggleRow
+              title={t("notifications.tips")}
+              body={t("notifications.tipsBody")}
+              value={notifPrefs?.tips_enabled ?? true}
+              disabled={!notifMaster}
+              onToggle={onToggleWith(toggleTips)}
+            />
 
             <View style={styles.settingRow}>
               <Text variant="small">{t("notifications.permissionStatus")}</Text>
@@ -656,6 +649,31 @@ export default function SettingsRoute() {
         </View>
       </BottomSheet>
 
+      {/* iOS: time picker in a sheet so the spinner doesn't blow out the page. */}
+      <BottomSheet
+        visible={Platform.OS === "ios" && windowPicker !== null}
+        onDismiss={() => setWindowPicker(null)}
+      >
+        <View style={styles.sheetContent}>
+          <Text variant="h2">
+            {windowPicker === "end" ? t("notifications.sendWindowEnd") : t("notifications.sendWindowStart")}
+          </Text>
+          {windowPicker !== null ? (
+            <DateTimePicker
+              mode="time"
+              display="spinner"
+              themeVariant="light"
+              textColor={colors.text}
+              value={windowPickerValue()}
+              onChange={(_event, date) => {
+                if (date) applyWindowTime(date);
+              }}
+            />
+          ) : null}
+          <Button title={t("common.continue")} onPress={() => setWindowPicker(null)} />
+        </View>
+      </BottomSheet>
+
       <PremiumSheet
         visible={showPremium}
         plan={premiumPlan}
@@ -663,6 +681,38 @@ export default function SettingsRoute() {
         onDismiss={() => setShowPremium(false)}
       />
     </Screen>
+  );
+}
+
+function ToggleRow({
+  title,
+  body,
+  value,
+  disabled,
+  onToggle,
+}: {
+  title: string;
+  body?: string;
+  value: boolean;
+  disabled?: boolean;
+  onToggle: (next: boolean) => void;
+}) {
+  return (
+    <View style={[styles.settingRow, disabled && styles.rowDisabled]}>
+      <View style={styles.settingCopy}>
+        <Text variant="small">{title}</Text>
+        {body ? <Text variant="micro" muted>{body}</Text> : null}
+      </View>
+      <Pressable
+        accessibilityRole="switch"
+        accessibilityState={{ checked: value, disabled }}
+        disabled={disabled}
+        onPress={() => onToggle(!value)}
+        style={[styles.toggle, value && styles.toggleActive]}
+      >
+        <View style={[styles.toggleThumb, value && styles.toggleThumbActive]} />
+      </Pressable>
+    </View>
   );
 }
 
@@ -743,6 +793,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
+  },
+  rowDisabled: {
+    opacity: 0.4,
+  },
+  notifDivider: {
+    height: 1,
+    backgroundColor: colors.hairline,
   },
   windowPill: {
     backgroundColor: colors.primary50,

@@ -4,8 +4,11 @@ export type NotificationPreferences = {
   id: string;
   user_id: string;
   permission_status: "not_determined" | "granted" | "denied" | "provisional";
+  notifications_enabled: boolean;
   smart_suggestions_enabled: boolean;
   member_activity_enabled: boolean;
+  tips_enabled: boolean;
+  reengagement_enabled: boolean;
   push_token: string | null;
   platform: string | null;
 };
@@ -14,6 +17,7 @@ export type HouseholdNotificationSettings = {
   id: string;
   household_id: string;
   daily_suggestion_enabled: boolean;
+  recap_enabled: boolean;
   send_window_start: string;
   send_window_end: string;
   last_suggestion_at: string | null;
@@ -27,7 +31,7 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
 
   const { data, error } = await supabase
     .from("notification_preferences")
-    .select("id, user_id, permission_status, smart_suggestions_enabled, member_activity_enabled, push_token, platform")
+    .select("id, user_id, permission_status, notifications_enabled, smart_suggestions_enabled, member_activity_enabled, tips_enabled, reengagement_enabled, push_token, platform")
     .eq("user_id", userResult.user.id)
     .single<NotificationPreferences>();
 
@@ -36,7 +40,7 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
 }
 
 export async function updateNotificationPreferences(
-  updates: Partial<Pick<NotificationPreferences, "permission_status" | "smart_suggestions_enabled" | "member_activity_enabled" | "push_token" | "platform">>,
+  updates: Partial<Pick<NotificationPreferences, "permission_status" | "notifications_enabled" | "smart_suggestions_enabled" | "member_activity_enabled" | "tips_enabled" | "reengagement_enabled" | "push_token" | "platform">>,
 ): Promise<void> {
   const supabase = getSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();
@@ -64,7 +68,7 @@ export async function getHouseholdNotificationSettings(
 
   const { data, error } = await supabase
     .from("household_notification_settings")
-    .select("id, household_id, daily_suggestion_enabled, send_window_start, send_window_end, last_suggestion_at, last_suggestion_payload")
+    .select("id, household_id, daily_suggestion_enabled, recap_enabled, send_window_start, send_window_end, last_suggestion_at, last_suggestion_payload")
     .eq("household_id", householdId)
     .single<HouseholdNotificationSettings>();
 
@@ -74,7 +78,7 @@ export async function getHouseholdNotificationSettings(
 
 export async function updateHouseholdNotificationSettings(
   householdId: string,
-  updates: Partial<Pick<HouseholdNotificationSettings, "daily_suggestion_enabled" | "send_window_start" | "send_window_end">>,
+  updates: Partial<Pick<HouseholdNotificationSettings, "daily_suggestion_enabled" | "recap_enabled" | "send_window_start" | "send_window_end">>,
 ): Promise<void> {
   const supabase = getSupabaseClient();
 

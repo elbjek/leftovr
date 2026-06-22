@@ -161,7 +161,7 @@ export function HouseholdSection({
           })}
         </View>
 
-        {activeInvite ? (
+        {isPremium && activeInvite ? (
           <View style={styles.inviteBox}>
             <Text variant="micro" muted>
               {t("settings.household.inviteCode")}

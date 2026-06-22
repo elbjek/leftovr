@@ -38,6 +38,11 @@ export function useNotifications(householdId: string | undefined) {
     return () => { cancelled = true; };
   }, [householdId]);
 
+  const toggleAllNotifications = useCallback(async (enabled: boolean) => {
+    await updateNotificationPreferences({ notifications_enabled: enabled });
+    setPreferences((prev) => prev ? { ...prev, notifications_enabled: enabled } : prev);
+  }, []);
+
   const toggleSmartSuggestions = useCallback(async (enabled: boolean) => {
     await updateNotificationPreferences({ smart_suggestions_enabled: enabled });
     setPreferences((prev) => prev ? { ...prev, smart_suggestions_enabled: enabled } : prev);
@@ -48,10 +53,26 @@ export function useNotifications(householdId: string | undefined) {
     setPreferences((prev) => prev ? { ...prev, member_activity_enabled: enabled } : prev);
   }, []);
 
+  const toggleTips = useCallback(async (enabled: boolean) => {
+    await updateNotificationPreferences({ tips_enabled: enabled });
+    setPreferences((prev) => prev ? { ...prev, tips_enabled: enabled } : prev);
+  }, []);
+
+  const toggleReengagement = useCallback(async (enabled: boolean) => {
+    await updateNotificationPreferences({ reengagement_enabled: enabled });
+    setPreferences((prev) => prev ? { ...prev, reengagement_enabled: enabled } : prev);
+  }, []);
+
   const toggleDailySuggestion = useCallback(async (enabled: boolean) => {
     if (!householdId) return;
     await updateHouseholdNotificationSettings(householdId, { daily_suggestion_enabled: enabled });
     setHouseholdSettings((prev) => prev ? { ...prev, daily_suggestion_enabled: enabled } : prev);
+  }, [householdId]);
+
+  const toggleRecap = useCallback(async (enabled: boolean) => {
+    if (!householdId) return;
+    await updateHouseholdNotificationSettings(householdId, { recap_enabled: enabled });
+    setHouseholdSettings((prev) => prev ? { ...prev, recap_enabled: enabled } : prev);
   }, [householdId]);
 
   const updateSendWindow = useCallback(async (start: string, end: string) => {
@@ -67,9 +88,13 @@ export function useNotifications(householdId: string | undefined) {
     loading,
     preferences,
     householdSettings,
+    toggleAllNotifications,
     toggleSmartSuggestions,
     toggleMemberActivity,
+    toggleTips,
+    toggleReengagement,
     toggleDailySuggestion,
+    toggleRecap,
     updateSendWindow,
   };
 }

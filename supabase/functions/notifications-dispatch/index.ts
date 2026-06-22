@@ -17,8 +17,8 @@ Deno.serve(async () => {
   // --- Household premium rules: daily + recap ---
   const { data: households } = await supabase
     .from("household_notification_settings")
-    .select("household_id, daily_suggestion_enabled, send_window_start, send_window_end, timezone, households!inner(plan_tier)")
-    .eq("daily_suggestion_enabled", true);
+    .select("household_id, daily_suggestion_enabled, recap_enabled, send_window_start, send_window_end, timezone, households!inner(plan_tier)")
+    .or("daily_suggestion_enabled.eq.true,recap_enabled.eq.true");
 
   for (const h of households ?? []) {
     const tier = (h as any).households?.plan_tier;
@@ -26,11 +26,14 @@ Deno.serve(async () => {
     if (!isWithinSendWindow(now, h.send_window_start, h.send_window_end, h.timezone)) continue;
 
     const recap = isRecapDay(now, h.timezone);
+    // Daily and weekly recap are independently opt-out-able.
+    if (recap && !h.recap_enabled) continue;
+    if (!recap && !h.daily_suggestion_enabled) continue;
     const type = recap ? "recap" : "daily";
 
     const { data: members } = await supabase
       .from("household_members")
-      .select("user_id, profiles!inner(primary_goal), notification_preferences!inner(push_token)")
+      .select("user_id, profiles!inner(primary_goal), notification_preferences!inner(push_token, notifications_enabled)")
       .eq("household_id", h.household_id)
       .eq("status", "active");
 
@@ -51,7 +54,7 @@ Deno.serve(async () => {
     const sendUserIds: string[] = [];
     for (const m of members ?? []) {
       const prefs = (m as any).notification_preferences;
-      if (!prefs?.push_token) continue;
+      if (!prefs?.push_token || !prefs?.notifications_enabled) continue;
       const { data: rows } = await supabase
         .from("notification_sends")
         .select("sent_at")
@@ -125,6 +128,7 @@ async function runEatFirst(supabase: any, now: Date): Promise<number> {
     .from("notification_preferences")
     .select("user_id, push_token, profiles!inner(active_household_id)")
     .eq("smart_suggestions_enabled", true)
+    .eq("notifications_enabled", true)
     .not("push_token", "is", null);
 
   let count = 0;
@@ -199,12 +203,13 @@ async function runReengagement(supabase: any, now: Date): Promise<number> {
   const cutoff = new Date(now.getTime() - 5 * 86400000).toISOString();
   const { data: users } = await supabase
     .from("profiles")
-    .select("id, notification_preferences!inner(push_token)")
+    .select("id, notification_preferences!inner(push_token, notifications_enabled, reengagement_enabled)")
     .lt("last_active_at", cutoff);
   let count = 0;
   for (const u of users ?? []) {
-    const token = (u as any).notification_preferences?.push_token;
-    if (!token) continue;
+    const prefs = (u as any).notification_preferences;
+    const token = prefs?.push_token;
+    if (!token || !prefs?.notifications_enabled || !prefs?.reengagement_enabled) continue;
     const { data: recent } = await supabase
       .from("notification_sends").select("id")
       .eq("user_id", u.id).eq("type", "reengagement").gte("sent_at", cutoff).limit(1);
@@ -217,15 +222,16 @@ async function runReengagement(supabase: any, now: Date): Promise<number> {
   return count;
 }
 
+// Only used by top-up — gate by the master switch + the per-user tips opt-out.
 async function pushToHousehold(supabase: any, householdId: string, now: Date, type: string, payload: any): Promise<number> {
   const { data: members } = await supabase
     .from("household_members")
-    .select("user_id, notification_preferences!inner(push_token)")
+    .select("user_id, notification_preferences!inner(push_token, notifications_enabled, tips_enabled)")
     .eq("household_id", householdId).eq("status", "active");
   const tokens: string[] = [], userIds: string[] = [];
   for (const m of members ?? []) {
-    const token = (m as any).notification_preferences?.push_token;
-    if (token) { tokens.push(token); userIds.push(m.user_id); }
+    const p = (m as any).notification_preferences;
+    if (p?.push_token && p?.notifications_enabled && p?.tips_enabled) { tokens.push(p.push_token); userIds.push(m.user_id); }
   }
   if (tokens.length === 0) return 0;
   const dead = await sendPush(tokens, payload);

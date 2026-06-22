@@ -38,13 +38,13 @@ Deno.serve(async (req) => {
   // Other members with a token + not muted.
   const { data: members } = await supabase
     .from("household_members")
-    .select("user_id, notification_preferences!inner(push_token, member_activity_enabled)")
+    .select("user_id, notification_preferences!inner(push_token, notifications_enabled, member_activity_enabled)")
     .eq("household_id", household_id).eq("status", "active").neq("user_id", actor_id);
 
   const tokens: string[] = [], userIds: string[] = [];
   for (const m of members ?? []) {
     const p = (m as any).notification_preferences;
-    if (p?.push_token && p?.member_activity_enabled) { tokens.push(p.push_token); userIds.push(m.user_id); }
+    if (p?.push_token && p?.notifications_enabled && p?.member_activity_enabled) { tokens.push(p.push_token); userIds.push(m.user_id); }
   }
   if (tokens.length === 0) return Response.json({ ok: true, skipped: "no_targets" });
 
