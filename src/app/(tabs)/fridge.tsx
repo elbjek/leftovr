@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, EatFirstShelf, FoodCard, GeneratingLoader, IconButton, RetentionCard, ScanNudgeBanner, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
+import { BottomSheet, Button, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
 import { isPremium as resolvePremium, useAuth, useMeasurementSystem } from "@/features";
 import { updateInventoryNetAmount } from "@/repositories";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -91,8 +91,6 @@ export default function FridgeRoute() {
         }
       />
 
-      <ScanNudgeBanner style={styles.bannerInset} />
-
       {weeklySummary && weeklySummary.itemsSaved > 0 ? (
         <Pressable
           accessibilityRole="button"
@@ -110,27 +108,29 @@ export default function FridgeRoute() {
         </Pressable>
       ) : null}
 
-      <EatFirstShelf
-        premium={isPremium}
-        items={eatFirstGroups.map((group) => ({
-          id: group.key,
-          name: group.name,
-          category: toUiCategory(group.category),
-          note: group.meta,
-          bestBy: computeBestByLabel(group, t),
-          urgency: toUiUrgency(group.urgency),
-        }))}
-        labels={{
-          premium: t("fridge.eatFirstPremium"),
-          title: t("fridge.eatFirstTitle"),
-          itemCount: (count) => t("fridge.eatFirstCount", { count }),
-          previewTitle: t("fridge.eatFirstPreviewTitle"),
-          previewBody: t("fridge.eatFirstPreviewBody"),
-          unlockAction: t("fridge.eatFirstUnlock"),
-        }}
-        onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
-        onUpgradePress={() => router.push("/(tabs)/settings")}
-      />
+      {groups.length > 0 ? (
+        <EatFirstShelf
+          premium={isPremium}
+          items={eatFirstGroups.map((group) => ({
+            id: group.key,
+            name: group.name,
+            category: toUiCategory(group.category),
+            note: group.meta,
+            bestBy: computeBestByLabel(group, t),
+            urgency: toUiUrgency(group.urgency),
+          }))}
+          labels={{
+            premium: t("fridge.eatFirstPremium"),
+            title: t("fridge.eatFirstTitle"),
+            itemCount: (count) => t("fridge.eatFirstCount", { count }),
+            previewTitle: t("fridge.eatFirstPreviewTitle"),
+            previewBody: t("fridge.eatFirstPreviewBody"),
+            unlockAction: t("fridge.eatFirstUnlock"),
+          }}
+          onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
+          onUpgradePress={() => router.push("/(tabs)/settings")}
+        />
+      ) : null}
 
       {showDay5Nudge && !day7Recap ? (
         <View style={styles.retentionWrap}>
@@ -171,22 +171,7 @@ export default function FridgeRoute() {
         </View>
       ) : null}
 
-      {!loading && !error && groups.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text variant="h2" center>
-            {t("fridge.emptyTitle")}
-          </Text>
-          <Text variant="body" muted center>
-            {t("fridge.emptyBody")}
-          </Text>
-          {activeHousehold?.first_fill_completed_at ? (
-            <Button
-              title={t("fridge.emptyCta")}
-              onPress={() => router.push("/(tabs)/scan")}
-            />
-          ) : null}
-        </View>
-      ) : null}
+      {!loading && !error && groups.length === 0 ? <EmptyFridge /> : null}
 
       {runningLowGroups.length > 0 ? (
         <CategoryShelf
@@ -674,10 +659,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.tabBarClearance,
     gap: spacing.xl,
   },
-  bannerInset: {
-    marginTop: 0,
-    marginBottom: 0,
-  },
   retentionWrap: {
     paddingHorizontal: spacing.screenX,
   },
@@ -714,11 +695,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
     alignItems: "center",
     gap: spacing.md,
-  },
-  emptyState: {
-    paddingHorizontal: spacing.screenX,
-    alignItems: "center",
-    gap: spacing.lg,
   },
   sheetContent: {
     gap: spacing.xl,

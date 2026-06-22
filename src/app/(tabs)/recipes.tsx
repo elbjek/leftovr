@@ -4,7 +4,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyState, FilterChip, GeneratingOverlay, PremiumSheet, RecipeCard, RecipeGlyph, Screen, ScreenHeader, Text } from "@/components";
+import { BottomDock, BottomSheet, Button, CookFilters, CookPromptSheet, EmptyFridge, EmptyState, FilterChip, GeneratingOverlay, PremiumSheet, RecipeCard, RecipeGlyph, Screen, ScreenHeader, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
@@ -263,14 +263,18 @@ export default function RecipesRoute() {
   return (
     <Screen padded={false} bottomInset={false}>
       {isEmpty ? (
-        <View style={styles.emptyWrap}>
-          <EmptyState
-            title={t("recipes.emptyTitle")}
-            body={generateNotice ?? recipeError ?? t("recipes.emptyBody")}
-            actionLabel={fridgeEmpty ? t("recipes.scanCta") : t("recipes.emptyAction")}
-            onAction={fridgeEmpty ? () => router.push("/(tabs)/scan") : openCookPrompt}
-          />
-        </View>
+        fridgeEmpty ? (
+          <EmptyFridge body={t("recipes.scanBody")} ctaLabel={t("recipes.scanCta")} />
+        ) : (
+          <View style={styles.emptyWrap}>
+            <EmptyState
+              title={t("recipes.emptyTitle")}
+              body={generateNotice ?? recipeError ?? t("recipes.emptyBody")}
+              actionLabel={t("recipes.emptyAction")}
+              onAction={openCookPrompt}
+            />
+          </View>
+        )
       ) : (
         <>
           <View style={styles.fixedContent}>

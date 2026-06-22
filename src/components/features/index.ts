@@ -1,6 +1,7 @@
 export * from "./AuthLanding";
 export * from "./CookPromptSheet";
 export * from "./EatFirstShelf";
+export * from "./EmptyFridge";
 export * from "./HouseholdSection";
 export * from "./FoodCard";
 export * from "./PremiumSheet";
@@ -9,5 +10,4 @@ export * from "./RecipeCard";
 export * from "./RecipeGlyph";
 export * from "./RetentionCard";
 export * from "./ScanMethodCard";
-export * from "./ScanNudgeBanner";
 export * from "./ShelfRow";
