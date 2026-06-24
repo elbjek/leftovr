@@ -121,20 +121,6 @@ export async function createRecipe(input: CreateRecipeInput) {
   return { ...data, is_favorite: false };
 }
 
-export async function listHouseholdRecipeSessions(householdId: string) {
-  const supabase = getSupabaseClient();
-
-  const { data, error } = await supabase
-    .from("recipe_sessions")
-    .select("*")
-    .eq("household_id", householdId)
-    .order("created_at", { ascending: false })
-    .returns<RecipeSessionRow[]>();
-
-  if (error) throw error;
-  return data ?? [];
-}
-
 export async function listHouseholdRecipes(householdId: string) {
   const supabase = getSupabaseClient();
 

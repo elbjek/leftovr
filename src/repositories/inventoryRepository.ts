@@ -124,19 +124,6 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
   return data;
 }
 
-export async function removeInventoryLot(itemId: string, reason = "removed") {
-  const supabase = getSupabaseClient();
-
-  const { error } = await supabase
-    .from("inventory_items")
-    .update({ removed_at: new Date().toISOString(), removal_reason: reason })
-    .eq("id", itemId);
-
-  if (error) {
-    throw error;
-  }
-}
-
 export async function removeInventoryGroup(lotIds: string[], reason = "removed") {
   if (lotIds.length === 0) return;
   const supabase = getSupabaseClient();
@@ -145,24 +132,6 @@ export async function removeInventoryGroup(lotIds: string[], reason = "removed")
     .from("inventory_items")
     .update({ removed_at: new Date().toISOString(), removal_reason: reason })
     .in("id", lotIds);
-
-  if (error) {
-    throw error;
-  }
-}
-
-export async function updateInventoryQuantity(itemId: string, quantity: number) {
-  const supabase = getSupabaseClient();
-
-  if (quantity <= 0) {
-    await removeInventoryLot(itemId, "quantity_depleted");
-    return;
-  }
-
-  const { error } = await supabase
-    .from("inventory_items")
-    .update({ quantity })
-    .eq("id", itemId);
 
   if (error) {
     throw error;

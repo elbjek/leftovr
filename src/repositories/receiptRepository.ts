@@ -17,32 +17,6 @@ export type ReceiptScanResult = {
 };
 
 
-export async function findRecentReceiptDuplicate(
-  householdId: string,
-  receiptSignature: string,
-): Promise<ReceiptDuplicate | null> {
-  const supabase = getSupabaseClient();
-  const since = new Date();
-  since.setDate(since.getDate() - 30);
-
-  const { data, error } = await supabase
-    .from("receipt_scans")
-    .select("id, created_at")
-    .eq("household_id", householdId)
-    .eq("receipt_signature", receiptSignature)
-    .eq("status", "completed")
-    .gte("created_at", since.toISOString())
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle<ReceiptDuplicate>();
-
-  if (error) {
-    throw error;
-  }
-
-  return data ?? null;
-}
-
 export type NormalizedReceiptScan = {
   scanId: string;
   items: ReceiptConfirmItem[];
