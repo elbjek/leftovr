@@ -7,12 +7,20 @@ const COALESCE_MIN = 10;
 // Invoked by the inventory_items AFTER INSERT trigger via pg_net.
 // Body: { household_id, actor_id, count }
 Deno.serve(async (req) => {
+  // Service-role only: invoked by the inventory trigger via pg_net with the
+  // service key. A valid user JWT alone (verify_jwt gateway) is not enough —
+  // require the service-role bearer so users can't spoof activity pushes.
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  if (req.headers.get("Authorization") !== `Bearer ${serviceKey}`) {
+    return Response.json({ error: "forbidden" }, { status: 403 });
+  }
+
   const { household_id, actor_id, count } = await req.json();
   if (!household_id || !actor_id) return Response.json({ ok: false }, { status: 400 });
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    serviceKey,
     { auth: { persistSession: false } },
   );
   const now = new Date();

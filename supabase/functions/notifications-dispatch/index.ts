@@ -5,10 +5,17 @@ import {
 } from "../_shared/notificationRules.ts";
 
 // Hourly cron entrypoint. Service-role only (invoked via pg_net with the service key).
-Deno.serve(async () => {
+Deno.serve(async (req) => {
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  // Reject anything but the service-role bearer so a logged-in user can't
+  // trigger the whole dispatch batch on demand.
+  if (req.headers.get("Authorization") !== `Bearer ${serviceKey}`) {
+    return Response.json({ error: "forbidden" }, { status: 403 });
+  }
+
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    serviceKey,
     { auth: { persistSession: false } },
   );
   const now = new Date();

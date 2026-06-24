@@ -809,6 +809,9 @@ const styles = StyleSheet.create({
     minHeight: 32,
     justifyContent: "center",
   },
+  filterChoicePressed: {
+    opacity: 0.7,
+  },
   sections: {
     gap: spacing.xl,
   },
