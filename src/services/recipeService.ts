@@ -172,20 +172,6 @@ export function selectMakeableRecipes(
   return makeable;
 }
 
-export function getRecipeFridgeLabel(match: RecipeMatch): string {
-  if (match.matchCount === 0) return "";
-  const urgentNames = match.matchedItems
-    .filter((m) => m.isUrgent)
-    .map((m) => m.ingredientName);
-  if (urgentNames.length > 0) {
-    return `Saves ${urgentNames[0]}`;
-  }
-  if (match.matchCount >= match.ingredients.length) {
-    return "Have it all";
-  }
-  return `Uses ${match.matchCount} from fridge`;
-}
-
 export function formatComplexity(complexity: string): string {
   const key = complexity === "simple" ? "simple" : complexity === "medium" ? "medium" : "involved";
   return i18n.t(`recipes.complexity.${key}`);

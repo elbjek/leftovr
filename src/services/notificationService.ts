@@ -25,10 +25,6 @@ export async function registerDevice(): Promise<boolean> {
   return true;
 }
 
-export function scheduleSmartSuggestion(_householdId: string): void {
-  // Stub for future backend-generated scheduling
-}
-
 export function previewDailySuggestion(
   groups: InventoryGroup[],
   primaryGoal: string | null,
