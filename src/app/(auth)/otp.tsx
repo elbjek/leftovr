@@ -28,7 +28,7 @@ export default function OtpRoute() {
   const isSignUp = mode === "sign-up";
   const title = isSignUp ? t("auth.otp.signUpTitle") : t("auth.otp.signInTitle");
   const body = sent ? t("auth.otp.sentBody", { email }) : t("auth.otp.body");
-  const normalizedToken = useMemo(() => token.replace(/\D/g, "").slice(0, 6), [token]);
+  const normalizedToken = useMemo(() => token.replace(/\D/g, "").slice(0, 8), [token]);
 
   async function handleSend() {
     if (!email) {
@@ -49,7 +49,7 @@ export default function OtpRoute() {
   }
 
   async function handleVerify() {
-    if (!email || normalizedToken.length < 6) {
+    if (!email || normalizedToken.length < 8) {
       setFormError(t("auth.otp.missingCode"));
       return;
     }
@@ -110,7 +110,7 @@ export default function OtpRoute() {
               onChangeText={setToken}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
-              maxLength={6}
+              maxLength={8}
               autoFocus
             />
           ) : null}

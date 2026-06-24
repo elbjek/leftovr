@@ -14,7 +14,7 @@ import {
   getHouseholdById,
   getHouseholdItemCount,
 } from "@/repositories";
-import { configurePurchases, identifyPurchaser, resetPurchaser, sendEmailOtp, signInWithApple, signInWithEmail, signInWithGoogle, signOut, signUpWithEmail, verifyEmailOtp } from "@/services";
+import { configurePurchases, identifyPurchaser, resetPurchaser, sendEmailOtp, signInWithApple, signInWithGoogle, signOut, verifyEmailOtp } from "@/services";
 import { getSupabaseClient, hasSupabaseConfig } from "@/lib/supabase";
 import { i18n } from "@/i18n";
 
@@ -47,8 +47,6 @@ type AuthContextValue = AuthState & {
   refresh: () => Promise<void>;
   sendOtp: (input: { email: string; displayName?: string; shouldCreateUser: boolean }) => Promise<void>;
   verifyOtp: (input: { email: string; token: string }) => Promise<void>;
-  signIn: (input: { email: string; password: string }) => Promise<void>;
-  signUp: (input: { displayName: string; email: string; password: string }) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
@@ -228,16 +226,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }));
           throw error;
         }
-      },
-      signIn: async (input) => {
-        setState((current) => ({ ...current, loading: true, error: null }));
-        await signInWithEmail(input);
-        await loadSessionProfile();
-      },
-      signUp: async (input) => {
-        setState((current) => ({ ...current, loading: true, error: null }));
-        await signUpWithEmail(input);
-        await loadSessionProfile();
       },
       signInWithGoogle: async () => {
         setState((current) => ({ ...current, loading: true, error: null }));
