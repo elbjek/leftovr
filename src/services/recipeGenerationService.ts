@@ -3,8 +3,13 @@ import { env } from "@/lib/env";
 import { MockRecipe } from "@/mocks/recipeLibrary";
 import { InventoryLot, resolveUrgency } from "./inventoryRules";
 import { matchRecipes, RecipeMatch, RecipeMatcherInput, selectMakeableRecipes } from "./recipeService";
+import { readEdgeErrorCode } from "./edgeErrors";
 
 export type RecipeGenerationFilters = RecipeMatcherInput["filters"];
+
+/** Thrown when the user has hit the monthly recipe cap; callers should show the
+ *  cap message instead of falling back to mock matches. */
+export class RecipeMonthlyLimitError extends Error {}
 
 export type AiRecipeCard = {
   title: string;
@@ -118,6 +123,9 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
       },
     });
     if (error) {
+      if (await readEdgeErrorCode(error) === "recipe_generation_monthly_limit") {
+        throw new RecipeMonthlyLimitError();
+      }
       if (__DEV__) console.warn("[recipes] Edge function error", error);
       throw error;
     }
@@ -136,6 +144,7 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
     }
     return matches;
   } catch (error) {
+    if (error instanceof RecipeMonthlyLimitError) throw error;
     if (__DEV__) console.warn("[recipes] AI generation failed, using mock matcher", error);
     return null;
   }

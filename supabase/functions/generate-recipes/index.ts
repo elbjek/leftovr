@@ -266,8 +266,10 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
   // These three reads are independent (keyed on userId/householdId), so run
   // them concurrently. Auth is already validated above; the gate checks below
   // still run in the same order and reject before the attempt insert.
-  const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
-  const [profileResult, householdResult, dailyCountResult] = await Promise.all([
+  const now = new Date();
+  const dayAgo = new Date(now.getTime() - 86_400_000).toISOString();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+  const [profileResult, householdResult, dailyCountResult, monthlyCountResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, tier, active_household_id, free_recipe_generation_used_at")
@@ -283,11 +285,17 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .gte("created_at", dayAgo),
+    supabase
+      .from("recipe_generation_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", monthStart),
   ]);
   const profile = profileResult.data;
   const profileError = profileResult.error;
   const household = householdResult.data;
   const dailyCount = dailyCountResult.count;
+  const monthlyCount = monthlyCountResult.count;
 
   if (profileError || !profile) {
     return { response: Response.json({ error: "profile_not_found" }, { status: 403 }) };
@@ -306,6 +314,11 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
   const dailyLimit = premium ? 50 : 5;
   if ((dailyCount ?? 0) >= dailyLimit) {
     return { response: Response.json({ error: "recipe_generation_rate_limited" }, { status: 429 }) };
+  }
+
+  const RECIPE_MONTHLY_CAP = 150;
+  if (premium && (monthlyCount ?? 0) >= RECIPE_MONTHLY_CAP) {
+    return { response: Response.json({ error: "recipe_generation_monthly_limit" }, { status: 429 }) };
   }
 
   const insert = await supabase

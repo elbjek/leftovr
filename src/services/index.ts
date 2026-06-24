@@ -1,5 +1,6 @@
 export * from "./accountService";
 export * from "./authService";
+export * from "./edgeErrors";
 export * from "./barcodeService";
 export * from "./insightsService";
 export * from "./inventoryRules";

@@ -137,8 +137,10 @@ Deno.serve(async (req) => {
   // These three reads are independent (keyed on userId/householdId), so run
   // them concurrently. Auth is already validated above; the gate checks below
   // still run in the same order and reject before any write/AI call.
-  const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
-  const [profileResult, householdResult, dailyCountResult] = await Promise.all([
+  const now = new Date();
+  const dayAgo = new Date(now.getTime() - 86_400_000).toISOString();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+  const [profileResult, householdResult, dailyCountResult, monthlyCountResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, tier, active_household_id, free_receipt_scan_used_at")
@@ -154,10 +156,16 @@ Deno.serve(async (req) => {
       .select("id", { count: "exact", head: true })
       .eq("created_by", userId)
       .gte("created_at", dayAgo),
+    supabase
+      .from("receipt_scans")
+      .select("id", { count: "exact", head: true })
+      .eq("created_by", userId)
+      .gte("created_at", monthStart),
   ]);
   const profile = profileResult.data;
   const household = householdResult.data;
   const dailyCount = dailyCountResult.count;
+  const monthlyCount = monthlyCountResult.count;
 
   if (!profile) {
     return Response.json({ error: "profile_not_found" }, { status: 403 });
@@ -175,6 +183,11 @@ Deno.serve(async (req) => {
 
   if ((dailyCount ?? 0) >= 30) {
     return Response.json({ error: "receipt_scan_rate_limited" }, { status: 429 });
+  }
+
+  const SCAN_MONTHLY_CAP = 100;
+  if (premium && (monthlyCount ?? 0) >= SCAN_MONTHLY_CAP) {
+    return Response.json({ error: "receipt_scan_monthly_limit" }, { status: 429 });
   }
 
   // The scan row is the attempt record: created when the (paid) AI call is

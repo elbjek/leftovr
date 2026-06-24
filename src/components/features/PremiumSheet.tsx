@@ -8,9 +8,12 @@ import { isPremium, useAuth } from "@/features";
 import { findPackage, getCurrentOffering, PRODUCT_IDS, purchasePackage, restorePurchases } from "@/services";
 import { colors, radii, spacing } from "../../theme";
 import { BottomSheet, Button, SegmentedControl, Text } from "../primitives";
+import { formatPerMonth } from "./perMonth";
 
 // iOS deep link to the system Manage Subscriptions screen.
 const MANAGE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
+const TERMS_URL = "https://leftovr.co/terms/";
+const PRIVACY_URL = "https://leftovr.co/privacy/";
 
 type PremiumPlan = "individual" | "household";
 type BillingPeriod = "monthly" | "yearly";
@@ -177,12 +180,18 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
         <PlanCard
           label={t("premium.yearly")}
           price={yearlyPkg?.product.priceString ?? "—"}
-          sub={t("premium.perYear")}
+          sub={yearlyPkg ? `${formatPerMonth(yearlyPkg, "")}${t("premium.perMonth")}` : t("premium.perYear")}
           selected={period === "yearly"}
           badge={t("premium.saveBadge")}
           onPress={() => setPeriod("yearly")}
         />
       </View>
+
+      {period === "yearly" ? (
+        <Text variant="micro" muted center style={styles.billedNote}>
+          {t("premium.billedYearly")}
+        </Text>
+      ) : null}
 
       {error ? (
         <Text variant="small" color={colors.red} center style={styles.error}>
@@ -207,6 +216,19 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
           style={styles.cta}
         />
       )}
+
+      <Text variant="micro" muted center style={styles.reassurance}>
+        {t("premium.reassurance")}
+      </Text>
+      <View style={styles.legalRow}>
+        <Pressable onPress={() => Linking.openURL(TERMS_URL)} hitSlop={8}>
+          <Text variant="micro" muted>{t("premium.terms")}</Text>
+        </Pressable>
+        <Text variant="micro" muted>·</Text>
+        <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} hitSlop={8}>
+          <Text variant="micro" muted>{t("premium.privacy")}</Text>
+        </Pressable>
+      </View>
 
       {hasAnyPremium ? (
         isViewingCurrent ? null : (
@@ -354,6 +376,19 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   error: {
+    marginBottom: spacing.sm,
+  },
+  billedNote: {
+    marginBottom: spacing.sm,
+  },
+  reassurance: {
+    marginTop: spacing.xs,
+  },
+  legalRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: spacing.sm,
+    marginTop: spacing.xs,
     marginBottom: spacing.sm,
   },
 });

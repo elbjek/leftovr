@@ -29,6 +29,7 @@ import {
   INVENTORY_CATEGORIES,
   InventoryCategory,
   lookupBarcodeProduct,
+  readEdgeErrorCode,
   ReceiptConfirmItem,
   searchOpenFoodFactsProducts,
 } from "@/services";
@@ -245,6 +246,11 @@ export default function ScanRoute() {
         setScanPremiumVisible(true);
         return;
       }
+      if ((await readEdgeErrorCode(scanError)) === "receipt_scan_monthly_limit") {
+        setError(t("scan.monthlyLimit"));
+        setMode("choice");
+        return;
+      }
       setError(errorMessage(scanError, t("auth.genericError")));
       setMode("choice");
     }
@@ -370,6 +376,11 @@ export default function ScanRoute() {
       if (isReceiptQuotaError(scanError) && !canScanReceipt) {
         setMode("choice");
         setScanPremiumVisible(true);
+        return;
+      }
+      if ((await readEdgeErrorCode(scanError)) === "receipt_scan_monthly_limit") {
+        setError(t("scan.monthlyLimit"));
+        setMode("camera");
         return;
       }
       setError(errorMessage(scanError, t("auth.genericError")));

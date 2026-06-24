@@ -14,7 +14,8 @@ import {
   matchRecipes,
   RecipeMatch,
 } from "@/services/recipeService";
-import { generateRecipeMatches, RecipeGenerationFilters } from "@/services/recipeGenerationService";
+import { generateRecipeMatches, RecipeGenerationFilters, RecipeMonthlyLimitError } from "@/services/recipeGenerationService";
+import { useTranslation } from "react-i18next";
 import { ingredientSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
@@ -49,6 +50,7 @@ export function useRecipes(
   },
 ) {
   const { inventory, avoidances, isPremium, freeGenerationUsed, servings, userId } = options;
+  const { t } = useTranslation();
   const generationInFlightRef = useRef(false);
   // Mirrors saved recipes so a generation can dedupe against them without the
   // callback closing over a stale state snapshot.
@@ -256,6 +258,10 @@ export function useRecipes(
 
           return { recipes: savedRecipes, matches: top };
         } catch (err) {
+          if (err instanceof RecipeMonthlyLimitError) {
+            setState((s) => ({ ...s, generating: false, error: t("recipes.monthlyLimit") }));
+            return null;
+          }
           if (__DEV__) console.warn("[recipes] generation persistence failed", err);
           setState((s) => ({
             ...s,
