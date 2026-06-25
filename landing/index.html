@@ -4,9 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>leftovr — Meal planner from your grocery receipt</title>
-<meta name="description" content="leftovr turns one grocery receipt into a self-updating fridge, then plans dinner from what you already have — less food wasted, no guessing what to cook." />
+<meta name="description" content="leftovr turns a grocery receipt into a self-updating fridge, then plans dinner from what you already have — less food wasted, no guessing what to cook." />
 <meta property="og:title" content="leftovr — What's for dinner?" />
-<meta property="og:description" content="One receipt becomes a fridge that tracks itself, then turns what you have into tonight's dinner. Waste-free, decision-free." />
+<meta property="og:description" content="A receipt becomes a fridge that tracks itself, then turns what you have into tonight's dinner. Waste-free, decision-free." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://leftovr.co/" />
 <meta property="og:site_name" content="leftovr" />
@@ -17,7 +17,7 @@
 <meta property="og:image:alt" content="leftovr app — one receipt fills your fridge and figures out dinner from what you already have" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="leftovr — What's for dinner?" />
-<meta name="twitter:description" content="One receipt becomes a fridge that tracks itself, then turns what you have into tonight's dinner. Waste-free, decision-free." />
+<meta name="twitter:description" content="A receipt becomes a fridge that tracks itself, then turns what you have into tonight's dinner. Waste-free, decision-free." />
 <meta name="twitter:image" content="https://leftovr.co/og-image.jpg" />
 <meta name="twitter:image:alt" content="leftovr app — one receipt fills your fridge and figures out dinner from what you already have" />
 <link rel="canonical" href="https://leftovr.co/" />
@@ -29,9 +29,9 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 <meta name="theme-color" content="#1B4332" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <style>
   :root {
     --primary: #1B4332;
@@ -41,1460 +41,1350 @@
     --surface: #F8F4EE;
     --surface-2: #F1ECE2;
     --surface-3: #E8E1D3;
-    --paper: #FFFEFB;
-    --bg: #EFE9DD;
     --accent: #D4A843;
     --accent-soft: #F0DDA8;
     --text: #1C1C1A;
-    --muted: #5D6C60;
+    --muted: #6B7A6D;
+    --muted-2: #9AA59C;
     --green: #4F8A5B;
     --red: #C76845;
+    --page: #EFE9DD;
+    --card: #FFFEFB;
     --hairline: rgba(27, 67, 50, 0.10);
     --hairline-strong: rgba(27, 67, 50, 0.18);
-    --display: "Fraunces", Georgia, serif;
-    --body: "Plus Jakarta Sans", -apple-system, sans-serif;
-    --sans: "Plus Jakarta Sans", -apple-system, sans-serif;
-    --radius-lg: 14px;
-    --radius-xl: 18px;
-    --radius-xxl: 24px;
-    --shadow-card: 0 6px 14px rgba(28, 28, 26, 0.05);
-    --shadow-pop: 0 8px 24px rgba(27, 67, 50, 0.18);
-    --max-w: 1120px;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { box-sizing: border-box; }
+
   html { scroll-behavior: smooth; }
+
   body {
-    font-family: var(--body);
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
+    background: var(--page);
     color: var(--text);
-    background: var(--bg);
-    font-size: 16px;
-    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
+    letter-spacing: -0.005em;
+    line-height: 1.5;
   }
 
-  /* Grain overlay for warmth */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 0.35;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.04'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  ::selection { background: var(--accent-soft); color: var(--primary-700); }
-
+  h1, h2, h3 { margin: 0; }
+  p { margin: 0; }
   a { color: inherit; text-decoration: none; }
-  button { font-family: inherit; cursor: pointer; }
-  img, svg { display: block; }
 
-  .wrap { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; position: relative; z-index: 2; }
+  .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 28px; }
 
-  /* ---------- Nav ---------- */
-  .nav-shell {
-    position: fixed;
-    top: 16px; left: 16px; right: 16px;
-    z-index: 50;
-    display: flex;
-    justify-content: center;
-    pointer-events: none;
-  }
-  nav {
-    pointer-events: auto;
-    display: flex;
-    align-items: center;
-    gap: 28px;
-    background: rgba(255, 254, 251, 0.85);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid var(--hairline);
-    border-radius: 999px;
-    padding: 10px 12px 10px 20px;
-    box-shadow: var(--shadow-card);
-    max-width: var(--max-w);
-    width: 100%;
-  }
-  .nav-logo { display: inline-flex; align-items: baseline; font-family: var(--display); font-size: 25px; font-weight: 600; letter-spacing: -0.01em; color: var(--primary); }
-  .nav-logo .logo-r {
-    color: var(--accent);
-    display: inline-block;
-    transform: rotate(9deg) translateY(0.03em);
-    transform-origin: 50% 60%;
-  }
-  .nav-links { display: flex; gap: 24px; margin-left: auto; }
-  .nav-links a {
-    font-size: 14px; font-weight: 600; color: var(--muted);
-    transition: color 200ms ease;
-    padding: 8px 2px;
-  }
-  .nav-links a:hover, .nav-links a:focus-visible { color: var(--primary); }
-  .nav-cta {
-    background: var(--primary); color: var(--surface);
-    border: none; border-radius: 999px;
-    font-family: var(--sans);
-    padding: 11px 22px; font-size: 14px; font-weight: 400;
-    transition: background 200ms ease, box-shadow 200ms ease;
-  }
-  .nav-cta:hover { background: var(--primary-700); box-shadow: var(--shadow-pop); }
-  .menu-btn {
-    display: none; margin-left: auto;
-    background: none; border: none; padding: 10px;
-    color: var(--primary);
-  }
-  .mobile-menu {
-    display: none;
-    position: fixed; top: 84px; left: 16px; right: 16px; z-index: 49;
-    background: var(--paper);
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-pop);
-    padding: 12px;
-    flex-direction: column;
-  }
-  .mobile-menu.open { display: flex; }
-  .mobile-menu a {
-    padding: 14px 16px; font-weight: 600; font-size: 16px;
-    border-radius: 12px; color: var(--text);
-  }
-  .mobile-menu a:hover { background: var(--primary-50); }
+  .serif { font-family: 'Fraunces', serif; }
+  .italic { font-style: italic; }
 
-  /* ---------- Buttons ---------- */
+  .micro {
+    font-weight: 600; font-size: 12px; line-height: 1.2;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .sr-only {
+    position: absolute !important; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0;
+  }
+
+  /* ── Buttons ───────────────────────────── */
   .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-    border-radius: 999px; font-family: var(--sans); font-weight: 400; font-size: 16px;
-    padding: 16px 30px; border: none;
-    transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
-    min-height: 44px;
-  }
-  .btn-primary { background: var(--primary); color: var(--surface); box-shadow: 0 8px 24px rgba(27, 67, 50, 0.22); }
-  .btn-primary:hover { background: var(--primary-700); box-shadow: 0 12px 32px rgba(27, 67, 50, 0.3); transform: translateY(-1px); }
-  .btn-ghost { background: transparent; color: var(--primary); border: 1.5px solid var(--hairline-strong); }
-  .btn-ghost:hover { background: var(--primary-50); }
-
-  /* ---------- Hero ---------- */
-  header.hero {
-    position: relative;
-    padding: 168px 0 80px;
-    overflow: hidden;
-  }
-  .hero-bg {
-    position: absolute; inset: 0; z-index: 0;
-    background:
-      radial-gradient(900px 480px at 80% -10%, rgba(212, 168, 67, 0.18), transparent 65%),
-      radial-gradient(700px 500px at 8% 20%, rgba(79, 138, 91, 0.10), transparent 60%),
-      linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
-  }
-  .hero-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-    gap: 44px;
-    align-items: center;
-  }
-  .kicker {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--primary);
-    background: var(--accent-soft);
-    border-radius: 999px;
-    padding: 8px 16px;
-    margin-bottom: 24px;
-  }
-  .kicker .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); }
-  h1 {
-    font-family: var(--display);
-    font-weight: 500;
-    font-size: clamp(34px, 4.4vw, 52px);
-    line-height: 1.06;
-    color: var(--primary);
-    letter-spacing: -0.01em;
-    margin-bottom: 24px;
-  }
-  h1 .hl2 { white-space: nowrap; font-size: 1.1em; }
-  h1 em {
-    font-style: italic;
-    color: var(--text);
-    position: relative;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 52px; padding: 0 24px;
+    border-radius: 999px; border: none; cursor: pointer;
+    font-family: inherit; font-weight: 600; font-size: 15px;
+    letter-spacing: -0.005em;
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
     white-space: nowrap;
   }
-  h1 em .underline-svg {
-    position: absolute; left: 0; right: 0; bottom: -6px; width: 100%; height: 12px;
+  .btn-primary {
+    background: var(--primary); color: var(--surface);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 8px 24px rgba(27,67,50,0.18);
   }
-  .hero-sub {
-    font-size: 17px; line-height: 1.65; color: var(--muted);
-    max-width: 46ch; margin-bottom: 36px;
-  }
-  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 40px; }
-  .hero-proof { display: flex; align-items: center; gap: 14px; }
-  .avatars { display: flex; }
-  .avatars span {
-    width: 36px; height: 36px; border-radius: 50%;
-    border: 2px solid var(--surface);
-    margin-left: -10px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--primary);
-  }
-  .avatars span:first-child { margin-left: 0; }
-  .hero-proof p { font-size: 14px; color: var(--muted); }
-  .hero-proof strong { color: var(--text); }
-  .stars { color: var(--accent); letter-spacing: 2px; font-size: 13px; }
-
-  /* ---------- Phone mockup ---------- */
-  .phone-zone { position: relative; display: flex; justify-content: center; }
-  .phone {
-    position: relative;
-    width: 320px;
-    background: var(--primary-700);
-    border-radius: 48px;
-    padding: 12px;
-    box-shadow: 0 40px 80px rgba(27, 67, 50, 0.28), 0 4px 12px rgba(28,28,26,0.15);
-    transform: rotate(2.5deg);
-  }
-  .phone-screen {
-    background: var(--surface);
-    border-radius: 38px;
-    overflow: hidden;
-    padding: 22px 16px 18px;
-  }
-  .phone-notch {
-    width: 110px; height: 26px; background: var(--primary-700);
-    border-radius: 0 0 16px 16px;
-    margin: -22px auto 14px;
-  }
-  .app-greeting { font-family: var(--display); font-size: 23px; font-weight: 600; color: var(--primary); line-height: 1.15; }
-  .app-sub { font-size: 12px; color: var(--muted); margin: 4px 0 14px; }
-  .shelf-label {
-    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--muted); margin: 12px 0 8px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .shelf-label .pip { width: 7px; height: 7px; border-radius: 50%; }
-  .food-row { display: flex; gap: 8px; }
-  .food-card {
-    flex: 1;
-    background: var(--paper);
-    border: 1px solid var(--hairline);
-    border-radius: 14px;
-    padding: 10px 8px;
-    text-align: center;
-  }
-  .food-glyph {
-    width: 38px; height: 38px; border-radius: 12px;
-    margin: 0 auto 6px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .food-card h4 { font-size: 11px; font-weight: 700; color: var(--text); }
-  .food-card p { font-size: 9.5px; font-weight: 600; }
-  .recipe-banner {
-    margin-top: 14px;
-    background: var(--primary);
-    border-radius: 16px;
-    padding: 14px;
-    color: var(--surface);
-  }
-  .recipe-banner .tag { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-soft); }
-  .recipe-banner h4 { font-family: var(--display); font-size: 16px; font-weight: 500; margin: 4px 0 2px; }
-  .recipe-banner p { font-size: 10.5px; opacity: 0.75; }
-  .float-chip {
-    position: absolute;
-    background: var(--paper);
-    border: 1px solid var(--hairline);
-    border-radius: 999px;
-    padding: 10px 18px;
-    font-size: 13px; font-weight: 700;
-    box-shadow: var(--shadow-card);
-    display: flex; align-items: center; gap: 8px;
-    animation: float 5s ease-in-out infinite;
-  }
-  .chip-1 { top: 28%; left: -4%; color: var(--green); animation-delay: 0s; }
-  .chip-2 { bottom: 20%; right: -6%; color: var(--primary); animation-delay: 1.6s; }
-  .chip-3 { bottom: 4%; left: 2%; color: var(--accent); animation-delay: 3s; }
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  /* ---------- Sections ---------- */
-  section { padding: 96px 0; position: relative; }
-  .section-head { max-width: 620px; margin-bottom: 56px; }
-  .section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
-  .eyebrow {
-    font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 14px; display: block;
-  }
-  h2 {
-    font-family: var(--display);
-    font-weight: 500;
-    font-size: clamp(32px, 4.2vw, 48px);
-    line-height: 1.1;
-    color: var(--primary);
-    margin-bottom: 16px;
-  }
-  .section-head p { font-size: 17px; color: var(--muted); }
-
-  /* How it works */
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-  .step {
-    background: var(--paper);
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius-xxl);
-    padding: 32px 28px;
-    position: relative;
-    transition: transform 250ms ease, box-shadow 250ms ease;
-  }
-  .step:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(28,28,26,0.08); }
-  .step-num {
-    font-family: var(--display);
-    font-size: 52px; font-weight: 600; font-style: italic;
-    color: var(--accent);
-    line-height: 1;
-    margin-bottom: 18px;
-  }
-  .step-icon { width: 52px; height: 52px; border-radius: 16px; background: var(--primary-50); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
-  .step h3 { font-size: 19px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-  .step p { font-size: 15px; color: var(--muted); }
-
-  /* Features bento */
-  #features { background: var(--surface); border-radius: 48px 48px 0 0; }
-  .bento {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 18px;
-  }
-  .cell {
-    background: var(--paper);
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius-xxl);
-    padding: 32px;
-    transition: transform 250ms ease, box-shadow 250ms ease;
-    overflow: hidden;
-    position: relative;
-  }
-  .cell:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(28,28,26,0.08); }
-  .cell-lg { grid-column: span 4; }
-  .cell-sm { grid-column: span 2; }
-  .cell-md { grid-column: span 3; }
-  .cell-dark { background: var(--primary); border-color: var(--primary-700); color: var(--surface); }
-  .cell-dark h3 { color: var(--surface); }
-  .cell-dark p { color: rgba(248, 244, 238, 0.75); }
-  .cell-gold { background: var(--accent-soft); border-color: rgba(212, 168, 67, 0.4); }
-  .cell .icon {
-    width: 48px; height: 48px; border-radius: 14px;
-    background: var(--primary-50);
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 20px;
-  }
-  .cell-dark .icon { background: rgba(248, 244, 238, 0.12); }
-  .cell-gold .icon { background: rgba(255, 254, 251, 0.6); }
-  .cell h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-  .cell p { font-size: 15px; color: var(--muted); }
-  .urgency-demo { display: flex; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
-  .urgency-demo span {
-    font-size: 12px; font-weight: 700; border-radius: 999px; padding: 7px 14px;
-  }
-  .u-today { background: rgba(199, 104, 69, 0.14); color: var(--red); }
-  .u-soon { background: rgba(212, 168, 67, 0.2); color: #8a6a1d; }
-  .u-fresh { background: rgba(79, 138, 91, 0.15); color: var(--green); }
-  .mini-receipt {
-    margin-top: 22px;
-    background: var(--surface);
-    border-radius: 12px;
-    border: 1px dashed var(--hairline-strong);
-    padding: 14px 16px;
-    font-size: 12.5px;
-    color: var(--muted);
-  }
-  .mini-receipt div { display: flex; justify-content: space-between; padding: 3px 0; }
-  .mini-receipt .ok { color: var(--green); font-weight: 700; }
-
-  /* Stats */
-  .stats-band {
-    background: var(--primary);
-    color: var(--surface);
-    border-radius: var(--radius-xxl);
-    padding: 56px 48px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .stats-band::after {
-    content: "";
-    position: absolute; inset: 0;
-    background: radial-gradient(600px 300px at 85% 120%, rgba(212, 168, 67, 0.25), transparent 60%);
-    pointer-events: none;
-  }
-  .stat .num {
-    font-family: var(--display);
-    font-size: clamp(40px, 5vw, 58px);
-    font-weight: 600;
-    color: var(--accent-soft);
-    line-height: 1.1;
-  }
-  .stat .lbl { font-size: 14px; font-weight: 600; opacity: 0.8; margin-top: 6px; }
-
-  /* Testimonials */
-  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .quote {
-    background: var(--paper);
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius-xxl);
-    padding: 32px;
-    display: flex; flex-direction: column; gap: 18px;
-  }
-  .quote blockquote {
-    font-family: var(--display);
-    font-size: 19px; font-style: italic; font-weight: 400;
-    line-height: 1.45; color: var(--text);
-  }
-  .quote footer { display: flex; align-items: center; gap: 12px; margin-top: auto; }
-  .quote .who b { display: block; font-size: 14px; }
-  .quote .who span { font-size: 13px; color: var(--muted); }
-  .qa {
-    width: 42px; height: 42px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--display); font-weight: 600; color: var(--primary);
-  }
-
-  /* FAQ */
-  .faq-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-  details {
-    background: var(--paper);
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    transition: box-shadow 200ms ease;
-  }
-  details[open] { box-shadow: var(--shadow-card); }
-  summary {
-    list-style: none;
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 22px 26px;
-    font-weight: 700; font-size: 16px;
-    cursor: pointer;
-    transition: color 200ms ease;
-  }
-  summary::-webkit-details-marker { display: none; }
-  summary:hover { color: var(--primary); }
-  summary .plus {
-    flex: none; width: 28px; height: 28px;
-    border-radius: 50%;
+  .btn-primary:hover { background: var(--primary-700); transform: translateY(-1px); box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 12px 28px rgba(27,67,50,0.24); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-accent { background: var(--accent); color: var(--text); box-shadow: 0 8px 24px rgba(212,168,67,0.3); }
+  .btn-accent:hover { transform: translateY(-1px); }
+  .btn-ghost {
+    background: transparent; color: var(--primary);
     border: 1.5px solid var(--hairline-strong);
-    position: relative;
-    transition: transform 250ms ease, background 250ms ease;
   }
-  summary .plus::before, summary .plus::after {
-    content: ""; position: absolute; background: var(--primary);
-    top: 50%; left: 50%; transform: translate(-50%, -50%);
-  }
-  summary .plus::before { width: 11px; height: 1.5px; }
-  summary .plus::after { width: 1.5px; height: 11px; transition: opacity 200ms ease; }
-  details[open] summary .plus { transform: rotate(45deg); background: var(--accent-soft); }
-  .faq-body { padding: 0 26px 24px; font-size: 15px; color: var(--muted); max-width: 60ch; }
+  .btn-ghost:hover { background: var(--card); }
+  .btn-sm { height: 44px; padding: 0 18px; font-size: 14px; }
 
-  /* Final CTA */
-  .final-cta {
-    background: var(--primary);
-    border-radius: var(--radius-xxl);
-    padding: 80px 48px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+  /* ── Header ────────────────────────────── */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(239, 233, 221, 0.82);
+    backdrop-filter: saturate(140%) blur(12px);
+    border-bottom: 1px solid var(--hairline);
   }
-  .final-cta::before {
-    content: "";
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(500px 280px at 15% -20%, rgba(212, 168, 67, 0.28), transparent 60%),
-      radial-gradient(500px 280px at 90% 120%, rgba(79, 138, 91, 0.3), transparent 60%);
-    pointer-events: none;
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+  .nav-brand { display: flex; flex-direction: column; gap: 1px; line-height: 1; }
+  .nav-logo {
+    font-family: 'Fraunces', serif; font-size: 25px; font-weight: 600;
+    letter-spacing: -0.01em; color: var(--primary);
+    display: inline-flex; align-items: baseline; line-height: 1;
   }
-  .final-cta > * { position: relative; }
-  .final-cta h2 { color: var(--surface); margin-bottom: 14px; }
-  .final-cta p { color: rgba(248, 244, 238, 0.75); font-size: 17px; margin-bottom: 36px; }
-  .waitlist-form {
-    display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
-    max-width: 520px; margin: 0 auto;
+  .nav-logo .logo-r {
+    color: var(--accent); display: inline-block;
+    transform: rotate(9deg) translateY(0.03em); transform-origin: 50% 60%;
   }
-  .waitlist-form input[type="email"] {
-    flex: 1 1 260px;
-    min-height: 44px;
-    border-radius: 999px;
-    border: 1.5px solid rgba(248, 244, 238, 0.35);
-    background: rgba(248, 244, 238, 0.1);
-    color: var(--surface);
-    font-family: var(--body);
-    font-size: 16px;
-    font-weight: 500;
-    padding: 14px 24px;
-    transition: border-color 200ms ease, background 200ms ease;
-  }
-  .waitlist-form input[type="email"]::placeholder { color: rgba(248, 244, 238, 0.55); }
-  .waitlist-form input[type="email"]:focus {
-    outline: none;
-    border-color: var(--accent);
-    background: rgba(248, 244, 238, 0.16);
-  }
-  .waitlist-form .btn { flex: none; }
-  .waitlist-form .btn[disabled] { opacity: 0.6; cursor: wait; transform: none; }
-  .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-  .sr-only {
-    position: absolute; width: 1px; height: 1px;
-    padding: 0; margin: -1px; overflow: hidden;
-    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
-  }
-  .form-msg { min-height: 24px; margin-top: 14px; font-size: 14px; font-weight: 600; }
-  .form-msg.ok { color: var(--accent-soft); }
-  .form-msg.err { color: #F0B9A4; }
-  .btn-gold { background: var(--accent); color: var(--primary-700); }
-  .btn-gold:hover { background: var(--accent-soft); transform: translateY(-1px); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
-  .btn-outline-light { background: transparent; color: var(--surface); border: 1.5px solid rgba(248,244,238,0.35); }
-  .btn-outline-light:hover { background: rgba(248,244,238,0.1); }
-  .store-note { margin-top: 22px; font-size: 13px; color: rgba(248,244,238,0.55); }
+  .nav-sub { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
 
-  /* Footer */
-  footer.site {
-    padding: 56px 0 40px;
-    border-top: 1px solid var(--hairline);
-    margin-top: 96px;
-  }
-  .foot-grid { display: flex; justify-content: space-between; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
-  .foot-brand p { font-size: 14px; color: var(--muted); max-width: 30ch; margin-top: 12px; }
-  .foot-links { display: flex; gap: 56px; flex-wrap: wrap; }
-  .foot-col b { display: block; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
-  .foot-col a { display: block; font-size: 15px; font-weight: 600; padding: 6px 0; color: var(--text); transition: color 200ms ease; }
-  .foot-col a:hover { color: var(--primary); }
-  .legal {
-    margin-top: 48px; padding-top: 24px;
-    border-top: 1px solid var(--hairline);
-    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-    font-size: 13px; color: var(--muted);
-  }
-
-  /* Reveal animation */
-  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 700ms ease, transform 700ms ease; }
-  .reveal.in { opacity: 1; transform: none; }
-  .reveal-d1 { transition-delay: 100ms; }
-  .reveal-d2 { transition-delay: 200ms; }
-  .reveal-d3 { transition-delay: 300ms; }
-
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .reveal { opacity: 1; transform: none; transition: none; }
-    .float-chip { animation: none; }
-    * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
-  }
-
-  :focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
-
-  /* ---------- Language toggle ---------- */
+  /* Language toggle */
   .lang-toggle {
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--hairline-strong);
-    border-radius: 999px;
-    overflow: hidden;
-    background: var(--surface);
+    display: inline-flex; gap: 2px; padding: 3px;
+    border-radius: 999px; background: var(--surface-2);
+    border: 1px solid var(--hairline);
   }
   .lang-toggle button {
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    padding: 7px 13px;
-    min-height: 36px;
-    transition: background 200ms ease, color 200ms ease;
+    border: none; background: transparent; cursor: pointer;
+    height: 32px; padding: 0 12px; border-radius: 999px;
+    font-family: inherit; font-weight: 600; font-size: 13px; color: var(--muted);
+    transition: background 0.15s ease, color 0.15s ease;
   }
-  .lang-toggle button[aria-pressed="true"] {
-    background: var(--primary);
-    color: var(--surface);
-  }
+  .lang-toggle button[aria-pressed="true"] { background: var(--primary); color: var(--surface); }
   .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--primary); }
-  .nav-lang { margin-left: 4px; }
-  .mobile-lang { margin: 8px 12px 4px; align-self: flex-start; }
-  @media (max-width: 960px) {
-    .nav-lang { display: none; }
+
+  /* ── Hero ──────────────────────────────── */
+  .hero { padding: 88px 0 64px; }
+  .hero-grid {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    max-width: 840px; margin: 0 auto;
+  }
+  .hero-grid .hero-sub { margin-left: auto; margin-right: auto; }
+  .hero-grid .capture, .hero-grid .form-success { margin-left: auto; margin-right: auto; }
+  .hero-grid .capture-label { text-align: center; }
+  .hero-grid .steps-strip { justify-content: center; }
+  .hero-grid .privacy { justify-content: center; }
+  .kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px; border-radius: 999px;
+    background: var(--primary-50); color: var(--primary);
+    font-weight: 600; font-size: 13px; margin-bottom: 22px;
+  }
+  .kicker .seed { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+  h1.hero-h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 54px;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    color: var(--text);
+    margin-bottom: 22px;
+    text-wrap: balance;
+  }
+  .hero-h1 .hl { display: block; }
+  .hero-h1 .mark { color: var(--primary); }
+  .uline { position: relative; white-space: nowrap; }
+  .uline svg { position: absolute; left: 0; right: 0; bottom: -10px; width: 100%; height: 14px; }
+
+  .hero-sub {
+    font-size: 15px; line-height: 1.5; color: var(--muted);
+    max-width: 480px; margin-bottom: 30px;
   }
 
-  /* ---------- Responsive ---------- */
-  @media (max-width: 960px) {
-    .hero-grid { grid-template-columns: 1fr; gap: 64px; }
-    .phone { transform: rotate(0deg); }
-    .steps, .quotes { grid-template-columns: 1fr; }
-    .stats-band { grid-template-columns: 1fr; padding: 48px 32px; }
-    .cell-lg, .cell-sm, .cell-md { grid-column: span 6; }
-    .nav-links, .nav-shell .nav-cta { display: none; }
-    .menu-btn { display: block; }
-    section { padding: 72px 0; }
-    header.hero { padding-top: 132px; }
+  /* Inline email capture */
+  .capture { max-width: 470px; }
+  .capture-label { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 8px; display: block; }
+  .capture-row { display: flex; gap: 10px; }
+  .field {
+    flex: 1; height: 52px; padding: 0 18px;
+    background: var(--card); color: var(--text);
+    border: 1.5px solid var(--hairline-strong); border-radius: 999px;
+    font-family: inherit; font-size: 15px; outline: none;
+    transition: border 0.15s ease, box-shadow 0.15s ease;
   }
-  @media (max-width: 560px) {
-    h1 .hl2 { white-space: normal; }
+  .field::placeholder { color: var(--muted-2); }
+  .field:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-50); }
+  .privacy {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; color: var(--muted); margin-top: 12px;
   }
-  @media (max-width: 480px) {
-    .phone { width: 280px; }
-    .final-cta { padding: 56px 24px; }
-    .chip-2 { right: -2%; }
+  .privacy svg { flex-shrink: 0; }
+  .form-msg { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .form-msg.err { color: var(--red); }
+  .form-msg.ok { color: var(--green); }
+  .form-success {
+    display: none;
+    align-items: center; gap: 12px;
+    padding: 16px 20px; border-radius: 16px;
+    background: var(--primary-50); border: 1px solid var(--hairline);
+    max-width: 470px;
+  }
+  .form-success.show { display: flex; }
+  .form-success .tick { width: 34px; height: 34px; border-radius: 999px; background: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* 3-step strip */
+  .steps-strip {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--hairline);
+    flex-wrap: wrap;
+  }
+  .strip-step { display: flex; align-items: center; gap: 11px; }
+  .strip-ico {
+    width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+    background: var(--card); border: 1px solid var(--hairline);
+    display: flex; align-items: center; justify-content: center; color: var(--primary);
+  }
+  .strip-step .lab { font-size: 13px; }
+  .strip-step .lab b { display: block; font-weight: 700; font-size: 14px; color: var(--text); }
+  .strip-step .lab span { color: var(--muted); }
+  .strip-arrow { color: var(--muted-2); margin: 0 4px; }
+
+  /* ── Phone mockup ──────────────────────── */
+  .phone-stage { display: none; }
+  .phone-glow {
+    position: absolute; width: 440px; height: 440px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,168,67,0.2), transparent 70%);
+    top: 44%; left: 50%; transform: translate(-50%,-50%); z-index: 0;
+  }
+  .phone {
+    position: relative; z-index: 1;
+    width: 300px; height: 616px;
+    background: linear-gradient(155deg, #16291E, #0B1610);
+    border-radius: 52px; padding: 9px;
+    box-shadow: 0 50px 90px -28px rgba(11,22,16,0.55), 0 14px 36px rgba(0,0,0,0.16), inset 0 0 0 1.5px rgba(255,255,255,0.05);
+  }
+  .phone::before { content: ""; position: absolute; left: -3px; top: 132px; width: 3px; height: 62px; border-radius: 3px 0 0 3px; background: #0A130D; }
+  .phone::after { content: ""; position: absolute; right: -3px; top: 156px; width: 3px; height: 40px; border-radius: 0 3px 3px 0; background: #0A130D; }
+  .phone-screen {
+    width: 100%; height: 100%; background: var(--surface);
+    border-radius: 44px; overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+  }
+  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 86px; height: 24px; background: #0B1610; border-radius: 999px; z-index: 6; }
+
+  /* Refined phone content */
+  .sb { display: flex; align-items: center; justify-content: space-between; padding: 15px 24px 0; }
+  .sb .t { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+  .sb .ic { display: flex; align-items: center; gap: 6px; color: var(--text); }
+  .lo-body { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 0; overflow: hidden; }
+  .lo-head { display: flex; align-items: center; justify-content: space-between; margin: 6px 2px 18px; }
+  .lo-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-2); }
+  .lo-h { font-family: 'Fraunces', serif; font-weight: 500; font-size: 25px; letter-spacing: -0.02em; margin-top: 3px; }
+  .lo-avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--primary); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 17px; }
+  .lo-sect { display: flex; align-items: baseline; justify-content: space-between; margin: 0 2px 9px; }
+  .lo-sect .t { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+  .lo-sect .c { font-size: 12px; color: var(--muted); }
+  .lo-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 18px; overflow: hidden; }
+  .lo-row { display: flex; align-items: center; gap: 12px; padding: 11px 13px; }
+  .lo-row + .lo-row, .lo-more { border-top: 1px solid var(--hairline); }
+  .lo-thumb { width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .lo-meta { flex: 1; min-width: 0; }
+  .lo-meta .n { font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
+  .lo-meta .s { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+  .lo-tag { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .lo-tag.today { background: rgba(199,104,69,0.14); color: var(--red); }
+  .lo-tag.soon { background: rgba(212,168,67,0.22); color: #9A7B1F; }
+  .lo-more { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .lo-tonight { margin-top: 14px; background: linear-gradient(135deg, var(--primary) 0%, #1F4E39 100%); border-radius: 18px; padding: 13px; display: flex; align-items: center; gap: 12px; color: var(--surface); }
+  .lo-tonight .ic { width: 46px; height: 46px; border-radius: 13px; background: rgba(248,244,238,0.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .lo-tonight .lbl { font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .lo-tonight .ttl { font-weight: 700; font-size: 15px; margin-top: 2px; }
+  .lo-tonight .sub { font-size: 11.5px; opacity: 0.82; margin-top: 2px; }
+  .lo-tabbar { margin-top: auto; height: 64px; border-top: 1px solid var(--hairline); background: var(--surface); display: flex; align-items: center; justify-content: space-around; color: var(--muted-2); }
+  .lo-scan { width: 50px; height: 50px; border-radius: 999px; background: var(--primary); border: 4px solid var(--surface); color: var(--surface); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 18px rgba(27,67,50,0.32); transform: translateY(-14px); }
+
+  /* ── Section scaffolding ───────────────── */
+  section { position: relative; }
+  .sec-pad { padding: 84px 0; }
+  .sec-head { max-width: 680px; margin-bottom: 52px; }
+  .sec-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+  .eyebrow { color: var(--accent); margin-bottom: 14px; }
+  h2.sec-title {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 42px; line-height: 1.08; letter-spacing: -0.025em;
+  }
+  .sec-title .mark { color: var(--primary); }
+  .sec-sub { font-size: 18px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+
+  /* How it works */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .step-card {
+    background: var(--card); border: 1px solid var(--hairline);
+    border-radius: 22px; padding: 30px 26px;
+  }
+  .step-num {
+    width: 40px; height: 40px; border-radius: 12px; background: var(--primary-50);
+    color: var(--primary); font-family: 'Fraunces', serif; font-weight: 600; font-size: 20px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+  }
+  .step-ill {
+    height: 132px; border-radius: 16px; margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    background: var(--surface-2);
+  }
+  .step-card h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 8px; }
+  .step-card p { font-size: 15px; color: var(--muted); line-height: 1.5; }
+
+  /* Stats band */
+  .stats { background: var(--primary); color: var(--surface); }
+  .stats .sec-pad { padding: 76px 0; }
+  .stats-head { max-width: 620px; margin-bottom: 44px; }
+  .stats-head .eyebrow { color: var(--accent); }
+  .stats-head h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 36px; line-height: 1.12; letter-spacing: -0.02em; color: var(--surface); }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .stat-card {
+    background: rgba(248,244,238,0.06); border: 1px solid rgba(248,244,238,0.16);
+    border-radius: 22px; padding: 34px 32px;
+  }
+  .stat-num { font-family: 'Fraunces', serif; font-weight: 500; font-size: 64px; line-height: 0.95; letter-spacing: -0.03em; color: var(--accent); }
+  .stat-desc { font-size: 17px; line-height: 1.45; margin-top: 16px; opacity: 0.92; }
+  .stat-src { font-size: 13px; margin-top: 16px; opacity: 0.6; }
+  .stat-src a { text-decoration: underline; text-underline-offset: 2px; }
+  .stat-src a:hover { opacity: 1; }
+
+  /* Feature showcase */
+  .feat { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .feat + .feat { margin-top: 72px; }
+  .feat-flip .feat-copy { order: 2; }
+  .feat-copy h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 30px; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .feat-copy p { font-size: 17px; color: var(--muted); line-height: 1.55; margin-bottom: 20px; }
+  .feat-list { display: flex; flex-direction: column; gap: 12px; }
+  .feat-li { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; }
+  .feat-li .lic { width: 24px; height: 24px; border-radius: 999px; background: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .feat-visual {
+    border-radius: 24px; padding: 36px; min-height: 320px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--hairline);
+  }
+  .eatfirst-lab { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+  .eatfirst-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .ef-card { background: rgba(248,244,238,0.96); border-radius: 10px; padding: 7px; }
+  .ef-thumb { aspect-ratio: 1/1; border-radius: 7px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .ef-name { font-weight: 700; font-size: 10px; line-height: 1.1; margin-top: 5px; }
+  .ef-when { font-size: 9px; font-weight: 600; color: var(--red); margin-top: 1px; }
+  .udot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; }
+
+  /* Pricing */
+  .pricing { background: var(--surface); }
+  .honest-strip {
+    max-width: 760px; margin: 0 auto 40px; text-align: center;
+    font-size: 16px; color: var(--muted); line-height: 1.55;
+  }
+  .honest-strip b { color: var(--text); font-weight: 700; }
+  .price-toggle {
+    display: inline-flex; padding: 4px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--hairline);
+    margin: 0 auto 40px; gap: 4px;
+  }
+  .toggle-wrap { display: flex; justify-content: center; }
+  .price-toggle button {
+    height: 40px; padding: 0 22px; border: none; border-radius: 999px;
+    background: transparent; color: var(--muted); cursor: pointer;
+    font-family: inherit; font-weight: 600; font-size: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .price-toggle button.on { background: var(--primary); color: var(--surface); }
+  .save-pill { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--accent); color: var(--text); }
+  .price-toggle button.on .save-pill { background: var(--accent); }
+
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
+  .plan {
+    background: var(--card); border: 1px solid var(--hairline);
+    border-radius: 24px; padding: 32px 28px;
+    display: flex; flex-direction: column;
+  }
+  .plan.featured { border: 1.5px solid var(--primary); box-shadow: 0 20px 50px rgba(27,67,50,0.14); position: relative; }
+  .plan-flag { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--text); font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 999px; white-space: nowrap; }
+  .plan-name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .plan-for { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .plan-price { display: flex; align-items: baseline; gap: 4px; margin: 22px 0 4px; }
+  .plan-price .amt { font-family: 'Fraunces', serif; font-weight: 500; font-size: 46px; letter-spacing: -0.03em; }
+  .plan-price .per { font-size: 15px; color: var(--muted); }
+  .plan-note { font-size: 13px; color: var(--muted); min-height: 18px; }
+  .plan ul { list-style: none; padding: 0; margin: 24px 0; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .plan li { display: flex; align-items: flex-start; gap: 11px; font-size: 14.5px; line-height: 1.4; }
+  .plan li .lic { width: 20px; height: 20px; border-radius: 999px; background: var(--primary-50); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .plan li.off { color: var(--muted-2); }
+  .plan li.off .lic { background: transparent; }
+  .plan .btn { width: 100%; }
+
+  /* FAQ */
+  .faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .faq-item { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; overflow: hidden; }
+  .faq-q {
+    width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+    padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    font-family: inherit; font-weight: 700; font-size: 17px; color: var(--text); letter-spacing: -0.01em;
+  }
+  .faq-q .chev { flex-shrink: 0; transition: transform 0.2s ease; color: var(--muted); }
+  .faq-item.open .faq-q .chev { transform: rotate(180deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.28s ease; }
+  .faq-item.open .faq-a { max-height: 320px; }
+  .faq-a-inner { padding: 0 24px 22px; font-size: 15.5px; color: var(--muted); line-height: 1.6; }
+  .faq-a-inner b { color: var(--text); font-weight: 700; }
+
+  /* Final CTA */
+  .final { background: var(--primary); color: var(--surface); }
+  .final .sec-pad { padding: 80px 0; }
+  .final-inner { max-width: 640px; margin: 0 auto; text-align: center; }
+  .final h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 44px; line-height: 1.08; letter-spacing: -0.025em; color: var(--surface); margin-bottom: 18px; }
+  .final h2 .mark { color: var(--accent); }
+  .final p.lead { font-size: 19px; opacity: 0.85; margin-bottom: 34px; }
+  .final .capture { margin: 0 auto; }
+  .final .field { background: rgba(248,244,238,0.1); border-color: rgba(248,244,238,0.28); color: var(--surface); }
+  .final .field::placeholder { color: rgba(248,244,238,0.55); }
+  .final .field:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(212,168,67,0.18); }
+  .final .privacy { color: rgba(248,244,238,0.65); justify-content: center; }
+  .final .capture-label { color: var(--surface); text-align: left; }
+  .final .post { font-size: 14px; opacity: 0.7; margin-top: 18px; }
+  .final .form-msg { text-align: center; }
+  .final .form-success { background: rgba(248,244,238,0.1); border-color: rgba(248,244,238,0.24); color: var(--surface); margin: 0 auto; }
+  .final .form-success .tick { background: var(--accent); }
+
+  /* Footer */
+  footer { padding: 44px 0; border-top: 1px solid var(--hairline); }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .foot-links { display: flex; gap: 24px; font-size: 14px; color: var(--muted); }
+  .foot-links a:hover { color: var(--text); }
+  .foot-copy { font-size: 13px; color: var(--muted-2); }
+
+  /* Sticky mobile CTA */
+  .sticky-cta {
+    display: none;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(239,233,221,0.94); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--hairline);
+  }
+  .sticky-cta .btn { width: 100%; }
+
+  /* ── Responsive ────────────────────────── */
+  @media (max-width: 980px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+    .hero-grid .phone-stage { order: -1; }
+    h1.hero-h1 { font-size: 46px; }
+    .steps { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .feat, .feat-flip { grid-template-columns: 1fr; gap: 32px; }
+    .feat-flip .feat-copy { order: 0; }
+    .plans { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+    .plan.featured { order: -1; }
+  }
+  @media (max-width: 720px) {
+    .wrap { padding: 0 20px; }
+    .nav-tag { display: none; }
+    .hero { padding: 40px 0 24px; }
+    h1.hero-h1 { font-size: 38px; }
+    .hero-sub { font-size: 17px; }
+    .sec-pad { padding: 60px 0; }
+    h2.sec-title { font-size: 33px; }
+    .final h2 { font-size: 34px; }
+    .capture-row { flex-direction: column; }
+    .capture-row .btn { width: 100%; }
+    .nav .btn { height: 44px; padding: 0 18px; font-size: 14px; }
+    .sticky-cta { display: block; }
+    body { padding-bottom: 84px; }
+    .steps-strip { gap: 10px; }
+    .strip-arrow { display: none; }
   }
 </style>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://leftovr.co/#org",
-      "name": "leftovr",
-      "url": "https://leftovr.co/",
-      "logo": "https://leftovr.co/icon-512.png"
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://leftovr.co/#website",
-      "url": "https://leftovr.co/",
-      "name": "leftovr",
-      "inLanguage": "en",
-      "publisher": { "@id": "https://leftovr.co/#org" }
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "leftovr",
-      "url": "https://leftovr.co/",
-      "applicationCategory": "LifestyleApplication",
-      "operatingSystem": "iOS, Android",
-      "description": "leftovr turns one grocery receipt into a self-updating fridge, then plans dinner from what you already have — less food wasted, no guessing what to cook.",
-      "publisher": { "@id": "https://leftovr.co/#org" },
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-    }
-  ]
-}
-</script>
 </head>
 <body>
 
-<!-- ===================== NAV ===================== -->
-<div class="nav-shell">
-  <nav aria-label="Main">
-    <a class="nav-logo" href="#top" aria-label="leftovr home">leftov<span class="logo-r">r</span></a>
-    <div class="nav-links">
-      <a href="#how" data-i18n="nav.how">How it works</a>
-      <a href="#features" data-i18n="nav.features">Features</a>
-      <a href="#loved" data-i18n="nav.loved">Stories</a>
-      <a href="#faq" data-i18n="nav.faq">FAQ</a>
-    </div>
-    <div class="lang-toggle nav-lang" role="group" aria-label="Language">
-      <button type="button" data-lang="en" aria-pressed="true">EN</button>
-      <button type="button" data-lang="sr" aria-pressed="false">SR</button>
-    </div>
-    <button class="nav-cta" data-i18n="nav.cta" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">Join waitlist</button>
-    <button class="menu-btn" id="menuBtn" aria-label="Open menu" data-i18n-aria="nav.menu" aria-expanded="false" aria-controls="mobileMenu">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-        <line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>
-      </svg>
-    </button>
-  </nav>
-</div>
-<div class="mobile-menu" id="mobileMenu">
-  <div class="lang-toggle mobile-lang" role="group" aria-label="Language">
-    <button type="button" data-lang="en" aria-pressed="true">EN</button>
-    <button type="button" data-lang="sr" aria-pressed="false">SR</button>
-  </div>
-  <a href="#how" data-i18n="nav.how">How it works</a>
-  <a href="#features" data-i18n="nav.features">Features</a>
-  <a href="#loved" data-i18n="nav.loved">Stories</a>
-  <a href="#faq" data-i18n="nav.faq">FAQ</a>
-  <a href="#waitlist" style="color: var(--primary); font-weight: 700;" data-i18n="nav.mobileCta">Join the waitlist →</a>
-</div>
-
-<!-- ===================== HERO ===================== -->
-<header class="hero" id="top">
-  <div class="hero-bg" aria-hidden="true"></div>
-  <div class="wrap hero-grid">
-    <div>
-      <span class="kicker reveal in"><span class="dot"></span><span data-i18n="hero.kicker">One receipt · no waste · no guessing</span></span>
-      <h1 class="reveal in" data-i18n-html="hero.h1">Never wonder again.<br /><span class="hl2">Dinner <em>figures itself out.<svg class="underline-svg" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 9 C 50 3, 150 3, 198 8" stroke="#D4A843" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg></em></span></h1>
-      <p class="hero-sub reveal in reveal-d1" data-i18n="hero.sub">leftovr keeps your fridge current from a single receipt, then plans meals from what you already have — waste-free, decision-free.</p>
-      <div class="hero-ctas reveal in reveal-d2">
-        <a class="btn btn-primary" href="#waitlist">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
-          <span data-i18n="hero.ctaPrimary">Join the waitlist</span>
-        </a>
-        <a class="btn btn-ghost" href="#how" data-i18n="hero.ctaSecondary">See how it works</a>
+<!-- ─────────────── HEADER (logo + language toggle + single CTA) ─────────────── -->
+<header>
+  <div class="wrap nav">
+    <a class="nav-brand" href="#top" aria-label="leftovr — what's for dinner">
+      <span class="nav-logo">leftov<span class="logo-r">r</span></span>
+      <span class="nav-sub" data-i18n="nav.tag">What's for dinner?</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="sr" aria-pressed="false">SR</button>
       </div>
-      <div class="hero-proof reveal in reveal-d3">
-        <div class="avatars" aria-hidden="true">
-          <span style="background:#C8D5C2;">M</span>
-          <span style="background:#F0DDA8;">A</span>
-          <span style="background:#E8B59E;">J</span>
-          <span style="background:#C6D6DA;">S</span>
-        </div>
-        <p data-i18n-html="hero.proof"><span class="stars" aria-hidden="true">★★★★★</span><br /><strong>4.8</strong> from households who stopped asking "what's for dinner?"</p>
-      </div>
-    </div>
-
-    <div class="phone-zone reveal in reveal-d2">
-      <div class="phone" role="img" aria-label="leftovr app screen showing the virtual fridge with an eat-first shelf and a recipe suggestion" data-i18n-aria="phone.aria">
-        <div class="phone-screen">
-          <div class="phone-notch"></div>
-          <div class="app-greeting" data-i18n="phone.greeting">Good evening, Lena</div>
-          <p class="app-sub" data-i18n="phone.sub">Your fridge: 23 items · 3 best eaten soon</p>
-
-          <div class="shelf-label"><span class="pip" style="background:#C76845;"></span><span data-i18n="phone.eatFirst">Eat first</span></div>
-          <div class="food-row">
-            <div class="food-card">
-              <div class="food-glyph" style="background:#C8D5C2;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4c-4 3-6 6-6 9a6 6 0 0 0 12 0c0-3-2-6-6-9Z"/></svg>
-              </div>
-              <h4 data-i18n="food.spinach">Spinach</h4>
-              <p style="color:#C76845;" data-i18n="urgency.today">Best today</p>
-            </div>
-            <div class="food-card">
-              <div class="food-glyph" style="background:#F0DDA8;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 8h14l-1.5 11a2 2 0 0 1-2 1.5h-7a2 2 0 0 1-2-1.5L5 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
-              </div>
-              <h4 data-i18n="food.yogurt">Yogurt</h4>
-              <p style="color:#8a6a1d;" data-i18n="urgency.days">2–3 days</p>
-            </div>
-            <div class="food-card">
-              <div class="food-glyph" style="background:#E8B59E;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1-3 3-3"/></svg>
-              </div>
-              <h4 data-i18n="food.peaches">Peaches</h4>
-              <p style="color:#8a6a1d;" data-i18n="urgency.days">2–3 days</p>
-            </div>
-          </div>
-
-          <div class="shelf-label"><span class="pip" style="background:#4F8A5B;"></span><span data-i18n="phone.fresh">Fresh &amp; fine</span></div>
-          <div class="food-row">
-            <div class="food-card">
-              <div class="food-glyph" style="background:#E8C3B0;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><ellipse cx="12" cy="12" rx="8" ry="6"/><path d="M7 10c2 1 8 1 10 0"/></svg>
-              </div>
-              <h4 data-i18n="food.chicken">Chicken</h4>
-              <p style="color:#4F8A5B;" data-i18n="urgency.fresh">Fresh</p>
-            </div>
-            <div class="food-card">
-              <div class="food-glyph" style="background:#E5D9C4;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 14c0-4 3.5-7 8-7s8 3 8 7c0 2-2 4-8 4s-8-2-8-4Z"/><path d="M8 11v2M12 10v2M16 11v2"/></svg>
-              </div>
-              <h4 data-i18n="food.bread">Bread</h4>
-              <p style="color:#4F8A5B;" data-i18n="urgency.fresh">Fresh</p>
-            </div>
-            <div class="food-card">
-              <div class="food-glyph" style="background:#C6D6DA;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12c3-4 7-6 11-6 3 0 5 1 7 3-2 2-4 3-7 3-4 0-8 0-11 0Z"/><path d="M3 12c3 4 7 6 11 6"/></svg>
-              </div>
-              <h4 data-i18n="food.salmon">Salmon</h4>
-              <p style="color:#4F8A5B;" data-i18n="urgency.fresh">Fresh</p>
-            </div>
-          </div>
-
-          <div class="recipe-banner">
-            <span class="tag" data-i18n="recipe.tag">Tonight's idea</span>
-            <h4 data-i18n="recipe.title">Creamy spinach &amp; salmon pasta</h4>
-            <p data-i18n="recipe.meta">Uses 3 things from your eat-first shelf · 25 min</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="float-chip chip-1" aria-hidden="true">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>
-        <span data-i18n="chip.added">Receipt added · 14 items</span>
-      </div>
-      <div class="float-chip chip-2" aria-hidden="true">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-        <span data-i18n="chip.spinach">Use your spinach tonight</span>
-      </div>
-      <div class="float-chip chip-3" aria-hidden="true">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M7 8c0-2 2-3 5-3s5 1 5 3-2 3-5 3-5 1-5 3 2 3 5 3 5-1 5-3"/></svg>
-        <span data-i18n="chip.saved">You saved ~$9 this week</span>
-      </div>
+      <a class="btn btn-primary btn-sm" href="#get" data-i18n="nav.cta">Get early access</a>
     </div>
   </div>
 </header>
 
-<!-- ===================== HOW IT WORKS ===================== -->
-<section id="how">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="eyebrow" data-i18n="how.eyebrow">How it works</span>
-      <h2 data-i18n="how.title">Three steps that run themselves.</h2>
-      <p data-i18n="how.sub">Scan, cook, repeat — leftovr keeps your fridge accurate so it never becomes a tracking job.</p>
-    </div>
-    <div class="steps">
-      <article class="step reveal">
-        <div class="step-num">01</div>
-        <div class="step-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5V3Z"/><path d="M10 8h4M10 12h4"/></svg>
-        </div>
-        <h3 data-i18n="step1.title">Snap your receipt</h3>
-        <p data-i18n="step1.body">One photo after the grocery run. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.</p>
-      </article>
-      <article class="step reveal reveal-d1">
-        <div class="step-num">02</div>
-        <div class="step-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 11h14M9 7h.01M9 15h.01"/></svg>
-        </div>
-        <h3 data-i18n="step2.title">Your fridge fills itself</h3>
-        <p data-i18n="step2.body">Everything lands on shelves with gentle freshness windows — "best today", "this week" — never scary expiration countdowns.</p>
-      </article>
-      <article class="step reveal reveal-d2">
-        <div class="step-num">03</div>
-        <div class="step-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19 h14 a7 7 0 0 1 -14 0 Z"/><path d="M10 14c0-1.6 1.3-1.6 1.3-3.2M14 14c0-1.6 1.3-1.6 1.3-3.2"/></svg>
-        </div>
-        <h3 data-i18n="step3.title">Cook what you have</h3>
-        <p data-i18n="step3.body">Recipes built from your actual fridge, starring whatever should be eaten first. Cook one and those ingredients leave your fridge automatically — no re-tracking.</p>
-      </article>
-    </div>
-  </div>
-</section>
+<main id="top">
 
-<!-- ===================== FEATURES ===================== -->
-<section id="features">
-  <div class="wrap">
-    <div class="section-head reveal">
-      <span class="eyebrow" data-i18n="feat.eyebrow">Features</span>
-      <h2 data-i18n="feat.title">Everything a fridge wishes it could tell you</h2>
-      <p data-i18n="feat.sub">Opportunity-framing only. leftovr celebrates what you save — it never scolds you for what you waste.</p>
-    </div>
+  <!-- ─────────────── HERO ─────────────── -->
+  <section class="hero" data-screen-label="Hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <div class="kicker"><span class="seed"></span><span data-i18n="hero.kicker">One receipt · no waste · no guessing</span></div>
 
-    <div class="bento">
-      <article class="cell cell-lg reveal">
-        <div class="icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5V3Z"/><path d="M10 8h4M10 12h4M10 16h2"/></svg>
-        </div>
-        <h3 data-i18n="f1.title">Receipt scanning that just works</h3>
-        <p data-i18n="f1.body">Point your camera at the receipt. leftovr normalizes cryptic store abbreviations into real food, guesses quantities, and lets you confirm in seconds.</p>
-        <div class="mini-receipt" aria-hidden="true">
-          <div><span>ORG BBY SPNCH 250G</span><span class="ok" data-i18n="f1.r1">→ Baby spinach</span></div>
-          <div><span>GRK YGT 4PK</span><span class="ok" data-i18n="f1.r2">→ Greek yogurt ×4</span></div>
-          <div><span>CHKN BRST FLT</span><span class="ok" data-i18n="f1.r3">→ Chicken breast</span></div>
-          <div><span>SHMPOO 400ML</span><span style="opacity:0.5;" data-i18n="f1.r4">skipped — not food</span></div>
-        </div>
-      </article>
+        <h1 class="hero-h1" data-i18n-html="hero.h1">
+          <span class="hl">Scan a receipt.</span>
+          <span class="hl">Your <span class="mark">fridge</span> fills itself.</span>
+          <span class="hl">Dinner <span class="uline">figures itself out<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#D4A843" stroke-width="4" stroke-linecap="round"/></svg></span>.</span>
+        </h1>
 
-      <article class="cell cell-sm cell-dark reveal reveal-d1">
-        <div class="icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F8F4EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 1 6 6c0 4-6 12-6 12S6 13 6 9a6 6 0 0 1 6-6Z"/><circle cx="12" cy="9" r="2"/></svg>
-        </div>
-        <h3 data-i18n="f2.title">Eat-first shelf</h3>
-        <p data-i18n="f2.body">A gentle front-row for food at its peak. "Use your spinach tonight" — opportunity, not alarm.</p>
-        <div class="urgency-demo">
-          <span class="u-today" style="background:rgba(248,244,238,0.12); color:#F0DDA8;" data-i18n="urgency.today">Best today</span>
-          <span class="u-soon" style="background:rgba(248,244,238,0.12); color:#F0DDA8;" data-i18n="urgency.week">This week</span>
-        </div>
-      </article>
+        <p class="hero-sub" data-i18n="hero.sub">leftovr keeps your fridge current from a single receipt, then plans meals from what you already have — waste-free, decision-free.</p>
 
-      <article class="cell cell-sm cell-gold reveal">
-        <div class="icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.7 2.6 2.4 4.3 5 5-2.6.7-4.3 2.4-5 5-.7-2.6-2.4-4.3-5-5 2.6-.7 4.3-2.4 5-5Z"/><path d="M19 14c.4 1.5 1.4 2.5 3 3-1.6.5-2.6 1.5-3 3-.4-1.5-1.4-2.5-3-3 1.6-.5 2.6-1.5 3-3Z"/></svg>
+        <!-- Inline email capture -->
+        <form class="capture" id="hero-form" novalidate>
+          <label class="capture-label sr-only" for="hero-email" data-i18n="hero.formLabel">Get early access</label>
+          <div class="capture-row">
+            <input class="field" type="email" id="hero-email" name="email" placeholder="you@email.com" data-i18n-ph="hero.placeholder" autocomplete="email" required>
+            <button class="btn btn-primary" type="submit" data-i18n="hero.submit">Join the waitlist</button>
+          </div>
+          <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="privacy">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="#6B7A6D" stroke-width="1.2" stroke-linejoin="round"/></svg>
+            <span data-i18n="hero.privacy">Early-access updates only. Unsubscribe anytime.</span>
+          </div>
+          <p class="form-msg" id="hero-msg" role="status" aria-live="polite"></p>
+        </form>
+        <div class="form-success" id="hero-success">
+          <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#F8F4EE" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><b style="font-weight:700;" data-i18n="hero.successTitle">You're on the list.</b><br><span style="color:var(--muted);font-size:14px;" data-i18n="hero.successBody">We'll email your invite as soon as a spot opens — usually within a few days.</span></div>
         </div>
-        <h3 data-i18n="f3.title">Dinner ideas, sorted</h3>
-        <p data-i18n="f3.body">Recipes from what's actually in your fridge — prioritizing the eat-first shelf, matched to your taste and time.</p>
-      </article>
 
-      <article class="cell cell-sm reveal reveal-d1">
-        <div class="icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.5c2.8.3 5 2.6 5 5.5"/></svg>
+        <!-- 3-step strip -->
+        <div class="steps-strip">
+          <div class="strip-step">
+            <div class="strip-ico">
+              <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M4 3h14v16l-2-2-2 2-2-2-2 2-2-2-2 2-2-2V3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="7" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="7" y1="12" x2="13" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </div>
+            <div class="lab"><b data-i18n="hero.step1Title">Scan receipt</b><span data-i18n="hero.step1Meta">10 seconds</span></div>
+          </div>
+          <svg class="strip-arrow" width="18" height="18" viewBox="0 0 18 18"><path d="M5 4l6 5-6 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="strip-step">
+            <div class="strip-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3.5"/><line x1="6" y1="10" x2="18" y2="10"/><line x1="9" y1="6" x2="9" y2="7.5"/></svg>
+            </div>
+            <div class="lab"><b data-i18n="hero.step2Title">Fridge fills itself</b><span data-i18n="hero.step2Meta">sorted for you</span></div>
+          </div>
+          <svg class="strip-arrow" width="18" height="18" viewBox="0 0 18 18"><path d="M5 4l6 5-6 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="strip-step">
+            <div class="strip-ico">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg>
+            </div>
+            <div class="lab"><b data-i18n="hero.step3Title">Dinner, sorted</b><span data-i18n="hero.step3Meta">from what you have</span></div>
+          </div>
         </div>
-        <h3 data-i18n="f4.title">One fridge, whole household</h3>
-        <p data-i18n="f4.body">Invite your people with a link. Everyone sees the same fridge, anyone can scan, and nobody buys a third jar of pesto again.</p>
-      </article>
-
-      <article class="cell cell-sm reveal reveal-d2">
-        <div class="icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg>
-        </div>
-        <h3 data-i18n="f5.title">Savings you can feel</h3>
-        <p data-i18n="f5.body">Every week leftovr tracks the food you saved from the bin, the money you kept, the recipes you cooked, and how often you ate something before it spoiled — wins worth celebrating, with zero calorie counting and zero guilt.</p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== STATS + TESTIMONIALS ===================== -->
-<section id="loved" style="background: var(--surface);">
-  <div class="wrap">
-    <div class="stats-band reveal">
-      <div class="stat">
-        <div class="num"><span data-count="32" data-prefix="$" data-i18n-prefix="stat.currency">$0</span></div>
-        <div class="lbl" data-i18n="stat1.lbl">average saved per household, per month</div>
       </div>
-      <div class="stat">
-        <div class="num"><span data-count="24">0</span></div>
-        <div class="lbl" data-i18n="stat2.lbl">items rescued from the bin monthly</div>
+
+      <!-- Phone mockup -->
+      <div class="phone-stage">
+        <div class="phone-glow"></div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="island"></div>
+            <div class="sb">
+              <span class="t">9:41</span>
+              <span class="ic">
+                <svg width="18" height="11" viewBox="0 0 18 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1"/></svg>
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.2c2.6 0 5 1 6.8 2.7l-1.5 1.6A7.4 7.4 0 0 0 8 5.3 7.4 7.4 0 0 0 2.7 6.5L1.2 4.9A9.6 9.6 0 0 1 8 2.2z"/><path d="M8 6.6c1.4 0 2.7.5 3.7 1.5l-1.6 1.7A2.9 2.9 0 0 0 8 8.9c-.8 0-1.5.3-2.1.9L4.3 8.1A5.2 5.2 0 0 1 8 6.6z"/><circle cx="8" cy="10.6" r="1.2"/></svg>
+                <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="16" height="8" rx="1.6" fill="currentColor"/><rect x="23" y="3.5" width="1.6" height="5" rx="0.8" fill="currentColor" opacity="0.4"/></svg>
+              </span>
+            </div>
+            <div class="lo-body">
+              <div class="lo-head">
+                <div>
+                  <div class="lo-eyebrow" data-i18n="phone.day">Tuesday evening</div>
+                  <div class="lo-h" data-i18n="phone.fridge">Your fridge</div>
+                </div>
+                <div class="lo-avatar">l</div>
+              </div>
+
+              <div class="lo-sect"><span class="t" data-i18n="phone.useFirst">Use first</span><span class="c" data-i18n="phone.useFirstCount">3 of 22 items</span></div>
+              <div class="lo-card">
+                <div class="lo-row">
+                  <div class="lo-thumb" style="background:#DDE6D7;"><svg width="22" height="22" viewBox="0 0 36 36" fill="none" stroke="#1B4332" stroke-width="1.4" stroke-linejoin="round" opacity="0.78"><path d="M7 23 Q11 9 18 9 Q25 9 29 23 Q25 28 18 28 Q11 28 7 23Z"/><line x1="18" y1="11" x2="18" y2="27"/></svg></div>
+                  <div class="lo-meta"><div class="n" data-i18n="phone.spinach">Baby spinach</div><div class="s" data-i18n="phone.spinachSub">Leafy greens · 1 bag</div></div>
+                  <span class="lo-tag today" data-i18n="phone.today">Today</span>
+                </div>
+                <div class="lo-row">
+                  <div class="lo-thumb" style="background:#EFE7CF;"><svg width="22" height="22" viewBox="0 0 36 36" fill="none" stroke="#1B4332" stroke-width="1.4" opacity="0.78"><ellipse cx="18" cy="20" rx="9" ry="12"/></svg></div>
+                  <div class="lo-meta"><div class="n" data-i18n="phone.eggs">Free-range eggs</div><div class="s" data-i18n="phone.eggsSub">6 remaining</div></div>
+                  <span class="lo-tag today" data-i18n="phone.today">Today</span>
+                </div>
+                <div class="lo-row">
+                  <div class="lo-thumb" style="background:#E9D9CD;"><svg width="22" height="22" viewBox="0 0 36 36" fill="none" stroke="#1B4332" stroke-width="1.4" opacity="0.78"><path d="M11 20 Q11 13 18 13 Q25 13 25 20 Q25 26 18 26 Q11 26 11 20Z"/><circle cx="18" cy="20" r="2.6"/></svg></div>
+                  <div class="lo-meta"><div class="n" data-i18n="phone.chicken">Chicken breast</div><div class="s" data-i18n="phone.chickenSub">400 g · pack of 2</div></div>
+                  <span class="lo-tag soon" data-i18n="phone.tomorrow">Tomorrow</span>
+                </div>
+                <div class="lo-more"><span data-i18n="phone.more">19 more items, all fresh</span>
+                  <svg width="14" height="14" viewBox="0 0 15 15"><path d="M5 3l5 4.5-5 4.5" stroke="#6B7A6D" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+              </div>
+
+              <div class="lo-tonight">
+                <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F8F4EE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg></div>
+                <div style="flex:1;min-width:0;">
+                  <div class="lbl" data-i18n="phone.tonightLbl">Tonight, from your fridge</div>
+                  <div class="ttl" data-i18n="phone.tonightTitle">Spinach &amp; feta pasta</div>
+                  <div class="sub" data-i18n="phone.tonightSub">20 min · uses 3 items due first</div>
+                </div>
+                <svg width="17" height="17" viewBox="0 0 18 18"><path d="M6 4l6 5-6 5" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+
+            <div class="lo-tabbar">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3.5"/><line x1="6" y1="10" x2="18" y2="10"/><line x1="9" y1="6" x2="9" y2="7.5"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg>
+              <div class="lo-scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-2.3-1.8-2.35 1.8L12 19.2 9.65 21 7.3 19.2 5 21V3z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="13" y2="12"/></svg></div>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="19" y1="20" x2="19" y2="11"/></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="15" cy="8" r="2.6" fill="var(--surface)"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="9" cy="16" r="2.6" fill="var(--surface)"/></svg>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="stat">
-        <div class="num"><span data-count="9" data-suffix="s">0</span></div>
-        <div class="lbl" data-i18n="stat3.lbl">from receipt photo to a filled fridge</div>
+    </div>
+  </section>
+
+  <!-- ─────────────── HOW IT WORKS ─────────────── -->
+  <section class="sec-pad" id="how" data-screen-label="How it works">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="how.eyebrow">How it works</div>
+        <h2 class="sec-title" data-i18n-html="how.title">Receipt in. <span class="mark">Dinner out.</span></h2>
+        <p class="sec-sub" data-i18n="how.sub">Three steps, one of which you already do every time you shop.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-ill" style="background:#11231A;">
+            <svg width="100" height="110" viewBox="0 0 100 110" fill="none">
+              <rect x="30" y="14" width="48" height="86" rx="4" fill="#F8F4EE"/>
+              <line x1="38" y1="28" x2="70" y2="28" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+              <line x1="38" y1="38" x2="64" y2="38" stroke="#9AA59C" stroke-width="2" stroke-linecap="round"/>
+              <line x1="38" y1="47" x2="70" y2="47" stroke="#9AA59C" stroke-width="2" stroke-linecap="round"/>
+              <line x1="38" y1="56" x2="60" y2="56" stroke="#9AA59C" stroke-width="2" stroke-linecap="round"/>
+              <line x1="38" y1="65" x2="70" y2="65" stroke="#9AA59C" stroke-width="2" stroke-linecap="round"/>
+              <line x1="38" y1="78" x2="70" y2="78" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+              <rect x="22" y="6" width="20" height="20" rx="5" fill="#D4A843"/>
+              <rect x="22" y="6" width="20" height="20" rx="5" stroke="#11231A" stroke-width="2"/>
+              <rect x="58" y="6" width="20" height="20" rx="5" fill="#D4A843"/>
+              <rect x="58" y="84" width="20" height="20" rx="5" fill="#D4A843"/>
+            </svg>
+          </div>
+          <h3 data-i18n="step1.title">Scan a receipt</h3>
+          <p data-i18n="step1.body">Snap the receipt from any shop. leftovr reads every line in about 10 seconds and adds 20–30 items at once.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-ill" style="background:linear-gradient(135deg,#C8D5C2,#A8BDA0);">
+            <svg width="120" height="100" viewBox="0 0 120 100" fill="none">
+              <rect x="20" y="12" width="36" height="76" rx="7" fill="#F8F4EE" stroke="#1B4332" stroke-width="2"/>
+              <line x1="20" y1="46" x2="56" y2="46" stroke="#1B4332" stroke-width="2"/>
+              <line x1="27" y1="24" x2="27" y2="30" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+              <rect x="64" y="20" width="14" height="14" rx="3" fill="#4F8A5B"/>
+              <rect x="82" y="20" width="14" height="14" rx="3" fill="#D4A843"/>
+              <rect x="100" y="20" width="14" height="14" rx="3" fill="#C76845"/>
+              <rect x="64" y="40" width="14" height="14" rx="3" fill="#D4A843" opacity="0.7"/>
+              <rect x="82" y="40" width="14" height="14" rx="3" fill="#1B4332" opacity="0.7"/>
+              <rect x="100" y="40" width="14" height="14" rx="3" fill="#4F8A5B" opacity="0.7"/>
+              <rect x="64" y="60" width="32" height="14" rx="3" fill="#6B7A6D" opacity="0.4"/>
+              <rect x="100" y="60" width="14" height="14" rx="3" fill="#4F8A5B" opacity="0.5"/>
+            </svg>
+          </div>
+          <h3 data-i18n="step2.title">Your fridge goes digital</h3>
+          <p data-i18n="step2.body">Everything lands on virtual shelves, sorted by category and ranked by what to eat first — so nothing hides at the back.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <div class="step-ill" style="background:var(--accent-soft);">
+            <svg width="110" height="100" viewBox="0 0 110 100" fill="none">
+              <ellipse cx="55" cy="58" rx="34" ry="10" fill="#fff" opacity="0.5"/>
+              <ellipse cx="55" cy="50" rx="32" ry="18" fill="#F8F4EE" stroke="#1B4332" stroke-width="2"/>
+              <path d="M30 50 Q38 36 55 36 Q72 36 80 50" stroke="#1B4332" stroke-width="2" fill="none"/>
+              <circle cx="46" cy="46" r="3" fill="#4F8A5B"/>
+              <circle cx="62" cy="44" r="3" fill="#C76845"/>
+              <circle cx="55" cy="48" r="3" fill="#D4A843"/>
+              <path d="M20 26v16" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+              <path d="M16 26v8M24 26v8" stroke="#1B4332" stroke-width="2" stroke-linecap="round"/>
+              <path d="M90 26c-3 2-4 6-4 10 0 3 1.6 4 4 4.4V42" stroke="#1B4332" stroke-width="2" stroke-linecap="round" fill="none"/>
+            </svg>
+          </div>
+          <h3 data-i18n="step3.title">Cook what you already have</h3>
+          <p data-i18n="step3.body">Get dinner ideas built only from what's in your fridge, starting with the food about to turn. No extra shopping trip.</p>
+        </div>
       </div>
     </div>
+  </section>
 
-    <div class="section-head center reveal" style="margin-top: 96px;">
-      <span class="eyebrow" data-i18n="loved.eyebrow">Stories</span>
-      <h2 data-i18n="loved.title">Dinner debates, over.</h2>
-    </div>
-
-    <div class="quotes">
-      <article class="quote reveal">
-        <blockquote data-i18n="q1.text">"I haven't typed a single grocery item into an app. I scan the receipt in the parking lot and I'm done. That's the whole reason it works."</blockquote>
-        <footer>
-          <span class="qa" style="background:#C8D5C2;">M</span>
-          <div class="who"><b>Mira</b><span data-i18n="q1.who">feeds a family of four</span></div>
-        </footer>
-      </article>
-      <article class="quote reveal reveal-d1">
-        <blockquote data-i18n="q2.text">"The eat-first shelf changed how we cook. 'Use your spinach tonight' feels like a friend's suggestion, not a nagging notification."</blockquote>
-        <footer>
-          <span class="qa" style="background:#F0DDA8;">A</span>
-          <div class="who"><b>Aleksandar</b><span data-i18n="q2.who">shares a fridge with two roommates</span></div>
-        </footer>
-      </article>
-      <article class="quote reveal reveal-d2">
-        <blockquote data-i18n="q3.text">"We argued about dinner every night. Now leftovr suggests something from what we already have and we just… cook it. Weirdly life-changing."</blockquote>
-        <footer>
-          <span class="qa" style="background:#E8B59E;">J</span>
-          <div class="who"><b>Jana</b><span data-i18n="q3.who">cooks for two, plans for none</span></div>
-        </footer>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== FAQ ===================== -->
-<section id="faq">
-  <div class="wrap">
-    <div class="section-head center reveal">
-      <span class="eyebrow" data-i18n="faq.eyebrow">FAQ</span>
-      <h2 data-i18n="faq.title">Frequently asked questions</h2>
-    </div>
-    <div class="faq-list reveal">
-      <details>
-        <summary><span data-i18n="faq.q1">Do I have to log every item manually?</span><span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body" data-i18n="faq.a1">No — that's the point. One receipt photo covers your whole grocery run. You can also scan an item's barcode, and yes — there's always a manual add option if you prefer. leftovr just never requires it.</p>
-      </details>
-      <details>
-        <summary><span data-i18n="faq.q2">Does leftovr use exact expiration dates?</span><span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body" data-i18n="faq.a2">No. leftovr uses gentle, approximate freshness windows like "best today" or "fine this week". Food is approximate; your app should be too. No countdown timers, no red alarms.</p>
-      </details>
-      <details>
-        <summary><span data-i18n="faq.q3">Is this a calorie or nutrition tracker?</span><span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body" data-i18n="faq.a3">Deliberately not. leftovr tracks what you have and helps you eat it while it's good. No calories, no macros, no guilt — just fewer wasted groceries and faster dinner decisions.</p>
-      </details>
-      <details>
-        <summary><span data-i18n="faq.q4">How does household sharing work?</span><span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body" data-i18n="faq.a4">Create a household, share an invite link, and everyone joins the same virtual fridge. Anyone can scan receipts, mark things eaten, and see tonight's suggestions. One fridge, shared brain.</p>
-      </details>
-      <details>
-        <summary><span data-i18n="faq.q5">What languages does it speak?</span><span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body" data-i18n="faq.a5">English and Serbian at launch, with the architecture ready for more. leftovr follows your device language automatically.</p>
-      </details>
-      <details>
-        <summary><span data-i18n="faq.q6">How much does it cost?</span><span class="plus" aria-hidden="true"></span></summary>
-        <p class="faq-body" data-i18n="faq.a6">leftovr is free to start — scan receipts, manage your fridge, and get recipe ideas. A premium tier with extras is on the way; the core "stop wasting food" loop stays free.</p>
-      </details>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== FINAL CTA ===================== -->
-<section id="waitlist" style="padding-top: 0;">
-  <div class="wrap">
-    <div class="final-cta reveal">
-      <p class="nav-logo" style="justify-content: center; color: var(--surface); font-size: 34px; margin-bottom: 20px;" aria-hidden="true">leftov<span class="logo-r">r</span></p>
-      <h2 data-i18n="cta.title">Tonight's dinner is already in your fridge.</h2>
-      <p data-i18n="cta.sub">Join the waitlist — be first to scan a receipt when leftovr launches.</p>
-      <form class="waitlist-form" id="waitlistForm" novalidate>
-        <label class="sr-only" for="waitlistEmail" data-i18n="cta.emailLabel">Email address</label>
-        <input
-          type="email"
-          id="waitlistEmail"
-          name="email"
-          placeholder="you@example.com"
-          data-i18n-ph="cta.placeholder"
-          autocomplete="email"
-          required
-        />
-        <input type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp-field" />
-        <button type="submit" class="btn btn-gold" id="waitlistSubmit" data-i18n="cta.submit">Join the waitlist</button>
-      </form>
-      <p class="form-msg" id="waitlistMsg" role="status" aria-live="polite"></p>
-      <p class="store-note" data-i18n="cta.note">Free at launch · English &amp; Serbian · iOS and Android coming soon</p>
-    </div>
-  </div>
-</section>
-
-<!-- ===================== FOOTER ===================== -->
-<footer class="site">
-  <div class="wrap">
-    <div class="foot-grid">
-      <div class="foot-brand">
-        <a class="nav-logo" href="#top" aria-label="leftovr home">leftov<span class="logo-r">r</span></a>
-        <p data-i18n="foot.desc">The receipt-powered virtual fridge. Know what you have, eat it while it's wonderful.</p>
+  <!-- ─────────────── REAL STATS (cited) ─────────────── -->
+  <section class="stats" data-screen-label="Why it matters">
+    <div class="wrap sec-pad">
+      <div class="stats-head">
+        <div class="micro eyebrow" data-i18n="stats.eyebrow">Why it matters</div>
+        <h2 data-i18n="stats.title">Most of us throw away more food — and more money — than we think.</h2>
       </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num">$1,500</div>
+          <p class="stat-desc" data-i18n="stat1.desc">The average American family of four throws out roughly this much food every year.</p>
+          <p class="stat-src">Source: <a href="https://www.usda.gov/foodlossandwaste/faqs" target="_blank" rel="noopener">U.S. Department of Agriculture</a></p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">31%</div>
+          <p class="stat-desc" data-i18n="stat2.desc">Share of the U.S. food supply lost at the retail and consumer level, by USDA's estimate.</p>
+          <p class="stat-src">Source: <a href="https://www.usda.gov/foodlossandwaste/faqs" target="_blank" rel="noopener">USDA, 2010 estimate</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── FEATURES ─────────────── -->
+  <section class="sec-pad" id="features" data-screen-label="Features">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="feat.eyebrow">What you get</div>
+        <h2 class="sec-title" data-i18n-html="feat.title">A fridge that <span class="mark">tells you what to cook.</span></h2>
+      </div>
+
+      <!-- Feature 1: Eat first -->
+      <div class="feat">
+        <div class="feat-copy">
+          <h3 data-i18n="feat1.title">Know what to eat first</h3>
+          <p data-i18n="feat1.body">leftovr ranks your food by how soon it'll spoil and puts the at-risk items front and centre — so you use the spinach before it wilts, not after.</p>
+          <div class="feat-list">
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li1">A daily "use today" shelf, ranked by shelf life</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li2">Colour-coded freshness on every item</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li3">One tap to cook with what's about to turn</span></div>
+          </div>
+        </div>
+        <div class="feat-visual" style="background:linear-gradient(135deg,var(--primary) 0%,#1F4E39 100%);">
+          <div style="width:100%;max-width:340px;">
+            <div class="eatfirst-lab" style="color:var(--accent);margin-bottom:12px;" data-i18n="feat1.vlabel">Eat first · use today</div>
+            <div class="eatfirst-grid">
+              <div class="ef-card"><div class="ef-thumb" style="background:#C8D5C2;"><svg width="34" height="34" viewBox="0 0 36 36"><path d="M6 22 Q10 8 18 8 Q26 8 30 22 Q26 28 18 28 Q10 28 6 22Z" stroke="#1B4332" stroke-width="1.5" fill="none" stroke-linejoin="round"/><line x1="18" y1="8" x2="18" y2="28" stroke="#1B4332" stroke-width="1.5"/></svg><span class="udot" style="background:var(--red);"></span></div><div class="ef-name" data-i18n="ef.spinach">Baby spinach</div><div class="ef-when" data-i18n="ef.bestToday">Best today</div></div>
+              <div class="ef-card"><div class="ef-thumb" style="background:#F0DDA8;"><svg width="34" height="34" viewBox="0 0 36 36"><ellipse cx="18" cy="20" rx="10" ry="13" stroke="#1B4332" stroke-width="1.5" fill="none"/></svg><span class="udot" style="background:var(--red);"></span></div><div class="ef-name" data-i18n="ef.eggs">Free range eggs</div><div class="ef-when" data-i18n="ef.bestToday">Best today</div></div>
+              <div class="ef-card"><div class="ef-thumb" style="background:#E8C3B0;"><svg width="34" height="34" viewBox="0 0 36 36"><path d="M10 20 Q10 12 18 12 Q26 12 26 20 Q26 26 18 26 Q10 26 10 20Z" stroke="#1B4332" stroke-width="1.5" fill="none"/><circle cx="18" cy="20" r="3" stroke="#1B4332" stroke-width="1.5" fill="none"/></svg><span class="udot" style="background:var(--accent);"></span></div><div class="ef-name" data-i18n="ef.chicken">Chicken</div><div class="ef-when" style="color:var(--accent);" data-i18n="ef.in1day">In 1 day</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2: Recipes -->
+      <div class="feat feat-flip">
+        <div class="feat-copy">
+          <h3 data-i18n="feat2.title">Recipes from what's actually in there</h3>
+          <p data-i18n="feat2.body">Every idea is built from the food you already own and leads with the items that need using. Open one and the steps are right there.</p>
+          <div class="feat-list">
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li1">No "buy these 9 extra things" recipes</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li2">Filter by time, effort, or "uses the most"</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li3">Tap "I cooked this" and your fridge updates</span></div>
+          </div>
+        </div>
+        <div class="feat-visual" style="background:var(--surface-2);">
+          <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;">
+            <div style="background:var(--card);border:1px solid var(--hairline);border-radius:16px;padding:11px;display:flex;gap:11px;align-items:stretch;">
+              <div style="width:74px;height:74px;border-radius:11px;background:linear-gradient(135deg,#C8D5C2,#A8BDA0);flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;">
+                <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="28" rx="16" ry="8" stroke="#1B4332" stroke-width="1.8" fill="none"/><path d="M12 28 Q16 22 24 22 Q32 22 36 28" stroke="#1B4332" stroke-width="1.5" fill="none"/><circle cx="20" cy="26" r="1.5" fill="#1B4332"/><circle cx="28" cy="25" r="1.5" fill="#1B4332"/></svg>
+                <div style="position:absolute;top:6px;left:6px;padding:2px 6px;border-radius:999px;background:var(--accent);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;" data-i18n="recipe1.tag">Top pick</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+                <div><div style="font-weight:700;font-size:15px;" data-i18n="recipe1.title">Spinach &amp; feta pasta</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" data-i18n="recipe1.meta">20 min · 5 ingredients</div></div>
+                <div style="font-size:12px;color:var(--primary);font-weight:600;display:flex;align-items:center;gap:6px;"><span class="udot" style="position:static;background:var(--red);"></span><span data-i18n="recipe1.note">Saves spinach (best today)</span></div>
+              </div>
+            </div>
+            <div style="background:var(--card);border:1px solid var(--hairline);border-radius:16px;padding:11px;display:flex;gap:11px;align-items:stretch;opacity:0.85;">
+              <div style="width:74px;height:74px;border-radius:11px;background:linear-gradient(135deg,#F0DDA8,#E8C98A);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="28" rx="16" ry="8" stroke="#1B4332" stroke-width="1.8" fill="none"/><path d="M12 28 Q16 22 24 22 Q32 22 36 28" stroke="#1B4332" stroke-width="1.5" fill="none"/></svg>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+                <div><div style="font-weight:700;font-size:15px;" data-i18n="recipe2.title">Cheesy egg toast</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" data-i18n="recipe2.meta">10 min · 3 ingredients</div></div>
+                <div style="font-size:12px;color:var(--primary);font-weight:600;display:flex;align-items:center;gap:6px;"><span class="udot" style="position:static;background:var(--accent);"></span><span data-i18n="recipe2.note">Uses 3 items at risk</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── PRICING ─────────────── -->
+  <section class="pricing sec-pad" id="pricing" data-screen-label="Pricing">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="price.eyebrow">Pricing</div>
+        <h2 class="sec-title" data-i18n-html="price.title">Free to start. <span class="mark">Honest from there.</span></h2>
+      </div>
+
+      <p class="honest-strip" data-i18n-html="price.honest">Your <b>first receipt scan</b> and <b>first recipe</b> are on us. <b>Manual add and barcode scan stay free, always.</b> Go unlimited when you're ready.</p>
+
+      <div class="toggle-wrap">
+        <div class="price-toggle" id="price-toggle">
+          <button class="on" data-period="monthly"><span data-i18n="price.monthly">Monthly</span></button>
+          <button data-period="yearly"><span data-i18n="price.yearly">Yearly</span> <span class="save-pill" data-i18n="price.save">Save ~40%</span></button>
+        </div>
+      </div>
+
+      <div class="plans">
+        <!-- Free -->
+        <div class="plan">
+          <div class="plan-name" data-i18n="plan.free.name">Free</div>
+          <div class="plan-for" data-i18n="plan.free.for">Try the whole flow</div>
+          <div class="plan-price"><span class="amt" data-i18n="plan.free.amt">$0</span></div>
+          <div class="plan-note" data-i18n="plan.free.note">Free forever</div>
+          <ul>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li1">Your first receipt scan</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li2">Your first recipe generation</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li3">Unlimited manual + barcode add</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li4">Your virtual fridge</span></li>
+          </ul>
+          <a class="btn btn-ghost" href="#get" data-i18n="plan.free.cta">Start free</a>
+        </div>
+
+        <!-- Premium Individual -->
+        <div class="plan featured">
+          <div class="plan-flag" data-i18n="plan.prem.flag">Most popular</div>
+          <div class="plan-name" data-i18n="plan.prem.name">Premium</div>
+          <div class="plan-for" data-i18n="plan.prem.for">For one cook</div>
+          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.prem.amtM" data-yearly="plan.prem.amtY">$7.99</span><span class="per" data-i18n="plan.per">/month</span></div>
+          <div class="plan-note" data-period-key data-monthly="plan.prem.noteM" data-yearly="plan.prem.noteY">Billed monthly</div>
+          <ul>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li1">Unlimited receipt scanning</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li2">Unlimited recipes, expiry-ranked</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li3">Daily "what to cook" suggestion</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li4">Weekly insights</span></li>
+          </ul>
+          <a class="btn btn-primary" href="#get" data-i18n="plan.prem.cta">Get early access</a>
+        </div>
+
+        <!-- Household -->
+        <div class="plan">
+          <div class="plan-name" data-i18n="plan.house.name">Household</div>
+          <div class="plan-for" data-i18n="plan.house.for">Share with up to 3</div>
+          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.house.amtM" data-yearly="plan.house.amtY">$14.99</span><span class="per" data-i18n="plan.per">/month</span></div>
+          <div class="plan-note" data-period-key data-monthly="plan.house.noteM" data-yearly="plan.house.noteY">Billed monthly</div>
+          <ul>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li1">Everything in Premium</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li2">One shared fridge for the home</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li3">Up to 3 people, synced</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li4">Shared shopping + insights</span></li>
+          </ul>
+          <a class="btn btn-ghost" href="#get" data-i18n="plan.house.cta">Get early access</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── FAQ ─────────────── -->
+  <section class="sec-pad" id="faq" data-screen-label="FAQ">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="faq.eyebrow">Good questions</div>
+        <h2 class="sec-title" data-i18n="faq.title">The honest answers.</h2>
+      </div>
+
+      <div class="faq-list" id="faq-list">
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q1">Is it free?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a1">Yes, to start. Your <b>first receipt scan</b> and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$7.99/month</b> ($54.99/year) and Household is <b>$14.99/month</b> ($99.99/year) for up to three people.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q2">Do I have to log everything by hand?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a2">No. A receipt scan adds 20–30 items at once, in about ten seconds. If you pick something up loose or shop without a receipt, you can <b>scan a barcode</b> or <b>add it manually</b> — both are free and unlimited.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q3">Can my household share one fridge?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a3">Yes. The <b>Household plan</b> gives up to three people one shared fridge that stays in sync — so whoever shops, everyone sees what's in and what to cook.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q4">What happens to my receipt data?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a4">We use your receipt only to fill your fridge and suggest meals. <b>Your receipts stay private and we never sell your data.</b> You can delete items, or your whole account, whenever you like.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q5">Which shops and receipts work?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a5">Most printed and emailed grocery receipts work out of the box. If a line is unclear, leftovr flags just those items for a quick one-tap check — the rest go straight in.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── FINAL CTA ─────────────── -->
+  <section class="final" id="get" data-screen-label="Get early access">
+    <div class="wrap sec-pad">
+      <div class="final-inner">
+        <span class="nav-logo final-logo">leftov<span class="logo-r">r</span></span>
+        <h2 data-i18n-html="final.title">Tonight's dinner is <span class="mark">already in your fridge.</span></h2>
+        <p class="lead" data-i18n="final.lead">Join the early access list and be first in when your spot opens.</p>
+
+        <form class="capture" id="final-form" novalidate>
+          <label class="capture-label sr-only" for="final-email" data-i18n="hero.formLabel">Get early access</label>
+          <div class="capture-row">
+            <input class="field" type="email" id="final-email" name="email" placeholder="you@email.com" data-i18n-ph="hero.placeholder" autocomplete="email" required>
+            <button class="btn btn-accent" type="submit" data-i18n="hero.submit">Join the waitlist</button>
+          </div>
+          <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="privacy">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="rgba(248,244,238,0.65)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+            <span data-i18n="hero.privacy">Early-access updates only. Unsubscribe anytime.</span>
+          </div>
+          <p class="form-msg" id="final-msg" role="status" aria-live="polite"></p>
+          <p class="post" data-i18n="final.post">We'll email your invite as soon as a spot opens — usually within a few days.</p>
+        </form>
+        <div class="form-success" id="final-success">
+          <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#1B4332" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><b style="font-weight:700;" data-i18n="final.successTitle">You're on the list.</b><br><span style="opacity:0.8;font-size:14px;" data-i18n="final.successBody">Check your inbox — we'll send your invite as soon as a spot opens.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── FOOTER ─────────────── -->
+  <footer>
+    <div class="wrap foot">
+      <a class="nav-brand" href="#top" aria-label="leftovr — what's for dinner">
+        <span class="nav-logo" style="font-size:22px;">leftov<span class="logo-r">r</span></span>
+        <span class="nav-sub" data-i18n="nav.tag">What's for dinner?</span>
+      </a>
       <div class="foot-links">
-        <div class="foot-col">
-          <b data-i18n="foot.product">Product</b>
-          <a href="#how" data-i18n="nav.how">How it works</a>
-          <a href="#features" data-i18n="nav.features">Features</a>
-          <a href="#faq" data-i18n="nav.faq">FAQ</a>
-        </div>
-        <div class="foot-col">
-          <b data-i18n="foot.get">Get leftovr</b>
-          <a href="#waitlist" data-i18n="foot.join">Join the waitlist</a>
-        </div>
-        <div class="foot-col">
-          <b data-i18n="foot.company">Company</b>
-          <a href="mailto:hello@leftovr.app" data-i18n="foot.contact">Contact</a>
-          <a href="/privacy" data-i18n="foot.privacy">Privacy</a>
-          <a href="/terms" data-i18n="foot.terms">Terms</a>
-          <a href="/refund" data-i18n="foot.refund">Refund policy</a>
-        </div>
+        <a href="#how" data-i18n="foot.how">How it works</a>
+        <a href="#pricing" data-i18n="foot.pricing">Pricing</a>
+        <a href="#get" data-i18n="foot.early">Early access</a>
       </div>
+      <div class="foot-copy" data-i18n="foot.copy">© 2026 leftovr</div>
     </div>
-    <div class="legal">
-      <span data-i18n="foot.legal">© 2026 leftovr. Made with leftovers in mind.</span>
-      <span>hello@leftovr.app</span>
-    </div>
-  </div>
-</footer>
+  </footer>
+
+</main>
+
+<!-- Sticky mobile CTA -->
+<div class="sticky-cta">
+  <a class="btn btn-primary" href="#get" data-i18n="sticky.cta">Get early access — it's free to start</a>
+</div>
 
 <script>
-  // Mobile menu
-  const menuBtn = document.getElementById("menuBtn");
-  const mobileMenu = document.getElementById("mobileMenu");
-  menuBtn.addEventListener("click", () => {
-    const open = mobileMenu.classList.toggle("open");
-    menuBtn.setAttribute("aria-expanded", String(open));
+  // ---------- FAQ accordion ----------
+  document.querySelectorAll('#faq-list .faq-q').forEach(function (q) {
+    q.addEventListener('click', function () {
+      q.parentElement.classList.toggle('open');
+    });
   });
-  mobileMenu.querySelectorAll("a").forEach((a) =>
-    a.addEventListener("click", () => {
-      mobileMenu.classList.remove("open");
-      menuBtn.setAttribute("aria-expanded", "false");
-    })
-  );
 
-  // Scroll reveal
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const revealEls = document.querySelectorAll(".reveal:not(.in)");
-  if (reduceMotion) {
-    revealEls.forEach((el) => el.classList.add("in"));
-  } else {
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("in");
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-    revealEls.forEach((el) => io.observe(el));
+  // ---------- Pricing monthly / yearly toggle ----------
+  var currentPeriod = 'monthly';
+  (function () {
+    var toggle = document.getElementById('price-toggle');
+    if (!toggle) return;
+    toggle.querySelectorAll('button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        currentPeriod = btn.getAttribute('data-period');
+        toggle.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b === btn); });
+        applyPeriod();
+      });
+    });
+  })();
+
+  function applyPeriod() {
+    // Literal swaps (price amounts) — not language dependent.
+    document.querySelectorAll('[data-monthly]:not([data-period-key])').forEach(function (el) {
+      var v = el.getAttribute('data-' + currentPeriod);
+      if (v != null) el.textContent = v;
+    });
+    // i18n swaps (billing notes) — resolved through the dictionary.
+    document.querySelectorAll('[data-period-key]').forEach(function (el) {
+      var key = el.getAttribute('data-' + currentPeriod);
+      if (key != null) el.textContent = t(key);
+    });
   }
 
-  // Stat count-up
-  const counters = document.querySelectorAll("[data-count]");
-  const animateCount = (el) => {
-    const target = Number(el.dataset.count);
-    const prefix = el.dataset.prefix || "";
-    const suffix = el.dataset.suffix || "";
-    if (reduceMotion) {
-      el.textContent = (el.dataset.prefix || "") + target + suffix;
-      el.dataset.done = "1";
-      return;
-    }
-    const duration = 1400;
-    const start = performance.now();
-    const tick = (now) => {
-      const p = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = (el.dataset.prefix || "") + Math.round(target * eased) + suffix;
-      if (p < 1) {
-        requestAnimationFrame(tick);
-      } else {
-        el.dataset.done = "1";
-      }
-    };
-    requestAnimationFrame(tick);
-  };
-  const statIO = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          animateCount(e.target);
-          statIO.unobserve(e.target);
-        }
-      });
-    },
-    { threshold: 0.5 }
-  );
-  counters.forEach((el) => statIO.observe(el));
-
-  // Waitlist form → Vercel serverless function (/api/waitlist) → Resend.
-  const WAITLIST_ENDPOINT = "/api/waitlist";
-  const waitlistForm = document.getElementById("waitlistForm");
-  const waitlistEmail = document.getElementById("waitlistEmail");
-  const waitlistSubmit = document.getElementById("waitlistSubmit");
-  const waitlistMsg = document.getElementById("waitlistMsg");
-
-  const showMsg = (text, ok) => {
-    waitlistMsg.textContent = text;
-    waitlistMsg.classList.toggle("ok", ok);
-    waitlistMsg.classList.toggle("err", !ok);
-  };
-
-  waitlistForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = waitlistEmail.value.trim();
-    if (!email || !waitlistEmail.checkValidity()) {
-      showMsg(t("wl.invalid"), false);
-      waitlistEmail.focus();
-      return;
-    }
-    waitlistSubmit.disabled = true;
-    waitlistSubmit.textContent = t("wl.joining");
-    try {
-      const res = await fetch(WAITLIST_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          company: waitlistForm.elements.company.value,
-          lang: currentLang,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        showMsg(t("wl.success"), true);
-        waitlistForm.reset();
-      } else {
-        showMsg((currentLang === "en" && data.error) || t("wl.generic"), false);
-      }
-    } catch {
-      showMsg(t("wl.network"), false);
-    } finally {
-      waitlistSubmit.disabled = false;
-      waitlistSubmit.textContent = t("cta.submit");
-    }
-  });
-
   // ---------- i18n ----------
-  const SVG_UNDERLINE =
-    '<svg class="underline-svg" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 9 C 50 3, 150 3, 198 8" stroke="#D4A843" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg>';
-  const STARS = '<span class="stars" aria-hidden="true">★★★★★</span><br />';
+  var UL = '<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#D4A843" stroke-width="4" stroke-linecap="round"/></svg>';
 
-  const I18N = {
+  var I18N = {
     en: {
-      "meta.title": "leftovr — Meal planner from your grocery receipt",
-      "meta.desc": "leftovr turns one grocery receipt into a self-updating fridge, then plans dinner from what you already have — less food wasted, no guessing what to cook.",
-      "nav.how": "How it works",
-      "nav.features": "Features",
-      "nav.loved": "Stories",
-      "nav.faq": "FAQ",
-      "nav.cta": "Join waitlist",
-      "nav.mobileCta": "Join the waitlist →",
-      "nav.menu": "Open menu",
+      "meta.title": "leftovr — Scan a receipt. Know what's for dinner.",
+      "meta.desc": "leftovr turns a grocery receipt into a self-updating fridge, then plans dinner from what you already have — less food wasted, no guessing what to cook.",
+      "nav.tag": "What's for dinner?",
+      "nav.cta": "Get early access",
       "hero.kicker": "One receipt · no waste · no guessing",
-      "hero.h1": 'Never wonder again.<br /><span class="hl2">Dinner <em>figures itself out.' + SVG_UNDERLINE + "</em></span>",
+      "hero.h1": '<span class="hl">Scan a receipt.</span><span class="hl">Your <span class="mark">fridge</span> fills itself.</span><span class="hl">Dinner <span class="uline">figures itself out' + UL + '</span>.</span>',
       "hero.sub": "leftovr keeps your fridge current from a single receipt, then plans meals from what you already have — waste-free, decision-free.",
-      "hero.ctaPrimary": "Join the waitlist",
-      "hero.ctaSecondary": "See how it works",
-      "hero.proof": STARS + '<strong>4.8</strong> from households who stopped asking "what\'s for dinner?"',
-      "phone.aria": "leftovr app screen showing the virtual fridge with an eat-first shelf and a recipe suggestion",
-      "phone.greeting": "Good evening, Lena",
-      "phone.sub": "Your fridge: 23 items · 3 best eaten soon",
-      "phone.eatFirst": "Eat first",
-      "phone.fresh": "Fresh & fine",
-      "food.spinach": "Spinach",
-      "food.yogurt": "Yogurt",
-      "food.peaches": "Peaches",
-      "food.chicken": "Chicken",
-      "food.bread": "Bread",
-      "food.salmon": "Salmon",
-      "urgency.today": "Best today",
-      "urgency.days": "2–3 days",
-      "urgency.fresh": "Fresh",
-      "urgency.week": "This week",
-      "recipe.tag": "Tonight's idea",
-      "recipe.title": "Creamy spinach & salmon pasta",
-      "recipe.meta": "Uses 3 things from your eat-first shelf · 25 min",
-      "chip.added": "Receipt added · 14 items",
-      "chip.spinach": "Use your spinach tonight",
-      "chip.saved": "You saved ~$9 this week",
+      "hero.formLabel": "Get early access",
+      "hero.placeholder": "you@email.com",
+      "hero.submit": "Join the waitlist",
+      "hero.privacy": "Early-access updates only. Unsubscribe anytime.",
+      "hero.successTitle": "You're on the list.",
+      "hero.successBody": "We'll email your invite as soon as a spot opens — usually within a few days.",
+      "hero.step1Title": "Scan receipt",
+      "hero.step1Meta": "10 seconds",
+      "hero.step2Title": "Fridge fills itself",
+      "hero.step2Meta": "sorted for you",
+      "hero.step3Title": "Dinner, sorted",
+      "hero.step3Meta": "from what you have",
+      "phone.day": "Tuesday evening",
+      "phone.fridge": "Your fridge",
+      "phone.useFirst": "Use first",
+      "phone.useFirstCount": "3 of 22 items",
+      "phone.spinach": "Baby spinach",
+      "phone.spinachSub": "Leafy greens · 1 bag",
+      "phone.today": "Today",
+      "phone.eggs": "Free-range eggs",
+      "phone.eggsSub": "6 remaining",
+      "phone.chicken": "Chicken breast",
+      "phone.chickenSub": "400 g · pack of 2",
+      "phone.tomorrow": "Tomorrow",
+      "phone.more": "19 more items, all fresh",
+      "phone.tonightLbl": "Tonight, from your fridge",
+      "phone.tonightTitle": "Spinach & feta pasta",
+      "phone.tonightSub": "20 min · uses 3 items due first",
       "how.eyebrow": "How it works",
-      "how.title": "Three steps that run themselves.",
-      "how.sub": "Scan, cook, repeat — leftovr keeps your fridge accurate so it never becomes a tracking job.",
-      "step1.title": "Snap your receipt",
-      "step1.body": "One photo after the grocery run. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.",
-      "step2.title": "Your fridge fills itself",
-      "step2.body": 'Everything lands on shelves with gentle freshness windows — "best today", "this week" — never scary expiration countdowns.',
-      "step3.title": "Cook what you have",
-      "step3.body": "Recipes built from your actual fridge, starring whatever should be eaten first. Cook one and those ingredients leave your fridge automatically — no re-tracking.",
-      "feat.eyebrow": "Features",
-      "feat.title": "Everything a fridge wishes it could tell you",
-      "feat.sub": "Opportunity-framing only. leftovr celebrates what you save — it never scolds you for what you waste.",
-      "f1.title": "Receipt scanning that just works",
-      "f1.body": "Point your camera at the receipt. leftovr normalizes cryptic store abbreviations into real food, guesses quantities, and lets you confirm in seconds.",
-      "f1.r1": "→ Baby spinach",
-      "f1.r2": "→ Greek yogurt ×4",
-      "f1.r3": "→ Chicken breast",
-      "f1.r4": "skipped — not food",
-      "f2.title": "Eat-first shelf",
-      "f2.body": 'A gentle front-row for food at its peak. "Use your spinach tonight" — opportunity, not alarm.',
-      "f3.title": "Dinner ideas, sorted",
-      "f3.body": "Recipes from what's actually in your fridge — prioritizing the eat-first shelf, matched to your taste and time.",
-      "f4.title": "One fridge, whole household",
-      "f4.body": "Invite your people with a link. Everyone sees the same fridge, anyone can scan, and nobody buys a third jar of pesto again.",
-      "f5.title": "Savings you can feel",
-      "f5.body": "Every week leftovr tracks the food you saved from the bin, the money you kept, the recipes you cooked, and how often you ate something before it spoiled — wins worth celebrating, with zero calorie counting and zero guilt.",
-      "stat.currency": "$",
-      "stat1.lbl": "average saved per household, per month",
-      "stat2.lbl": "items rescued from the bin monthly",
-      "stat3.lbl": "from receipt photo to a filled fridge",
-      "loved.eyebrow": "Stories",
-      "loved.title": "Dinner debates, over.",
-      "q1.text": '"I haven\'t typed a single grocery item into an app. I scan the receipt in the parking lot and I\'m done. That\'s the whole reason it works."',
-      "q1.who": "feeds a family of four",
-      "q2.text": '"The eat-first shelf changed how we cook. \'Use your spinach tonight\' feels like a friend\'s suggestion, not a nagging notification."',
-      "q2.who": "shares a fridge with two roommates",
-      "q3.text": '"We argued about dinner every night. Now leftovr suggests something from what we already have and we just… cook it. Weirdly life-changing."',
-      "q3.who": "cooks for two, plans for none",
-      "faq.eyebrow": "FAQ",
-      "faq.title": "Frequently asked questions",
-      "faq.q1": "Do I have to log every item manually?",
-      "faq.a1": "No — that's the point. One receipt photo covers your whole grocery run. You can also scan an item's barcode, and yes — there's always a manual add option if you prefer. leftovr just never requires it.",
-      "faq.q2": "Does leftovr use exact expiration dates?",
-      "faq.a2": 'No. leftovr uses gentle, approximate freshness windows like "best today" or "fine this week". Food is approximate; your app should be too. No countdown timers, no red alarms.',
-      "faq.q3": "Is this a calorie or nutrition tracker?",
-      "faq.a3": "Deliberately not. leftovr tracks what you have and helps you eat it while it's good. No calories, no macros, no guilt — just fewer wasted groceries and faster dinner decisions.",
-      "faq.q4": "How does household sharing work?",
-      "faq.a4": "Create a household, share an invite link, and everyone joins the same virtual fridge. Anyone can scan receipts, mark things eaten, and see tonight's suggestions. One fridge, shared brain.",
-      "faq.q5": "What languages does it speak?",
-      "faq.a5": "English and Serbian at launch, with the architecture ready for more. leftovr follows your device language automatically.",
-      "faq.q6": "How much does it cost?",
-      "faq.a6": 'leftovr is free to start — scan receipts, manage your fridge, and get recipe ideas. A premium tier with extras is on the way; the core "stop wasting food" loop stays free.',
-      "cta.title": "Tonight's dinner is already in your fridge.",
-      "cta.sub": "Join the waitlist — be first to scan a receipt when leftovr launches.",
-      "cta.emailLabel": "Email address",
-      "cta.placeholder": "you@example.com",
-      "cta.submit": "Join the waitlist",
-      "cta.note": "Free at launch · English & Serbian · iOS and Android coming soon",
-      "foot.desc": "The receipt-powered virtual fridge. Know what you have, eat it while it's wonderful.",
-      "foot.product": "Product",
-      "foot.get": "Get leftovr",
-      "foot.join": "Join the waitlist",
-      "foot.company": "Company",
-      "foot.contact": "Contact",
-      "foot.privacy": "Privacy",
-      "foot.terms": "Terms",
-      "foot.refund": "Refund policy",
-      "foot.legal": "© 2026 leftovr. Made with leftovers in mind.",
+      "how.title": 'Receipt in. <span class="mark">Dinner out.</span>',
+      "how.sub": "Three steps, one of which you already do every time you shop.",
+      "step1.title": "Scan a receipt",
+      "step1.body": "Snap the receipt from any shop. leftovr reads every line in about 10 seconds and adds 20–30 items at once.",
+      "step2.title": "Your fridge goes digital",
+      "step2.body": "Everything lands on virtual shelves, sorted by category and ranked by what to eat first — so nothing hides at the back.",
+      "step3.title": "Cook what you already have",
+      "step3.body": "Get dinner ideas built only from what's in your fridge, starting with the food about to turn. No extra shopping trip.",
+      "stats.eyebrow": "Why it matters",
+      "stats.title": "Most of us throw away more food — and more money — than we think.",
+      "stat1.desc": "The average American family of four throws out roughly this much food every year.",
+      "stat2.desc": "Share of the U.S. food supply lost at the retail and consumer level, by USDA's estimate.",
+      "feat.eyebrow": "What you get",
+      "feat.title": 'A fridge that <span class="mark">tells you what to cook.</span>',
+      "feat1.title": "Know what to eat first",
+      "feat1.body": "leftovr ranks your food by how soon it'll spoil and puts the at-risk items front and centre — so you use the spinach before it wilts, not after.",
+      "feat1.li1": 'A daily "use today" shelf, ranked by shelf life',
+      "feat1.li2": "Colour-coded freshness on every item",
+      "feat1.li3": "One tap to cook with what's about to turn",
+      "feat1.vlabel": "Eat first · use today",
+      "ef.spinach": "Baby spinach",
+      "ef.eggs": "Free range eggs",
+      "ef.chicken": "Chicken",
+      "ef.bestToday": "Best today",
+      "ef.in1day": "In 1 day",
+      "feat2.title": "Recipes from what's actually in there",
+      "feat2.body": "Every idea is built from the food you already own and leads with the items that need using. Open one and the steps are right there.",
+      "feat2.li1": 'No "buy these 9 extra things" recipes',
+      "feat2.li2": 'Filter by time, effort, or "uses the most"',
+      "feat2.li3": 'Tap "I cooked this" and your fridge updates',
+      "recipe1.tag": "Top pick",
+      "recipe1.title": "Spinach & feta pasta",
+      "recipe1.meta": "20 min · 5 ingredients",
+      "recipe1.note": "Saves spinach (best today)",
+      "recipe2.title": "Cheesy egg toast",
+      "recipe2.meta": "10 min · 3 ingredients",
+      "recipe2.note": "Uses 3 items at risk",
+      "price.eyebrow": "Pricing",
+      "price.title": 'Free to start. <span class="mark">Honest from there.</span>',
+      "price.honest": "Your <b>first receipt scan</b> and <b>first recipe</b> are on us. <b>Manual add and barcode scan stay free, always.</b> Go unlimited when you're ready.",
+      "price.monthly": "Monthly",
+      "price.yearly": "Yearly",
+      "price.save": "Save ~40%",
+      "plan.per": "/month",
+      "plan.free.name": "Free",
+      "plan.free.for": "Try the whole flow",
+      "plan.free.amt": "$0",
+      "plan.free.note": "Free forever",
+      "plan.free.li1": "Your first receipt scan",
+      "plan.free.li2": "Your first recipe generation",
+      "plan.free.li3": "Unlimited manual + barcode add",
+      "plan.free.li4": "Your virtual fridge",
+      "plan.free.cta": "Start free",
+      "plan.prem.flag": "Most popular",
+      "plan.prem.name": "Premium",
+      "plan.prem.for": "For one cook",
+      "plan.prem.amtM": "$7.99",
+      "plan.prem.amtY": "$4.58",
+      "plan.prem.noteM": "Billed monthly",
+      "plan.prem.noteY": "$54.99 billed yearly",
+      "plan.prem.li1": "Unlimited receipt scanning",
+      "plan.prem.li2": "Unlimited recipes, expiry-ranked",
+      "plan.prem.li3": 'Daily "what to cook" suggestion',
+      "plan.prem.li4": "Weekly insights",
+      "plan.prem.cta": "Get early access",
+      "plan.house.name": "Household",
+      "plan.house.for": "Share with up to 3",
+      "plan.house.amtM": "$14.99",
+      "plan.house.amtY": "$8.33",
+      "plan.house.noteM": "Billed monthly",
+      "plan.house.noteY": "$99.99 billed yearly",
+      "plan.house.li1": "Everything in Premium",
+      "plan.house.li2": "One shared fridge for the home",
+      "plan.house.li3": "Up to 3 people, synced",
+      "plan.house.li4": "Shared shopping + insights",
+      "plan.house.cta": "Get early access",
+      "faq.eyebrow": "Good questions",
+      "faq.title": "The honest answers.",
+      "faq.q1": "Is it free?",
+      "faq.a1": "Yes, to start. Your <b>first receipt scan</b> and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$7.99/month</b> ($54.99/year) and Household is <b>$14.99/month</b> ($99.99/year) for up to three people.",
+      "faq.q2": "Do I have to log everything by hand?",
+      "faq.a2": "No. A receipt scan adds 20–30 items at once, in about ten seconds. If you pick something up loose or shop without a receipt, you can <b>scan a barcode</b> or <b>add it manually</b> — both are free and unlimited.",
+      "faq.q3": "Can my household share one fridge?",
+      "faq.a3": "Yes. The <b>Household plan</b> gives up to three people one shared fridge that stays in sync — so whoever shops, everyone sees what's in and what to cook.",
+      "faq.q4": "What happens to my receipt data?",
+      "faq.a4": "We use your receipt only to fill your fridge and suggest meals. <b>Your receipts stay private and we never sell your data.</b> You can delete items, or your whole account, whenever you like.",
+      "faq.q5": "Which shops and receipts work?",
+      "faq.a5": "Most printed and emailed grocery receipts work out of the box. If a line is unclear, leftovr flags just those items for a quick one-tap check — the rest go straight in.",
+      "final.title": 'Stop guessing. <span class="mark">Start with a receipt.</span>',
+      "final.lead": "Join the early access list and be first in when your spot opens.",
+      "final.post": "We'll email your invite as soon as a spot opens — usually within a few days.",
+      "final.successTitle": "You're on the list.",
+      "final.successBody": "Check your inbox — we'll send your invite as soon as a spot opens.",
+      "foot.how": "How it works",
+      "foot.pricing": "Pricing",
+      "foot.early": "Early access",
+      "foot.copy": "© 2026 leftovr",
+      "sticky.cta": "Get early access — it's free to start",
       "wl.invalid": "Please enter a valid email address.",
       "wl.joining": "Joining…",
-      "wl.success": "You're on the list! Check your inbox for a hello from us.",
       "wl.generic": "Something went wrong. Please try again.",
       "wl.network": "Couldn't reach the waitlist right now. Please try again in a minute.",
     },
     sr: {
-      "meta.title": "leftovr — Planer obroka iz jednog računa",
-      "meta.desc": "leftovr pretvara jedan račun u frižider koji se sam puni, pa planira večeru od onoga što već imaš — manje bačene hrane, bez nagađanja šta da kuvaš.",
-      "nav.how": "Kako radi",
-      "nav.features": "Mogućnosti",
-      "nav.loved": "Priče",
-      "nav.faq": "Pitanja",
-      "nav.cta": "Prijavi se",
-      "nav.mobileCta": "Prijavi se na listu →",
-      "nav.menu": "Otvori meni",
+      "meta.title": "leftovr — Skeniraj račun. Znaj šta ima za večeru.",
+      "meta.desc": "leftovr pretvara račun u frižider koji se sam puni, pa planira večeru od onoga što već imaš — manje bačene hrane, bez nagađanja šta da kuvaš.",
+      "nav.tag": "Šta ima za večeru?",
+      "nav.cta": "Rani pristup",
       "hero.kicker": "Jedan račun · bez bacanja · bez nagađanja",
-      "hero.h1": 'Nikad se više ne pitaj.<br /><span class="hl2">Večera se <em>sama smisli.' + SVG_UNDERLINE + "</em></span>",
-      "hero.sub": "leftovr ti vodi frižider sa samo jednog računa, pa planira obroke od onoga što već imaš — bez bacanja, bez razmišljanja.",
-      "hero.ctaPrimary": "Prijavi se na listu čekanja",
-      "hero.ctaSecondary": "Pogledaj kako radi",
-      "hero.proof": STARS + "<strong>4.8</strong> od domaćinstava koja su prestala da se pitaju „šta ima za večeru?“",
-      "phone.aria": "Ekran leftovr aplikacije sa virtuelnim frižiderom, policom „pojedi prvo“ i predlogom recepta",
-      "phone.greeting": "Dobro veče, Lena",
-      "phone.sub": "Tvoj frižider: 23 stavke · 3 uskoro",
-      "phone.eatFirst": "Pojedi prvo",
-      "phone.fresh": "Sveže i fino",
-      "food.spinach": "Spanać",
-      "food.yogurt": "Jogurt",
-      "food.peaches": "Breskve",
-      "food.chicken": "Piletina",
-      "food.bread": "Hleb",
-      "food.salmon": "Losos",
-      "urgency.today": "Danas najbolje",
-      "urgency.days": "2–3 dana",
-      "urgency.fresh": "Sveže",
-      "urgency.week": "Ove nedelje",
-      "recipe.tag": "Ideja za večeras",
-      "recipe.title": "Kremasta pasta sa spanaćem i lososom",
-      "recipe.meta": "Koristi 3 stvari sa police „pojedi prvo“ · 25 min",
-      "chip.added": "Račun dodat · 14 stavki",
-      "chip.spinach": "Iskoristi spanać večeras",
-      "chip.saved": "Ušteda ~9 € ove nedelje",
+      "hero.h1": '<span class="hl">Skeniraj račun.</span><span class="hl">Tvoj <span class="mark">frižider</span> se sam puni.</span><span class="hl">Večera <span class="uline">se sama smisli' + UL + '</span>.</span>',
+      "hero.sub": "leftovr drži tvoj frižider ažurnim iz jednog računa, pa planira obroke od onoga što već imaš — bez bacanja, bez nagađanja.",
+      "hero.formLabel": "Rani pristup",
+      "hero.placeholder": "ti@primer.rs",
+      "hero.submit": "Prijavi se na listu",
+      "hero.privacy": "Samo obaveštenja o ranom pristupu. Odjava bilo kada.",
+      "hero.successTitle": "Na listi si.",
+      "hero.successBody": "Poslaćemo ti pozivnicu čim se oslobodi mesto — obično za nekoliko dana.",
+      "hero.step1Title": "Skeniraj račun",
+      "hero.step1Meta": "10 sekundi",
+      "hero.step2Title": "Frižider se sam puni",
+      "hero.step2Meta": "sređeno za tebe",
+      "hero.step3Title": "Večera, rešena",
+      "hero.step3Meta": "od onoga što imaš",
+      "phone.day": "Utorak uveče",
+      "phone.fridge": "Tvoj frižider",
+      "phone.useFirst": "Pojedi prvo",
+      "phone.useFirstCount": "3 od 22 stavke",
+      "phone.spinach": "Mladi spanać",
+      "phone.spinachSub": "Lisnato povrće · 1 kesa",
+      "phone.today": "Danas",
+      "phone.eggs": "Jaja iz slob. uzgoja",
+      "phone.eggsSub": "ostalo 6",
+      "phone.chicken": "Pileća prsa",
+      "phone.chickenSub": "400 g · pakovanje od 2",
+      "phone.tomorrow": "Sutra",
+      "phone.more": "još 19 stavki, sve sveže",
+      "phone.tonightLbl": "Večeras, iz tvog frižidera",
+      "phone.tonightTitle": "Pasta sa spanaćem i fetom",
+      "phone.tonightSub": "20 min · koristi 3 stavke kojima ističe rok",
       "how.eyebrow": "Kako radi",
-      "how.title": "Tri koraka koji rade sami.",
-      "how.sub": "Skeniraj, skuvaj, ponovi — leftovr drži frižider tačnim, da vođenje zaliha nikad ne postane posao.",
-      "step1.title": "Slikaj račun",
-      "step1.body": "Jedna fotografija posle kupovine. leftovr je pročita, prepozna hranu i preskoči šampon. Radi i skeniranje bar-koda za pojedinačne stvari.",
-      "step2.title": "Frižider se sam puni",
-      "step2.body": "Sve se smesti na police sa blagim oznakama svežine — „danas najbolje“, „ove nedelje“ — bez strašnog odbrojavanja roka.",
-      "step3.title": "Skuvaj šta imaš",
-      "step3.body": "Recepti od onoga što stvarno imaš u frižideru, sa naglaskom na ono što prvo treba pojesti. Skuvaš recept i te namirnice same nestaju iz frižidera — bez ponovnog unošenja.",
-      "feat.eyebrow": "Mogućnosti",
-      "feat.title": "Sve što bi frižider voleo da ti kaže",
-      "feat.sub": "Samo prilike, nikad prekor. leftovr slavi ono što uštediš — nikad te ne grdi za ono što baciš.",
-      "f1.title": "Skeniranje računa koje prosto radi",
-      "f1.body": "Usmeri kameru na račun. leftovr pretvara nejasne skraćenice iz prodavnice u pravu hranu, proceni količine i pusti te da potvrdiš za par sekundi.",
-      "f1.r1": "→ Mladi spanać",
-      "f1.r2": "→ Grčki jogurt ×4",
-      "f1.r3": "→ Pileća prsa",
-      "f1.r4": "preskočeno — nije hrana",
-      "f2.title": "Polica „pojedi prvo“",
-      "f2.body": "Nežan prvi red za ono što je na vrhuncu svežine. „Iskoristi spanać večeras“ — prilika, ne alarm.",
-      "f3.title": "Ideje za večeru",
-      "f3.body": "Recepti napravljeni od onoga što je stvarno u tvom frižideru — sa prednošću za policu „pojedi prvo“, prilagođeni tvom ukusu i vremenu.",
-      "f4.title": "Jedan frižider, cela kuća",
-      "f4.body": "Pozovi svoje preko linka. Svi vide isti frižider, svako može da skenira i niko više ne kupi treću teglu pesta.",
-      "f5.title": "Ušteda koja se oseti",
-      "f5.body": "Svake nedelje leftovr prati hranu koju si spasao od kante, novac koji si zadržao, recepte koje si skuvao i koliko često si pojeo nešto pre nego što propadne — pobede vredne slavlja, bez brojanja kalorija i bez griže savesti.",
-      "stat.currency": "€",
-      "stat1.lbl": "prosečna ušteda po domaćinstvu, mesečno",
-      "stat2.lbl": "stvari spasenih od kante mesečno",
-      "stat3.lbl": "od slike računa do punog frižidera",
-      "loved.eyebrow": "Priče",
-      "loved.title": "Kraj svađama oko večere.",
-      "q1.text": "„Nisam ukucao nijednu namirnicu u aplikaciju. Skeniram račun na parkingu i gotovo. To je ceo razlog zašto radi.“",
-      "q1.who": "hrani četvoročlanu porodicu",
-      "q2.text": "„Polica ‚pojedi prvo‘ promenila je kako kuvamo. ‚Iskoristi spanać večeras‘ deluje kao predlog prijatelja, ne kao dosadno obaveštenje.“",
-      "q2.who": "deli frižider sa dvoje cimera",
-      "q3.text": "„Svađali smo se oko večere svako veče. Sad leftovr predloži nešto od onoga što već imamo i mi to prosto… skuvamo. Čudno, ali menja život.“",
-      "q3.who": "kuva za dvoje, ne planira ništa",
-      "faq.eyebrow": "Pitanja",
-      "faq.title": "Često postavljana pitanja",
-      "faq.q1": "Moram li ručno da unosim svaku stavku?",
-      "faq.a1": "Ne — to je poenta. Jedna fotografija računa pokriva celu kupovinu. Takođe možeš da skeniraš bar-kod proizvoda, a da — uvek postoji i opcija ručnog dodavanja ako tako voliš. leftovr to samo nikad ne zahteva.",
-      "faq.q2": "Da li leftovr koristi tačne datume isteka?",
-      "faq.a2": "Ne. leftovr koristi blage, okvirne oznake svežine poput „danas najbolje“ ili „dobro ove nedelje“. Hrana je okvirna; i tvoja aplikacija treba da bude. Bez tajmera za odbrojavanje, bez crvenih alarma.",
-      "faq.q3": "Da li je ovo brojač kalorija ili nutritivni treker?",
-      "faq.a3": "Namerno nije. leftovr prati šta imaš i pomaže ti da to pojedeš dok je dobro. Bez kalorija, bez makroa, bez griže savesti — samo manje bačene hrane i brže odluke o večeri.",
-      "faq.q4": "Kako funkcioniše deljenje sa domaćinstvom?",
-      "faq.a4": "Napravi domaćinstvo, podeli link za poziv i svi se pridruže istom virtuelnom frižideru. Svako može da skenira račune, označi pojedeno i vidi večerašnje predloge. Jedan frižider, zajednički mozak.",
-      "faq.q5": "Koje jezike govori?",
-      "faq.a5": "Engleski i srpski na startu, sa arhitekturom spremnom za još. leftovr automatski prati jezik tvog uređaja.",
-      "faq.q6": "Koliko košta?",
-      "faq.a6": "leftovr je besplatan za početak — skeniraj račune, vodi frižider i dobijaj ideje za recepte. Premium nivo sa dodacima stiže; osnovna petlja „prestani da bacaš hranu“ ostaje besplatna.",
-      "cta.title": "Večera je već u tvom frižideru.",
-      "cta.sub": "Prijavi se na listu čekanja — skeniraj prvi račun čim leftovr krene.",
-      "cta.emailLabel": "Imejl adresa",
-      "cta.placeholder": "ti@primer.rs",
-      "cta.submit": "Prijavi se na listu čekanja",
-      "cta.note": "Besplatno na startu · Engleski i srpski · iOS i Android uskoro",
-      "foot.desc": "Virtuelni frižider iz tvog računa. Znaj šta imaš, pojedi dok je divno.",
-      "foot.product": "Proizvod",
-      "foot.get": "Preuzmi leftovr",
-      "foot.join": "Prijavi se na listu",
-      "foot.company": "Kompanija",
-      "foot.contact": "Kontakt",
-      "foot.privacy": "Privatnost",
-      "foot.terms": "Uslovi",
-      "foot.refund": "Politika povraćaja",
-      "foot.legal": "© 2026 leftovr. Napravljeno misleći na ostatke.",
+      "how.title": 'Račun uđe. <span class="mark">Večera izađe.</span>',
+      "how.sub": "Tri koraka, a jedan već radiš svaki put kad kupuješ.",
+      "step1.title": "Skeniraj račun",
+      "step1.body": "Slikaj račun iz bilo koje radnje. leftovr pročita svaku stavku za desetak sekundi i odjednom doda 20–30 namirnica.",
+      "step2.title": "Frižider postaje digitalan",
+      "step2.body": "Sve sleće na virtuelne police, sređeno po kategoriji i poređano po tome šta prvo treba pojesti — da se ništa ne krije pozadi.",
+      "step3.title": "Kuvaj od onoga što već imaš",
+      "step3.body": "Dobij ideje za večeru samo od onoga što ti je u frižideru, počev od hrane kojoj ističe rok. Bez dodatnog odlaska u kupovinu.",
+      "stats.eyebrow": "Zašto je važno",
+      "stats.title": "Većina nas baci više hrane — i više novca — nego što misli.",
+      "stat1.desc": "Prosečna američka četvoročlana porodica baci otprilike toliko hrane svake godine.",
+      "stat2.desc": "Udeo američkih zaliha hrane izgubljen na nivou maloprodaje i potrošača, po proceni USDA.",
+      "feat.eyebrow": "Šta dobijaš",
+      "feat.title": 'Frižider koji ti <span class="mark">kaže šta da skuvaš.</span>',
+      "feat1.title": "Znaj šta prvo da pojedeš",
+      "feat1.body": "leftovr rangira hranu po tome koliko brzo će propasti i stavlja ugrožene stavke u prvi plan — da iskoristiš spanać pre nego što uvene, a ne posle.",
+      "feat1.li1": "Dnevna polica „za danas“, poređana po roku trajanja",
+      "feat1.li2": "Označena svežina u boji za svaku stavku",
+      "feat1.li3": "Jedan dodir za kuvanje sa onim što samo što nije propalo",
+      "feat1.vlabel": "Pojedi prvo · za danas",
+      "ef.spinach": "Mladi spanać",
+      "ef.eggs": "Jaja iz slob. uzgoja",
+      "ef.chicken": "Piletina",
+      "ef.bestToday": "Najbolje danas",
+      "ef.in1day": "Za 1 dan",
+      "feat2.title": "Recepti od onoga što je stvarno unutra",
+      "feat2.body": "Svaka ideja je napravljena od hrane koju već imaš i počinje od stavki koje treba iskoristiti. Otvori jednu i koraci su tu.",
+      "feat2.li1": "Bez recepata tipa „kupi još 9 stvari“",
+      "feat2.li2": "Filtriraj po vremenu, trudu ili „najviše koristi“",
+      "feat2.li3": "Dodirni „skuvao sam ovo“ i frižider se ažurira",
+      "recipe1.tag": "Top izbor",
+      "recipe1.title": "Pasta sa spanaćem i fetom",
+      "recipe1.meta": "20 min · 5 sastojaka",
+      "recipe1.note": "Čuva spanać (najbolje danas)",
+      "recipe2.title": "Tost sa jajetom i sirom",
+      "recipe2.meta": "10 min · 3 sastojka",
+      "recipe2.note": "Koristi 3 ugrožene stavke",
+      "price.eyebrow": "Cene",
+      "price.title": 'Besplatno za početak. <span class="mark">Iskreno odatle.</span>',
+      "price.honest": "Tvoje <b>prvo skeniranje računa</b> i <b>prvi recept</b> su na nas. <b>Ručno dodavanje i skeniranje bar-koda su uvek besplatni.</b> Pređi na neograničeno kad budeš spreman/na.",
+      "price.monthly": "Mesečno",
+      "price.yearly": "Godišnje",
+      "price.save": "Ušteda ~40%",
+      "plan.per": "/mesec",
+      "plan.free.name": "Besplatno",
+      "plan.free.for": "Isprobaj ceo tok",
+      "plan.free.amt": "0 €",
+      "plan.free.note": "Zauvek besplatno",
+      "plan.free.li1": "Tvoje prvo skeniranje računa",
+      "plan.free.li2": "Tvoje prvo generisanje recepta",
+      "plan.free.li3": "Neograničeno ručno + bar-kod dodavanje",
+      "plan.free.li4": "Tvoj virtuelni frižider",
+      "plan.free.cta": "Počni besplatno",
+      "plan.prem.flag": "Najpopularnije",
+      "plan.prem.name": "Premium",
+      "plan.prem.for": "Za jednog kuvara",
+      "plan.prem.amtM": "7,99 €",
+      "plan.prem.amtY": "4,58 €",
+      "plan.prem.noteM": "Naplata mesečno",
+      "plan.prem.noteY": "54,99 € godišnje",
+      "plan.prem.li1": "Neograničeno skeniranje računa",
+      "plan.prem.li2": "Neograničeni recepti, poređani po roku",
+      "plan.prem.li3": "Dnevni predlog „šta da kuvaš“",
+      "plan.prem.li4": "Nedeljni uvidi",
+      "plan.prem.cta": "Rani pristup",
+      "plan.house.name": "Domaćinstvo",
+      "plan.house.for": "Deli sa najviše 3",
+      "plan.house.amtM": "14,99 €",
+      "plan.house.amtY": "8,33 €",
+      "plan.house.noteM": "Naplata mesečno",
+      "plan.house.noteY": "99,99 € godišnje",
+      "plan.house.li1": "Sve iz Premium-a",
+      "plan.house.li2": "Jedan zajednički frižider za dom",
+      "plan.house.li3": "Do 3 osobe, sinhronizovano",
+      "plan.house.li4": "Zajednička kupovina + uvidi",
+      "plan.house.cta": "Rani pristup",
+      "faq.eyebrow": "Dobra pitanja",
+      "faq.title": "Iskreni odgovori.",
+      "faq.q1": "Da li je besplatno?",
+      "faq.a1": "Da, za početak. Tvoje <b>prvo skeniranje računa</b> i <b>prvi recept</b> su besplatni, a <b>ručno i bar-kod dodavanje su zauvek besplatni</b>. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i uvide, Premium je <b>7,99 €/mesec</b> (54,99 €/god), a Domaćinstvo <b>14,99 €/mesec</b> (99,99 €/god) za do tri osobe.",
+      "faq.q2": "Moram li sve ručno da unosim?",
+      "faq.a2": "Ne. Skeniranje računa doda 20–30 stavki odjednom, za desetak sekundi. Ako uzmeš nešto na rinfuz ili kupuješ bez računa, možeš da <b>skeniraš bar-kod</b> ili <b>dodaš ručno</b> — oboje je besplatno i neograničeno.",
+      "faq.q3": "Može li moje domaćinstvo da deli jedan frižider?",
+      "faq.a3": "Da. <b>Plan Domaćinstvo</b> daje do tri osobe jedan zajednički frižider koji ostaje sinhronizovan — ko god da kupuje, svi vide šta ima i šta da skuvaju.",
+      "faq.q4": "Šta se dešava sa podacima sa mog računa?",
+      "faq.a4": "Račun koristimo samo da napunimo tvoj frižider i predložimo obroke. <b>Tvoji računi ostaju privatni i nikad ne prodajemo tvoje podatke.</b> Možeš obrisati stavke ili ceo nalog kad god želiš.",
+      "faq.q5": "Koje radnje i računi rade?",
+      "faq.a5": "Većina štampanih i imejl računa za namirnice radi odmah. Ako je neka stavka nejasna, leftovr je označi za brzu proveru jednim dodirom — ostalo ide pravo unutra.",
+      "final.title": 'Prestani da nagađaš. <span class="mark">Počni od računa.</span>',
+      "final.lead": "Prijavi se na listu za rani pristup i uđi prvi čim se oslobodi tvoje mesto.",
+      "final.post": "Poslaćemo ti pozivnicu čim se oslobodi mesto — obično za nekoliko dana.",
+      "final.successTitle": "Na listi si.",
+      "final.successBody": "Proveri sanduče — poslaćemo ti pozivnicu čim se oslobodi mesto.",
+      "foot.how": "Kako radi",
+      "foot.pricing": "Cene",
+      "foot.early": "Rani pristup",
+      "foot.copy": "© 2026 leftovr",
+      "sticky.cta": "Rani pristup — besplatno za početak",
       "wl.invalid": "Unesi ispravnu imejl adresu.",
       "wl.joining": "Prijavljujem…",
-      "wl.success": "Na listi si! Proveri sanduče za pozdrav od nas.",
       "wl.generic": "Nešto je pošlo naopako. Pokušaj ponovo.",
       "wl.network": "Trenutno ne mogu da dođem do liste. Pokušaj ponovo za minut.",
     },
   };
 
-  let currentLang = "en";
-  const LANG_KEY = "leftovr-lang";
-  const t = (key) => (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || "";
+  var currentLang = "en";
+  var LANG_KEY = "leftovr-lang";
+  function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || ""; }
 
-  const descMeta = document.querySelector('meta[name="description"]');
-  const ogTitle = document.querySelector('meta[property="og:title"]');
-  const ogDesc = document.querySelector('meta[property="og:description"]');
+  var descMeta = document.querySelector('meta[name="description"]');
+  var ogTitle = document.querySelector('meta[property="og:title"]');
+  var ogDesc = document.querySelector('meta[property="og:description"]');
 
   function applyLanguage(lang) {
     if (!I18N[lang]) lang = "en";
     currentLang = lang;
-    const dict = I18N[lang];
+    var dict = I18N[lang];
     document.documentElement.lang = lang;
 
-    document.querySelectorAll("[data-i18n]").forEach((el) => {
-      const v = dict[el.dataset.i18n];
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var v = dict[el.dataset.i18n];
       if (v != null) el.textContent = v;
     });
-    document.querySelectorAll("[data-i18n-html]").forEach((el) => {
-      const v = dict[el.dataset.i18nHtml];
+    document.querySelectorAll("[data-i18n-html]").forEach(function (el) {
+      var v = dict[el.dataset.i18nHtml];
       if (v != null) el.innerHTML = v;
     });
-    document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
-      const v = dict[el.dataset.i18nPh];
+    document.querySelectorAll("[data-i18n-ph]").forEach(function (el) {
+      var v = dict[el.dataset.i18nPh];
       if (v != null) el.placeholder = v;
-    });
-    document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
-      const v = dict[el.dataset.i18nAria];
-      if (v != null) el.setAttribute("aria-label", v);
     });
 
     // Head metadata
     document.title = dict[document.documentElement.dataset.i18nTitle] || document.title;
-    const desc = dict[document.documentElement.dataset.i18nDesc];
+    var desc = dict[document.documentElement.dataset.i18nDesc];
     if (desc) {
       if (descMeta) descMeta.content = desc;
       if (ogDesc) ogDesc.content = desc;
     }
     if (ogTitle) ogTitle.content = document.title;
 
-    // Localized currency prefix on stat counters
-    document.querySelectorAll("[data-i18n-prefix]").forEach((el) => {
-      const v = dict[el.dataset.i18nPrefix];
-      if (v != null) {
-        el.dataset.prefix = v;
-        if (el.dataset.done === "1") {
-          el.textContent = v + el.dataset.count + (el.dataset.suffix || "");
-        }
-      }
-    });
+    // Period-dependent billing notes (resolved via dictionary).
+    applyPeriod();
 
     // Toggle button states
-    document.querySelectorAll("[data-lang]").forEach((btn) => {
+    document.querySelectorAll("[data-lang]").forEach(function (btn) {
       btn.setAttribute("aria-pressed", String(btn.dataset.lang === lang));
     });
 
-    try {
-      localStorage.setItem(LANG_KEY, lang);
-    } catch {}
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
   }
 
-  document.querySelectorAll("[data-lang]").forEach((btn) =>
-    btn.addEventListener("click", () => applyLanguage(btn.dataset.lang))
-  );
+  document.querySelectorAll("[data-lang]").forEach(function (btn) {
+    btn.addEventListener("click", function () { applyLanguage(btn.dataset.lang); });
+  });
 
-  let initial = "en";
-  try {
-    initial = localStorage.getItem(LANG_KEY) || "";
-  } catch {}
+  // ---------- Waitlist forms → /api/waitlist → Resend ----------
+  var WAITLIST_ENDPOINT = "/api/waitlist";
+  function wireForm(formId, msgId, successId) {
+    var form = document.getElementById(formId);
+    if (!form) return;
+    var msg = document.getElementById(msgId);
+    var success = document.getElementById(successId);
+    var email = form.querySelector('input[type=email]');
+    var submit = form.querySelector('button[type=submit]');
+    var honeypot = form.querySelector('input[name=company]');
+
+    function showMsg(text, ok) {
+      if (!msg) return;
+      msg.textContent = text;
+      msg.classList.toggle("ok", ok);
+      msg.classList.toggle("err", !ok);
+    }
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var value = email.value.trim();
+      if (!value || !email.checkValidity()) {
+        showMsg(t("wl.invalid"), false);
+        email.focus();
+        return;
+      }
+      var label = submit.textContent;
+      submit.disabled = true;
+      submit.textContent = t("wl.joining");
+      try {
+        var res = await fetch(WAITLIST_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: value, company: honeypot ? honeypot.value : "", lang: currentLang }),
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (res.ok) {
+          form.style.display = "none";
+          if (success) success.classList.add("show");
+        } else {
+          showMsg((currentLang === "en" && data.error) || t("wl.generic"), false);
+        }
+      } catch (err) {
+        showMsg(t("wl.network"), false);
+      } finally {
+        submit.disabled = false;
+        submit.textContent = label;
+      }
+    });
+  }
+  wireForm("hero-form", "hero-msg", "hero-success");
+  wireForm("final-form", "final-msg", "final-success");
+
+  // ---------- Init language ----------
+  var initial = "";
+  try { initial = localStorage.getItem(LANG_KEY) || ""; } catch (e) {}
   if (!initial) {
-    initial = (navigator.language || "").toLowerCase().startsWith("sr") ? "sr" : "en";
+    initial = (navigator.language || "").toLowerCase().indexOf("sr") === 0 ? "sr" : "en";
   }
   applyLanguage(initial);
 </script>
+
 </body>
 </html>

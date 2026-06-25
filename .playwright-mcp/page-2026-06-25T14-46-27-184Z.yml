@@ -1,0 +1,295 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "leftovr — what's for dinner" [ref=e4] [cursor=pointer]:
+        - /url: "#top"
+        - generic [ref=e5]:
+          - text: leftov
+          - generic [ref=e6]: r
+        - generic [ref=e7]: What's for dinner?
+      - generic [ref=e8]:
+        - group "Language" [ref=e9]:
+          - button "EN" [pressed] [ref=e10] [cursor=pointer]
+          - button "SR" [ref=e11] [cursor=pointer]
+        - link "Get early access" [ref=e12] [cursor=pointer]:
+          - /url: "#get"
+  - main [ref=e13]:
+    - generic [ref=e16]:
+      - generic [ref=e19]: One receipt · no waste · no guessing
+      - heading "Scan a receipt. leftovr fills your fridge and plans dinner ." [level=1] [ref=e20]:
+        - text: Scan a receipt. leftovr fills your fridge and
+        - generic [ref=e21]:
+          - text: plans dinner
+          - img [ref=e22]
+        - text: .
+      - paragraph [ref=e24]: leftovr keeps your fridge current from a single receipt, then plans meals from what you already have — waste-free, decision-free.
+      - generic [ref=e25]:
+        - generic [ref=e26]: Get early access
+        - generic [ref=e27]:
+          - textbox "Get early access" [ref=e28]:
+            - /placeholder: you@email.com
+          - button "Join the waitlist" [ref=e29] [cursor=pointer]
+        - textbox [ref=e30]
+        - generic [ref=e31]:
+          - img [ref=e32]
+          - generic [ref=e34]: No spam. Your receipts stay private — we never sell your data.
+        - status [ref=e35]
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - img [ref=e39]
+          - generic [ref=e41]:
+            - generic [ref=e42]: Scan receipt
+            - text: 10 seconds
+        - img [ref=e43]
+        - generic [ref=e45]:
+          - img [ref=e47]
+          - generic [ref=e49]:
+            - generic [ref=e50]: Fridge fills itself
+            - text: sorted for you
+        - img [ref=e51]
+        - generic [ref=e53]:
+          - img [ref=e55]
+          - generic [ref=e58]:
+            - generic [ref=e59]: Dinner, sorted
+            - text: from what you have
+    - generic [ref=e61]:
+      - generic [ref=e62]:
+        - generic [ref=e63]: How it works
+        - heading "Receipt in. Dinner out." [level=2] [ref=e64]
+        - paragraph [ref=e65]: Three steps, one of which you already do every time you shop.
+      - generic [ref=e66]:
+        - generic [ref=e67]:
+          - generic [ref=e68]: "1"
+          - img [ref=e70]
+          - heading "Scan a receipt" [level=3] [ref=e76]
+          - paragraph [ref=e77]: Snap the receipt from any shop. leftovr reads every line in about 10 seconds and adds 20–30 items at once.
+        - generic [ref=e78]:
+          - generic [ref=e79]: "2"
+          - img [ref=e81]
+          - heading "Your fridge goes digital" [level=3] [ref=e91]
+          - paragraph [ref=e92]: Everything lands on virtual shelves, sorted by category and ranked by what to eat first — so nothing hides at the back.
+        - generic [ref=e93]:
+          - generic [ref=e94]: "3"
+          - img [ref=e96]
+          - heading "Cook what you already have" [level=3] [ref=e105]
+          - paragraph [ref=e106]: Get dinner ideas built only from what's in your fridge, starting with the food about to turn. No extra shopping trip.
+    - generic [ref=e108]:
+      - generic [ref=e109]:
+        - generic [ref=e110]: Why it matters
+        - heading "Most of us throw away more food — and more money — than we think." [level=2] [ref=e111]
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - generic [ref=e114]: $1,500
+          - paragraph [ref=e115]: The average American family of four throws out roughly this much food every year.
+          - paragraph [ref=e116]:
+            - text: "Source:"
+            - link "U.S. Department of Agriculture" [ref=e117] [cursor=pointer]:
+              - /url: https://www.usda.gov/foodlossandwaste/faqs
+        - generic [ref=e118]:
+          - generic [ref=e119]: 31%
+          - paragraph [ref=e120]: Share of the U.S. food supply lost at the retail and consumer level, by USDA's estimate.
+          - paragraph [ref=e121]:
+            - text: "Source:"
+            - link "USDA, 2010 estimate" [ref=e122] [cursor=pointer]:
+              - /url: https://www.usda.gov/foodlossandwaste/faqs
+    - generic [ref=e124]:
+      - generic [ref=e125]:
+        - generic [ref=e126]: What you get
+        - heading "A fridge that tells you what to cook." [level=2] [ref=e127]
+      - generic [ref=e128]:
+        - generic [ref=e129]:
+          - heading "Know what to eat first" [level=3] [ref=e130]
+          - paragraph [ref=e131]: leftovr ranks your food by how soon it'll spoil and puts the at-risk items front and centre — so you use the spinach before it wilts, not after.
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - img [ref=e135]
+              - generic [ref=e137]: A daily "use today" shelf, ranked by shelf life
+            - generic [ref=e138]:
+              - img [ref=e140]
+              - generic [ref=e142]: Colour-coded freshness on every item
+            - generic [ref=e143]:
+              - img [ref=e145]
+              - generic [ref=e147]: One tap to cook with what's about to turn
+        - generic [ref=e149]:
+          - generic [ref=e150]: Eat first · use today
+          - generic [ref=e151]:
+            - generic [ref=e152]:
+              - img [ref=e154]
+              - generic [ref=e157]: Baby spinach
+              - generic [ref=e158]: Best today
+            - generic [ref=e159]:
+              - img [ref=e161]
+              - generic [ref=e164]: Free range eggs
+              - generic [ref=e165]: Best today
+            - generic [ref=e166]:
+              - img [ref=e168]
+              - generic [ref=e172]: Chicken
+              - generic [ref=e173]: In 1 day
+      - generic [ref=e174]:
+        - generic [ref=e175]:
+          - heading "Recipes from what's actually in there" [level=3] [ref=e176]
+          - paragraph [ref=e177]: Every idea is built from the food you already own and leads with the items that need using. Open one and the steps are right there.
+          - generic [ref=e178]:
+            - generic [ref=e179]:
+              - img [ref=e181]
+              - generic [ref=e183]: No "buy these 9 extra things" recipes
+            - generic [ref=e184]:
+              - img [ref=e186]
+              - generic [ref=e188]: Filter by time, effort, or "uses the most"
+            - generic [ref=e189]:
+              - img [ref=e191]
+              - generic [ref=e193]: Tap "I cooked this" and your fridge updates
+        - generic [ref=e195]:
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - img [ref=e198]
+              - generic [ref=e203]: Top pick
+            - generic [ref=e204]:
+              - generic [ref=e205]:
+                - generic [ref=e206]: Spinach & feta pasta
+                - generic [ref=e207]: 20 min · 5 ingredients
+              - generic [ref=e210]: Saves spinach (best today)
+          - generic [ref=e211]:
+            - img [ref=e213]
+            - generic [ref=e216]:
+              - generic [ref=e217]:
+                - generic [ref=e218]: Cheesy egg toast
+                - generic [ref=e219]: 10 min · 3 ingredients
+              - generic [ref=e222]: Uses 3 items at risk
+    - generic [ref=e224]:
+      - generic [ref=e225]:
+        - generic [ref=e226]: Pricing
+        - heading "Free to start. Honest from there." [level=2] [ref=e227]
+      - paragraph [ref=e228]: Your first receipt scan and first recipe are on us. Manual add and barcode scan stay free, always. Go unlimited when you're ready.
+      - generic [ref=e230]:
+        - button "Monthly" [ref=e231] [cursor=pointer]:
+          - generic [ref=e232]: Monthly
+        - button "Yearly Save ~40%" [ref=e233] [cursor=pointer]:
+          - generic [ref=e234]: Yearly
+          - generic [ref=e235]: Save ~40%
+      - generic [ref=e236]:
+        - generic [ref=e237]:
+          - generic [ref=e238]: Free
+          - generic [ref=e239]: Try the whole flow
+          - generic [ref=e241]: $0
+          - generic [ref=e242]: Free forever
+          - list [ref=e243]:
+            - listitem [ref=e244]:
+              - img [ref=e246]
+              - generic [ref=e248]: Your first receipt scan
+            - listitem [ref=e249]:
+              - img [ref=e251]
+              - generic [ref=e253]: Your first recipe generation
+            - listitem [ref=e254]:
+              - img [ref=e256]
+              - generic [ref=e258]: Unlimited manual + barcode add
+            - listitem [ref=e259]:
+              - img [ref=e261]
+              - generic [ref=e263]: Your virtual fridge
+          - link "Start free" [ref=e264] [cursor=pointer]:
+            - /url: "#get"
+        - generic [ref=e265]:
+          - generic [ref=e266]: Most popular
+          - generic [ref=e267]: Premium
+          - generic [ref=e268]: For one cook
+          - generic [ref=e269]:
+            - generic [ref=e270]: $7.99
+            - generic [ref=e271]: /month
+          - generic [ref=e272]: Billed monthly
+          - list [ref=e273]:
+            - listitem [ref=e274]:
+              - img [ref=e276]
+              - generic [ref=e278]: Unlimited receipt scanning
+            - listitem [ref=e279]:
+              - img [ref=e281]
+              - generic [ref=e283]: Unlimited recipes, expiry-ranked
+            - listitem [ref=e284]:
+              - img [ref=e286]
+              - generic [ref=e288]: Daily "what to cook" suggestion
+            - listitem [ref=e289]:
+              - img [ref=e291]
+              - generic [ref=e293]: Weekly insights
+          - link "Get early access" [ref=e294] [cursor=pointer]:
+            - /url: "#get"
+        - generic [ref=e295]:
+          - generic [ref=e296]: Household
+          - generic [ref=e297]: Share with up to 3
+          - generic [ref=e298]:
+            - generic [ref=e299]: $14.99
+            - generic [ref=e300]: /month
+          - generic [ref=e301]: Billed monthly
+          - list [ref=e302]:
+            - listitem [ref=e303]:
+              - img [ref=e305]
+              - generic [ref=e307]: Everything in Premium
+            - listitem [ref=e308]:
+              - img [ref=e310]
+              - generic [ref=e312]: One shared fridge for the home
+            - listitem [ref=e313]:
+              - img [ref=e315]
+              - generic [ref=e317]: Up to 3 people, synced
+            - listitem [ref=e318]:
+              - img [ref=e320]
+              - generic [ref=e322]: Shared shopping + insights
+          - link "Get early access" [ref=e323] [cursor=pointer]:
+            - /url: "#get"
+    - generic [ref=e325]:
+      - generic [ref=e326]:
+        - generic [ref=e327]: Good questions
+        - heading "The honest answers." [level=2] [ref=e328]
+      - generic [ref=e329]:
+        - generic [ref=e330]:
+          - button "Is it free?" [ref=e331] [cursor=pointer]:
+            - generic [ref=e332]: Is it free?
+            - img [ref=e333]
+          - generic [ref=e336]: Yes, to start. Your first receipt scan and first recipe are free, and manual and barcode add stay free forever. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is $7.99/month ($54.99/year) and Household is $14.99/month ($99.99/year) for up to three people.
+        - generic [ref=e337]:
+          - button "Do I have to log everything by hand?" [ref=e338] [cursor=pointer]:
+            - generic [ref=e339]: Do I have to log everything by hand?
+            - img [ref=e340]
+          - generic [ref=e343]: No. A receipt scan adds 20–30 items at once, in about ten seconds. If you pick something up loose or shop without a receipt, you can scan a barcode or add it manually — both are free and unlimited.
+        - generic [ref=e344]:
+          - button "Can my household share one fridge?" [ref=e345] [cursor=pointer]:
+            - generic [ref=e346]: Can my household share one fridge?
+            - img [ref=e347]
+          - generic [ref=e350]: Yes. The Household plan gives up to three people one shared fridge that stays in sync — so whoever shops, everyone sees what's in and what to cook.
+        - generic [ref=e351]:
+          - button "What happens to my receipt data?" [ref=e352] [cursor=pointer]:
+            - generic [ref=e353]: What happens to my receipt data?
+            - img [ref=e354]
+          - generic [ref=e356]: We use your receipt only to fill your fridge and suggest meals. Your receipts stay private and we never sell your data. You can delete items, or your whole account, whenever you like.
+        - generic [ref=e357]:
+          - button "Which shops and receipts work?" [ref=e358] [cursor=pointer]:
+            - generic [ref=e359]: Which shops and receipts work?
+            - img [ref=e360]
+          - generic [ref=e362]: Most printed and emailed grocery receipts work out of the box. If a line is unclear, leftovr flags just those items for a quick one-tap check — the rest go straight in.
+    - generic [ref=e365]:
+      - heading "Stop guessing. Start with a receipt." [level=2] [ref=e366]
+      - paragraph [ref=e367]: Join the early access list and be first in when your spot opens.
+      - generic [ref=e368]:
+        - generic [ref=e369]: Get early access
+        - generic [ref=e370]:
+          - textbox "Get early access" [ref=e371]:
+            - /placeholder: you@email.com
+          - button "Join the waitlist" [ref=e372] [cursor=pointer]
+        - textbox [ref=e373]
+        - generic [ref=e374]:
+          - img [ref=e375]
+          - generic [ref=e377]: No spam. Your receipts stay private — we never sell your data.
+        - status [ref=e378]
+        - paragraph [ref=e379]: We'll email your invite as soon as a spot opens — usually within a few days.
+    - generic [ref=e381]:
+      - link "leftovr — what's for dinner" [ref=e382] [cursor=pointer]:
+        - /url: "#top"
+        - generic [ref=e383]:
+          - text: leftov
+          - generic [ref=e384]: r
+        - generic [ref=e385]: What's for dinner?
+      - generic [ref=e386]:
+        - link "How it works" [ref=e387] [cursor=pointer]:
+          - /url: "#how"
+        - link "Pricing" [ref=e388] [cursor=pointer]:
+          - /url: "#pricing"
+        - link "Early access" [ref=e389] [cursor=pointer]:
+          - /url: "#get"
+      - generic [ref=e390]: © 2026 leftovr
