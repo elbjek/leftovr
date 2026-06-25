@@ -100,12 +100,11 @@
   }
   .btn-primary {
     background: var(--primary); color: var(--surface);
-    box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 8px 24px rgba(27,67,50,0.18);
   }
-  .btn-primary:hover { background: var(--primary-700); transform: translateY(-1px); box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 12px 28px rgba(27,67,50,0.24); }
+  .btn-primary:hover { background: var(--primary-700); }
   .btn-primary:active { transform: scale(0.98); }
-  .btn-accent { background: var(--accent); color: var(--text); box-shadow: 0 8px 24px rgba(212,168,67,0.3); }
-  .btn-accent:hover { transform: translateY(-1px); }
+  .btn-accent { background: var(--accent); color: var(--text); }
+  .btn-accent:hover { background: var(--accent-soft); }
   .btn-ghost {
     background: transparent; color: var(--primary);
     border: 1.5px solid var(--hairline-strong);
@@ -150,7 +149,7 @@
   .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--primary); }
 
   /* ── Hero ──────────────────────────────── */
-  .hero { padding: 88px 0 64px; }
+  .hero { padding: 48px 0; }
   .hero-grid {
     display: flex; flex-direction: column; align-items: center; text-align: center;
     max-width: 840px; margin: 0 auto;
@@ -222,7 +221,7 @@
   /* 3-step strip */
   .steps-strip {
     display: flex; align-items: center; gap: 6px;
-    margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--hairline);
+    margin-top: 10px; padding-top: 18px; border-top: 1px solid var(--hairline);
     flex-wrap: wrap;
   }
   .strip-step { display: flex; align-items: center; gap: 11px; }
@@ -424,6 +423,7 @@
   .final { background: var(--primary); color: var(--surface); }
   .final .sec-pad { padding: 80px 0; }
   .final-inner { max-width: 640px; margin: 0 auto; text-align: center; }
+  .final-logo { color: var(--surface); font-size: 30px; margin-bottom: 18px; }
   .final h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 44px; line-height: 1.08; letter-spacing: -0.025em; color: var(--surface); margin-bottom: 18px; }
   .final h2 .mark { color: var(--accent); }
   .final p.lead { font-size: 19px; opacity: 0.85; margin-bottom: 34px; }
@@ -470,9 +470,9 @@
   @media (max-width: 720px) {
     .wrap { padding: 0 20px; }
     .nav-tag { display: none; }
-    .hero { padding: 40px 0 24px; }
-    h1.hero-h1 { font-size: 38px; }
-    .hero-sub { font-size: 17px; }
+    .hero { padding: 40px 0; }
+    h1.hero-h1 { font-size: 32px; }
+    .hero-sub { font-size: 15px; }
     .sec-pad { padding: 60px 0; }
     h2.sec-title { font-size: 33px; }
     .final h2 { font-size: 34px; }
@@ -481,7 +481,8 @@
     .nav .btn { height: 44px; padding: 0 18px; font-size: 14px; }
     .sticky-cta { display: block; }
     body { padding-bottom: 84px; }
-    .steps-strip { gap: 10px; }
+    .steps-strip { flex-direction: column; align-items: center; gap: 16px; }
+    .strip-step { width: 100%; max-width: 240px; }
     .strip-arrow { display: none; }
   }
 </style>
@@ -1116,7 +1117,7 @@
       "faq.a4": "We use your receipt only to fill your fridge and suggest meals. <b>Your receipts stay private and we never sell your data.</b> You can delete items, or your whole account, whenever you like.",
       "faq.q5": "Which shops and receipts work?",
       "faq.a5": "Most printed and emailed grocery receipts work out of the box. If a line is unclear, leftovr flags just those items for a quick one-tap check — the rest go straight in.",
-      "final.title": 'Stop guessing. <span class="mark">Start with a receipt.</span>',
+      "final.title": 'Tonight\'s dinner is <span class="mark">already in your fridge.</span>',
       "final.lead": "Join the early access list and be first in when your spot opens.",
       "final.post": "We'll email your invite as soon as a spot opens — usually within a few days.",
       "final.successTitle": "You're on the list.",
@@ -1256,7 +1257,7 @@
       "faq.a4": "Račun koristimo samo da napunimo tvoj frižider i predložimo obroke. <b>Tvoji računi ostaju privatni i nikad ne prodajemo tvoje podatke.</b> Možeš obrisati stavke ili ceo nalog kad god želiš.",
       "faq.q5": "Koje radnje i računi rade?",
       "faq.a5": "Većina štampanih i imejl računa za namirnice radi odmah. Ako je neka stavka nejasna, leftovr je označi za brzu proveru jednim dodirom — ostalo ide pravo unutra.",
-      "final.title": 'Prestani da nagađaš. <span class="mark">Počni od računa.</span>',
+      "final.title": 'Večera je <span class="mark">već u tvom frižideru.</span>',
       "final.lead": "Prijavi se na listu za rani pristup i uđi prvi čim se oslobodi tvoje mesto.",
       "final.post": "Poslaćemo ti pozivnicu čim se oslobodi mesto — obično za nekoliko dana.",
       "final.successTitle": "Na listi si.",
