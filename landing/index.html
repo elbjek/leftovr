@@ -479,14 +479,12 @@
   .faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
   .faq-item { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; overflow: hidden; }
   .faq-q {
-    width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+    width: 100%; text-align: left; background: none; border: none; cursor: default;
     padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
     font-family: inherit; font-weight: 700; font-size: 17px; color: var(--text); letter-spacing: -0.01em;
   }
-  .faq-q .chev { flex-shrink: 0; transition: transform 0.2s ease; color: var(--muted); }
-  .faq-item.open .faq-q .chev { transform: rotate(180deg); }
-  .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.28s ease; }
-  .faq-item.open .faq-a { max-height: 320px; }
+  .faq-q .chev { display: none; }
+  .faq-a { max-height: none; overflow: visible; }
   .faq-a-inner { padding: 0 24px 22px; font-size: 15.5px; color: var(--muted); line-height: 1.6; }
   .faq-a-inner b { color: var(--text); font-weight: 700; }
 
@@ -758,7 +756,7 @@
             </svg>
           </div>
           <h3 data-i18n="step1.title">Snap your receipt</h3>
-          <p data-i18n="step1.body">One photo after the grocery run. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.</p>
+          <p data-i18n="step1.body">One photo after the grocery run, or a PDF e-receipt from your inbox. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.</p>
         </div>
 
         <div class="step-card">
@@ -984,12 +982,20 @@
           <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a3">Yes. The <b>Household plan</b> gives up to three people one shared kitchen that stays in sync — so whoever shops, everyone sees what you have and what to cook.</div></div>
         </div>
         <div class="faq-item">
-          <button class="faq-q"><span data-i18n="faq.q4">What happens to my receipt data?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a4">Receipt data is used only to update your kitchen and suggest meals. <b>We never sell your personal data.</b> You can delete items, or your whole account, whenever you like.</div></div>
+          <button class="faq-q"><span data-i18n="faq.q4">How do recipe suggestions work?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a4">Recipes are built from food already in your kitchen, with required ingredients coming from what your household has. leftovr prioritises food that should be used first. Tap <b>I cooked this</b> and those ingredients are removed or reduced automatically.</div></div>
         </div>
         <div class="faq-item">
-          <button class="faq-q"><span data-i18n="faq.q5">Which shops and receipts work?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a5">Most printed and emailed grocery receipts work out of the box. If a line is unclear, leftovr flags just those items for a quick one-tap check — the rest go straight in.</div></div>
+          <button class="faq-q"><span data-i18n="faq.q5">What happens to my receipt data?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a5">Receipt items and quantities are personal data when linked to your account. We use them only to update your kitchen and suggest meals. Some items can hint at dietary, health, family, or religious preferences. <b>We never sell your personal data.</b> You can delete items, or your whole account, whenever you like.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q6">Which shops and receipts work?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a6">Most printed, emailed, and PDF grocery receipts work out of the box. If a line is unclear, leftovr flags just those items for a quick one-tap check — the rest go straight in.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q7">Are the freshness dates exact?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a7">No. They’re approximate freshness estimates based on the item type and what we can read from your receipt. You can edit or clear the date during receipt review or manual add if you know better.</div></div>
         </div>
       </div>
     </div>
@@ -1049,13 +1055,6 @@
 </div>
 
 <script>
-  // ---------- FAQ accordion ----------
-  document.querySelectorAll('#faq-list .faq-q').forEach(function (q) {
-    q.addEventListener('click', function () {
-      q.parentElement.classList.toggle('open');
-    });
-  });
-
   // ---------- Pricing monthly / yearly toggle ----------
   var currentPeriod = 'monthly';
   (function () {
@@ -1136,7 +1135,7 @@
       "how.title": 'Receipt in. <span class="mark">Dinner out.</span>',
       "how.sub": "Three steps, one of which you already do every time you shop.",
       "step1.title": "Snap your receipt",
-      "step1.body": "One photo after the grocery run. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.",
+      "step1.body": "One photo after the grocery run, or a PDF e-receipt from your inbox. leftovr reads it, figures out the food, and skips the shampoo. Barcode scan works too for single items.",
       "step2.title": "Your kitchen keeps track",
       "step2.body": 'Everything lands on shelves with gentle freshness windows — "best today", "this week" — never scary expiration countdowns.',
       "step3.title": "Cook what you have",
@@ -1217,10 +1216,14 @@
       "faq.a2": "No. A receipt scan adds 20–30 items at once, in about ten seconds. If you pick something up loose or shop without a receipt, you can <b>scan a barcode</b> or <b>add it manually</b> — both are free and unlimited.",
       "faq.q3": "Can my household share one kitchen?",
       "faq.a3": "Yes. The <b>Household plan</b> gives up to three people one shared kitchen that stays in sync — so whoever shops, everyone sees what you have and what to cook.",
-      "faq.q4": "What happens to my receipt data?",
-      "faq.a4": "Receipt data is used only to update your kitchen and suggest meals. <b>We never sell your personal data.</b> You can delete items, or your whole account, whenever you like.",
-      "faq.q5": "Which shops and receipts work?",
-      "faq.a5": "Most printed and emailed grocery receipts work out of the box. If a line is unclear, leftovr flags just those items for a quick one-tap check — the rest go straight in.",
+      "faq.q4": "How do recipe suggestions work?",
+      "faq.a4": "Recipes are built from food already in your kitchen, with required ingredients coming from what your household has. leftovr prioritises food that should be used first. Tap <b>I cooked this</b> and those ingredients are removed or reduced automatically.",
+      "faq.q5": "What happens to my receipt data?",
+      "faq.a5": "Receipt items and quantities are personal data when linked to your account. We use them only to update your kitchen and suggest meals. Some items can hint at dietary, health, family, or religious preferences. <b>We never sell your personal data.</b> You can delete items, or your whole account, whenever you like.",
+      "faq.q6": "Which shops and receipts work?",
+      "faq.a6": "Most printed, emailed, and PDF grocery receipts work out of the box. If a line is unclear, leftovr flags just those items for a quick one-tap check — the rest go straight in.",
+      "faq.q7": "Are the freshness dates exact?",
+      "faq.a7": "No. They’re approximate freshness estimates based on the item type and what we can read from your receipt. You can edit or clear the date during receipt review or manual add if you know better.",
       "final.title": 'Tonight\'s dinner is <span class="mark">already in your kitchen.</span>',
       "final.lead": "Join the early access list and be first in when your spot opens.",
       "final.post": "We'll email your invite as soon as a spot opens — usually within a few days.",
@@ -1285,7 +1288,7 @@
       "how.title": 'Račun uđe. <span class="mark">Večera izađe.</span>',
       "how.sub": "Tri koraka, a jedan već radiš svaki put kad kupuješ.",
       "step1.title": "Skeniraj račun",
-      "step1.body": "Slikaj račun iz bilo koje radnje. leftovr pročita svaku stavku za desetak sekundi i odjednom doda 20–30 namirnica.",
+      "step1.body": "Slikaj račun iz bilo koje radnje ili ubaci PDF e-račun iz inboxa. leftovr pročita svaku stavku za desetak sekundi i odjednom doda 20–30 namirnica.",
       "step2.title": "Tvoja kuhinja vodi računa",
       "step2.body": "Sve sleće na virtuelne police, sređeno po kategoriji i poređano po tome šta prvo treba pojesti — da se ništa ne krije pozadi.",
       "step3.title": "Kuvaj od onoga što već imaš",
@@ -1366,10 +1369,14 @@
       "faq.a2": "Ne. Skeniranje računa doda 20–30 stavki odjednom, za desetak sekundi. Ako uzmeš nešto na rinfuz ili kupuješ bez računa, možeš da <b>skeniraš bar-kod</b> ili <b>dodaš ručno</b> — oboje je besplatno i neograničeno.",
       "faq.q3": "Može li moje domaćinstvo da deli jednu kuhinju?",
       "faq.a3": "Da. <b>Plan Domaćinstvo</b> daje do tri osobe jednu zajedničku kuhinju koja ostaje sinhronizovana — ko god da kupuje, svi vide šta imate i šta da skuvate.",
-      "faq.q4": "Šta se dešava sa podacima sa mog računa?",
-      "faq.a4": "Podatke sa računa koristimo samo da ažuriramo tvoju kuhinju i predložimo obroke. <b>Nikad ne prodajemo tvoje lične podatke.</b> Možeš obrisati stavke ili ceo nalog kad god želiš.",
-      "faq.q5": "Koje radnje i računi rade?",
-      "faq.a5": "Većina štampanih i imejl računa za namirnice radi odmah. Ako je neka stavka nejasna, leftovr je označi za brzu proveru jednim dodirom — ostalo ide pravo unutra.",
+      "faq.q4": "Kako rade predlozi recepata?",
+      "faq.a4": "Recepti se prave od hrane koju već imaš u kuhinji, a obavezni sastojci dolaze iz onoga što tvoje domaćinstvo ima. leftovr daje prednost hrani koju treba prvo iskoristiti. Dodirni <b>Skuvao/la sam ovo</b> i ti sastojci se automatski uklanjaju ili smanjuju.",
+      "faq.q5": "Šta se dešava sa podacima sa mog računa?",
+      "faq.a5": "Stavke i količine sa računa su lični podaci kada su povezani sa tvojim nalogom. Koristimo ih samo da ažuriramo tvoju kuhinju i predložimo obroke. Neke stavke mogu nagovestiti ishranu, zdravlje, porodicu ili verske navike. <b>Nikad ne prodajemo tvoje lične podatke.</b> Možeš obrisati stavke ili ceo nalog kad god želiš.",
+      "faq.q6": "Koje radnje i računi rade?",
+      "faq.a6": "Većina štampanih, imejl i PDF računa za namirnice radi odmah. Ako je neka stavka nejasna, leftovr je označi za brzu proveru jednim dodirom — ostalo ide pravo unutra.",
+      "faq.q7": "Da li su datumi svežine tačni?",
+      "faq.a7": "Ne. To su približne procene svežine na osnovu vrste namirnice i onoga što možemo da pročitamo sa računa. Možeš izmeniti ili obrisati datum tokom provere računa ili ručnog dodavanja ako znaš bolje.",
       "final.title": 'Večera je <span class="mark">već u tvojoj kuhinji.</span>',
       "final.lead": "Prijavi se na listu za rani pristup i uđi prvi čim se oslobodi tvoje mesto.",
       "final.post": "Poslaćemo ti pozivnicu čim se oslobodi mesto — obično za nekoliko dana.",

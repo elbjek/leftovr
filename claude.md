@@ -62,7 +62,7 @@ This project uses Nx monorepo with React + Expo + Supabase.
 - Product requirements: ./docs/product_specs.md
 - Implementation plan: ./docs/build_plan.md
 
-- High level prototype: ./docs/chomp - what's for dinner_v2
+- High level prototype: ./docs/chomp - what's for dinner_v2 DO NOT EDIT THIS.
 
 ## Instructions
 
