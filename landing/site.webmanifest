@@ -1,7 +1,7 @@
 {
   "name": "leftovr",
   "short_name": "leftovr",
-  "description": "A receipt-powered virtual fridge. Scan your grocery receipt, see what you have, and cook what should be eaten first.",
+  "description": "A receipt-powered kitchen that tracks what you have and helps you cook what should be eaten first.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8F4EE",

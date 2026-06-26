@@ -1,7 +1,7 @@
 import { Redirect, Tabs, useLocalSearchParams } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
+import Svg, { Circle, Line, Path } from "react-native-svg";
 
 import { useAuth } from "@/features";
 import { colors, fonts } from "@/theme";
@@ -38,7 +38,7 @@ export default function TabsLayout() {
         name="fridge"
         options={{
           title: t("tabs.fridge"),
-          tabBarIcon: ({ color }) => <FridgeIcon color={String(color)} />,
+          tabBarIcon: ({ color }) => <KitchenIcon color={String(color)} />,
         }}
       />
       <Tabs.Screen
@@ -163,19 +163,21 @@ function getTabLabel(name: string, t: ReturnType<typeof useTranslation>["t"]) {
 }
 
 function getTabIcon(name: string, color: string) {
-  if (name === "fridge") return <FridgeIcon color={color} />;
+  if (name === "fridge") return <KitchenIcon color={color} />;
   if (name === "recipes") return <RecipesIcon color={color} />;
   if (name === "insights") return <InsightsIcon color={color} />;
   return <SettingsIcon color={color} />;
 }
 
-function FridgeIcon({ color }: { color: string }) {
+function KitchenIcon({ color }: { color: string }) {
   return (
     <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-      <Rect x={6} y={2.5} width={12} height={19} rx={3.5} stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Line x1={6} y1={10} x2={18} y2={10} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      <Line x1={9} y1={6} x2={9} y2={7.5} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      <Line x1={9} y1={13} x2={9} y2={16} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Path d="M4 5.5h16v14H4z" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Line x1={4} y1={11} x2={20} y2={11} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Line x1={12} y1={11} x2={12} y2={19.5} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Line x1={9} y1={8} x2={15} y2={8} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Line x1={8.5} y1={14.5} x2={8.5} y2={16} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Line x1={15.5} y1={14.5} x2={15.5} y2={16} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
 }

@@ -214,7 +214,7 @@ export async function generateRecipeMatches(input: RecipeGenerationInput): Promi
 
 export function buildRecipeGenerationPrompt(input: RecipeGenerationInput) {
   const lines = [
-    "Generate practical Leftovr recipe ideas from household fridge contents.",
+    "Generate practical Leftovr recipe ideas from food the household currently has.",
     "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
     `Cooking mode: ${input.cookingMode}.`,
     `Servings: ${input.servings ?? 2}.`,
@@ -225,14 +225,14 @@ export function buildRecipeGenerationPrompt(input: RecipeGenerationInput) {
         ? `avoid ${input.avoidances.join(", ")}. Do not include these in ingredients, steps, substitutions, or optional toppings.`
         : "none"
     }`,
-    "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated fridge items into the same recipe just because they are available; it is better to use fewer well-matched fridge items. Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but avoid awkward sweet-savory combinations unless they are a familiar dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it.",
-    "Fridge contents:",
+    "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated household items into the same recipe just because they are available; it is better to use fewer well-matched items. Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but avoid awkward sweet-savory combinations unless they are a familiar dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it.",
+    "What the household has:",
     ...formatInventoryLines(input.inventory),
     "Prompt filters:",
     ...formatFilterLines(input.filters),
     input.isPremium
       ? "Return exactly 1 recipe card per call; the server runs two parallel variants (confident pick + distinct alternative)."
-      : "Return exactly 1 recipe card: your single most confident pick for this fridge.",
+      : "Return exactly 1 recipe card: your single most confident pick for what this household has.",
     "Keep the description to one short sentence. Use at most 3 tags.",
     "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
     "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
