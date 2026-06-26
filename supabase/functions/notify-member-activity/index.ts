@@ -58,8 +58,8 @@ Deno.serve(async (req) => {
 
   const n = Number(count) || 1;
   const dead = await sendPush(tokens, {
-    title: "Fridge updated",
-    body: `${name} added ${n} item${n === 1 ? "" : "s"} to the fridge.`,
+    title: "Kitchen updated",
+    body: `${name} added ${n} item${n === 1 ? "" : "s"} to your kitchen.`,
     data: { type: "member_activity", household_id },
   });
 

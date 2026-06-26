@@ -9,7 +9,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, GeneratingLoader, PremiumSheet, ReceiptConfirmList, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
+import { BackButton, BottomSheet, Button, Card, PremiumSheet, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
@@ -998,15 +998,7 @@ export default function ScanRoute() {
   if (mode === "processing") {
     return (
       <Screen>
-        <View style={styles.center}>
-          <GeneratingLoader size={130} />
-          <Text variant="display" center>
-            {t("scan.processingTitle")}
-          </Text>
-          <Text variant="body" muted center>
-            {t("scan.processingBody")}
-          </Text>
-        </View>
+        <ReceiptReadingProgress />
       </Screen>
     );
   }
@@ -1064,11 +1056,17 @@ export default function ScanRoute() {
       <Screen>
         <View style={styles.center}>
           <AliveIcon />
-          <Text variant="display" center>
+          <Text variant="micro" center style={styles.successKicker}>
             {t("scan.successTitle")}
           </Text>
+          <Text variant="display" center>
+            <Text variant="display" style={styles.successCount}>
+              {result?.addedCount ?? 0}
+            </Text>{" "}
+            {t("scan.successItems")}
+          </Text>
           <Text variant="body" muted center>
-            {t("scan.successBody", { added: result?.addedCount ?? 0 })}
+            {t("scan.successBody")}
           </Text>
           <Button
             title={t("common.continue")}
@@ -1356,6 +1354,13 @@ const styles = StyleSheet.create({
   buttonStack: {
     alignSelf: "stretch",
     gap: spacing.sm,
+  },
+  successKicker: {
+    color: colors.accent,
+    textTransform: "uppercase",
+  },
+  successCount: {
+    color: colors.accent,
   },
   notificationIcon: {
     width: 86,

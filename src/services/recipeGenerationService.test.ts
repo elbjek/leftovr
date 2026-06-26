@@ -54,7 +54,7 @@ describe("recipe generation service", () => {
     expect(prompt).toContain("Do not include these in ingredients");
     expect(prompt).toContain("Spinach (spinach)");
     expect(prompt).toContain("Culinary judgment");
-    expect(prompt).toContain("Do not force unrelated fridge items");
+    expect(prompt).toContain("Do not force unrelated household items");
     expect(prompt).toContain("Sweet fruit can be used when it belongs naturally");
   });
 
@@ -98,7 +98,7 @@ describe("mapAiRecipesToMatches", () => {
     ingredients: [{ name: "Beef", amount: "500 g", required: true, countable: false }],
   };
 
-  it("keeps only recipes that use at least one fridge item", () => {
+  it("keeps only recipes that use at least one household item", () => {
     const matches = mapAiRecipesToMatches([fridgeCard, noFridgeCard], unfilteredInput);
 
     expect(matches).toHaveLength(1);

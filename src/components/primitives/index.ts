@@ -9,6 +9,7 @@ export * from "./FilterChip";
 export * from "./GeneratingOverlay";
 export * from "./IconButton";
 export * from "./PageDots";
+export * from "./ReceiptReadingProgress";
 export * from "./Screen";
 export * from "./ScreenHeader";
 export * from "./SegmentedControl";

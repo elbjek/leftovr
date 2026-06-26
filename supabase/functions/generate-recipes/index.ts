@@ -368,8 +368,8 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
 function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alternative") {
   const lang = languageName(input.language);
   return [
-    "Generate practical Leftovr recipe ideas from household fridge contents.",
-    `Language: write the ENTIRE recipe in ${lang} — title, description, every step, all tags, AND all ingredient names. Do NOT mix languages within a recipe. If a fridge item name is in another language, translate it into ${lang} (keep it the natural name a ${lang} cook would use). The only exception is proper brand names, which stay as-is.`,
+    "Generate practical Leftovr recipe ideas from food the household currently has.",
+    `Language: write the ENTIRE recipe in ${lang} — title, description, every step, all tags, AND all ingredient names. Do NOT mix languages within a recipe. If an item name is in another language, translate it into ${lang} (keep it the natural name a ${lang} cook would use). The only exception is proper brand names, which stay as-is.`,
     "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
     `Cooking mode: ${input.cookingMode ?? "household"}.`,
     `Servings: ${input.servings ?? 2}.`,
@@ -380,9 +380,9 @@ function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alte
         ? `avoid ${input.avoidances.join(", ")}. Do not include these in ingredients, steps, substitutions, or optional toppings.`
         : "none"
     }`,
-    "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated fridge items into the same recipe just because they are available; it is better to use fewer well-matched fridge items. Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but avoid awkward sweet-savory combinations unless they are a familiar dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it.",
+    "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated household items into the same recipe just because they are available; it is better to use fewer well-matched items. Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but avoid awkward sweet-savory combinations unless they are a familiar dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it.",
     "Ready-to-eat rule: items with category `snacks` or `drinks`, and any sweet/confectionery/chocolate/candy/pastry product (e.g. a chocolate-filled croissant, a candy bar, soda), are finished products, NOT savory cooking ingredients. Never cook or combine them into savory dishes (e.g. never make an egg-and-chocolate-croissant dish). Use them only on their own or inside a fitting sweet/dessert context, and only when it reads as a real treat — otherwise ignore them and build the recipe from the actual cooking ingredients.",
-    "Fridge contents:",
+    "What the household has:",
     ...formatInventory(input.inventory ?? []),
     "Prompt filters:",
     `- meal type: ${input.filters?.mealType ?? "any"}`,
@@ -390,14 +390,14 @@ function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alte
     `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
     variant === "alternative"
-      ? "Return exactly 1 recipe card: a clearly different alternative to the most obvious dish for this fridge — pick a different main technique or cuisine than the predictable first choice."
-      : "Return exactly 1 recipe card: your single most confident pick for this fridge.",
+      ? "Return exactly 1 recipe card: a clearly different alternative to the most obvious dish for these items — pick a different main technique or cuisine than the predictable first choice."
+      : "Return exactly 1 recipe card: your single most confident pick for what this household has.",
     "Keep the description to one short sentence. Use at most 3 tags.",
     "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
     "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
     "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
-    "Every recipe must use at least one fridge item, and prefer items with higher urgency.",
-    "Ingredient names must match the fridge item names where used; mark required=true only for ingredients taken from the fridge. Pantry staples (oil, salt, garlic, spices) are required=false.",
+    "Every recipe must use at least one item the household has, and prefer items with higher urgency.",
+    "Ingredient names must match household item names where used; mark required=true only for ingredients taken from what the household has. Pantry staples (oil, salt, garlic, spices) are required=false.",
     "Ingredient amounts: for whole produce and naturally-countable items, use counts and set countable=true — e.g. '1 large onion', '2 tomatoes', '3 eggs', '1 bell pepper', '2 slices bread'. For ingredients genuinely sold and measured by weight or volume, use g/ml/kg/L and set countable=false — e.g. '400g minced meat', '200g rice', '150g cheddar', '100ml milk'. Never express a whole vegetable or fruit in grams, and never express meat, grains, or liquids as a bare count.",
     "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",
     "Respect the prompt filters: matching mealType, timeMinutes within max time, and include the vibe/tag in tags when one is set.",

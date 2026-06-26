@@ -201,7 +201,7 @@ async function runTopUp(supabase: any, now: Date): Promise<number> {
       .from("notification_sends").select("id").eq("household_id", h.id).eq("type", "topup").limit(1);
     if ((already ?? []).length > 0) continue;
     count += await pushToHousehold(supabase, h.id, now, "topup",
-      { title: "Keep your suggestions sharp", body: "Scan a receipt so leftovr knows what's in your fridge.", data: { type: "topup" } });
+      { title: "Keep your suggestions sharp", body: "Scan a receipt so leftovr knows what you have.", data: { type: "topup" } });
   }
   return count;
 }
@@ -221,7 +221,7 @@ async function runReengagement(supabase: any, now: Date): Promise<number> {
       .from("notification_sends").select("id")
       .eq("user_id", u.id).eq("type", "reengagement").gte("sent_at", cutoff).limit(1);
     if ((recent ?? []).length > 0) continue;
-    const dead = await sendPush([token], { title: "What's for dinner?", body: "Open leftovr for a quick idea from your fridge.", data: { type: "reengagement" } });
+    const dead = await sendPush([token], { title: "What's for dinner?", body: "Open leftovr for a quick idea from what you have.", data: { type: "reengagement" } });
     await recordSends(supabase, [u.id], null, "reengagement", now);
     await nullDeadTokens(supabase, dead);
     count += 1;
