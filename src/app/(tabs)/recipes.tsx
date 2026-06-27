@@ -39,9 +39,13 @@ export default function RecipesRoute() {
 
   const showCookingMode = members.length >= 2;
   const activeAvoidances = cookingMode === "household" ? combinedAvoidances : userAvoidances;
-  const servings = cookingMode === "household"
+  // Default comes from household/profile; the cook prompt's stepper can override
+  // it for a single generation. Override resets when the cooking mode changes.
+  const defaultServings = cookingMode === "household"
     ? (activeHousehold?.default_servings ?? profile?.default_servings ?? 2)
     : (profile?.default_servings ?? 2);
+  const [servingsOverride, setServingsOverride] = useState<number | null>(null);
+  const servings = servingsOverride ?? defaultServings;
 
   const {
     loading,
@@ -551,6 +555,7 @@ export default function RecipesRoute() {
         key={cookPromptKey}
         visible={showCookPrompt}
         labels={{
+          eyebrow: t("recipes.cookPrompt.eyebrow"),
           title: t("recipes.cookPrompt.title"),
           meal: t("recipes.cookPrompt.meal"),
           mealOptions: {
@@ -560,14 +565,23 @@ export default function RecipesRoute() {
             dinner: t("recipes.cookPrompt.mealOptions.dinner"),
             snack: t("recipes.cookPrompt.mealOptions.snack"),
           },
+          mealSubtitles: {
+            breakfast: t("recipes.cookPrompt.mealSubtitles.breakfast"),
+            lunch: t("recipes.cookPrompt.mealSubtitles.lunch"),
+            dinner: t("recipes.cookPrompt.mealSubtitles.dinner"),
+            snack: t("recipes.cookPrompt.mealSubtitles.snack"),
+          },
           time: t("recipes.cookPrompt.time"),
           timeOptions: {
-            any: t("recipes.cookPrompt.timeOptions.any"),
-            "20": t("recipes.cookPrompt.timeOptions.20"),
+            "15": t("recipes.cookPrompt.timeOptions.15"),
+            "30": t("recipes.cookPrompt.timeOptions.30"),
             "45": t("recipes.cookPrompt.timeOptions.45"),
-            "60plus": t("recipes.cookPrompt.timeOptions.60plus"),
+            norush: t("recipes.cookPrompt.timeOptions.norush"),
           },
-          vibe: t("recipes.cookPrompt.vibe"),
+          servingsLabel: t("recipes.cookPrompt.servingsLabel"),
+          peopleCount: (count: number) => t("recipes.cookPrompt.peopleCount", { count }),
+          keepItTo: t("recipes.cookPrompt.keepItTo"),
+          eatFirstNote: t("recipes.cookPrompt.eatFirstNote"),
           vibeOptions: {
             comfort: t("recipes.cookPrompt.vibeOptions.comfort"),
             healthy: t("recipes.cookPrompt.vibeOptions.healthy"),
@@ -580,7 +594,6 @@ export default function RecipesRoute() {
           },
           surprise: t("recipes.cookPrompt.surprise"),
           generate: t("recipes.cookPrompt.generate"),
-          servings: t("recipes.detail.servings", { count: servings }),
           cookingFor: t("recipes.cookingMode.title"),
           cookingForOptions: {
             household: t("recipes.cookingMode.household"),
@@ -589,8 +602,12 @@ export default function RecipesRoute() {
         }}
         generating={generating}
         servings={servings}
+        onServingsChange={setServingsOverride}
         cookingMode={showCookingMode ? cookingMode : undefined}
-        onCookingModeChange={setCookingMode}
+        onCookingModeChange={(mode) => {
+          setCookingMode(mode);
+          setServingsOverride(null);
+        }}
         onDismiss={() => setShowCookPrompt(false)}
         onGenerate={handleGenerate}
       />

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomSheet, Button, FilterChip, IconButton, SegmentedControl, Text } from "../primitives";
-import { colors, spacing } from "../../theme";
+import { BottomSheet, Button, IconButton, SegmentedControl, Text } from "../primitives";
+import { colors, fonts, radii, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
 
 export type CookFilters = {
@@ -13,22 +13,27 @@ export type CookFilters = {
   vibe?: string;
 };
 
-type MealOption = "any" | "breakfast" | "lunch" | "dinner" | "snack";
-type TimeOption = "any" | "20" | "45" | "60plus";
+type Meal = "breakfast" | "lunch" | "dinner" | "snack";
+type MealOption = "any" | Meal;
+type TimeOption = "any" | "15" | "30" | "45" | "norush";
 
 type Props = {
   visible: boolean;
   labels: {
+    eyebrow: string;
     title: string;
     meal: string;
     mealOptions: Record<MealOption, string>;
+    mealSubtitles: Record<Meal, string>;
     time: string;
-    timeOptions: Record<TimeOption, string>;
-    vibe: string;
+    timeOptions: Record<Exclude<TimeOption, "any">, string>;
+    servingsLabel: string;
+    peopleCount: (count: number) => string;
+    keepItTo: string;
+    eatFirstNote: string;
     vibeOptions: Record<string, string>;
     surprise: string;
     generate: string;
-    servings?: string;
     cookingFor?: string;
     cookingForOptions?: Record<CookingMode, string>;
   };
@@ -37,13 +42,14 @@ type Props = {
   servings?: number;
   generating?: boolean;
   onCookingModeChange?: (mode: CookingMode) => void;
+  onServingsChange?: (servings: number) => void;
   onDismiss: () => void;
   onGenerate: (filters?: CookFilters) => void;
 };
 
-// "any" is the unselected state, not a chip — tapping a selected chip clears it.
-const MEAL_OPTIONS: Exclude<MealOption, "any">[] = ["breakfast", "lunch", "dinner", "snack"];
-const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["20", "45", "60plus"];
+const MEAL_OPTIONS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
+const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["15", "30", "45", "norush"];
+// Single-select: maps to the recipe matcher's `vibe` tag (one value, server-side).
 const VIBE_OPTIONS = [
   "comfort",
   "healthy",
@@ -54,14 +60,17 @@ const VIBE_OPTIONS = [
   "family_friendly",
   "budget",
 ];
+const SERVINGS_MIN = 1;
+const SERVINGS_MAX = 12;
 
 export function CookPromptSheet({
   visible,
   labels,
   cookingMode,
-  servings,
+  servings = 2,
   generating = false,
   onCookingModeChange,
+  onServingsChange,
   onDismiss,
   onGenerate,
 }: Props) {
@@ -70,158 +79,427 @@ export function CookPromptSheet({
   const [vibe, setVibe] = useState<string | null>(null);
 
   function buildFilters(): CookFilters {
+    const numericTime = time === "15" || time === "30" || time === "45" ? Number(time) : undefined;
     return {
       mealType: meal === "any" ? undefined : meal,
-      maxMinutes: time === "any" || time === "60plus" ? undefined : Number(time),
-      minMinutes: time === "60plus" ? 60 : undefined,
+      maxMinutes: numericTime,
       vibe: vibe ?? undefined,
     };
   }
 
+  const showCookingFor = Boolean(cookingMode && onCookingModeChange && labels.cookingForOptions);
+
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss} style={styles.sheet}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text variant="h2">{labels.title}</Text>
-
-        {cookingMode && onCookingModeChange && labels.cookingForOptions ? (
-          <View style={styles.block}>
-            <Text variant="small" muted>
-              {labels.cookingFor}
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text variant="micro" muted uppercase>
+              {labels.eyebrow}
             </Text>
+            <Text variant="h1">{labels.title}</Text>
+          </View>
+          <IconButton label="Close" transparent onPress={onDismiss}>
+            <CloseIcon />
+          </IconButton>
+        </View>
+
+        {showCookingFor ? (
+          <Section label={labels.cookingFor ?? ""}>
             <SegmentedControl
               options={(["household", "just_me"] as CookingMode[]).map((option) => ({
                 label: labels.cookingForOptions?.[option] ?? option,
                 value: option,
               }))}
-              value={cookingMode}
-              onChange={onCookingModeChange}
+              value={cookingMode as CookingMode}
+              onChange={onCookingModeChange!}
             />
-          </View>
+          </Section>
         ) : null}
 
-        {servings && labels.servings ? (
-          <Text variant="small" muted>
-            {labels.servings}
-          </Text>
-        ) : null}
-
-        <View style={styles.block}>
-          <Text variant="micro" muted uppercase>
-            {labels.meal}
-          </Text>
-          <View style={styles.chipWrap}>
+        <Section label={labels.meal}>
+          <View style={styles.mealGrid}>
             {MEAL_OPTIONS.map((option) => (
-              <FilterChip
+              <MealCard
                 key={option}
-                label={labels.mealOptions[option]}
+                meal={option}
+                title={labels.mealOptions[option]}
+                subtitle={labels.mealSubtitles[option]}
                 active={meal === option}
                 onPress={() => setMeal((current) => (current === option ? "any" : option))}
               />
             ))}
           </View>
-        </View>
+        </Section>
 
-        <View style={styles.block}>
-          <Text variant="micro" muted uppercase>
-            {labels.time}
-          </Text>
+        <Section label={labels.time}>
           <View style={styles.chipWrap}>
             {TIME_OPTIONS.map((option) => (
-              <FilterChip
+              <Chip
                 key={option}
                 label={labels.timeOptions[option]}
                 active={time === option}
+                tone="primary"
                 onPress={() => setTime((current) => (current === option ? "any" : option))}
               />
             ))}
           </View>
-        </View>
+        </Section>
 
-        <View style={styles.block}>
-          <Text variant="micro" muted uppercase>
-            {labels.vibe}
-          </Text>
+        <Section label={labels.servingsLabel}>
+          <View style={styles.stepperRow}>
+            <View style={styles.stepperLabel}>
+              <PeopleIcon />
+              <Text variant="body" style={styles.stepperValue}>
+                {labels.peopleCount(servings)}
+              </Text>
+            </View>
+            <View style={styles.stepperControls}>
+              <StepperButton
+                label="−"
+                disabled={servings <= SERVINGS_MIN}
+                onPress={() => onServingsChange?.(Math.max(SERVINGS_MIN, servings - 1))}
+              />
+              <StepperButton
+                label="+"
+                disabled={servings >= SERVINGS_MAX}
+                onPress={() => onServingsChange?.(Math.min(SERVINGS_MAX, servings + 1))}
+              />
+            </View>
+          </View>
+        </Section>
+
+        <Section label={labels.keepItTo}>
           <View style={styles.chipWrap}>
             {VIBE_OPTIONS.map((option) => (
-              <FilterChip
+              <Chip
                 key={option}
                 label={labels.vibeOptions[option] ?? option}
                 active={vibe === option}
+                tone="accent"
                 onPress={() => setVibe((current) => (current === option ? null : option))}
               />
             ))}
           </View>
-        </View>
+          <Text variant="small" muted style={styles.eatFirstNote}>
+            {labels.eatFirstNote}
+          </Text>
+        </Section>
 
-        <View style={styles.ctaRow}>
+        <View style={styles.ctaGroup}>
           <Button
             title={labels.generate}
             loading={generating}
             disabled={generating}
+            iconRight={<ChevronRightIcon />}
             onPress={() => onGenerate(buildFilters())}
-            style={styles.generate}
           />
-          <IconButton
-            label={labels.surprise}
-            size={56}
-            onPress={generating ? undefined : () => onGenerate(undefined)}
-            style={generating && styles.disabledIcon}
-          >
-            <ShuffleIcon />
-          </IconButton>
+          <Button
+            title={labels.surprise}
+            variant="text"
+            disabled={generating}
+            onPress={() => onGenerate(undefined)}
+          />
         </View>
       </ScrollView>
     </BottomSheet>
   );
 }
 
-// Shuffle arrows — "Surprise me" as a compact icon action beside Generate.
-function ShuffleIcon() {
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
-      <Path
-        d="M3 6.5H6.5C8 6.5 9 7.2 10 8.5L12 11.5C13 12.8 14 13.5 15.5 13.5H19"
-        stroke={colors.primary}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-      />
-      <Path
-        d="M3 15.5H6.5C7.6 15.5 8.4 15.1 9.2 14.3M19 6.5H15.5C14.4 6.5 13.6 6.9 12.8 7.7"
-        stroke={colors.primary}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-      />
-      <Path d="M16.5 4L19 6.5L16.5 9M16.5 11L19 13.5L16.5 16" stroke={colors.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    <View style={styles.section}>
+      <Text variant="micro" muted uppercase style={styles.sectionLabel}>
+        {label}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
+function MealCard({
+  meal,
+  title,
+  subtitle,
+  active,
+  onPress,
+}: {
+  meal: Meal;
+  title: string;
+  subtitle: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const iconColor = active ? colors.accent : colors.primary;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={({ pressed }) => [styles.mealCard, active && styles.mealCardActive, pressed && styles.pressed]}
+    >
+      <View style={[styles.mealIconTile, active && styles.mealIconTileActive]}>
+        <MealIcon meal={meal} color={iconColor} />
+      </View>
+      <View style={styles.mealCardText}>
+        <Text variant="label" color={active ? colors.surface : colors.text}>
+          {title}
+        </Text>
+        <Text variant="small" color={active ? colors.accentSoft : colors.muted}>
+          {subtitle}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function Chip({
+  label,
+  active,
+  tone,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  tone: "primary" | "accent";
+  onPress: () => void;
+}) {
+  const activeStyle = tone === "accent" ? styles.chipAccentActive : styles.chipPrimaryActive;
+  const activeText = tone === "accent" ? colors.text : colors.surface;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={({ pressed }) => [styles.chip, active && activeStyle, pressed && styles.pressed]}
+    >
+      {active && tone === "accent" ? <CheckIcon /> : null}
+      <Text variant="small" color={active ? activeText : colors.text} style={styles.chipText}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function StepperButton({ label, disabled, onPress }: { label: string; disabled?: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      disabled={disabled}
+      hitSlop={spacing.xs}
+      onPress={onPress}
+      style={({ pressed }) => [styles.stepBtn, disabled && styles.stepBtnDisabled, pressed && !disabled && styles.pressed]}
+    >
+      <Text variant="h3" color={colors.primary}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function MealIcon({ meal, color }: { meal: Meal; color: string }) {
+  const props = { stroke: color, strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
+  if (meal === "breakfast") {
+    // Cloche / sunrise plate
+    return (
+      <Svg width={22} height={22} viewBox="0 0 24 24">
+        <Path d="M4 16h16M5.5 16a6.5 6.5 0 0 1 13 0" {...props} />
+        <Path d="M12 6.5v-1.5" {...props} />
+      </Svg>
+    );
+  }
+  if (meal === "lunch") {
+    // Bowl with steam
+    return (
+      <Svg width={22} height={22} viewBox="0 0 24 24">
+        <Path d="M4 11h16a8 8 0 0 1-16 0Z" {...props} />
+        <Path d="M9 6.5c.6-.8.6-1.2 0-2M13 6.5c.6-.8.6-1.2 0-2" {...props} />
+      </Svg>
+    );
+  }
+  if (meal === "dinner") {
+    // Fork + knife
+    return (
+      <Svg width={22} height={22} viewBox="0 0 24 24">
+        <Path d="M8 4v6m-1.6-6v6M9.6 4v6M8 10v10" {...props} />
+        <Path d="M16 4c-1.6 0-2.4 2-2.4 4.5S14.4 13 16 13v7" {...props} />
+      </Svg>
+    );
+  }
+  // Snack — apple
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24">
+      <Path d="M12 8c-1.5-2-5-2-6.2.5C4.4 11.2 6 18 9 19c1 .3 2-.4 3-.4s2 .7 3 .4c3-1 4.6-7.8 3.2-10.5C17 6 13.5 6 12 8Z" {...props} />
+      <Path d="M12 8c0-1.6.8-3 2.5-3.5" {...props} />
+    </Svg>
+  );
+}
+
+function PeopleIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Circle cx={9} cy={8} r={3} stroke={colors.primary} strokeWidth={1.7} />
+      <Path d="M3.5 19a5.5 5.5 0 0 1 11 0" stroke={colors.primary} strokeWidth={1.7} strokeLinecap="round" />
+      <Path d="M15.5 5.5a3 3 0 0 1 0 5M16 13.8a5.5 5.5 0 0 1 4.5 5.2" stroke={colors.primary} strokeWidth={1.7} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <Svg width={15} height={15} viewBox="0 0 16 16" fill="none">
+      <Path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+      <Path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke={colors.text} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
+      <Path d="M6.5 4L11.5 9L6.5 14" stroke={colors.surface} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
 const styles = StyleSheet.create({
   sheet: {
-    maxHeight: "90%",
+    maxHeight: "92%",
   },
   content: {
-    gap: spacing.lg,
+    gap: spacing.xl,
     paddingBottom: spacing.md,
   },
-  block: {
+  header: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  headerText: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  section: {
     gap: spacing.sm,
+  },
+  sectionLabel: {
+    marginBottom: spacing.xxs,
+  },
+  mealGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  mealCard: {
+    width: "48%",
+    flexGrow: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.paper,
+  },
+  mealCardActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  mealIconTile: {
+    width: 42,
+    height: 42,
+    borderRadius: radii.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface2,
+  },
+  mealIconTileActive: {
+    backgroundColor: colors.primary700,
+  },
+  mealCardText: {
+    flex: 1,
+    gap: 1,
   },
   chipWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.sm,
   },
-  ctaRow: {
+  chip: {
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.paper,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  chipPrimaryActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  chipAccentActive: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accent,
+  },
+  chipText: {
+    fontWeight: "600",
+  },
+  stepperRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.paper,
+  },
+  stepperLabel: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    marginTop: spacing.sm,
   },
-  generate: {
-    flex: 1,
+  stepperValue: {
+    fontWeight: "600",
   },
-  disabledIcon: {
-    opacity: 0.45,
+  stepperControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  stepBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface2,
+  },
+  stepBtnDisabled: {
+    opacity: 0.4,
+  },
+  eatFirstNote: {
+    marginTop: spacing.xs,
+  },
+  ctaGroup: {
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  pressed: {
+    opacity: 0.85,
   },
 });

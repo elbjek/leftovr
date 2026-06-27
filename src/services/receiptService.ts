@@ -7,6 +7,21 @@ import {
 
 const HIGH_CONFIDENCE_THRESHOLD = 0.75;
 
+// The model often expands cryptic OCR text into a plausible food at high
+// confidence, so confidence alone misses junk names. Flag deterministically
+// when the canonical name doesn't read like a real food word — digits,
+// mostly-symbols, too short, or a vowel-less consonant code ("mlko", "brd").
+export function looksUnnamed(rawName: string): boolean {
+  const n = rawName.trim().toLowerCase();
+  if (n.length < 2) return true;
+  if (/\d/.test(n)) return true;
+  const letters = n.replace(/[^a-záčćđšžćčöäüé]/gi, "");
+  if (letters.length / n.length < 0.6) return true;
+  const tokens = n.split(/\s+/).filter(Boolean);
+  // A real food word has a vowel; a 3+ letter token with none is an OCR code.
+  return tokens.some((token) => /^[a-z]{3,}$/.test(token) && !/[aeiouy]/.test(token));
+}
+
 export type ReceiptConfirmItem = {
   id: string;
   name: string;
@@ -58,7 +73,10 @@ export function buildReceiptConfirmItemsFromLines(
     quantity: line.item.quantity != null && line.item.quantity > 0 ? line.item.quantity : 1,
     unit: line.item.unit ?? "item",
     confidence: line.confidence,
-    lowConfidence: line.confidence < HIGH_CONFIDENCE_THRESHOLD,
+    lowConfidence:
+      line.confidence < HIGH_CONFIDENCE_THRESHOLD ||
+      looksUnnamed(line.item.normalizedName) ||
+      looksUnnamed(line.item.name),
     included: true,
   }));
 }

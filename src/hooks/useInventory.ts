@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   advanceInventoryPartialState,
-  depleteItemQuantity,
   listActiveHouseholdInventory,
-  markInventoryPartialState,
   removeInventoryGroup,
+  updateInventoryItem,
+  UpdateInventoryItemInput,
 } from "@/repositories";
-import { groupInventoryLots, InventoryGroup, InventoryLot, PartialState } from "@/services";
+import { groupInventoryLots, InventoryGroup, InventoryLot } from "@/services";
 import { useMeasurementSystem } from "@/features/settings/useMeasurementSystem";
 
 type InventoryState = {
@@ -75,21 +75,16 @@ export function useInventory(householdId?: string | null) {
   const actions = useMemo(
     () => ({
       refresh: load,
-      useFirstLot: async (group: InventoryGroup) => {
-        if (!householdId || !group.lots[0]) return;
-        await depleteItemQuantity(householdId, group.normalizedName, 1, group.unit);
-        await reloadAndBroadcast();
-      },
       markFirstLotPartial: async (group: InventoryGroup) => {
         const lot = group.lots[0];
         if (!lot) return;
         await advanceInventoryPartialState(lot.id);
         await reloadAndBroadcast();
       },
-      setFirstLotPartialState: async (group: InventoryGroup, partialState: PartialState) => {
+      updateFirstLot: async (group: InventoryGroup, input: UpdateInventoryItemInput) => {
         const lot = group.lots[0];
         if (!lot) return;
-        await markInventoryPartialState(lot.id, partialState);
+        await updateInventoryItem(lot.id, { category: group.category, ...input });
         await reloadAndBroadcast();
       },
       removeGroup: async (group: InventoryGroup) => {
@@ -97,7 +92,7 @@ export function useInventory(householdId?: string | null) {
         await reloadAndBroadcast();
       },
     }),
-    [householdId, load, reloadAndBroadcast],
+    [load, reloadAndBroadcast],
   );
 
   // Group at render so the metric/imperial toggle re-formats labels live,

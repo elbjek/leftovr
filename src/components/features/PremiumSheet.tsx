@@ -38,12 +38,9 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
 
   // Tabs: everyone sees both Individual and Household. Default to the current
   // plan when subscribed, else the caller's hint.
-  const [planType, setPlanType] = useState<PremiumPlan>(currentType ?? plan);
+  const [planTypeOverride, setPlanTypeOverride] = useState<PremiumPlan | null>(null);
   const [period, setPeriod] = useState<BillingPeriod>("yearly");
-  useEffect(() => {
-    if (visible) setPlanType(currentType ?? plan);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
+  const planType = planTypeOverride ?? currentType ?? plan;
 
   const household = planType === "household";
   const isViewingCurrent = hasAnyPremium && currentType === planType;
@@ -79,6 +76,11 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
   const yearlyPkg = findPackage(offering, productIds.yearly);
   const selectedPkg = period === "monthly" ? monthlyPkg : yearlyPkg;
 
+  function handleDismiss() {
+    setPlanTypeOverride(null);
+    onDismiss();
+  }
+
   async function handleSubscribe() {
     if (!selectedPkg) return;
     setError(null);
@@ -87,7 +89,7 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
       const purchased = await purchasePackage(selectedPkg);
       if (purchased) {
         await onPurchased?.();
-        onDismiss();
+        handleDismiss();
       }
     } catch (e) {
       console.warn("[purchase] failed", e);
@@ -103,7 +105,7 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
     try {
       await restorePurchases();
       await onPurchased?.();
-      onDismiss();
+      handleDismiss();
     } catch {
       setError(t("premium.purchaseError"));
     } finally {
@@ -123,7 +125,7 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
 
 
   return (
-    <BottomSheet visible={visible} onDismiss={onDismiss}>
+    <BottomSheet visible={visible} onDismiss={handleDismiss}>
       <View style={styles.badge}>
         <Text variant="micro" color={colors.primary} style={styles.badgeText}>
           ★ {t("premium.title")}
@@ -140,7 +142,7 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
       <View style={styles.tabs}>
         <SegmentedControl
           value={planType}
-          onChange={(value) => setPlanType(value)}
+          onChange={(value) => setPlanTypeOverride(value)}
           options={[
             { label: t("premium.individualTab"), value: "individual" },
             { label: t("premium.householdTab"), value: "household" },
@@ -242,7 +244,7 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
         <Button title={t("premium.restore")} variant="text" onPress={handleRestore} disabled={busy} />
       )}
 
-      <Button title={t("premium.dismiss")} variant="text" onPress={onDismiss} />
+      <Button title={t("premium.dismiss")} variant="text" onPress={handleDismiss} />
     </BottomSheet>
   );
 }

@@ -206,7 +206,7 @@ export function useRecipes(
           // Nothing new makeable (all duplicates or empty): don't create a
           // session (so it doesn't burn a weekly count) and signal empty.
           if (top.length === 0) {
-            setState((s) => ({ ...s, generating: false }));
+            setState((s) => ({ ...s, generating: false, error: t("recipes.noneFound") }));
             return { recipes: [], matches: [] };
           }
 
@@ -307,7 +307,7 @@ export function useRecipes(
         });
       },
     }),
-    [householdId, inventory, avoidances, isPremium, servings, load],
+    [householdId, inventory, avoidances, isPremium, servings, load, t],
   );
 
   return {

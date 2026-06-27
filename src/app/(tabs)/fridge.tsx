@@ -1,18 +1,17 @@
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField } from "@/components";
-import { isPremium as resolvePremium, useAuth, useMeasurementSystem } from "@/features";
-import { updateInventoryNetAmount } from "@/repositories";
+import { BottomSheet, Button, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
+import { isPremium as resolvePremium, useAuth } from "@/features";
+import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
 import {
-  formatAmount,
   getCatalogFood,
   InventoryGroup,
   isMetricAmountRunningLow,
-  PartialState,
   toUiCategory,
   toUiUrgency,
 } from "@/services";
@@ -38,13 +37,11 @@ type CategoryFilter = "all" | (typeof CATEGORY_ORDER)[number];
 export default function FridgeRoute() {
   const { t } = useTranslation();
   const { profile, activeHousehold } = useAuth();
-  const { system } = useMeasurementSystem();
   const {
     loading,
     groups,
     error,
-    useFirstLot: consumeFirstLot,
-    setFirstLotPartialState,
+    updateFirstLot,
     removeGroup,
     refresh,
   } = useInventory(activeHousehold?.id);
@@ -55,9 +52,7 @@ export default function FridgeRoute() {
     groups,
     profile?.primary_goal ?? null,
   );
-  const [partialGroup, setPartialGroup] = useState<InventoryGroup | null>(null);
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
-  const [removeGroupTarget, setRemoveGroupTarget] = useState<InventoryGroup | null>(null);
   const [expandedShelf, setExpandedShelf] = useState<{ name: string; groups: InventoryGroup[] } | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
@@ -199,58 +194,14 @@ export default function FridgeRoute() {
       <ItemActionSheet
         group={actionGroup}
         labels={getActionLabels(t)}
-        system={system}
         onDismiss={() => setActionGroup(null)}
-        onUse={async (group) => {
-          await consumeFirstLot(group);
+        onSave={async (group, input) => {
+          await updateFirstLot(group, input);
           setActionGroup(null);
         }}
-        onPartial={(group) => {
+        onRemove={async (group) => {
+          await removeGroup(group);
           setActionGroup(null);
-          setPartialGroup(group);
-        }}
-        onRemove={(group) => {
-          setActionGroup(null);
-          setRemoveGroupTarget(group);
-        }}
-        onOverrideNet={async (itemId, netAmount) => {
-          await updateInventoryNetAmount(itemId, netAmount);
-          await refresh();
-          setActionGroup(null);
-        }}
-      />
-
-      <PartialSheet
-        group={partialGroup}
-        labels={{
-          title: t("fridge.partialSheet.title"),
-          body: t("fridge.partialSheet.body"),
-          full: t("fridge.partialSheet.full"),
-          someUsed: t("fridge.partialSheet.someUsed"),
-          low: t("fridge.partialSheet.low"),
-          cancel: t("common.cancel"),
-        }}
-        onDismiss={() => setPartialGroup(null)}
-        onSelect={async (partialState) => {
-          if (!partialGroup) return;
-          await setFirstLotPartialState(partialGroup, partialState);
-          setPartialGroup(null);
-        }}
-      />
-
-      <RemoveSheet
-        group={removeGroupTarget}
-        labels={{
-          title: t("fridge.removeSheet.title"),
-          body: t("fridge.removeSheet.body"),
-          confirm: t("fridge.removeSheet.confirm"),
-          cancel: t("common.cancel"),
-        }}
-        onDismiss={() => setRemoveGroupTarget(null)}
-        onConfirm={async () => {
-          if (!removeGroupTarget) return;
-          await removeGroup(removeGroupTarget);
-          setRemoveGroupTarget(null);
         }}
       />
 
@@ -282,79 +233,6 @@ export default function FridgeRoute() {
     </Screen>
   );
 }
-
-function PartialSheet({
-  group,
-  labels,
-  onDismiss,
-  onSelect,
-}: {
-  group: InventoryGroup | null;
-  labels: {
-    title: string;
-    body: string;
-    full: string;
-    someUsed: string;
-    low: string;
-    cancel: string;
-  };
-  onDismiss: () => void;
-  onSelect: (partialState: PartialState) => Promise<void>;
-}) {
-  return (
-    <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
-      <View style={styles.sheetContent}>
-        <View style={styles.sheetCopy}>
-          <Text variant="h2">{labels.title}</Text>
-          <Text variant="body" muted>
-            {group ? labels.body.replace("{{item}}", group.name) : labels.body}
-          </Text>
-        </View>
-        <View style={styles.sheetButtons}>
-          <Button title={labels.full} variant="ghost" onPress={() => onSelect("full")} />
-          <Button title={labels.someUsed} variant="ghost" onPress={() => onSelect("some_used")} />
-          <Button title={labels.low} variant="accent" onPress={() => onSelect("low")} />
-          <Button title={labels.cancel} variant="text" onPress={onDismiss} />
-        </View>
-      </View>
-    </BottomSheet>
-  );
-}
-
-function RemoveSheet({
-  group,
-  labels,
-  onDismiss,
-  onConfirm,
-}: {
-  group: InventoryGroup | null;
-  labels: {
-    title: string;
-    body: string;
-    confirm: string;
-    cancel: string;
-  };
-  onDismiss: () => void;
-  onConfirm: () => Promise<void>;
-}) {
-  return (
-    <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
-      <View style={styles.sheetContent}>
-        <View style={styles.sheetCopy}>
-          <Text variant="h2">{labels.title}</Text>
-          <Text variant="body" muted>
-            {group ? labels.body.replace("{{item}}", group.name) : labels.body}
-          </Text>
-        </View>
-        <View style={styles.sheetButtons}>
-          <Button title={labels.confirm} onPress={onConfirm} />
-          <Button title={labels.cancel} variant="text" onPress={onDismiss} />
-        </View>
-      </View>
-    </BottomSheet>
-  );
-}
-
 
 function CategoryShelf({
   name,
@@ -434,74 +312,216 @@ function FullShelfSheet({
 function ItemActionSheet({
   group,
   labels,
-  system,
   onDismiss,
-  onUse,
-  onPartial,
+  onSave,
   onRemove,
-  onOverrideNet,
 }: {
   group: InventoryGroup | null;
-  labels: { use: string; partial: string; remove: string; netLabel: string; saveNet: string };
-  system: "metric" | "imperial";
+  labels: {
+    save: string;
+    cancel: string;
+    remove: string;
+    removeTitle: string;
+    removeBody: string;
+    removeConfirm: string;
+    nameLabel: string;
+    quantityLabel: string;
+    unitLabel: string;
+    netLabel: string;
+    expiryLabel: string;
+    expiryNone: string;
+    expiryDone: string;
+  };
   onDismiss: () => void;
-  onUse: (group: InventoryGroup) => Promise<void>;
-  onPartial: (group: InventoryGroup) => void;
+  onSave: (
+    group: InventoryGroup,
+    input: { name: string; quantity: number; unit: string; expiresAt: string | null; netAmount?: number },
+  ) => Promise<void>;
   onRemove: (group: InventoryGroup) => void;
-  onOverrideNet: (itemId: string, netAmount: number) => Promise<void>;
 }) {
+  const [name, setName] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [unit, setUnit] = useState("item");
   const [netInput, setNetInput] = useState("");
+  const [expiry, setExpiry] = useState<Date | null>(null);
+  const [showExpiryPicker, setShowExpiryPicker] = useState(false);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [lastKey, setLastKey] = useState(group?.key);
+
+  // Reset the form whenever a different item opens the sheet.
   if (group?.key !== lastKey) {
     setLastKey(group?.key);
-    const firstLotNet = group?.lots[0]?.net_amount;
-    setNetInput(firstLotNet != null ? String(firstLotNet) : "");
+    const lot = group?.lots[0];
+    setName(group?.name ?? "");
+    setQuantity(lot ? String(lot.quantity) : "");
+    setUnit(group?.unit ?? "item");
+    setNetInput(lot?.net_amount != null ? String(lot.net_amount) : "");
+    setExpiry(lot?.expires_at ? parseLocalDate(lot.expires_at) : null);
+    setShowExpiryPicker(false);
+    setConfirmingRemove(false);
   }
 
   const isPrecise = group?.netAmount != null && group.netUnit != null;
 
+  if (confirmingRemove) {
+    return (
+      <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
+        <View style={styles.sheetContent}>
+          <View style={styles.sheetCopy}>
+            <Text variant="h2">{labels.removeTitle}</Text>
+            <Text variant="body" muted>
+              {group ? labels.removeBody.replace("{{item}}", group.name) : labels.removeBody}
+            </Text>
+          </View>
+          <View style={styles.sheetButtons}>
+            <Button title={labels.removeConfirm} variant="accent" onPress={() => group && onRemove(group)} />
+            <Button title={labels.cancel} variant="text" onPress={() => setConfirmingRemove(false)} />
+          </View>
+        </View>
+      </BottomSheet>
+    );
+  }
+
   return (
     <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
       <View style={styles.sheetContent}>
-        <View style={styles.sheetCopy}>
-          <Text variant="h2">{group?.name}</Text>
-          <Text variant="body" muted>
-            {group?.meta}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={labels.remove}
+          onPress={() => setConfirmingRemove(true)}
+          style={({ pressed }) => [styles.removeRow, pressed && styles.expiryPressed]}
+        >
+          <TrashIcon />
+          <Text variant="label" color={colors.red}>
+            {labels.remove}
           </Text>
-          {isPrecise && group ? (
-            <Text variant="small" muted>
-              {formatAmount(group.netAmount as number, group.netUnit as "ml" | "g", system)}
-            </Text>
-          ) : null}
+        </Pressable>
+
+        <TextField label={labels.nameLabel} value={name} onChangeText={setName} />
+
+        <View style={styles.netRow}>
+          <TextField
+            label={labels.quantityLabel}
+            keyboardType="number-pad"
+            value={quantity}
+            onChangeText={setQuantity}
+            containerStyle={styles.netField}
+          />
+          <UnitPicker label={labels.unitLabel} value={unit} onChange={setUnit} containerStyle={styles.netField} />
         </View>
-        {isPrecise && group ? (
-          <View style={styles.netRow}>
-            <TextField
-              label={labels.netLabel}
-              keyboardType="number-pad"
-              value={netInput}
-              onChangeText={setNetInput}
-              containerStyle={styles.netField}
-            />
-            <Button
-              title={labels.saveNet}
-              variant="ghost"
-              onPress={async () => {
-                const value = Number(netInput);
-                if (!group.lots[0] || !(value > 0)) return;
-                await onOverrideNet(group.lots[0].id, value);
-              }}
-            />
-          </View>
+
+        {isPrecise ? (
+          <TextField
+            label={`${labels.netLabel} (${group?.netUnit})`}
+            keyboardType="number-pad"
+            value={netInput}
+            onChangeText={setNetInput}
+          />
         ) : null}
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            if (!expiry) setExpiry(new Date());
+            setShowExpiryPicker(true);
+          }}
+          style={({ pressed }) => [styles.fieldBox, pressed && styles.expiryPressed]}
+        >
+          <Text variant="micro" muted uppercase>
+            {labels.expiryLabel}
+          </Text>
+          <View style={styles.expiryRow}>
+            <Text variant="label" color={expiry ? colors.primary : colors.muted}>
+              {expiry
+                ? expiry.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+                : labels.expiryNone}
+            </Text>
+            {expiry ? (
+              <Pressable
+                accessibilityRole="button"
+                hitSlop={spacing.sm}
+                onPress={() => {
+                  setExpiry(null);
+                  setShowExpiryPicker(false);
+                }}
+                style={({ pressed }) => [pressed && styles.expiryPressed]}
+              >
+                <Text variant="small" muted>
+                  {labels.expiryNone}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </Pressable>
+
+        {showExpiryPicker && expiry && Platform.OS === "android" ? (
+          <DateTimePicker
+            value={expiry}
+            mode="date"
+            display="calendar"
+            onChange={(_event, date) => {
+              setShowExpiryPicker(false);
+              if (date) setExpiry(date);
+            }}
+          />
+        ) : null}
+
+        {Platform.OS === "ios" ? (
+          <BottomSheet visible={showExpiryPicker && Boolean(expiry)} onDismiss={() => setShowExpiryPicker(false)}>
+            <View style={styles.dateSheet}>
+              <Text variant="h3" center>
+                {labels.expiryLabel}
+              </Text>
+              <View style={styles.dateCalendarCard}>
+                <DateTimePicker
+                  value={expiry ?? new Date()}
+                  mode="date"
+                  display="inline"
+                  themeVariant="light"
+                  accentColor={colors.primary}
+                  onChange={(_event, date) => {
+                    if (date) setExpiry(date);
+                  }}
+                />
+              </View>
+              <Button title={labels.expiryDone} variant="accent" onPress={() => setShowExpiryPicker(false)} />
+            </View>
+          </BottomSheet>
+        ) : null}
+
         <View style={styles.sheetButtons}>
-          <Button title={labels.use} variant="accent" onPress={() => group && onUse(group)} />
-          <Button title={labels.partial} variant="ghost" onPress={() => group && onPartial(group)} />
-          <Button title={labels.remove} variant="text" onPress={() => group && onRemove(group)} />
+          <Button
+            title={labels.save}
+            variant="accent"
+            onPress={() => {
+              if (!group) return;
+              const qty = Number(quantity.replace(",", "."));
+              const net = Number(netInput.replace(",", "."));
+              void onSave(group, {
+                name,
+                quantity: Number.isFinite(qty) && qty > 0 ? qty : group.lots[0]?.quantity ?? 1,
+                unit: normalizeUnit(unit),
+                expiresAt: expiry ? toLocalDateString(expiry) : null,
+                netAmount: isPrecise && net > 0 ? net : undefined,
+              });
+            }}
+          />
+          <Button title={labels.cancel} variant="text" onPress={onDismiss} />
         </View>
       </View>
     </BottomSheet>
   );
+}
+
+function toLocalDateString(date: Date) {
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function parseLocalDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, (month ?? 1) - 1, day ?? 1);
 }
 
 function buildCategoryShelves(groups: InventoryGroup[], t: ReturnType<typeof useTranslation>["t"]) {
@@ -643,13 +663,29 @@ function FilterIcon({ active }: { active: boolean }) {
   );
 }
 
+function TrashIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
+      <Path d="M3.5 5H14.5M7 2.5H11M7.5 8V12.5M10.5 8V12.5M4.5 5L5.2 14.2A1.3 1.3 0 0 0 6.5 15.4H11.5A1.3 1.3 0 0 0 12.8 14.2L13.5 5" stroke={colors.red} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 function getActionLabels(t: ReturnType<typeof useTranslation>["t"]) {
   return {
-    use: t("fridge.actions.use"),
-    partial: t("fridge.actions.partial"),
+    save: t("fridge.actions.save"),
+    cancel: t("common.cancel"),
     remove: t("fridge.actions.remove"),
+    removeTitle: t("fridge.removeSheet.title"),
+    removeBody: t("fridge.removeSheet.body"),
+    removeConfirm: t("fridge.removeSheet.confirm"),
+    nameLabel: t("fridge.actions.nameLabel"),
+    quantityLabel: t("fridge.actions.quantityLabel"),
+    unitLabel: t("scan.manual.unitLabel"),
     netLabel: t("fridge.actions.netLabel"),
-    saveNet: t("fridge.actions.saveNet"),
+    expiryLabel: t("fridge.actions.expiryLabel"),
+    expiryNone: t("fridge.actions.expiryNone"),
+    expiryDone: t("fridge.actions.expiryDone"),
   };
 }
 
@@ -702,6 +738,13 @@ const styles = StyleSheet.create({
   sheetCopy: {
     gap: spacing.sm,
   },
+  removeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-end",
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
   sheetButtons: {
     gap: spacing.sm,
   },
@@ -750,5 +793,34 @@ const styles = StyleSheet.create({
   },
   netField: {
     flex: 1,
+  },
+  fieldBox: {
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radii.lg,
+    backgroundColor: colors.paper,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.xs,
+  },
+  expiryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  expiryPressed: {
+    opacity: 0.78,
+  },
+  dateSheet: {
+    gap: spacing.lg,
+  },
+  dateCalendarCard: {
+    borderRadius: radii.xl,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
 });

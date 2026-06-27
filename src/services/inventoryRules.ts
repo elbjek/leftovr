@@ -150,6 +150,8 @@ const FOOD_ALIASES: Record<string, string> = {
   losos: "salmon",
   spanac: "spinach",
   paradajz: "tomatoes",
+  sargarepa: "carrot",
+  sargarepe: "carrot",
   banane: "bananas",
   pirinac: "rice",
   "smrznuti grasak": "frozen peas",

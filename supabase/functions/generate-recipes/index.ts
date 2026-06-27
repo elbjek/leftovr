@@ -137,18 +137,21 @@ Deno.serve(async (req) => {
   // Each call generates a single recipe: premium runs two variants in
   // parallel, so wall-clock latency is one recipe instead of two. Input
   // tokens are paid per call but are a rounding error next to output.
-  const prompts = gate.premium === true
-    ? [buildPrompt(input, "confident"), buildPrompt(input, "alternative")]
-    : [buildPrompt(input, "confident")];
+  // The confident pick runs cool for sensible, predictable dishes/titles; the
+  // alternative runs hot so it diverges from the obvious choice.
+  const variants: Array<"confident" | "alternative"> = gate.premium === true
+    ? ["confident", "alternative"]
+    : ["confident"];
 
   try {
     const client = new OpenAI({ apiKey });
     const settled = await Promise.allSettled(
-      prompts.map((prompt) =>
+      variants.map((variant) =>
         client.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           max_tokens: 6000,
-          messages: [{ role: "user", content: prompt }],
+          temperature: variant === "alternative" ? 0.7 : 0.5,
+          messages: buildMessages(input, variant),
           response_format: {
             type: "json_schema",
             json_schema: { name: "recipes", strict: true, schema: RECIPE_SCHEMA },
@@ -177,14 +180,30 @@ Deno.serve(async (req) => {
     // same ingredients under different names (e.g. "...sourdough toast" vs
     // "...toast"), which is a duplicate, not a real alternative.
     const seenSignatures = new Set<string>();
+    const dropReasons: string[] = [];
     const recipes = allRecipes.filter((recipe) => {
-      if (recipe.ingredients.length === 0 || recipe.steps.length === 0) return false;
-      if (violatesAvoidances(recipe, avoidances)) return false;
+      if (recipe.ingredients.length === 0 || recipe.steps.length === 0) {
+        dropReasons.push(`"${recipe.title}": empty ingredients/steps`);
+        return false;
+      }
+      if (violatesAvoidances(recipe, avoidances)) {
+        dropReasons.push(`"${recipe.title}": violates avoidances`);
+        return false;
+      }
       const signature = ingredientSignature(recipe.ingredients);
-      if (seenSignatures.has(signature)) return false;
+      if (seenSignatures.has(signature)) {
+        dropReasons.push(`"${recipe.title}": duplicate signature`);
+        return false;
+      }
       seenSignatures.add(signature);
       return true;
     });
+
+    // Guardrail: tidy each surviving title (the prompt sets the rules; this
+    // catches the misses — quotes, filler adjectives, runaway length).
+    for (const recipe of recipes) {
+      recipe.title = cleanTitle(recipe.title);
+    }
 
     const promptTokens = responses.reduce(
       (sum, response) => sum + (response.usage?.prompt_tokens ?? 0),
@@ -210,11 +229,25 @@ Deno.serve(async (req) => {
 
     const payload = { source: "ai", recipes };
     if (gate.attemptId) {
+      // Never cache an empty result as completed: the idempotency key is the
+      // fridge hash, so a one-off model miss would replay forever for the same
+      // inventory. Mark failed instead so the next identical request re-runs.
       await gate.supabase
         ?.from("recipe_generation_attempts")
         .update({
-          status: "completed",
-          response_json: payload,
+          status: recipes.length === 0 ? "failed" : "completed",
+          // On empty, store diagnostics (not served — only completed rows are
+          // replayed) so we can see whether the model under-generated or the
+          // filters dropped everything.
+          response_json: recipes.length === 0
+            ? {
+                source: "empty_diagnostic",
+                raw: allRecipes.length,
+                rawTitles: allRecipes.map((r) => r.title),
+                dropReasons,
+              }
+            : payload,
+          error_message: recipes.length === 0 ? "no_recipes_generated" : null,
           prompt_tokens: promptTokens,
           completion_tokens: completionTokens,
           completed_at: new Date().toISOString(),
@@ -365,12 +398,45 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
   return { response: Response.json({ error: "generation_lock_conflict" }, { status: 409 }) };
 }
 
-function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alternative") {
+// Stable rules — identical across requests, so it stays in the `system` message
+// and benefits from prompt caching. Request-specific data goes in `user`.
+const SYSTEM_PROMPT = [
+  "You generate practical Leftovr recipe ideas from food a household currently has.",
+  "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
+  "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated household items into the same recipe just because they are available; it is better to use fewer well-matched items.",
+  "Subset rule: you do NOT have to use every item. Pick the largest subset that forms ONE coherent, real dish, and ignore the rest. A simple dish from 2-3 items that belong together always beats a mashup that uses more items. Never bend an item's role to fit (do not make sweet fruit savory, do not push a savory vegetable into a dessert) — if an item only fits a different kind of dish, leave it out of this one.",
+  "Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but never put sweet fruit (banana, apple, berries) into an egg/savory base like a frittata, omelette, scramble, or stir-fry. Avoid awkward sweet-savory combinations unless they are a familiar named dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it — fall back to the safest coherent dish from a smaller subset instead.",
+  "Ready-to-eat rule: items with category `snacks` or `drinks`, and any sweet/confectionery/chocolate/candy/pastry product (e.g. a chocolate-filled croissant, a candy bar, soda), are finished products, NOT savory cooking ingredients. Never cook or combine them into savory dishes (e.g. never make an egg-and-chocolate-croissant dish). Use them only on their own or inside a fitting sweet/dessert context, and only when it reads as a real treat — otherwise ignore them and build the recipe from the actual cooking ingredients.",
+  "TITLE — name the dish the way a home cook or a friend would say it, in the requested language:",
+  "- Lead with the dish. 2–5 words. Reflect the main protein/vegetable plus its form or technique.",
+  "- If it is a recognised dish, use its real name (e.g. Shakshuka, Carbonara, Tortilla de patatas). Otherwise describe it plainly.",
+  "- Sentence case: capitalise only the first word and proper nouns. No trailing punctuation, no emoji, no ALL CAPS, no quotation marks.",
+  "- BANNED words and patterns: filler adjectives (delicious, tasty, easy, quick, simple, amazing, ultimate, perfect, hearty, healthy, homemade, classic), 'with a twist', listing every ingredient, restaurant/menu-speak, invented brand names.",
+  "- Do not just concatenate ingredients ('Chicken, Rice and Peas'); name the actual dish ('Lemon chicken rice').",
+  "Title examples — bad -> good:",
+  "  'Delicious Easy Chicken Dinner' -> 'Garlic butter chicken'",
+  "  'Eggs, Spinach, Feta and Tomato Scramble' -> 'Spinach feta scramble'",
+  "  'Hearty Wholesome Vegetable Medley Bowl' -> 'Roasted vegetable bowl'",
+  "  'Pasta with Tomatoes and Garlic and Basil' -> 'Tomato basil pasta'",
+  "Keep the description to one short sentence. Use at most 3 tags.",
+  "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
+  "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
+  "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
+  "Every recipe must use at least one item the household has, and prefer items with higher urgency.",
+  "Ingredient names must match household item names where used; mark required=true only for ingredients taken from what the household has. Pantry staples (oil, salt, garlic, spices) are required=false.",
+  "Ingredient amounts: for whole produce and naturally-countable items, use counts and set countable=true — e.g. '1 large onion', '2 tomatoes', '3 eggs', '1 bell pepper', '2 slices bread'. For ingredients genuinely sold and measured by weight or volume, use g/ml/kg/L and set countable=false — e.g. '400g minced meat', '200g rice', '150g cheddar', '100ml milk'. Never express a whole vegetable or fruit in grams, and never express meat, grains, or liquids as a bare count.",
+  "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",
+  "Respect the prompt filters: matching mealType, timeMinutes within max time, and include the vibe/tag in tags when one is set.",
+  "Empty result is allowed and correct: if the household has too little food, or nothing in it forms a single coherent, appetizing real dish (even from a small subset), return an empty recipes array. Returning nothing beats inventing a forced or nonsensical dish — never pad an empty fridge into a recipe just to have an answer.",
+].join("\n");
+
+function buildMessages(
+  input: GenerateRecipesRequest,
+  variant: "confident" | "alternative",
+): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
   const lang = languageName(input.language);
-  return [
-    "Generate practical Leftovr recipe ideas from food the household currently has.",
+  const user = [
     `Language: write the ENTIRE recipe in ${lang} — title, description, every step, all tags, AND all ingredient names. Do NOT mix languages within a recipe. If an item name is in another language, translate it into ${lang} (keep it the natural name a ${lang} cook would use). The only exception is proper brand names, which stay as-is.`,
-    "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
     `Cooking mode: ${input.cookingMode ?? "household"}.`,
     `Servings: ${input.servings ?? 2}.`,
     `Premium optimized: ${input.isPremium ? "yes" : "no"}.`,
@@ -380,8 +446,6 @@ function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alte
         ? `avoid ${input.avoidances.join(", ")}. Do not include these in ingredients, steps, substitutions, or optional toppings.`
         : "none"
     }`,
-    "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated household items into the same recipe just because they are available; it is better to use fewer well-matched items. Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but avoid awkward sweet-savory combinations unless they are a familiar dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it.",
-    "Ready-to-eat rule: items with category `snacks` or `drinks`, and any sweet/confectionery/chocolate/candy/pastry product (e.g. a chocolate-filled croissant, a candy bar, soda), are finished products, NOT savory cooking ingredients. Never cook or combine them into savory dishes (e.g. never make an egg-and-chocolate-croissant dish). Use them only on their own or inside a fitting sweet/dessert context, and only when it reads as a real treat — otherwise ignore them and build the recipe from the actual cooking ingredients.",
     "What the household has:",
     ...formatInventory(input.inventory ?? []),
     "Prompt filters:",
@@ -390,18 +454,27 @@ function buildPrompt(input: GenerateRecipesRequest, variant: "confident" | "alte
     `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
     variant === "alternative"
-      ? "Return exactly 1 recipe card: a clearly different alternative to the most obvious dish for these items — pick a different main technique or cuisine than the predictable first choice."
-      : "Return exactly 1 recipe card: your single most confident pick for what this household has.",
-    "Keep the description to one short sentence. Use at most 3 tags.",
-    "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
-    "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
-    "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
-    "Every recipe must use at least one item the household has, and prefer items with higher urgency.",
-    "Ingredient names must match household item names where used; mark required=true only for ingredients taken from what the household has. Pantry staples (oil, salt, garlic, spices) are required=false.",
-    "Ingredient amounts: for whole produce and naturally-countable items, use counts and set countable=true — e.g. '1 large onion', '2 tomatoes', '3 eggs', '1 bell pepper', '2 slices bread'. For ingredients genuinely sold and measured by weight or volume, use g/ml/kg/L and set countable=false — e.g. '400g minced meat', '200g rice', '150g cheddar', '100ml milk'. Never express a whole vegetable or fruit in grams, and never express meat, grains, or liquids as a bare count.",
-    "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",
-    "Respect the prompt filters: matching mealType, timeMinutes within max time, and include the vibe/tag in tags when one is set.",
+      ? "Return 1 recipe card: a clearly different alternative to the most obvious dish for these items — pick a different main technique or cuisine than the predictable first choice. If no coherent second dish exists, return an empty recipes array instead of forcing one."
+      : "Return 1 recipe card: your single most confident pick for what this household has. If the household cannot make any coherent real dish, return an empty recipes array instead of inventing one.",
   ].join("\n");
+
+  return [
+    { role: "system", content: SYSTEM_PROMPT },
+    { role: "user", content: user },
+  ];
+}
+
+// Last-line defence on the model's title: kill quotes/trailing punctuation, a
+// leading filler adjective, and runaway length so a slip never reaches the UI.
+function cleanTitle(raw: string): string {
+  let t = (raw ?? "").trim().replace(/\s+/g, " ");
+  t = t.replace(/^["'“”]+|["'“”]+$/g, "").replace(/[.!]+$/g, "");
+  t = t.replace(
+    /^(delicious|tasty|easy|quick|simple|amazing|ultimate|perfect|hearty|healthy|homemade|classic|wholesome|yummy)\s+/i,
+    "",
+  );
+  if (t.length > 48) t = t.slice(0, 48).replace(/\s+\S*$/, "").trim();
+  return t || raw.trim();
 }
 
 // Sorted, normalized ingredient-name set — identifies recipes that are the

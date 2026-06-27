@@ -1,5 +1,6 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import {
+  canonicalFoodName,
   getCatalogFood,
   getCatalogNet,
   getGramsPerItem,
@@ -9,7 +10,6 @@ import {
   InventoryCategory,
   InventoryLot,
   InventorySource,
-  normalizeFoodName,
   PartialState,
   planDepletion,
   resolveUrgency,
@@ -98,7 +98,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
     .insert({
       household_id: input.householdId,
       name,
-      normalized_name: normalizeFoodName(name),
+      normalized_name: canonicalFoodName(name),
       brand_name: input.brandName?.trim() || null,
       category,
       quantity,
@@ -209,6 +209,48 @@ export async function depleteItemQuantity(
     p_ops: ops,
   });
 
+  if (error) throw error;
+}
+
+export type UpdateInventoryItemInput = {
+  name?: string;
+  category?: InventoryCategory;
+  quantity?: number;
+  unit?: string;
+  expiresAt?: string | null;
+  netAmount?: number | null;
+};
+
+// Edits one lot. When the name changes we also recompute normalized_name (so
+// grouping + depletion still match) and shelf_life_range (so urgency stays
+// consistent for items without an explicit expiry).
+export async function updateInventoryItem(itemId: string, input: UpdateInventoryItemInput) {
+  const supabase = getSupabaseClient();
+  const patch: Record<string, unknown> = {};
+
+  if (input.name !== undefined) {
+    const name = input.name.trim();
+    if (!name) throw new Error("name is required");
+    const category = input.category ?? inferCategory(name);
+    patch.name = name;
+    patch.normalized_name = canonicalFoodName(name);
+    patch.category = category;
+    patch.shelf_life_range = getShelfLifeRange(name, category);
+  }
+  if (input.quantity !== undefined) {
+    if (!(input.quantity > 0)) throw new Error("quantity must be positive");
+    patch.quantity = input.quantity;
+  }
+  if (input.unit !== undefined) patch.unit = input.unit;
+  if (input.expiresAt !== undefined) patch.expires_at = input.expiresAt;
+  if (input.netAmount !== undefined) {
+    if (input.netAmount != null && !(input.netAmount > 0)) throw new Error("net amount must be positive");
+    patch.net_amount = input.netAmount;
+  }
+
+  if (Object.keys(patch).length === 0) return;
+
+  const { error } = await supabase.from("inventory_items").update(patch).eq("id", itemId);
   if (error) throw error;
 }
 
