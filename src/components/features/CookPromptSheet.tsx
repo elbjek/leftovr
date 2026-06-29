@@ -10,11 +10,21 @@ export type BasePreference = "anything" | "protein" | "potatoes" | "pasta" | "ve
 export type Cuisine =
   | "any"
   | "italian"
-  | "asian"
   | "mexican"
-  | "barbecue"
+  | "american"
+  | "greek"
   | "mediterranean"
-  | "serbian";
+  | "french"
+  | "indian"
+  | "middle_eastern"
+  | "asian"
+  | "japanese"
+  | "thai"
+  | "chinese"
+  | "korean"
+  | "british"
+  | "spanish"
+  | "eastern_european";
 
 export type CookFilters = {
   mealType?: "breakfast" | "lunch" | "dinner" | "snack";
@@ -67,11 +77,21 @@ const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["15", "30", "45", "norush"];
 const CUISINE_OPTIONS: Cuisine[] = [
   "any",
   "italian",
-  "asian",
   "mexican",
-  "barbecue",
+  "american",
+  "greek",
   "mediterranean",
-  "serbian",
+  "french",
+  "indian",
+  "middle_eastern",
+  "asian",
+  "japanese",
+  "thai",
+  "chinese",
+  "korean",
+  "british",
+  "spanish",
+  "eastern_european",
 ];
 const SERVINGS_MIN = 1;
 const SERVINGS_MAX = 12;
@@ -208,7 +228,11 @@ export function CookPromptSheet({
         </Section>
 
         <Section label={labels.cuisine}>
-          <View style={styles.chipWrap}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipRow}
+          >
             {CUISINE_OPTIONS.map((option) => (
               <Chip
                 key={option}
@@ -218,7 +242,7 @@ export function CookPromptSheet({
                 onPress={() => setCuisine(option)}
               />
             ))}
-          </View>
+          </ScrollView>
           <Text variant="small" muted style={styles.eatFirstNote}>
             {labels.eatFirstNote}
           </Text>
@@ -473,10 +497,16 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.sm,
   },
+  // Single-row horizontal carousel (cuisine) — no wrap, scrolls sideways.
+  chipRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    paddingRight: spacing.lg,
+  },
   chip: {
     minHeight: 44,
     paddingHorizontal: spacing.lg,
-    borderRadius: radii.pill,
+    borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.hairline,
     backgroundColor: colors.paper,

@@ -28,7 +28,10 @@ type GenerateRecipesRequest = {
     maxMinutes?: number;
     minMinutes?: number;
     vibe?: string;
-    cuisine?: "any" | "italian" | "asian" | "mexican" | "barbecue" | "mediterranean" | "serbian";
+    cuisine?:
+      | "any" | "italian" | "mexican" | "american" | "greek" | "mediterranean"
+      | "french" | "indian" | "middle_eastern" | "asian" | "japanese" | "thai"
+      | "chinese" | "korean" | "british" | "spanish" | "eastern_european";
     basePreference?: "anything" | "protein" | "potatoes" | "pasta" | "vegetables";
   };
   // Two-phase generation. Absent ("full") keeps the legacy behavior so app
@@ -612,7 +615,7 @@ function buildMessages(
     `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
     input.filters?.cuisine && input.filters.cuisine !== "any"
-      ? `- cuisine: ${input.filters.cuisine} — strongly prefer this cuisine, but if the inventory cannot make a coherent ${input.filters.cuisine} dish, fall back to the best coherent dish. Never sacrifice coherence for the cuisine.`
+      ? `- cuisine: ${input.filters.cuisine.replace(/_/g, " ")} — strongly prefer this cuisine, but if the inventory cannot make a coherent ${input.filters.cuisine.replace(/_/g, " ")} dish, fall back to the best coherent dish. Never sacrifice coherence for the cuisine.`
       : "- cuisine: any",
     input.filters?.basePreference && input.filters.basePreference !== "anything"
       ? `- build around: ${input.filters.basePreference} — a guide, not a hard constraint. If this base cannot form a coherent dish from the available inventory, fall back to the best coherent recipe. Never sacrifice quality or coherence to satisfy the base.`
@@ -880,7 +883,7 @@ function buildCardMessages(
     `- max time: ${input.filters?.maxMinutes != null ? `${input.filters.maxMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
     input.filters?.cuisine && input.filters.cuisine !== "any"
-      ? `- cuisine: ${input.filters.cuisine} — strongly prefer this cuisine, but if the inventory cannot make a coherent ${input.filters.cuisine} dish, fall back to the best coherent dish. Never sacrifice coherence for the cuisine.`
+      ? `- cuisine: ${input.filters.cuisine.replace(/_/g, " ")} — strongly prefer this cuisine, but if the inventory cannot make a coherent ${input.filters.cuisine.replace(/_/g, " ")} dish, fall back to the best coherent dish. Never sacrifice coherence for the cuisine.`
       : "- cuisine: any",
     input.filters?.basePreference && input.filters.basePreference !== "anything"
       ? `- build around: ${input.filters.basePreference} — a guide, not a hard constraint. Fall back to the best coherent recipe if the base does not fit. Never sacrifice coherence for the base.`
