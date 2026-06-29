@@ -58,7 +58,7 @@ export function mapAiRecipesToMatches(
     ...card,
     key: `ai-${index}-${card.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     servingsBaseline: card.servings,
-    tags: normalizeAiTags(card.tags, input.filters?.vibe),
+    tags: normalizeAiTags(card.tags, input.filters?.cuisine ?? input.filters?.vibe),
   }));
 
   const matches = matchRecipes(input, library);
@@ -75,6 +75,140 @@ export function mapAiRecipesToMatches(
 function normalizeAiTags(tags: string[], requestedVibe: string | undefined) {
   if (!requestedVibe || tags.includes(requestedVibe)) return tags;
   return [...tags, requestedVibe];
+}
+
+/** Lightweight card from phase-1 generation (mode: "cards") — no steps/amounts. */
+export type AiRecipeCardLite = {
+  title: string;
+  description: string;
+  usedIngredientIds: string[];
+  tags: string[];
+  mealType: MockRecipe["mealType"];
+  category: string;
+  timeMinutes: number;
+};
+
+/**
+ * Maps lightweight cards into RecipeMatch shapes. Ingredients are the used
+ * fridge items (looked up by id, addressed by canonical name so the matcher
+ * links them back); steps are empty until the card is expanded on tap.
+ */
+export function mapAiCardsToMatches(
+  cards: AiRecipeCardLite[],
+  input: RecipeGenerationInput,
+): RecipeMatch[] {
+  const byId = new Map(input.inventory.map((lot) => [lot.id, lot]));
+  const library: MockRecipe[] = cards.map((card, index) => {
+    const usedLots = (card.usedIngredientIds ?? [])
+      .map((id) => byId.get(id))
+      .filter((lot): lot is InventoryLot => Boolean(lot));
+    return {
+      key: `ai-card-${index}-${card.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      title: card.title,
+      description: card.description,
+      timeMinutes: card.timeMinutes,
+      complexity: "simple",
+      servingsBaseline: input.servings ?? 2,
+      category: card.category,
+      mealType: card.mealType,
+      tags: normalizeAiTags(card.tags, input.filters?.cuisine ?? input.filters?.vibe),
+      avoidanceTags: [],
+      ingredients: usedLots.map((lot) => ({
+        name: lot.normalized_name,
+        amount: "",
+        required: true,
+        countable: true,
+      })),
+      steps: [],
+    };
+  });
+
+  const matches = matchRecipes(input, library);
+  const fridgeMatches = matches.filter((match) => match.matchCount >= 1);
+  return fridgeMatches.length > 0 ? fridgeMatches : matches;
+}
+
+export type ExpandRecipeResult = {
+  ingredients: { name: string; amount: string; required: boolean; countable: boolean }[];
+  steps: string[];
+  timeMinutes: number;
+  complexity: MockRecipe["complexity"];
+  avoidanceTags: string[];
+  servings: number;
+};
+
+/**
+ * Phase-2 generation: expands a tapped card into full ingredients + steps.
+ * Returns null on any failure so the caller can fall back gracefully.
+ */
+export async function expandRecipe(input: {
+  title: string;
+  description?: string;
+  timeMinutes?: number;
+  tags?: string[];
+  usedIngredientNames: string[];
+  inventory: InventoryLot[];
+  avoidances: string[];
+  servings?: number;
+  language?: string;
+}): Promise<ExpandRecipeResult | null> {
+  if (!env.supabaseUrl || !env.supabaseAnonKey) return null;
+  try {
+    const { getSupabaseClient } = await import("@/lib/supabase");
+    let language = input.language;
+    if (!language) {
+      try {
+        const { getLocales } = await import("expo-localization");
+        language = getLocales()[0]?.languageCode ?? undefined;
+      } catch {
+        // Localization unavailable (e.g. tests): fall back to model default.
+      }
+    }
+    const { data, error } = await getSupabaseClient().functions.invoke("generate-recipes", {
+      body: {
+        mode: "expand",
+        servings: input.servings,
+        avoidances: input.avoidances,
+        language,
+        inventory: input.inventory.map((lot) => ({
+          id: lot.id,
+          name: lot.name,
+          normalized_name: lot.normalized_name,
+          category: lot.category,
+          urgency: resolveUrgency(lot),
+          quantity: lot.quantity,
+          unit: lot.unit,
+          net_amount: lot.net_amount,
+          net_unit: lot.net_unit,
+          partial_state: lot.partial_state,
+        })),
+        expandCard: {
+          title: input.title,
+          description: input.description,
+          timeMinutes: input.timeMinutes,
+          tags: input.tags,
+          usedIngredientNames: input.usedIngredientNames,
+        },
+      },
+    });
+    if (error) {
+      if (__DEV__) console.warn("[recipes] expand error", error);
+      return null;
+    }
+    const recipe = (data as { recipe?: AiRecipeCard } | null)?.recipe;
+    if (!recipe) return null;
+    return {
+      ingredients: recipe.ingredients,
+      steps: recipe.steps,
+      timeMinutes: recipe.timeMinutes,
+      complexity: recipe.complexity,
+      avoidanceTags: recipe.avoidanceTags,
+      servings: recipe.servings,
+    };
+  } catch (error) {
+    if (__DEV__) console.warn("[recipes] expand failed", error);
+    return null;
+  }
 }
 
 async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMatch[] | null> {
@@ -98,12 +232,19 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
       }
     }
     const requestHash = buildRecipeGenerationRequestHash({ ...input, language });
+    // Namespace the cache key by mode so card-shaped cache entries never collide
+    // with legacy full-recipe entries from app builds still in the field.
+    const cardsKey = `${requestHash}-cards`;
     const { data, error } = await getSupabaseClient().functions.invoke("generate-recipes", {
       body: {
+        // Phase 1: ask for lightweight cards (no steps/amounts). Full detail is
+        // fetched on tap via expandRecipe().
+        mode: "cards",
         householdId: input.householdId,
-        idempotencyKey: requestHash,
+        idempotencyKey: cardsKey,
         requestHash,
         inventory: input.inventory.map((lot) => ({
+          id: lot.id,
           name: lot.name,
           normalized_name: lot.normalized_name,
           category: lot.category,
@@ -133,8 +274,8 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
       throw new Error("Recipe generation already in progress.");
     }
 
-    const cards = (data as { recipes?: AiRecipeCard[] } | null)?.recipes ?? [];
-    const matches = mapAiRecipesToMatches(cards, input);
+    const cards = (data as { recipes?: AiRecipeCardLite[] } | null)?.recipes ?? [];
+    const matches = mapAiCardsToMatches(cards, input);
     if (__DEV__) {
       console.info("[recipes] AI response", {
         cards: cards.length,

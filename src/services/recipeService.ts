@@ -28,6 +28,8 @@ export type RecipeMatcherInput = {
     maxMinutes?: number;
     minMinutes?: number;
     vibe?: string;
+    /** Soft cuisine guide ("any" = no preference). AI-only; matcher ignores it. */
+    cuisine?: "any" | "italian" | "asian" | "mexican" | "barbecue" | "mediterranean" | "serbian";
     /** Soft guide for what to build the dish around. "anything" = no preference.
      *  Not enforced by the mock matcher; the AI prompt treats it as a guide. */
     basePreference?: "anything" | "protein" | "potatoes" | "pasta" | "vegetables";

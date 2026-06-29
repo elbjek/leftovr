@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Animated, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -7,10 +7,10 @@ import Svg, { Path } from "react-native-svg";
 import { BottomSheet, Button, Card, RecipeGlyph, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import { notifyInventoryChanged, useInventory } from "@/hooks";
-import { formatComplexity, formatTimeLabel, InventoryGroup, isPantryStaple, normalizeFoodName } from "@/services";
+import { expandRecipe, formatComplexity, formatTimeLabel, InventoryGroup, isPantryStaple, normalizeFoodName } from "@/services";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
-import { toggleRecipeFavorite } from "@/repositories/recipeRepository";
+import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
 import { colors, radii, spacing } from "@/theme";
 
 const HERO_MAX_HEIGHT = 280;
@@ -40,21 +40,84 @@ export default function RecipeDetailRoute() {
   }>();
 
   const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
-  const { groups: inventoryGroups } = useInventory(activeHousehold?.id);
+  const { groups: inventoryGroups, lots } = useInventory(activeHousehold?.id);
 
   const title = params.title ?? "";
   const description = params.description ?? "";
-  const timeMinutes = Number(params.timeMinutes ?? 20);
-  const complexity = params.complexity ?? "simple";
   const servings = Number(params.servings ?? 2);
   const recipeId = params.recipeId ?? "";
   const cookedCount = Number(params.cookedCount ?? 0);
   const hasCooked = cookedCount > 0;
 
-  const ingredients: IngredientItem[] = params.ingredients
+  // Two-phase: a card arrives with ingredients (used fridge items) but no steps.
+  // We expand it on open into full ingredients + steps, then persist so the next
+  // open reads straight from the DB. Detail fields live in state so the expand
+  // result can replace the card placeholders in place.
+  const initialIngredients: IngredientItem[] = params.ingredients
     ? JSON.parse(params.ingredients)
     : [];
-  const steps: string[] = params.steps ? JSON.parse(params.steps) : [];
+  const initialSteps: string[] = params.steps ? JSON.parse(params.steps) : [];
+  const [detail, setDetail] = useState<{
+    ingredients: IngredientItem[];
+    steps: string[];
+    timeMinutes: number;
+    complexity: string;
+  }>({
+    ingredients: initialIngredients,
+    steps: initialSteps,
+    timeMinutes: Number(params.timeMinutes ?? 20),
+    complexity: params.complexity ?? "simple",
+  });
+  const [expanding, setExpanding] = useState(false);
+
+  const ingredients = detail.ingredients;
+  const steps = detail.steps;
+  const timeMinutes = detail.timeMinutes;
+  const complexity = detail.complexity;
+
+  useEffect(() => {
+    // Already expanded (or opened from a persisted, expanded row): nothing to do.
+    if (detail.steps.length > 0 || detail.ingredients.length === 0) return;
+    let cancelled = false;
+    setExpanding(true);
+    (async () => {
+      const result = await expandRecipe({
+        title,
+        description,
+        timeMinutes: detail.timeMinutes,
+        usedIngredientNames: detail.ingredients.map((ing) => ing.name),
+        inventory: lots,
+        avoidances: profile?.avoidances ?? [],
+        servings,
+      });
+      if (cancelled) return;
+      if (result) {
+        setDetail({
+          ingredients: result.ingredients,
+          steps: result.steps,
+          timeMinutes: result.timeMinutes,
+          complexity: result.complexity,
+        });
+        if (recipeId) {
+          updateRecipeDetail(recipeId, {
+            ingredients: result.ingredients,
+            steps: result.steps,
+            timeMinutes: result.timeMinutes,
+            complexity: result.complexity,
+            avoidanceTags: result.avoidanceTags,
+          }).catch(() => {
+            // Non-critical: detail still renders from state this session.
+          });
+        }
+      }
+      setExpanding(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Expand once per opened recipe; lots/profile are read at call time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipeId]);
 
   // Urgent ingredients are derived from LIVE inventory, not a generation-time
   // snapshot — the urgency band can change as items age (CODE_REVIEW #14/#2).
@@ -383,14 +446,23 @@ export default function RecipeDetailRoute() {
         </Text>
 
         <View style={styles.steps}>
-          {steps.map((step, i) => (
-            <View key={i} style={styles.stepRow}>
-              <View style={styles.stepNumber}>
-                <Text variant="small" color={colors.surface} style={styles.stepNumberText}>{i + 1}</Text>
+          {expanding && steps.length === 0 ? (
+            <>
+              <Text variant="body" muted>{t("recipes.detail.preparingSteps")}</Text>
+              {[0, 1, 2].map((i) => (
+                <View key={i} style={styles.stepSkeleton} />
+              ))}
+            </>
+          ) : (
+            steps.map((step, i) => (
+              <View key={i} style={styles.stepRow}>
+                <View style={styles.stepNumber}>
+                  <Text variant="small" color={colors.surface} style={styles.stepNumberText}>{i + 1}</Text>
+                </View>
+                <Text variant="body" style={styles.stepText}>{step}</Text>
               </View>
-              <Text variant="body" style={styles.stepText}>{step}</Text>
-            </View>
-          ))}
+            ))
+          )}
         </View>
       </View>
       </Animated.ScrollView>
@@ -778,6 +850,11 @@ const styles = StyleSheet.create({
   },
   steps: {
     gap: spacing.lg,
+  },
+  stepSkeleton: {
+    height: 14,
+    borderRadius: radii.sm,
+    backgroundColor: colors.surface2,
   },
   stepRow: {
     flexDirection: "row",

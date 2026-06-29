@@ -7,12 +7,20 @@ import { colors, fonts, radii, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
 
 export type BasePreference = "anything" | "protein" | "potatoes" | "pasta" | "vegetables";
+export type Cuisine =
+  | "any"
+  | "italian"
+  | "asian"
+  | "mexican"
+  | "barbecue"
+  | "mediterranean"
+  | "serbian";
 
 export type CookFilters = {
   mealType?: "breakfast" | "lunch" | "dinner" | "snack";
   maxMinutes?: number;
   minMinutes?: number;
-  vibe?: string;
+  cuisine?: Cuisine;
   basePreference?: BasePreference;
 };
 
@@ -34,9 +42,9 @@ type Props = {
     timeOptions: Record<Exclude<TimeOption, "any">, string>;
     servingsLabel: string;
     peopleCount: (count: number) => string;
-    keepItTo: string;
+    cuisine: string;
     eatFirstNote: string;
-    vibeOptions: Record<string, string>;
+    cuisineOptions: Record<Cuisine, string>;
     surprise: string;
     generate: string;
     cookingFor?: string;
@@ -55,16 +63,15 @@ type Props = {
 const MEAL_OPTIONS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
 const BASE_OPTIONS: BasePreference[] = ["anything", "protein", "potatoes", "pasta", "vegetables"];
 const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["15", "30", "45", "norush"];
-// Single-select: maps to the recipe matcher's `vibe` tag (one value, server-side).
-const VIBE_OPTIONS = [
-  "comfort",
-  "healthy",
-  "veggie",
-  "quick",
-  "high_protein",
-  "light",
-  "family_friendly",
-  "budget",
+// Single-select cuisine guide, sent to the AI as a soft preference.
+const CUISINE_OPTIONS: Cuisine[] = [
+  "any",
+  "italian",
+  "asian",
+  "mexican",
+  "barbecue",
+  "mediterranean",
+  "serbian",
 ];
 const SERVINGS_MIN = 1;
 const SERVINGS_MAX = 12;
@@ -83,14 +90,14 @@ export function CookPromptSheet({
   const [meal, setMeal] = useState<MealOption>("any");
   const [base, setBase] = useState<BasePreference>("anything");
   const [time, setTime] = useState<TimeOption>("any");
-  const [vibe, setVibe] = useState<string | null>(null);
+  const [cuisine, setCuisine] = useState<Cuisine>("any");
 
   function buildFilters(): CookFilters {
     const numericTime = time === "15" || time === "30" || time === "45" ? Number(time) : undefined;
     return {
       mealType: meal === "any" ? undefined : meal,
       maxMinutes: numericTime,
-      vibe: vibe ?? undefined,
+      cuisine: cuisine === "any" ? undefined : cuisine,
       basePreference: base === "anything" ? undefined : base,
     };
   }
@@ -100,7 +107,7 @@ export function CookPromptSheet({
     setMeal("any");
     setBase("anything");
     setTime("any");
-    setVibe(null);
+    setCuisine("any");
     onGenerate(undefined);
   }
 
@@ -200,15 +207,15 @@ export function CookPromptSheet({
           </View>
         </Section>
 
-        <Section label={labels.keepItTo}>
+        <Section label={labels.cuisine}>
           <View style={styles.chipWrap}>
-            {VIBE_OPTIONS.map((option) => (
+            {CUISINE_OPTIONS.map((option) => (
               <Chip
                 key={option}
-                label={labels.vibeOptions[option] ?? option}
-                active={vibe === option}
+                label={labels.cuisineOptions[option]}
+                active={cuisine === option}
                 tone="accent"
-                onPress={() => setVibe((current) => (current === option ? null : option))}
+                onPress={() => setCuisine(option)}
               />
             ))}
           </View>

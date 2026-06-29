@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 
 type GenerateRecipesRequest = {
   inventory?: Array<{
+    id?: string;
     name?: string;
     normalized_name?: string;
     category?: string;
@@ -27,8 +28,34 @@ type GenerateRecipesRequest = {
     maxMinutes?: number;
     minMinutes?: number;
     vibe?: string;
+    cuisine?: "any" | "italian" | "asian" | "mexican" | "barbecue" | "mediterranean" | "serbian";
     basePreference?: "anything" | "protein" | "potatoes" | "pasta" | "vegetables";
   };
+  // Two-phase generation. Absent ("full") keeps the legacy behavior so app
+  // builds already in the field keep working. "cards" returns lightweight cards
+  // (no steps/amounts); "expand" fills one selected card into a full recipe.
+  mode?: "full" | "cards" | "expand";
+  // Required when mode === "expand": the card the user tapped.
+  expandCard?: {
+    title: string;
+    description?: string;
+    usedIngredientNames?: string[];
+    mealType?: "breakfast" | "lunch" | "dinner" | "snack";
+    category?: string;
+    timeMinutes?: number;
+    tags?: string[];
+  };
+};
+
+// Lightweight card returned by mode === "cards".
+type AiRecipeCardLite = {
+  title: string;
+  description: string;
+  usedIngredientIds: string[];
+  tags: string[];
+  mealType: "breakfast" | "lunch" | "dinner" | "snack";
+  category: string;
+  timeMinutes: number;
 };
 
 // Human-readable name for the prompt; falls back to English for anything unmapped.
@@ -120,6 +147,66 @@ const RECIPE_SCHEMA = {
   additionalProperties: false,
 };
 
+// Slim schema for mode === "cards": no steps, no ingredient amounts. Cards stay
+// cheap to generate so the discovery screen appears fast; full detail is
+// deferred to mode === "expand" on tap.
+const CARD_SCHEMA = {
+  type: "object",
+  properties: {
+    recipes: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          description: { type: "string" },
+          usedIngredientIds: { type: "array", items: { type: "string" } },
+          tags: { type: "array", items: { type: "string" } },
+          mealType: { type: "string", enum: ["breakfast", "lunch", "dinner", "snack"] },
+          category: { type: "string" },
+          timeMinutes: { type: "integer" },
+        },
+        required: [
+          "title",
+          "description",
+          "usedIngredientIds",
+          "tags",
+          "mealType",
+          "category",
+          "timeMinutes",
+        ],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["recipes"],
+  additionalProperties: false,
+};
+
+// Schema for mode === "expand": only the heavy fields the card omitted. Title,
+// description and metadata already live on the card the client passes back.
+const EXPAND_SCHEMA = {
+  type: "object",
+  properties: {
+    ingredients: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          amount: { type: "string" },
+          required: { type: "boolean" },
+        },
+        required: ["name", "amount", "required"],
+        additionalProperties: false,
+      },
+    },
+    steps: { type: "array", items: { type: "string" } },
+  },
+  required: ["ingredients", "steps"],
+  additionalProperties: false,
+};
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
@@ -132,6 +219,14 @@ Deno.serve(async (req) => {
 
   const input = await req.json().catch(() => ({})) as GenerateRecipesRequest;
   const authHeader = req.headers.get("Authorization");
+
+  // Expand happens after a card is tapped: it does NOT consume a generation
+  // credit (the card phase already did) and has no idempotency lock, so it
+  // skips the quota gate entirely.
+  if (input.mode === "expand") {
+    return await handleExpand(input, authHeader, apiKey);
+  }
+
   const gate = await acquireGenerationAttempt(input, authHeader);
   if (gate.response) return gate.response;
 
@@ -143,6 +238,11 @@ Deno.serve(async (req) => {
   // generation tries something new before falling back to a repeat.
   // householdId is validated non-null by acquireGenerationAttempt above.
   const recentTitles = await fetchRecentRecipeTitles(gate.supabase, input.householdId!);
+
+  // Phase 1: lightweight cards (no steps/amounts) for fast discovery.
+  if (input.mode === "cards") {
+    return await handleCards(input, gate, client, recentTitles);
+  }
 
   // One model call per recipe.
   // gpt-5-mini is ~10x cheaper input / 5x cheaper output than gpt-4o yet makes
@@ -511,6 +611,9 @@ function buildMessages(
     `- max time: ${input.filters?.maxMinutes != null ? `${input.filters.maxMinutes} minutes` : "any"}`,
     `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
+    input.filters?.cuisine && input.filters.cuisine !== "any"
+      ? `- cuisine: ${input.filters.cuisine} — strongly prefer this cuisine, but if the inventory cannot make a coherent ${input.filters.cuisine} dish, fall back to the best coherent dish. Never sacrifice coherence for the cuisine.`
+      : "- cuisine: any",
     input.filters?.basePreference && input.filters.basePreference !== "anything"
       ? `- build around: ${input.filters.basePreference} — a guide, not a hard constraint. If this base cannot form a coherent dish from the available inventory, fall back to the best coherent recipe. Never sacrifice quality or coherence to satisfy the base.`
       : "- build around: anything",
@@ -608,6 +711,344 @@ function formatInventory(inventory: NonNullable<GenerateRecipesRequest["inventor
         : item.quantity != null
           ? `${item.quantity}${item.unit ? ` ${item.unit}` : ""}`
           : "unknown amount";
-    return `- ${name} (${normalized}); category=${item.category ?? "unknown"}; urgency=${item.urgency ?? "unknown"}; amount=${amount}; partial=${item.partial_state ?? "unknown"}`;
+    // `id=` lets card mode reference items by id in usedIngredientIds.
+    const idPart = item.id ? `id=${item.id}; ` : "";
+    return `- ${idPart}${name} (${normalized}); category=${item.category ?? "unknown"}; urgency=${item.urgency ?? "unknown"}; amount=${amount}; partial=${item.partial_state ?? "unknown"}`;
   });
+}
+
+// ---------------------------------------------------------------------------
+// Phase 1: cards
+// ---------------------------------------------------------------------------
+
+type InventoryItem = NonNullable<GenerateRecipesRequest["inventory"]>[number];
+
+async function handleCards(
+  input: GenerateRecipesRequest,
+  gate: { attemptId?: string; supabase?: ReturnType<typeof createClient>; premium?: boolean },
+  client: OpenAI,
+  recentTitles: string[],
+): Promise<Response> {
+  const wantCount = gate.premium === true ? 2 : 1;
+  const inventory = input.inventory ?? [];
+  const itemsById = new Map<string, InventoryItem>(
+    inventory.filter((item) => item.id).map((item) => [item.id as string, item]),
+  );
+
+  const runCards = () =>
+    client.chat.completions.create({
+      model: "gpt-5-mini",
+      max_completion_tokens: 1500,
+      reasoning_effort: "low",
+      messages: buildCardMessages(input, recentTitles, wantCount),
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "recipe_cards", strict: true, schema: CARD_SCHEMA },
+      },
+    });
+
+  let promptTokens = 0;
+  let completionTokens = 0;
+  let raw: AiRecipeCardLite[] = [];
+  let cards: AiRecipeCardLite[] = [];
+  const dropReasons: string[] = [];
+
+  try {
+    // Bounded retry: one extra attempt if every card failed validation.
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const response = await runCards();
+      promptTokens += response.usage?.prompt_tokens ?? 0;
+      completionTokens += response.usage?.completion_tokens ?? 0;
+      const text = response.choices[0]?.message?.content ?? "";
+      raw = (JSON.parse(text) as { recipes: AiRecipeCardLite[] }).recipes ?? [];
+      cards = validateCards(raw, input.avoidances ?? [], itemsById, dropReasons);
+      if (cards.length > 0) break;
+    }
+
+    for (const card of cards) card.title = cleanTitle(card.title);
+
+    console.info("[generate-recipes] cards", {
+      want: wantCount, raw: raw.length, kept: cards.length,
+      titles: cards.map((c) => c.title), promptTokens, completionTokens, dropReasons,
+    });
+
+    const payload = { source: "ai", recipes: cards };
+    if (gate.attemptId) {
+      await gate.supabase
+        ?.from("recipe_generation_attempts")
+        .update({
+          status: cards.length === 0 ? "failed" : "completed",
+          response_json: cards.length === 0
+            ? { source: "empty_diagnostic", raw: raw.length, dropReasons }
+            : payload,
+          error_message: cards.length === 0 ? "no_recipes_generated" : null,
+          prompt_tokens: promptTokens,
+          completion_tokens: completionTokens,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", gate.attemptId);
+    }
+    return Response.json(payload);
+  } catch (error) {
+    console.error("[generate-recipes] cards failed", error);
+    if (gate.attemptId) {
+      await gate.supabase
+        ?.from("recipe_generation_attempts")
+        .update({
+          status: "failed",
+          error_message: error instanceof Error ? error.message : "cards_failed",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", gate.attemptId);
+    }
+    return Response.json({ error: "generation_failed" }, { status: 500 });
+  }
+}
+
+// Deterministic safety layer on top of reasoning — drops cards the model should
+// not have produced. Returns only the cards that pass.
+function validateCards(
+  raw: AiRecipeCardLite[],
+  avoidances: string[],
+  itemsById: Map<string, InventoryItem>,
+  dropReasons: string[],
+): AiRecipeCardLite[] {
+  const normalizedAvoidances = avoidances.map((a) => a.toLowerCase().trim());
+  const keptSignatures: Set<string>[] = [];
+  const kept: AiRecipeCardLite[] = [];
+
+  for (const card of raw) {
+    const ids = (card.usedIngredientIds ?? []).filter((id) => itemsById.has(id));
+    if (ids.length === 0) {
+      dropReasons.push(`"${card.title}": no inventory items`);
+      continue;
+    }
+    const usedItems = ids.map((id) => itemsById.get(id)!);
+    const usedNames = usedItems.map((i) => (i.name ?? i.normalized_name ?? "").toLowerCase());
+    const titleLc = card.title.toLowerCase();
+    const savory = SAVORY_COOK_SIGNAL.some((signal) => titleLc.includes(signal));
+
+    if (savory && usedNames.some((n) => DESSERT_ONLY_FRUIT.some((f) => n.includes(f)))) {
+      dropReasons.push(`"${card.title}": incoherent (dessert fruit in savory dish)`);
+      continue;
+    }
+    if (usedItems.some((i) => i.category === "drinks")) {
+      dropReasons.push(`"${card.title}": uses a drink as an ingredient`);
+      continue;
+    }
+    if (savory && usedItems.some((i) => i.category === "snacks")) {
+      dropReasons.push(`"${card.title}": cooks a snack into a savory dish`);
+      continue;
+    }
+    if (
+      normalizedAvoidances.length > 0 &&
+      normalizedAvoidances.some((a) => titleLc.includes(a) || usedNames.some((n) => n.includes(a)))
+    ) {
+      dropReasons.push(`"${card.title}": touches an avoidance`);
+      continue;
+    }
+    const signature = new Set(ids);
+    if (keptSignatures.some((kept) => jaccard(signature, kept) >= 0.6)) {
+      dropReasons.push(`"${card.title}": near-duplicate`);
+      continue;
+    }
+    keptSignatures.push(signature);
+    kept.push({ ...card, usedIngredientIds: ids });
+  }
+  return kept;
+}
+
+function buildCardMessages(
+  input: GenerateRecipesRequest,
+  recentTitles: string[],
+  wantCount: number,
+): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+  const lang = languageName(input.language);
+  const user = [
+    recentTitles.length
+      ? `Recently suggested to this household — avoid repeating these or close variants unless nothing else coherent is possible: ${recentTitles.join("; ")}.`
+      : "",
+    `Language: write title, description and tags in ${lang}.`,
+    `Cooking mode: ${input.cookingMode ?? "household"}.`,
+    `Hard dietary constraints: ${
+      input.avoidances?.length ? `avoid ${input.avoidances.join(", ")}.` : "none"
+    }`,
+    "What the household has (use the id values in usedIngredientIds):",
+    ...formatInventory(input.inventory ?? []),
+    "Prompt filters:",
+    `- meal type: ${input.filters?.mealType ?? "any"}`,
+    `- max time: ${input.filters?.maxMinutes != null ? `${input.filters.maxMinutes} minutes` : "any"}`,
+    `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
+    input.filters?.cuisine && input.filters.cuisine !== "any"
+      ? `- cuisine: ${input.filters.cuisine} — strongly prefer this cuisine, but if the inventory cannot make a coherent ${input.filters.cuisine} dish, fall back to the best coherent dish. Never sacrifice coherence for the cuisine.`
+      : "- cuisine: any",
+    input.filters?.basePreference && input.filters.basePreference !== "anything"
+      ? `- build around: ${input.filters.basePreference} — a guide, not a hard constraint. Fall back to the best coherent recipe if the base does not fit. Never sacrifice coherence for the base.`
+      : "- build around: anything",
+    wantCount === 2
+      ? "Return EXACTLY 2 recipe cards that are genuinely different dishes (different main technique or cuisine; neither a variant of the other). If only one coherent dish exists, return 1. If none, return an empty array."
+      : "Return EXACTLY 1 recipe card: your most confident coherent pick. If none is coherent, return an empty array.",
+    "These are lightweight cards: title, one-sentence description, usedIngredientIds, tags (max 3), mealType, category (course type e.g. main/salad/breakfast), and timeMinutes. Do NOT write steps or ingredient amounts.",
+    "usedIngredientIds MUST be ids copied verbatim from the inventory list above, only for items the dish actually uses.",
+  ].join("\n");
+
+  return [
+    { role: "system", content: SYSTEM_PROMPT },
+    { role: "user", content: user },
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2: expand
+// ---------------------------------------------------------------------------
+
+async function handleExpand(
+  input: GenerateRecipesRequest,
+  authHeader: string | null,
+  apiKey: string,
+): Promise<Response> {
+  const card = input.expandCard;
+  if (!card?.title) {
+    return Response.json({ error: "missing_expand_card" }, { status: 400 });
+  }
+  const auth = await authenticate(authHeader);
+  if (auth.response) return auth.response;
+
+  const client = new OpenAI({ apiKey });
+  try {
+    const response = await client.chat.completions.create({
+      model: "gpt-5-mini",
+      max_completion_tokens: 2000,
+      // The dish is already chosen and validated at the card stage, so expansion
+      // is elaboration, not a coherence decision — "minimal" reasoning keeps it
+      // fast. (Selection quality lives in the card phase, which runs "low".)
+      reasoning_effort: "minimal",
+      messages: buildExpandMessages(input, card),
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "recipe_detail", strict: true, schema: EXPAND_SCHEMA },
+      },
+    });
+    const text = response.choices[0]?.message?.content ?? "";
+    const detail = JSON.parse(text) as {
+      ingredients: { name: string; amount: string; required: boolean }[];
+      steps: string[];
+    };
+
+    const servings = input.servings ?? 2;
+    const ingredients = detail.ingredients.map((ing) => ({
+      ...ing,
+      countable: deriveCountable(ing.amount),
+    }));
+    const recipe: AiRecipeCard = {
+      title: cleanTitle(card.title),
+      description: card.description ?? "",
+      timeMinutes: card.timeMinutes ?? estimateTime(detail.steps.length),
+      complexity: deriveComplexity(detail.steps.length, card.timeMinutes ?? 0),
+      servings,
+      mealType: card.mealType ?? "dinner",
+      category: card.category ?? "",
+      tags: card.tags ?? [],
+      avoidanceTags: deriveAvoidanceTags(ingredients, input.avoidances ?? []),
+      ingredients,
+      steps: detail.steps,
+    };
+
+    console.info("[generate-recipes] expand", {
+      title: recipe.title,
+      ingredients: ingredients.length,
+      steps: detail.steps.length,
+      promptTokens: response.usage?.prompt_tokens,
+      completionTokens: response.usage?.completion_tokens,
+    });
+    return Response.json({ source: "ai", recipe });
+  } catch (error) {
+    console.error("[generate-recipes] expand failed", error);
+    return Response.json({ error: "expand_failed" }, { status: 500 });
+  }
+}
+
+// Lean system prompt for expansion — only step/ingredient rules. The heavy
+// selection/coherence rules in SYSTEM_PROMPT are irrelevant once the dish is
+// chosen, and including them costs reasoning + latency for no benefit.
+const EXPAND_SYSTEM_PROMPT = [
+  "You write the full ingredient list and steps for a dish that has ALREADY been chosen. Keep the dish as given; do not change it.",
+  "Ingredient names should match household item names where used. required=true only for items taken from the fridge; required=false for pantry staples (oil, salt, garlic, spices).",
+  "Ingredient amounts: counts for whole/countable produce (e.g. '2 tomatoes', '3 eggs'); weight or volume otherwise (e.g. '400g rice', '100ml milk').",
+  "Write steps for a beginner cook: cooking steps (stove/oven) name the heat level, pan or pot size where relevant, a time estimate, and a doneness cue. Prep and assembly steps just state the action — never write \"no heat\" or a heat level for them.",
+  "One action per step. At most 8 steps and at most 12 ingredients. Do not pad.",
+  "Never include avoided ingredients.",
+].join("\n");
+
+function buildExpandMessages(
+  input: GenerateRecipesRequest,
+  card: NonNullable<GenerateRecipesRequest["expandCard"]>,
+): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+  const lang = languageName(input.language);
+  const servings = input.servings ?? 2;
+  const inventory = input.inventory ?? [];
+  const usedNames = card.usedIngredientNames ?? [];
+
+  const user = [
+    `Expand this chosen dish into a full recipe: "${card.title}"${card.description ? ` — ${card.description}` : ""}.`,
+    `Write everything in ${lang}. Servings MUST equal ${servings}.`,
+    usedNames.length ? `Build it around these household items: ${usedNames.join(", ")}.` : "",
+    `Hard dietary constraints: ${
+      input.avoidances?.length
+        ? `avoid ${input.avoidances.join(", ")}; do not include them anywhere.`
+        : "none"
+    }`,
+    "What the household has:",
+    ...formatInventory(inventory),
+    "Return ONLY ingredients and steps for THIS dish.",
+  ].join("\n");
+
+  return [
+    { role: "system", content: EXPAND_SYSTEM_PROMPT },
+    { role: "user", content: user },
+  ];
+}
+
+// Lightweight auth for expand: validates the bearer token only (no quota, no
+// attempt lock). Mirrors the head of acquireGenerationAttempt.
+async function authenticate(authHeader: string | null) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) {
+    return { response: Response.json({ error: "missing_supabase_service_config" }, { status: 500 }) };
+  }
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { response: Response.json({ error: "missing_authorization" }, { status: 401 }) };
+  }
+  const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+  const jwt = authHeader.replace("Bearer ", "");
+  const { data: userResult, error: userError } = await supabase.auth.getUser(jwt);
+  const userId = userResult.user?.id;
+  if (userError || !userId) {
+    return { response: Response.json({ error: "invalid_authorization" }, { status: 401 }) };
+  }
+  return { supabase, userId };
+}
+
+// ---- Fields derived in code instead of generated (saves output tokens) ----
+
+// Weight/volume amount → measured (not countable); bare counts → countable.
+function deriveCountable(amount: string): boolean {
+  return !/\d\s*(g|kg|ml|l|cl|dl)\b/i.test(amount);
+}
+
+function deriveComplexity(stepCount: number, timeMinutes: number): AiRecipeCard["complexity"] {
+  if (stepCount <= 4 && (timeMinutes === 0 || timeMinutes <= 20)) return "simple";
+  if (stepCount >= 8 || timeMinutes >= 45) return "involved";
+  return "medium";
+}
+
+function deriveAvoidanceTags(ingredients: { name: string }[], avoidances: string[]): string[] {
+  if (avoidances.length === 0) return [];
+  const names = ingredients.map((i) => i.name.toLowerCase());
+  return avoidances.filter((a) => names.some((n) => n.includes(a.toLowerCase().trim())));
+}
+
+function estimateTime(stepCount: number): number {
+  return Math.max(10, stepCount * 5);
 }

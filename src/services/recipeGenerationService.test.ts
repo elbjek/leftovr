@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   AiRecipeCard,
+  AiRecipeCardLite,
   buildRecipeGenerationPrompt,
   generateRecipeMatches,
+  mapAiCardsToMatches,
   mapAiRecipesToMatches,
   RecipeGenerationInput,
 } from "./recipeGenerationService";
@@ -141,5 +143,42 @@ describe("mapAiRecipesToMatches", () => {
 
     expect(match.title).toBe("Garlic spinach saute");
     expect(match.tags).toContain("healthy");
+  });
+});
+
+describe("mapAiCardsToMatches", () => {
+  const unfilteredInput: RecipeGenerationInput = { ...input, filters: undefined };
+
+  const card: AiRecipeCardLite = {
+    title: "Garlic spinach saute",
+    description: "Quick wilted spinach with garlic.",
+    usedIngredientIds: ["spinach-1"],
+    tags: ["healthy"],
+    mealType: "dinner",
+    category: "dinner",
+    timeMinutes: 15,
+  };
+
+  it("builds ingredients from used fridge items and leaves steps empty", () => {
+    const [match] = mapAiCardsToMatches([card], unfilteredInput);
+
+    expect(match.title).toBe("Garlic spinach saute");
+    expect(match.steps).toEqual([]);
+    // Ingredient is the used item, addressed by canonical name so the matcher
+    // links it back to inventory (used for the green "from fridge" linkage).
+    expect(match.ingredients).toHaveLength(1);
+    expect(match.ingredients[0].name).toBe("spinach");
+    expect(match.ingredients[0].required).toBe(true);
+    expect(
+      match.matchedItems.some((m) => m.inFridge && m.inventoryLot?.id === "spinach-1"),
+    ).toBe(true);
+  });
+
+  it("ignores usedIngredientIds that are not in inventory", () => {
+    const ghost: AiRecipeCardLite = { ...card, usedIngredientIds: ["spinach-1", "missing-9"] };
+    const [match] = mapAiCardsToMatches([ghost], unfilteredInput);
+
+    expect(match.ingredients).toHaveLength(1);
+    expect(match.ingredients[0].name).toBe("spinach");
   });
 });
