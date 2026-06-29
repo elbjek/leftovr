@@ -134,49 +134,58 @@ Deno.serve(async (req) => {
   const gate = await acquireGenerationAttempt(input, authHeader);
   if (gate.response) return gate.response;
 
-  // Each call generates a single recipe: premium runs two variants in
-  // parallel, so wall-clock latency is one recipe instead of two. Input
-  // tokens are paid per call but are a rounding error next to output.
-  // The confident pick runs cool for sensible, predictable dishes/titles; the
-  // alternative runs hot so it diverges from the obvious choice.
-  const variants: Array<"confident" | "alternative"> = gate.premium === true
-    ? ["confident", "alternative"]
-    : ["confident"];
+  const client = new OpenAI({ apiKey });
+
+  // Recipe generation is stateless, so a fridge dominated by a couple of items
+  // (turkey, yogurt) keeps yielding the same obvious dishes across sessions.
+  // Feed the household's recent titles in as a soft avoid-list so each fresh
+  // generation tries something new before falling back to a repeat.
+  // householdId is validated non-null by acquireGenerationAttempt above.
+  const recentTitles = await fetchRecentRecipeTitles(gate.supabase, input.householdId!);
+
+  // One model call per recipe.
+  // gpt-5-mini is ~10x cheaper input / 5x cheaper output than gpt-4o yet makes
+  // the culinary-coherence judgment gpt-4o kept ignoring. Reasoning "low" gates
+  // out junk combos while keeping latency usable — "medium" roughly tripled
+  // reasoning tokens and pushed generation past 40s. Reasoning-series takes no
+  // custom temperature; max_completion_tokens leaves headroom for reasoning
+  // tokens on top of the recipe JSON.
+  const runVariant = (
+    variant: "confident" | "alternative",
+    exclude?: { title: string; ingredients: string[] },
+  ) =>
+    client.chat.completions.create({
+      model: "gpt-5-mini",
+      max_completion_tokens: 6000,
+      reasoning_effort: "low",
+      messages: buildMessages(input, variant, exclude, recentTitles),
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "recipes", strict: true, schema: RECIPE_SCHEMA },
+      },
+    });
 
   try {
-    const client = new OpenAI({ apiKey });
-    const settled = await Promise.allSettled(
-      variants.map((variant) =>
-        client.chat.completions.create({
-          // gpt-5-mini is ~10x cheaper input / 5x cheaper output than gpt-4o yet
-          // makes the culinary-coherence judgment gpt-4o kept ignoring. Reasoning
-          // "medium" is the main quality lever within budget — it does the
-          // culinary-coherence gating, worth more than prompt tweaks. At ~$0.018
-          // per premium gen (2 variants) the 150/mo cap is $2.70 worst case,
-          // well inside the post-Apple margin. Reasoning-series: no custom
-          // temperature (variant divergence comes from the prompt);
-          // max_completion_tokens leaves headroom for reasoning tokens on top of
-          // the recipe JSON.
-          model: "gpt-5-mini",
-          max_completion_tokens: 6000,
-          reasoning_effort: "medium",
-          messages: buildMessages(input, variant),
-          response_format: {
-            type: "json_schema",
-            json_schema: { name: "recipes", strict: true, schema: RECIPE_SCHEMA },
-          },
-        })
-      ),
-    );
+    // Sequential, not parallel: the alternative is told exactly which dish the
+    // confident call chose so the two never collapse into the same recipe under
+    // different names. ~2x wall-clock vs parallel, but premium reliably gets two
+    // distinct recipes instead of paying for a near-duplicate that gets dropped.
+    const confident = await runVariant("confident");
+    const responses = [confident];
 
-    const responses = settled
-      .filter((result) => result.status === "fulfilled")
-      .map((result) =>
-        (result as PromiseFulfilledResult<OpenAI.Chat.Completions.ChatCompletion>).value
-      );
-    // One variant failing shouldn't sink the whole generation for premium.
-    if (responses.length === 0) {
-      throw (settled[0] as PromiseRejectedResult).reason;
+    if (gate.premium === true) {
+      const firstText = confident.choices[0]?.message?.content ?? "";
+      const firstRecipe =
+        (JSON.parse(firstText) as { recipes: AiRecipeCard[] }).recipes[0];
+      const exclude = firstRecipe
+        ? { title: firstRecipe.title, ingredients: firstRecipe.ingredients.map((i) => i.name) }
+        : undefined;
+      try {
+        responses.push(await runVariant("alternative", exclude));
+      } catch (altError) {
+        // One variant failing shouldn't sink the whole generation for premium.
+        console.error("[generate-recipes] alternative variant failed", altError);
+      }
     }
 
     const allRecipes = responses.flatMap((response) => {
@@ -437,7 +446,7 @@ const SYSTEM_PROMPT = [
   "  'Hearty Wholesome Vegetable Medley Bowl' -> 'Roasted vegetable bowl'",
   "  'Pasta with Tomatoes and Garlic and Basil' -> 'Tomato basil pasta'",
   "Keep the description to one short sentence. Use at most 3 tags.",
-  "Write steps for a beginner cook: each step names the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\").",
+  "Write steps for a beginner cook: cooking steps (stove/oven) name the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\"). Prep and assembly steps (chopping, mixing, plating) do NOT involve a stove — never write \"no heat\", \"off heat\", or a heat level for them; just state the action.",
   "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
   "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
   "Every recipe must use at least one item the household has, and prefer items with higher urgency.",
@@ -448,12 +457,42 @@ const SYSTEM_PROMPT = [
   "Empty result is allowed and correct: if the household has too little food, or nothing in it forms a single coherent, appetizing real dish (even from a small subset), return an empty recipes array. Returning nothing beats inventing a forced or nonsensical dish — never pad an empty fridge into a recipe just to have an answer.",
 ].join("\n");
 
+// Most-recent distinct recipe titles for a household — used to steer fresh
+// generations away from dishes already suggested. Best-effort: on any error it
+// returns [] so generation still proceeds.
+async function fetchRecentRecipeTitles(
+  supabase: ReturnType<typeof createClient>,
+  householdId: string,
+): Promise<string[]> {
+  const { data } = await supabase
+    .from("recipes")
+    .select("title")
+    .eq("household_id", householdId)
+    .order("created_at", { ascending: false })
+    .limit(15);
+  const seen = new Set<string>();
+  const titles: string[] = [];
+  for (const row of data ?? []) {
+    const title = (row.title as string | null)?.trim();
+    if (title && !seen.has(title.toLowerCase())) {
+      seen.add(title.toLowerCase());
+      titles.push(title);
+    }
+  }
+  return titles;
+}
+
 function buildMessages(
   input: GenerateRecipesRequest,
   variant: "confident" | "alternative",
+  exclude?: { title: string; ingredients: string[] },
+  recentTitles: string[] = [],
 ): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
   const lang = languageName(input.language);
   const user = [
+    recentTitles.length
+      ? `Recently suggested to this household — avoid repeating these or close variants unless nothing else coherent is possible: ${recentTitles.join("; ")}.`
+      : "",
     `Language: write the ENTIRE recipe in ${lang} — title, description, every step, all tags, AND all ingredient names. Do NOT mix languages within a recipe. If an item name is in another language, translate it into ${lang} (keep it the natural name a ${lang} cook would use). The only exception is proper brand names, which stay as-is.`,
     `Cooking mode: ${input.cookingMode ?? "household"}.`,
     `Servings: ${input.servings ?? 2}.`,
@@ -472,7 +511,11 @@ function buildMessages(
     `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
     variant === "alternative"
-      ? "Return 1 recipe card: a clearly different alternative to the most obvious dish for these items — pick a different main technique or cuisine than the predictable first choice. If no coherent second dish exists, return an empty recipes array instead of forcing one."
+      ? `Return 1 recipe card: a genuinely different dish from the one already chosen for this household.${
+        exclude
+          ? ` Do NOT make "${exclude.title}" or any close variant of it, and do not build around the same core ingredients (${exclude.ingredients.join(", ")}). Choose a different main technique or cuisine.`
+          : " Pick a different main technique or cuisine than the predictable first choice."
+      } If no coherent second dish exists, return an empty recipes array instead of forcing one.`
       : "Return 1 recipe card: your single most confident pick for what this household has. If the household cannot make any coherent real dish, return an empty recipes array instead of inventing one.",
   ].join("\n");
 

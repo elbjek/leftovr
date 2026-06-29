@@ -108,16 +108,19 @@ export default function RecipeDetailRoute() {
 
   const complexityLabel = formatComplexity(complexity);
   const liveFridgeNames = new Set(inventoryGroups.map((group) => group.normalizedName));
-  const fridgeCount = ingredients.filter((ing) =>
-    liveFridgeNames.has(normalizeFoodName(ing.name)),
-  ).length;
+  // An ingredient is "owned" if the model took it from the fridge (required=true)
+  // or its name still matches a live fridge item. Receipt-sourced inventory has
+  // messy names (e.g. "Krastavac domaci"), so name-matching alone misses items
+  // the recipe genuinely used — `required` is the reliable signal.
+  const isOwned = (ing: IngredientItem) =>
+    ing.required || liveFridgeNames.has(normalizeFoodName(ing.name));
+  const fridgeCount = ingredients.filter(isOwned).length;
 
   function handleCookPress() {
     // Pre-tick every ingredient currently in the fridge (live by name),
     // not just the ones matched when the recipe was generated.
-    const fridgeNames = new Set(inventoryGroups.map((group) => group.normalizedName));
     const items = ingredients.map((ing) => {
-      const inFridge = fridgeNames.has(normalizeFoodName(ing.name));
+      const inFridge = isOwned(ing);
       const parsed = parseIngredientAmount(ing.amount);
       return {
         name: ing.name,
@@ -334,9 +337,7 @@ export default function RecipeDetailRoute() {
             </Text>
             <View style={styles.ingredientChips}>
               {ingredients.map((ing, i) => {
-                // Live fridge check by name — generation-time lot ids go stale
-                // once items are depleted or re-added.
-                const inFridge = liveFridgeNames.has(normalizeFoodName(ing.name));
+                const inFridge = isOwned(ing);
                 const isUrgent = matchedUrgentItems.includes(ing.name);
                 const missingRequired = !inFridge && ing.required;
                 const expanded = expandedIngredient === i;
