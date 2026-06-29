@@ -325,10 +325,12 @@ export default function RecipeDetailRoute() {
           <Text variant="small" muted>{complexityLabel}</Text>
         </View>
 
-        {fridgeCount > 0 ? (
+        {ingredients.length > 0 ? (
           <>
             <Text variant="micro" muted style={styles.sectionLabel}>
-              {t("recipes.detail.fromFridgeCount", { count: fridgeCount })}
+              {fridgeCount > 0
+                ? t("recipes.detail.fromFridgeCount", { count: fridgeCount })
+                : t("recipes.detail.ingredients")}
             </Text>
             <View style={styles.ingredientChips}>
               {ingredients.map((ing, i) => {

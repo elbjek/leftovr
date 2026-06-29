@@ -285,6 +285,7 @@ export const sr = {
       title: "Proveri racun",
       body: "Izmeni cudne stavke, ukloni pogresne, pa dodaj u kuhinju.",
       checkThis: "Proveri ovo",
+      scannedAs: "Skenirano kao",
       nameLabel: "Stavka",
       addCta: "Dodaj {{count}} stavki",
       removeItem: "Ukloni stavku",
@@ -475,6 +476,7 @@ export const sr = {
     detail: {
       backLabel: "Nazad",
       fromFridgeCount: "Od onoga sto imas · {{count}} stavki",
+      ingredients: "Sastojci",
       howToCook: "Kako kuvati",
       cookCta: "Skuvao sam ovo",
       cookAgainCta: "Kuvaj ponovo",

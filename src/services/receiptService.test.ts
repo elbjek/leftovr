@@ -19,6 +19,7 @@ const baseItems: ReceiptConfirmItem[] = [
   {
     id: "row-1",
     name: "  Greek yogurt  ",
+    normalizedName: "greek yogurt",
     category: "dairy_eggs",
     quantity: 2,
     unit: " tub ",
@@ -29,6 +30,7 @@ const baseItems: ReceiptConfirmItem[] = [
   {
     id: "row-2",
     name: "Avcado",
+    normalizedName: "avocado",
     category: "fruit",
     quantity: 2,
     unit: "item",

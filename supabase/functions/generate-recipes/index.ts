@@ -148,9 +148,18 @@ Deno.serve(async (req) => {
     const settled = await Promise.allSettled(
       variants.map((variant) =>
         client.chat.completions.create({
-          model: "gpt-4o",
-          max_tokens: 6000,
-          temperature: variant === "alternative" ? 0.7 : 0.5,
+          // gpt-5-mini is ~10x cheaper input / 5x cheaper output than gpt-4o yet
+          // makes the culinary-coherence judgment gpt-4o kept ignoring. Reasoning
+          // "medium" is the main quality lever within budget — it does the
+          // culinary-coherence gating, worth more than prompt tweaks. At ~$0.018
+          // per premium gen (2 variants) the 150/mo cap is $2.70 worst case,
+          // well inside the post-Apple margin. Reasoning-series: no custom
+          // temperature (variant divergence comes from the prompt);
+          // max_completion_tokens leaves headroom for reasoning tokens on top of
+          // the recipe JSON.
+          model: "gpt-5-mini",
+          max_completion_tokens: 6000,
+          reasoning_effort: "medium",
           messages: buildMessages(input, variant),
           response_format: {
             type: "json_schema",
@@ -179,7 +188,7 @@ Deno.serve(async (req) => {
     // Dedupe by ingredient set, not title: the premium variants often share the
     // same ingredients under different names (e.g. "...sourdough toast" vs
     // "...toast"), which is a duplicate, not a real alternative.
-    const seenSignatures = new Set<string>();
+    const keptSignatures: Set<string>[] = [];
     const dropReasons: string[] = [];
     const recipes = allRecipes.filter((recipe) => {
       if (recipe.ingredients.length === 0 || recipe.steps.length === 0) {
@@ -190,12 +199,21 @@ Deno.serve(async (req) => {
         dropReasons.push(`"${recipe.title}": violates avoidances`);
         return false;
       }
-      const signature = ingredientSignature(recipe.ingredients);
-      if (seenSignatures.has(signature)) {
-        dropReasons.push(`"${recipe.title}": duplicate signature`);
+      if (isIncoherent(recipe)) {
+        dropReasons.push(`"${recipe.title}": incoherent combination`);
         return false;
       }
-      seenSignatures.add(signature);
+      // Near-duplicate, not just exact: the variants often differ by a single
+      // swapped ingredient (e.g. "greek yogurt" vs "galbani cheese" in the same
+      // salad), so an exact set match misses them. Drop a recipe that overlaps
+      // an already-kept one by >=60% of its ingredient names (Jaccard).
+      const signature = ingredientNameSet(recipe.ingredients);
+      const duplicate = keptSignatures.find((kept) => jaccard(signature, kept) >= 0.6);
+      if (duplicate) {
+        dropReasons.push(`"${recipe.title}": near-duplicate ingredients`);
+        return false;
+      }
+      keptSignatures.push(signature);
       return true;
     });
 
@@ -479,12 +497,42 @@ function cleanTitle(raw: string): string {
 
 // Sorted, normalized ingredient-name set — identifies recipes that are the
 // same dish under a different title.
-function ingredientSignature(ingredients: { name: string }[]) {
-  return ingredients
-    .map((ingredient) => ingredient.name.toLowerCase().trim().replace(/\s+/g, " "))
-    .filter(Boolean)
-    .sort()
-    .join("|");
+function ingredientNameSet(ingredients: { name: string }[]) {
+  return new Set(
+    ingredients
+      .map((ingredient) => ingredient.name.toLowerCase().trim().replace(/\s+/g, " "))
+      .filter(Boolean),
+  );
+}
+
+// Jaccard overlap of two name sets: |intersection| / |union|. 1 = identical.
+function jaccard(a: Set<string>, b: Set<string>) {
+  if (a.size === 0 || b.size === 0) return 0;
+  let shared = 0;
+  for (const name of a) if (b.has(name)) shared += 1;
+  return shared / (a.size + b.size - shared);
+}
+
+// Deliberately narrow, model-independent backstop for the one violation the
+// model still slips through despite the prompt: a clearly-dessert fruit cooked
+// into a savory egg/fry base (e.g. banana frittata, blueberry stir-fry). Kept
+// tight on purpose — fruit + cheese is a real pairing (cheese board), so it is
+// NOT caught here; that taste call is left to the model.
+const DESSERT_ONLY_FRUIT = [
+  "banana", "strawberr", "blueberr", "raspberr", "blackberr", "watermelon", "fig",
+];
+const SAVORY_COOK_SIGNAL = [
+  "frittata", "omelet", "scramble", "stir-fry", "stir fry", "stirfry", "quiche",
+];
+
+function isIncoherent(recipe: AiRecipeCard): boolean {
+  const dish = [recipe.title, ...recipe.steps].join(" ").toLowerCase();
+  if (!SAVORY_COOK_SIGNAL.some((signal) => dish.includes(signal))) return false;
+  return recipe.ingredients
+    .filter((ingredient) => ingredient.required)
+    .some((ingredient) =>
+      DESSERT_ONLY_FRUIT.some((fruit) => ingredient.name.toLowerCase().includes(fruit)),
+    );
 }
 
 function violatesAvoidances(recipe: AiRecipeCard, avoidances: string[]) {

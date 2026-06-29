@@ -1,11 +1,17 @@
 import {
+  canonicalFoodName,
+  getCatalogFood,
   getCatalogNet,
   getShelfLifeRange,
   InventoryCategory,
   normalizeFoodName,
 } from "./inventoryRules";
 
-const HIGH_CONFIDENCE_THRESHOLD = 0.75;
+// The model self-reports honestly only at the extremes: it parks anything it
+// corrected, guessed, or stripped store-noise from at ~0.8 and reserves ~0.9
+// for genuinely-clean reads. Gate at 0.85 so the 0.8 "fudged" tier gets flagged
+// for a human look; raise toward 0.9 if junk still slips through.
+const HIGH_CONFIDENCE_THRESHOLD = 0.85;
 
 // The model often expands cryptic OCR text into a plausible food at high
 // confidence, so confidence alone misses junk names. Flag deterministically
@@ -25,12 +31,17 @@ export function looksUnnamed(rawName: string): boolean {
 export type ReceiptConfirmItem = {
   id: string;
   name: string;
+  // Canonical English food name from the model — the key recipes match on.
+  // Display `name` stays in the receipt's language; this does not.
+  normalizedName: string;
   category: InventoryCategory;
   quantity: number;
   unit: string;
   confidence: number;
   lowConfidence: boolean;
   included: boolean;
+  // Raw OCR text the line was scanned from; shown as "scanned as" context.
+  rawText?: string;
   // Optional user-picked expiry (YYYY-MM-DD); falls back to shelf-life range.
   expiresAt?: string | null;
 };
@@ -67,6 +78,7 @@ export function buildReceiptConfirmItemsFromLines(
   return lines.map((line, index) => ({
     id: `line-${index}`,
     name: line.item.name,
+    normalizedName: line.item.normalizedName,
     category: (VALID_CATEGORIES.has(line.item.category)
       ? line.item.category
       : "other") as ReceiptConfirmItem["category"],
@@ -78,6 +90,7 @@ export function buildReceiptConfirmItemsFromLines(
       looksUnnamed(line.item.normalizedName) ||
       looksUnnamed(line.item.name),
     included: true,
+    rawText: line.rawText,
   }));
 }
 
@@ -96,7 +109,13 @@ export function buildConfirmedReceiptInventoryRows(
       return {
         household_id: input.householdId,
         name,
-        normalized_name: normalizeFoodName(name),
+        // A recognized (often edited) name wins — the user's correction is
+        // authoritative. Otherwise use the model's English canonical so a
+        // foreign receipt name still matches English recipe ingredients;
+        // fall back to the raw name only when neither is available.
+        normalized_name: getCatalogFood(name)
+          ? canonicalFoodName(name)
+          : item.normalizedName?.trim() || normalizeFoodName(name),
         category: item.category,
         quantity,
         unit,

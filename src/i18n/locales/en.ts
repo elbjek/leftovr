@@ -285,6 +285,7 @@ export const en = {
       title: "Check your receipt",
       body: "Edit anything weird, remove anything wrong, then add it to your kitchen.",
       checkThis: "Check this",
+      scannedAs: "Scanned as",
       nameLabel: "Item",
       addCta: "Add {{count}} items",
       removeItem: "Remove item",
@@ -474,6 +475,7 @@ export const en = {
     detail: {
       backLabel: "Back",
       fromFridgeCount: "From what you have · {{count}} items",
+      ingredients: "Ingredients",
       howToCook: "How to cook",
       cookCta: "I cooked this",
       cookAgainCta: "Cook again",
