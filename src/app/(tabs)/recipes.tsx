@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
@@ -21,6 +21,7 @@ type RecipeIngredientParam = { name: string };
 
 export default function RecipesRoute() {
   const { t } = useTranslation();
+  const { autoGenerate } = useLocalSearchParams<{ autoGenerate?: string }>();
   const { profile, activeHousehold, refresh } = useAuth();
   const { lots: inventory } = useInventory(activeHousehold?.id);
   const { members, combinedAvoidances } = useHousehold(activeHousehold?.id);
@@ -36,6 +37,8 @@ export default function RecipesRoute() {
   const [cookPromptKey, setCookPromptKey] = useState(0);
   const [cookingMode, setCookingMode] = useState<CookingMode>("household");
   const [generateNotice, setGenerateNotice] = useState<string | null>(null);
+  const [lastFilters, setLastFilters] = useState<CookFilters | undefined>(undefined);
+  const [refreshing, setRefreshing] = useState(false);
 
   const showCookingMode = members.length >= 2;
   const activeAvoidances = cookingMode === "household" ? combinedAvoidances : userAvoidances;
@@ -75,6 +78,15 @@ export default function RecipesRoute() {
     }, [refreshRecipes]),
   );
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refreshRecipes(), refresh()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshRecipes, refresh]);
+
   const openCookPrompt = useCallback(() => {
     if (!canGenerate) {
       setShowPremium(true);
@@ -96,9 +108,30 @@ export default function RecipesRoute() {
     setFilterTime(null);
     setTab("all");
     setShowCookPrompt(false);
+    setLastFilters(filters);
     const result = await generateSession(cookingMode, filters);
     setGenerateNotice(result && result.recipes.length === 0 ? t("recipes.noMakeable") : null);
   }, [canGenerate, cookingMode, generateSession, t]);
+
+  // "Show me others": regenerate with the last-used filters, skipping the
+  // cook prompt — premium taps it when the two suggestions don't land.
+  const handleShowOthers = useCallback(() => {
+    if (!canGenerate) {
+      setShowPremium(true);
+      return;
+    }
+    void handleGenerate(lastFilters);
+  }, [canGenerate, handleGenerate, lastFilters]);
+
+  // Arriving from the "Tonight's idea" card: kick off a generation right away
+  // (expiring items lead, per the edge prompt) instead of dropping the user on
+  // an idle list. Clear the param first so it fires once. Gating lives in
+  // handleGenerate (free users hit the premium sheet).
+  useEffect(() => {
+    if (autoGenerate !== "1") return;
+    router.setParams({ autoGenerate: undefined });
+    void handleGenerate(undefined);
+  }, [autoGenerate, handleGenerate]);
 
   // Single navigation builder. The detail screen recomputes which ingredients
   // are in-fridge/urgent from live inventory and depletes by name, so neither
@@ -362,6 +395,9 @@ export default function RecipesRoute() {
             style={styles.listScroll}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+            }
           >
             {hasActiveFilters ? (
               <View style={styles.activeFilterRow}>
@@ -480,6 +516,19 @@ export default function RecipesRoute() {
                     })
                   )}
                 </View>
+                {filteredSuggestions.length > 0 ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={generating}
+                    onPress={handleShowOthers}
+                    style={({ pressed }) => [styles.showOthers, pressed && styles.savedRowPressed]}
+                  >
+                    <RefreshIcon />
+                    <Text variant="label" color={colors.primary}>
+                      {t("recipes.showOthers")}
+                    </Text>
+                  </Pressable>
+                ) : null}
               </View>
             ) : null}
 
@@ -803,6 +852,21 @@ function SearchIcon() {
   );
 }
 
+function RefreshIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16">
+      <Path
+        d="M13 5A5.5 5.5 0 1 0 14 8"
+        stroke={colors.primary}
+        strokeWidth={1.6}
+        fill="none"
+        strokeLinecap="round"
+      />
+      <Path d="M13 2v3h-3" stroke={colors.primary} strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 function FilterIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 16 16">
@@ -1059,6 +1123,18 @@ const styles = StyleSheet.create({
   },
   cardList: {
     gap: spacing.md,
+  },
+  showOthers: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    minHeight: 44,
+    marginTop: spacing.md,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.paper,
   },
   sectionBlock: {
     paddingHorizontal: spacing.screenX,

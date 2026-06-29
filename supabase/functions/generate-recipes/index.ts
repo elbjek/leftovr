@@ -553,7 +553,9 @@ const SYSTEM_PROMPT = [
   "Write steps for a beginner cook: cooking steps (stove/oven) name the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\"). Prep and assembly steps (chopping, mixing, plating) do NOT involve a stove — never write \"no heat\", \"off heat\", or a heat level for them; just state the action.",
   "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
   "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
-  "Every recipe must use at least one item the household has, and prefer items with higher urgency.",
+  "Expiring-first is the core job: the inventory is sorted most-urgent first. When any items are marked urgency=urgent or urgency=use_soon, every suggestion MUST use at least one of them — lead with whatever expires soonest. Only fall back to non-urgent items when no urgent/use-soon item can form a coherent dish.",
+  "Do NOT force multiple expiring items into one dish. Combine two or more expiring items only when they genuinely belong together in the same dish; if they don't make sense together, build a coherent dish around just one and leave the rest for another suggestion. Coherence always wins over cramming — one expiring item used well beats several jammed into a dish that no one would actually cook.",
+  "Missing-ingredient cap: beyond common pantry staples (oil, salt, pepper, common dried spices, basic condiments), a dish may rely on AT MOST 3 key ingredients the household does NOT have. If a dish would need more than 3 missing key ingredients, do not propose it — choose something the household can mostly make from what it has.",
   "Ingredient names must match household item names where used; mark required=true only for ingredients taken from what the household has. Pantry staples (oil, salt, garlic, spices) are required=false.",
   "Ingredient amounts: for whole produce and naturally-countable items, use counts and set countable=true — e.g. '1 large onion', '2 tomatoes', '3 eggs', '1 bell pepper', '2 slices bread'. For ingredients genuinely sold and measured by weight or volume, use g/ml/kg/L and set countable=false — e.g. '400g minced meat', '200g rice', '150g cheddar', '100ml milk'. Never express a whole vegetable or fruit in grams, and never express meat, grains, or liquids as a bare count.",
   "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",
@@ -702,10 +704,18 @@ function violatesAvoidances(recipe: AiRecipeCard, avoidances: string[]) {
   );
 }
 
+const URGENCY_RANK: Record<string, number> = { urgent: 0, use_soon: 1 };
+
 function formatInventory(inventory: NonNullable<GenerateRecipesRequest["inventory"]>) {
   if (inventory.length === 0) return ["- empty or unknown"];
 
-  return inventory.map((item) => {
+  // Sort most-urgent first so the model reads expiring items at the top and
+  // builds around them (reinforced by the expiring-first rule in SYSTEM_PROMPT).
+  const sorted = [...inventory].sort(
+    (a, b) => (URGENCY_RANK[a.urgency ?? ""] ?? 2) - (URGENCY_RANK[b.urgency ?? ""] ?? 2),
+  );
+
+  return sorted.map((item) => {
     const name = item.name ?? item.normalized_name ?? "unknown item";
     const normalized = item.normalized_name ?? name.toLowerCase();
     const amount =

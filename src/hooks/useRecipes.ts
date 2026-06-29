@@ -55,6 +55,9 @@ export function useRecipes(
   // Mirrors saved recipes so a generation can dedupe against them without the
   // callback closing over a stale state snapshot.
   const savedRecipesRef = useRef<RecipeRow[]>([]);
+  // The on-screen session's recipes must not block its own replacement when
+  // the user asks for fresh ideas ("Show me others") from a small pantry.
+  const currentSessionIdRef = useRef<string | null>(null);
 
   const [state, setState] = useState<RecipesState>({
     loading: Boolean(householdId),
@@ -147,6 +150,10 @@ export function useRecipes(
     savedRecipesRef.current = state.savedRecipes;
   }, [state.savedRecipes]);
 
+  useEffect(() => {
+    currentSessionIdRef.current = state.currentSessionId;
+  }, [state.currentSessionId]);
+
   // One-time free taste: free users get exactly one generation, ever. The
   // profile flag covers past sessions; the local flag covers the one just
   // created (profile refetch lags the DB trigger).
@@ -189,9 +196,11 @@ export function useRecipes(
           // generation, or duplicated across this run's premium variants — so
           // the recipe list doesn't accumulate same-dish-different-title dupes.
           const existingSignatures = new Set(
-            savedRecipesRef.current.map((recipe) =>
-              ingredientSignature(recipe.ingredients as { name?: string }[]),
-            ),
+            savedRecipesRef.current
+              .filter((recipe) => recipe.session_id !== currentSessionIdRef.current)
+              .map((recipe) =>
+                ingredientSignature(recipe.ingredients as { name?: string }[]),
+              ),
           );
           const runSignatures = new Set<string>();
           const top = candidates.filter((match) => {

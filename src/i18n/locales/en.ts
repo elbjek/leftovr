@@ -368,6 +368,7 @@ export const en = {
     suggestionsEyebrow: "{{count}} ideas from what you have",
     suggestionsTitle: "Tonight's options",
     fromFridgeTitle: "From what you have tonight",
+    showOthers: "Not these? Show me others",
     newBadge: "New",
     filters: {
       fromFridge: "From what you have",

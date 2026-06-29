@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +15,7 @@ export default function InsightsRoute() {
   const { profile, activeHousehold, refresh } = useAuth();
   const isPremium = resolvePremium(profile, activeHousehold);
   const [showPremium, setShowPremium] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [scope, setScope] = useState<"you" | "household">("you");
   const { members } = useHousehold(activeHousehold?.id);
   const showHouseholdScope = members.length >= 2;
@@ -35,6 +36,15 @@ export default function InsightsRoute() {
       void refreshInsights();
     }, [refreshInsights]),
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refreshInsights(), refresh()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshInsights, refresh]);
 
   if (!isPremium) {
     return (
@@ -102,6 +112,9 @@ export default function InsightsRoute() {
         style={styles.scrollArea}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+        }
       >
         <View style={styles.miniGrid}>
           <MiniStat

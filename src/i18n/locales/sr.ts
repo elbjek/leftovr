@@ -368,6 +368,7 @@ export const sr = {
     suggestionsEyebrow: "{{count}} ideja od onoga sto imas",
     suggestionsTitle: "Veceras",
     fromFridgeTitle: "Od onoga sto imas veceras",
+    showOthers: "Nije to to? Prikazi druge",
     newBadge: "Novo",
     filters: {
       fromFridge: "Od onoga sto imas",

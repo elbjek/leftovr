@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -72,8 +72,25 @@ export default function FridgeRoute() {
     }, [refresh, refreshInsights]),
   );
 
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refresh(), refreshInsights()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh, refreshInsights]);
+
   return (
-    <Screen scroll padded={false} contentContainerStyle={styles.content}>
+    <Screen
+      scroll
+      padded={false}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+      }
+    >
       <ScreenHeader
         style={styles.header}
         eyebrow={profile?.display_name ? t("fridge.greetingWithName", { name: profile.display_name }) : t("fridge.greeting")}
@@ -144,7 +161,7 @@ export default function FridgeRoute() {
             title={t("retention.day1Title")}
             body={t("retention.day1Body", { body: day1Suggestion.body })}
             actionLabel={t("retention.day1Action")}
-            onAction={() => router.push("/(tabs)/recipes")}
+            onAction={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
           />
         </View>
       ) : null}
