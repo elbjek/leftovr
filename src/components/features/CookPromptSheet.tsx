@@ -6,11 +6,14 @@ import { BottomSheet, Button, IconButton, SegmentedControl, Text } from "../prim
 import { colors, fonts, radii, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
 
+export type BasePreference = "anything" | "protein" | "potatoes" | "pasta" | "vegetables";
+
 export type CookFilters = {
   mealType?: "breakfast" | "lunch" | "dinner" | "snack";
   maxMinutes?: number;
   minMinutes?: number;
   vibe?: string;
+  basePreference?: BasePreference;
 };
 
 type Meal = "breakfast" | "lunch" | "dinner" | "snack";
@@ -25,6 +28,8 @@ type Props = {
     meal: string;
     mealOptions: Record<MealOption, string>;
     mealSubtitles: Record<Meal, string>;
+    buildAround: string;
+    baseOptions: Record<BasePreference, string>;
     time: string;
     timeOptions: Record<Exclude<TimeOption, "any">, string>;
     servingsLabel: string;
@@ -48,6 +53,7 @@ type Props = {
 };
 
 const MEAL_OPTIONS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
+const BASE_OPTIONS: BasePreference[] = ["anything", "protein", "potatoes", "pasta", "vegetables"];
 const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["15", "30", "45", "norush"];
 // Single-select: maps to the recipe matcher's `vibe` tag (one value, server-side).
 const VIBE_OPTIONS = [
@@ -75,6 +81,7 @@ export function CookPromptSheet({
   onGenerate,
 }: Props) {
   const [meal, setMeal] = useState<MealOption>("any");
+  const [base, setBase] = useState<BasePreference>("anything");
   const [time, setTime] = useState<TimeOption>("any");
   const [vibe, setVibe] = useState<string | null>(null);
 
@@ -84,7 +91,17 @@ export function CookPromptSheet({
       mealType: meal === "any" ? undefined : meal,
       maxMinutes: numericTime,
       vibe: vibe ?? undefined,
+      basePreference: base === "anything" ? undefined : base,
     };
+  }
+
+  function handleSurprise() {
+    // Clear optional filters and fall back to no preference, then generate.
+    setMeal("any");
+    setBase("anything");
+    setTime("any");
+    setVibe(null);
+    onGenerate(undefined);
   }
 
   const showCookingFor = Boolean(cookingMode && onCookingModeChange && labels.cookingForOptions);
@@ -127,6 +144,20 @@ export function CookPromptSheet({
                 subtitle={labels.mealSubtitles[option]}
                 active={meal === option}
                 onPress={() => setMeal((current) => (current === option ? "any" : option))}
+              />
+            ))}
+          </View>
+        </Section>
+
+        <Section label={labels.buildAround}>
+          <View style={styles.chipWrap}>
+            {BASE_OPTIONS.map((option) => (
+              <Chip
+                key={option}
+                label={labels.baseOptions[option]}
+                active={base === option}
+                tone="primary"
+                onPress={() => setBase(option)}
               />
             ))}
           </View>
@@ -198,7 +229,7 @@ export function CookPromptSheet({
             title={labels.surprise}
             variant="text"
             disabled={generating}
-            onPress={() => onGenerate(undefined)}
+            onPress={handleSurprise}
           />
         </View>
       </ScrollView>

@@ -27,6 +27,7 @@ type GenerateRecipesRequest = {
     maxMinutes?: number;
     minMinutes?: number;
     vibe?: string;
+    basePreference?: "anything" | "protein" | "potatoes" | "pasta" | "vegetables";
   };
 };
 
@@ -510,6 +511,9 @@ function buildMessages(
     `- max time: ${input.filters?.maxMinutes != null ? `${input.filters.maxMinutes} minutes` : "any"}`,
     `- min time: ${input.filters?.minMinutes != null ? `${input.filters.minMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
+    input.filters?.basePreference && input.filters.basePreference !== "anything"
+      ? `- build around: ${input.filters.basePreference} — a guide, not a hard constraint. If this base cannot form a coherent dish from the available inventory, fall back to the best coherent recipe. Never sacrifice quality or coherence to satisfy the base.`
+      : "- build around: anything",
     variant === "alternative"
       ? `Return 1 recipe card: a genuinely different dish from the one already chosen for this household.${
         exclude

@@ -571,6 +571,14 @@ export default function RecipesRoute() {
             dinner: t("recipes.cookPrompt.mealSubtitles.dinner"),
             snack: t("recipes.cookPrompt.mealSubtitles.snack"),
           },
+          buildAround: t("recipes.cookPrompt.buildAround"),
+          baseOptions: {
+            anything: t("recipes.cookPrompt.baseOptions.anything"),
+            protein: t("recipes.cookPrompt.baseOptions.protein"),
+            potatoes: t("recipes.cookPrompt.baseOptions.potatoes"),
+            pasta: t("recipes.cookPrompt.baseOptions.pasta"),
+            vegetables: t("recipes.cookPrompt.baseOptions.vegetables"),
+          },
           time: t("recipes.cookPrompt.time"),
           timeOptions: {
             "15": t("recipes.cookPrompt.timeOptions.15"),

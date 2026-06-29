@@ -430,7 +430,7 @@ export const en = {
     cookPrompt: {
       eyebrow: "Let's get specific",
       title: "What are you making?",
-      meal: "Meal",
+      meal: "What are you making?",
       mealOptions: {
         any: "Any",
         breakfast: "Breakfast",
@@ -443,6 +443,14 @@ export const en = {
         lunch: "Midday",
         dinner: "Tonight",
         snack: "Anytime",
+      },
+      buildAround: "Build around",
+      baseOptions: {
+        anything: "Anything",
+        protein: "Protein",
+        potatoes: "Potatoes",
+        pasta: "Pasta",
+        vegetables: "Vegetables",
       },
       time: "Time to cook",
       timeOptions: {

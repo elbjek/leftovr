@@ -28,6 +28,9 @@ export type RecipeMatcherInput = {
     maxMinutes?: number;
     minMinutes?: number;
     vibe?: string;
+    /** Soft guide for what to build the dish around. "anything" = no preference.
+     *  Not enforced by the mock matcher; the AI prompt treats it as a guide. */
+    basePreference?: "anything" | "protein" | "potatoes" | "pasta" | "vegetables";
   };
 };
 

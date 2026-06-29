@@ -430,7 +430,7 @@ export const sr = {
     cookPrompt: {
       eyebrow: "Da budemo precizni",
       title: "Šta spremaš?",
-      meal: "Obrok",
+      meal: "Šta spremaš?",
       mealOptions: {
         any: "Bilo sta",
         breakfast: "Dorucak",
@@ -443,6 +443,14 @@ export const sr = {
         lunch: "U podne",
         dinner: "Veceras",
         snack: "Bilo kad",
+      },
+      buildAround: "Napravi od",
+      baseOptions: {
+        anything: "Bilo čega",
+        protein: "Proteina",
+        potatoes: "Krompira",
+        pasta: "Testenine",
+        vegetables: "Povrća",
       },
       time: "Vreme kuvanja",
       timeOptions: {
