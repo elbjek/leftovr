@@ -165,6 +165,11 @@ export const en = {
           { label: "All of the above", value: "all" },
         ],
       },
+      currency: {
+        eyebrow: "Money",
+        title: "What currency do you shop in?",
+        body: "We use this to show what you spend, save, and waste.",
+      },
       avoidances: {
         eyebrow: "Dietary",
         title: "Anything you never eat?",

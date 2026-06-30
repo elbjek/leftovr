@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { getLocales } from "expo-localization";
 
 import { BackButton, Button, ChoiceCard, Screen, Text, TextField } from "@/components";
 import { consumePendingInviteCode, useAuth } from "@/features";
@@ -13,7 +14,7 @@ import {
 } from "@/repositories";
 import { colors, spacing } from "@/theme";
 
-type StepKey = "name" | "cookingFor" | "shoppingStyle" | "primaryGoal" | "avoidances" | "invite";
+type StepKey = "name" | "cookingFor" | "shoppingStyle" | "primaryGoal" | "currency" | "avoidances" | "invite";
 type Choice = {
   label: string;
   subtitle?: string;
@@ -22,8 +23,22 @@ type Choice = {
   emoji?: string;
 };
 
-const steps: StepKey[] = ["name", "cookingFor", "shoppingStyle", "primaryGoal", "avoidances", "invite"];
-const requiredStepCount = 5;
+const steps: StepKey[] = ["name", "cookingFor", "shoppingStyle", "primaryGoal", "currency", "avoidances", "invite"];
+const requiredStepCount = 6;
+
+const CURRENCY_CHOICES: Choice[] = [
+  { label: "USD", subtitle: "$ · US dollar", value: "USD" },
+  { label: "EUR", subtitle: "€ · Euro", value: "EUR" },
+  { label: "RSD", subtitle: "дин · Serbian dinar", value: "RSD" },
+  { label: "GBP", subtitle: "£ · British pound", value: "GBP" },
+];
+
+function guessCurrency(): string {
+  const region = getLocales()[0]?.regionCode;
+  const map: Record<string, string> = { RS: "RSD", US: "USD", GB: "GBP" };
+  if (region && map[region]) return map[region];
+  return region ? "EUR" : "USD";
+}
 
 function hasUsableProfileName(displayName: string | undefined, email: string | undefined) {
   const trimmedName = displayName?.trim();
@@ -53,7 +68,7 @@ function getInitialStepIndex({
 
 export default function OnboardingRoute() {
   const { t } = useTranslation();
-  const { profile, refresh, user } = useAuth();
+  const { profile, refresh, user, activeHousehold } = useAuth();
   const hasSavedDisplayName = hasUsableProfileName(profile?.display_name, user?.email);
   const initialStepIndex = getInitialStepIndex({
     hasSavedDisplayName,
@@ -68,6 +83,7 @@ export default function OnboardingRoute() {
   const [shoppingStyle, setShoppingStyle] = useState(profile?.shopping_style ?? "weekly");
   const [primaryGoal, setPrimaryGoal] = useState(profile?.primary_goal ?? "waste");
   const [avoidances, setAvoidances] = useState<string[]>(profile?.avoidances ?? []);
+  const [currency, setCurrency] = useState<string>(activeHousehold?.currency_code ?? guessCurrency());
   const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,6 +144,7 @@ export default function OnboardingRoute() {
         shoppingStyle,
         primaryGoal,
         avoidances,
+        currencyCode: currency,
       };
 
       await updateProfileField("display_name", displayName.trim());
@@ -237,6 +254,14 @@ export default function OnboardingRoute() {
             choices={stepCopy.choices ?? []}
             selected={primaryGoal}
             onSelect={(choice) => setPrimaryGoal(choice.value)}
+          />
+        ) : null}
+
+        {step === "currency" ? (
+          <ChoiceList
+            choices={CURRENCY_CHOICES}
+            selected={currency}
+            onSelect={(choice) => setCurrency(choice.value)}
           />
         ) : null}
 

@@ -165,6 +165,11 @@ export const sr = {
           { label: "Sve navedeno", value: "all" },
         ],
       },
+      currency: {
+        eyebrow: "Novac",
+        title: "U kojoj valuti kupuješ?",
+        body: "Koristimo je da prikažemo koliko trošiš, uštediš i baciš.",
+      },
       avoidances: {
         eyebrow: "Ishrana",
         title: "Ima li nesto sto nikad ne jedes?",
