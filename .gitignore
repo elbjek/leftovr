@@ -1,6 +1,8 @@
 /docs/Chomp - What's for dinner_
 node_modules/
 .expo/
+/ios
+/android
 supabase/.temp/
 supabase/.branches/
 dist/

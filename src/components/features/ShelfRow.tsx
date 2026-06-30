@@ -10,6 +10,7 @@ export type ShelfItem = {
   category?: string;
   meta: string;
   metaLines?: string[];
+  bestBy?: string;
   urgency?: "safe" | "useSoon" | "urgent";
   addedBy?: string | null;
 };
@@ -56,9 +57,11 @@ export function ShelfRow({
           </Text>
         </View>
         {seeAllLabel ? (
-          <Text variant="small" muted style={styles.seeAll}>
-            {seeAllLabel}
-          </Text>
+          <Pressable accessibilityRole="button" onPress={onMorePress} hitSlop={8}>
+            <Text variant="small" muted style={styles.seeAll}>
+              {seeAllLabel}
+            </Text>
+          </Pressable>
         ) : null}
       </View>
       {grid ? (
@@ -70,6 +73,7 @@ export function ShelfRow({
               category={item.category}
               meta={item.meta}
               metaLines={item.metaLines}
+              bestBy={item.bestBy}
               urgency={item.urgency}
               addedBy={item.addedBy}
               onPress={() => onItemPress?.(item)}
@@ -104,6 +108,7 @@ export function ShelfRow({
               category={item.category}
               meta={item.meta}
               metaLines={item.metaLines}
+              bestBy={item.bestBy}
               urgency={item.urgency}
               addedBy={item.addedBy}
               onPress={() => onItemPress?.(item)}
