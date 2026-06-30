@@ -607,6 +607,7 @@ export const en = {
       nuts: "Nuts",
     },
     servingsTitle: "Household servings",
+    currencyTitle: "Currency",
     servingsBody: "Default serving size for recipe suggestions.",
     servingsLabel: "{{count}} servings",
     tierFree: "Free",

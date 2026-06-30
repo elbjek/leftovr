@@ -609,6 +609,7 @@ export const sr = {
       nuts: "Orasasti plodovi",
     },
     servingsTitle: "Porcije domacinstva",
+    currencyTitle: "Valuta",
     servingsBody: "Podrazumevana velicina porcija za predloge recepata.",
     servingsLabel: "{{count}} porcija",
     tierFree: "Besplatan",

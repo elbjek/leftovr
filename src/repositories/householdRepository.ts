@@ -56,6 +56,14 @@ export async function listHouseholdMembers(householdId: string): Promise<Househo
   }));
 }
 
+export async function updateHouseholdCurrency(householdId: string, currencyCode: string) {
+  const { error } = await getSupabaseClient()
+    .from("households")
+    .update({ currency_code: currencyCode })
+    .eq("id", householdId);
+  if (error) throw error;
+}
+
 export async function createHouseholdInvite(householdId: string): Promise<HouseholdInvite> {
   const supabase = getSupabaseClient();
 
