@@ -10,6 +10,10 @@ export type InsightsRawData = {
   /** Category counts of the USED items, not the added ones. */
   categoryBreakdown: Record<string, number>;
   cookedRecipes: { title: string; count: number }[];
+  /** Real money in the window, summed from value_events (household currency). */
+  moneySpent: number;
+  moneySaved: number;
+  moneyWasted: number;
 };
 
 // With userId: personal stats (your scans, items you added, meals you cooked).
@@ -76,13 +80,22 @@ export async function getInsightsData(
   if (until) usedQuery = usedQuery.lt("used_at", until);
   if (userId) usedQuery = usedQuery.eq("used_by", userId);
 
-  const [scans, items, cooked, cookedRecipeRows, removed, used] = await Promise.all([
+  let valueQuery = supabase
+    .from("value_events")
+    .select("kind, value")
+    .eq("household_id", householdId)
+    .gte("occurred_at", since);
+  if (until) valueQuery = valueQuery.lt("occurred_at", until);
+  if (userId) valueQuery = valueQuery.eq("created_by", userId);
+
+  const [scans, items, cooked, cookedRecipeRows, removed, used, value] = await Promise.all([
     scansQuery,
     itemsQuery,
     cookedQuery,
     cookedRecipesQuery,
     removedQuery,
     usedQuery,
+    valueQuery,
   ]);
 
   if (scans.error) throw scans.error;
@@ -91,6 +104,16 @@ export async function getInsightsData(
   if (cookedRecipeRows.error) throw cookedRecipeRows.error;
   if (removed.error) throw removed.error;
   if (used.error) throw used.error;
+  if (value.error) throw value.error;
+
+  let moneySpent = 0;
+  let moneySaved = 0;
+  let moneyWasted = 0;
+  for (const row of (value.data ?? []) as { kind: string; value: number }[]) {
+    if (row.kind === "spend") moneySpent += row.value;
+    else if (row.kind === "saved") moneySaved += row.value;
+    else if (row.kind === "wasted") moneyWasted += row.value;
+  }
 
   const categoryBreakdown: Record<string, number> = {};
   if (used.data) {
@@ -120,5 +143,8 @@ export async function getInsightsData(
     itemsUsed: used.count ?? 0,
     categoryBreakdown,
     cookedRecipes,
+    moneySpent,
+    moneySaved,
+    moneyWasted,
   };
 }

@@ -44,6 +44,8 @@ export type ReceiptConfirmItem = {
   rawText?: string;
   // Optional user-picked expiry (YYYY-MM-DD); falls back to shelf-life range.
   expiresAt?: string | null;
+  // Per-line price (read or AI-estimated), in the receipt's currency.
+  price?: number | null;
 };
 
 export type ReceiptInventoryRowInput = {
@@ -64,6 +66,8 @@ export type NormalizedReceiptLine = {
     unit: string | null;
     netAmount: number | null;
     netUnit: string | null;
+    price?: number | null;
+    priceApproximate?: boolean;
   };
 };
 
@@ -91,6 +95,7 @@ export function buildReceiptConfirmItemsFromLines(
       looksUnnamed(line.item.name),
     included: true,
     rawText: line.rawText,
+    price: line.item.price ?? null,
   }));
 }
 
@@ -105,6 +110,9 @@ export function buildConfirmedReceiptInventoryRows(
       const unit = item.unit.trim() || "item";
       const quantity = item.quantity > 0 ? item.quantity : 1;
       const catalogNet = getCatalogNet(name);
+      const netAmount = catalogNet ? catalogNet.netAmount * quantity : null;
+      // Basis for proportional attribution: the amount the price covers.
+      const purchaseAmount = netAmount ?? quantity;
 
       return {
         household_id: input.householdId,
@@ -119,7 +127,7 @@ export function buildConfirmedReceiptInventoryRows(
         category: item.category,
         quantity,
         unit,
-        net_amount: catalogNet ? catalogNet.netAmount * quantity : null,
+        net_amount: netAmount,
         net_unit: catalogNet?.netUnit ?? null,
         partial_state: "full" as const,
         shelf_life_range: getShelfLifeRange(name, item.category),
@@ -129,6 +137,8 @@ export function buildConfirmedReceiptInventoryRows(
         confidence: item.confidence,
         added_by: input.userId,
         added_at: input.addedAt,
+        purchase_price: item.price ?? null,
+        purchase_amount: item.price != null ? purchaseAmount : null,
       };
     });
 }

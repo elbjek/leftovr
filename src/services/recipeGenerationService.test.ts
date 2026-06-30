@@ -29,6 +29,8 @@ const input: RecipeGenerationInput = {
       added_at: "2026-06-01T12:00:00.000Z",
       removed_at: null,
       expires_at: null,
+      purchase_price: null,
+      purchase_amount: null,
     },
   ],
   avoidances: ["dairy"],

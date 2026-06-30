@@ -259,7 +259,8 @@ export const en = {
     removeSheet: {
       title: "Remove this item?",
       body: "Remove {{item}} from your kitchen. This will hide the current lot.",
-      confirm: "Remove item",
+      usedConfirm: "Used it up",
+      discardedConfirm: "Threw it out",
     },
   },
   scan: {
@@ -344,6 +345,7 @@ export const en = {
       unitLabel: "Unit",
       expiryLabel: "Expires",
       expiryNone: "No date",
+      priceLabel: "Price (optional)",
       missingName: "Enter an item name.",
     },
     categories: {
@@ -673,7 +675,9 @@ export const en = {
     },
     premiumBody: "Weekly insights and recap will appear here as you cook and manage what you have.",
     itemsSavedThisWeek: "Items saved this week",
-    heroMeta: "items · about ${{amount}}",
+    heroMeta: "items · about {{amount}}",
+    moneySpent: "Spent",
+    moneyWasted: "Wasted",
     heroTrend: "That's {{count}} more than last week. You're getting the hang of this.",
     heroTrendFlat: "Every item you cook or use up counts here.",
     heroSparse: "Cook a recipe or use something you have — this card fills in as you do.",

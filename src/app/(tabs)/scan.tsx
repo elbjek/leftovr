@@ -109,6 +109,7 @@ export default function ScanRoute() {
   const [manualCategory, setManualCategory] = useState<InventoryCategory>("other");
   const [offResults, setOffResults] = useState<BarcodeProduct[]>([]);
   const [manualQuantity, setManualQuantity] = useState(1);
+  const [manualPrice, setManualPrice] = useState("");
   const [manualUnit, setManualUnit] = useState<string>(DEFAULT_UNIT);
   const [manualExpiry, setManualExpiry] = useState<Date | null>(null);
   const [manualExpiryEnabled, setManualExpiryEnabled] = useState(true);
@@ -447,33 +448,10 @@ export default function ScanRoute() {
       return;
     }
 
-    await addResolvedBarcodeProduct(product);
+    // Open the product sheet (with a price box) rather than adding instantly,
+    // so the user can enter the price before it lands in the fridge.
+    openProductSheet(product);
     setBarcodeLocked(false);
-  }
-
-  async function addResolvedBarcodeProduct(product: BarcodeProduct) {
-    if (!activeHousehold?.id) return;
-
-    try {
-      await addInventoryItem({
-        householdId: activeHousehold.id,
-        name: product.name,
-        brandName: product.brandName,
-        category: product.category,
-        quantity: product.quantity,
-        unit: product.unit,
-        netAmount: product.netAmount,
-        netUnit: product.netUnit,
-        source: "barcode",
-      });
-      await completeFirstFillIfNeeded();
-      await refresh();
-      setLastAddedName(product.name);
-      setMode("addSuccess");
-    } catch (addError) {
-      // Barcode adds are free — no premium gate to translate here.
-      setError(errorMessage(addError, t("auth.genericError")));
-    }
   }
 
   function handleBarcodeScanned(result: BarcodeScanningResult) {
@@ -487,6 +465,7 @@ export default function ScanRoute() {
       setManualUnit(normalizeUnit(product.unit));
     }
     setManualQuantity(1);
+    setManualPrice("");
     setManualExpiry(null);
     setManualExpiryEnabled(true);
     setCustomSheetVisible(true);
@@ -501,6 +480,7 @@ export default function ScanRoute() {
     netAmount?: number | null;
     netUnit?: "ml" | "g" | null;
     expiresAt?: string | null;
+    price?: number | null;
   }) {
     if (!activeHousehold?.id) return;
 
@@ -528,6 +508,7 @@ export default function ScanRoute() {
         netAmount,
         netUnit: input.netUnit,
         expiresAt: input.expiresAt,
+        price: input.price,
         source: "manual",
       });
       await completeFirstFillIfNeeded();
@@ -966,9 +947,17 @@ export default function ScanRoute() {
               />
             ) : null}
 
+            <TextField
+              label={t("scan.manual.priceLabel")}
+              keyboardType="decimal-pad"
+              value={manualPrice}
+              onChangeText={setManualPrice}
+            />
+
             <Button
               title={t("scan.add")}
-              onPress={() =>
+              onPress={() => {
+                const priceNum = Number(manualPrice.replace(",", "."));
                 addManualItem({
                   name: sheetItemName,
                   category: manualCategory,
@@ -980,8 +969,9 @@ export default function ScanRoute() {
                   expiresAt: manualExpiryEnabled
                     ? toLocalDateString(expiryValue)
                     : null,
-                })
-              }
+                  price: Number.isFinite(priceNum) && priceNum > 0 ? priceNum : null,
+                });
+              }}
             />
 
             {error ? (

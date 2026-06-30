@@ -216,8 +216,8 @@ export default function FridgeRoute() {
           await updateFirstLot(group, input);
           setActionGroup(null);
         }}
-        onRemove={async (group) => {
-          await removeGroup(group);
+        onRemove={async (group, reason) => {
+          await removeGroup(group, reason);
           setActionGroup(null);
         }}
       />
@@ -340,7 +340,8 @@ function ItemActionSheet({
     remove: string;
     removeTitle: string;
     removeBody: string;
-    removeConfirm: string;
+    usedConfirm: string;
+    discardedConfirm: string;
     nameLabel: string;
     quantityLabel: string;
     unitLabel: string;
@@ -354,7 +355,7 @@ function ItemActionSheet({
     group: InventoryGroup,
     input: { name: string; quantity: number; unit: string; expiresAt: string | null; netAmount?: number },
   ) => Promise<void>;
-  onRemove: (group: InventoryGroup) => void;
+  onRemove: (group: InventoryGroup, reason: "used" | "discarded") => void;
 }) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -391,7 +392,8 @@ function ItemActionSheet({
             </Text>
           </View>
           <View style={styles.sheetButtons}>
-            <Button title={labels.removeConfirm} variant="accent" onPress={() => group && onRemove(group)} />
+            <Button title={labels.usedConfirm} onPress={() => group && onRemove(group, "used")} />
+            <Button title={labels.discardedConfirm} variant="accent" onPress={() => group && onRemove(group, "discarded")} />
             <Button title={labels.cancel} variant="text" onPress={() => setConfirmingRemove(false)} />
           </View>
         </View>
@@ -695,7 +697,8 @@ function getActionLabels(t: ReturnType<typeof useTranslation>["t"]) {
     remove: t("fridge.actions.remove"),
     removeTitle: t("fridge.removeSheet.title"),
     removeBody: t("fridge.removeSheet.body"),
-    removeConfirm: t("fridge.removeSheet.confirm"),
+    usedConfirm: t("fridge.removeSheet.usedConfirm"),
+    discardedConfirm: t("fridge.removeSheet.discardedConfirm"),
     nameLabel: t("fridge.actions.nameLabel"),
     quantityLabel: t("fridge.actions.quantityLabel"),
     unitLabel: t("scan.manual.unitLabel"),

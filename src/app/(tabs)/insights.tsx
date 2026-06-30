@@ -8,6 +8,7 @@ import { EmptyState, PremiumSheet, RecipeGlyph, Screen, ScreenHeader, SegmentedC
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useHousehold, useInsights } from "@/hooks";
 import { formatCategoryLabel, InsightsSummary } from "@/services/insightsService";
+import { formatMoney } from "@/lib/money";
 import { colors, radii, spacing } from "@/theme";
 
 export default function InsightsRoute() {
@@ -78,6 +79,7 @@ export default function InsightsRoute() {
 
   const summary =
     (scope === "household" ? householdWeeklySummary : weeklySummary) ?? getEmptySummary();
+  const currency = activeHousehold?.currency_code ?? "USD";
   // Real week-over-week deltas (personal scope only; household scope shows no trend).
   const lastWeek = scope === "you" ? lastWeekSummary : null;
   const savedDelta = lastWeek ? summary.estimatedItemsSaved - lastWeek.estimatedItemsSaved : 0;
@@ -105,7 +107,7 @@ export default function InsightsRoute() {
       </View>
 
       <View style={styles.heroWrap}>
-        <HeroStat summary={summary} savedDelta={savedDelta} />
+        <HeroStat summary={summary} savedDelta={savedDelta} currency={currency} />
       </View>
 
       <ScrollView

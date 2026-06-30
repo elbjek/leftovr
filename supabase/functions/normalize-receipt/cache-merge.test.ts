@@ -16,6 +16,8 @@ const line = (overrides: Partial<NormalizedLine> & { rawText: string }): Normali
     unit: "carton",
     netAmount: 1000,
     netUnit: "ml",
+    price: 2,
+    priceApproximate: false,
   },
   ...overrides,
 });
@@ -47,6 +49,21 @@ describe("mergeWithCache", () => {
     expect(result.lines[0].confidence).toBe(0.97);
     expect(result.hits).toEqual(["TINE LETTML 1L"]);
     expect(result.writes).toHaveLength(0);
+  });
+
+  it("keeps the live scan's price on a cache hit (price is never cached)", () => {
+    const result = mergeWithCache(
+      "rema-1000",
+      [line({ rawText: "TINE LETTML 1L", confidence: 0.6, item: {
+        name: "Milk", normalizedName: "milk", category: "dairy_eggs",
+        quantity: 1, unit: "carton", netAmount: 1000, netUnit: "ml",
+        price: 1.79, priceApproximate: false,
+      } })],
+      [cacheRow({ raw_line_text: "TINE LETTML 1L" })],
+    );
+
+    expect(result.lines[0].item.name).toBe("Whole milk");
+    expect(result.lines[0].item.price).toBe(1.79);
   });
 
   it("writes back confident misses only", () => {

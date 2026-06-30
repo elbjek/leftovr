@@ -259,7 +259,8 @@ export const sr = {
     removeSheet: {
       title: "Ukloniti stavku?",
       body: "Ukloni {{item}} iz kuhinje. Trenutni lot ce biti sakriven.",
-      confirm: "Ukloni stavku",
+      usedConfirm: "Potrošeno",
+      discardedConfirm: "Bačeno",
     },
   },
   scan: {
@@ -344,6 +345,7 @@ export const sr = {
       unitLabel: "Jedinica",
       expiryLabel: "Rok trajanja",
       expiryNone: "Bez datuma",
+      priceLabel: "Cena (opciono)",
       missingName: "Unesi ime namirnice.",
     },
     categories: {
@@ -675,7 +677,9 @@ export const sr = {
     },
     premiumBody: "Nedeljni uvidi i pregled ce se pojaviti ovde dok kuvas i upravljas onim sto imas.",
     itemsSavedThisWeek: "Sacuvani artikli ove nedelje",
-    heroMeta: "artikli · oko ${{amount}}",
+    heroMeta: "artikli · oko {{amount}}",
+    moneySpent: "Potrošeno",
+    moneyWasted: "Bačeno",
     heroTrend: "To je {{count}} vise nego prosle nedelje. Hvatas ritam.",
     heroTrendFlat: "Svaki artikal koji skuvas ili iskoristis se racuna ovde.",
     heroSparse: "Skuvaj recept ili iskoristi nesto sto imas — kartica se puni kako koristis.",

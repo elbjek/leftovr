@@ -37,7 +37,7 @@ export async function getHouseholdById(householdId: string) {
 
   const { data, error } = await supabase
     .from("households")
-    .select("id, name, status, plan_tier, default_servings, first_fill_completed_at")
+    .select("id, name, status, plan_tier, default_servings, currency_code, first_fill_completed_at")
     .eq("id", householdId)
     .single<Household>();
 
