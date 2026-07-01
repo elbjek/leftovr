@@ -9,7 +9,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, PremiumSheet, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
+import { BackButton, BottomSheet, Button, Card, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
@@ -104,6 +104,7 @@ export default function ScanRoute() {
   const [confirmItems, setConfirmItems] = useState<ReceiptConfirmItem[]>([]);
   const [confirmAllowsDuplicate, setConfirmAllowsDuplicate] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [processingStep, setProcessingStep] = useState<ProcessingStep>("recognising");
   const [error, setError] = useState<string | null>(null);
   const [manualQuery, setManualQuery] = useState("");
   const [manualCategory, setManualCategory] = useState<InventoryCategory>("other");
@@ -217,13 +218,16 @@ export default function ScanRoute() {
     }
 
     setMode("processing");
+    setProcessingStep("recognising");
     setError(null);
     try {
       const pdfBase64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: "base64" });
-      const scan = await normalizeReceiptPdf({
-        householdId,
-        pdfBase64,
-      });
+      const scan = await runStagedScan(
+        normalizeReceiptPdf({
+          householdId,
+          pdfBase64,
+        }),
+      );
 
       if (scan.items.length === 0) {
         setMode("emptyScan");
@@ -325,10 +329,38 @@ export default function ScanRoute() {
     await completeHouseholdFirstFill(activeHousehold.id);
   }
 
+  // Drives the checklist while the single normalize call runs. Steps 1→2
+  // auto-advance as reassurance; the real response gates "complete" — we never
+  // mark done or navigate before the backend actually finishes.
+  async function runStagedScan<T>(work: Promise<T>): Promise<T> {
+    setProcessingStep("recognising");
+    let settled = false;
+    void work.then(
+      () => {},
+      () => {},
+    ).finally(() => {
+      settled = true;
+    });
+    const timers = [
+      setTimeout(() => !settled && setProcessingStep("matching"), 900),
+      setTimeout(() => !settled && setProcessingStep("estimating"), 1900),
+    ];
+    try {
+      const result = await work;
+      setProcessingStep("complete");
+      // Brief hold so all three checks are visible before the screen swaps.
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      return result;
+    } finally {
+      timers.forEach(clearTimeout);
+    }
+  }
+
   async function captureReceipt() {
     if (!activeHousehold?.id) return;
 
     setMode("processing");
+    setProcessingStep("recognising");
     setError(null);
 
     try {
@@ -349,10 +381,12 @@ export default function ScanRoute() {
       // The edge function creates the scan row and makes the AI call here;
       // the free scan is consumed now (when the cost happens), but nothing
       // lands in inventory until the user confirms.
-      const scan = await normalizeReceiptImage({
-        householdId: activeHousehold.id,
-        imageBase64: resized.base64,
-      });
+      const scan = await runStagedScan(
+        normalizeReceiptImage({
+          householdId: activeHousehold.id,
+          imageBase64: resized.base64,
+        }),
+      );
 
       // Nothing readable on the photo (blurry, dark, or not a receipt):
       // a full-screen explanation with a retry, never an empty confirm sheet.
@@ -988,7 +1022,7 @@ export default function ScanRoute() {
   if (mode === "processing") {
     return (
       <Screen>
-        <ReceiptReadingProgress />
+        <ReceiptReadingProgress step={processingStep} />
       </Screen>
     );
   }
@@ -1350,7 +1384,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   successCount: {
-    color: colors.accent,
+    color: colors.primary,
   },
   notificationIcon: {
     width: 86,

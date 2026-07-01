@@ -316,6 +316,10 @@ Deno.serve(async (req) => {
         dropReasons.push(`"${recipe.title}": incoherent combination`);
         return false;
       }
+      if (isReadyToEatOnly(recipe, input.inventory ?? [])) {
+        dropReasons.push(`"${recipe.title}": ready-to-eat items only`);
+        return false;
+      }
       // Near-duplicate, not just exact: the variants often differ by a single
       // swapped ingredient (e.g. "greek yogurt" vs "galbani cheese" in the same
       // salad), so an exact set match misses them. Drop a recipe that overlaps
@@ -560,7 +564,8 @@ const SYSTEM_PROMPT = [
   "Ingredient amounts: for whole produce and naturally-countable items, use counts and set countable=true — e.g. '1 large onion', '2 tomatoes', '3 eggs', '1 bell pepper', '2 slices bread'. For ingredients genuinely sold and measured by weight or volume, use g/ml/kg/L and set countable=false — e.g. '400g minced meat', '200g rice', '150g cheddar', '100ml milk'. Never express a whole vegetable or fruit in grams, and never express meat, grains, or liquids as a bare count.",
   "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",
   "Respect the prompt filters: matching mealType, timeMinutes within max time, and include the vibe/tag in tags when one is set.",
-  "Empty result is ONLY for a genuinely bare fridge: return an empty recipes array only when the WHOLE inventory is too sparse to form any single coherent, appetizing dish. If there is enough food for any coherent dish, you MUST return at least one — never return empty just because the expiring items don't fit together or because the best dish ignores them. Do not invent food the household doesn't have, but a sizable fridge should essentially always yield a recipe.",
+  "Empty result: return an empty recipes array whenever the inventory has no real COOKING ingredients to build a coherent dish from — this INCLUDES a fridge that holds only ready-to-eat / snack / confectionery / drink products (e.g. only popcorn, chips, a chocolate croissant, a candy bar, soda). In that case do NOT invent a dish; return empty. Also return empty when the only items simply do not belong in any single real dish. If — and only if — there ARE real cooking ingredients that form a coherent, appetizing dish, you MUST return at least one; do not return empty just because the expiring items don't fit together or the best dish ignores some items. Never invent food the household doesn't have. When the honest choice is between a nonsense recipe and no recipe, ALWAYS return no recipe.",
+  "INTERNAL CONSISTENCY (hard rule): within a single recipe the title, description, ingredients, and steps must all describe the SAME dish made from the SAME household foods. Never output a recipe whose title names a food that is not in its own ingredients/steps, or whose steps are about a different food than the title (e.g. title 'Chocolate croissant' with popcorn ingredients and steps). If you cannot produce an internally consistent recipe from the available food, omit it rather than forcing one.",
 ].join("\n");
 
 // Most-recent distinct recipe titles for a household — used to steer fresh
@@ -688,6 +693,37 @@ function isIncoherent(recipe: AiRecipeCard): boolean {
     .some((ingredient) =>
       DESSERT_ONLY_FRUIT.some((fruit) => ingredient.name.toLowerCase().includes(fruit)),
     );
+}
+
+// Ready-to-eat / snack / confectionery products that are not real cooking
+// ingredients. Category from the household item (snacks/drinks) or a keyword
+// on the ingredient name catches products the model dressed up as a recipe.
+const READY_TO_EAT_CATEGORIES = new Set(["snacks", "drinks"]);
+const READY_TO_EAT_KEYWORDS = [
+  "popcorn", "chips", "crisps", "candy", "chocolate", "croissant", "soda", "cola",
+  "cookie", "biscuit", "wafer", "pastry", "donut", "doughnut", "gummy", "marshmallow",
+  "pretzel", "nachos", "ice cream", "lollipop", "energy drink", "candy bar", "chocolate bar",
+];
+
+type InventoryItem = { name?: string; normalized_name?: string; category?: string };
+
+function isReadyToEatIngredient(name: string, inventory: InventoryItem[]): boolean {
+  const n = name.toLowerCase();
+  if (READY_TO_EAT_KEYWORDS.some((keyword) => n.includes(keyword))) return true;
+  const match = inventory.find((item) => {
+    const itemName = (item.normalized_name ?? item.name ?? "").toLowerCase();
+    return itemName.length > 0 && (n.includes(itemName) || itemName.includes(n));
+  });
+  return match ? READY_TO_EAT_CATEGORIES.has((match.category ?? "").toLowerCase()) : false;
+}
+
+// Safety net for the "only snacks in the fridge" case: if every required
+// ingredient is a ready-to-eat product, there is no real dish here — drop it so
+// the pipeline returns empty and the app shows "nothing to cook".
+function isReadyToEatOnly(recipe: AiRecipeCard, inventory: InventoryItem[]): boolean {
+  const required = recipe.ingredients.filter((ingredient) => ingredient.required);
+  if (required.length === 0) return false;
+  return required.every((ingredient) => isReadyToEatIngredient(ingredient.name, inventory));
 }
 
 function violatesAvoidances(recipe: AiRecipeCard, avoidances: string[]) {
