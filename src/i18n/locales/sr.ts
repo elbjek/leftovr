@@ -538,6 +538,7 @@ export const sr = {
       fromFridgeCount: "Od onoga sto imas · {{count}} stavki",
       ingredients: "Sastojci",
       howToCook: "Kako kuvati",
+      jumpToRecipe: "Skoci na recept",
       preparingSteps: "Pripremam korake…",
       cookCta: "Skuvao sam ovo",
       cookAgainCta: "Kuvaj ponovo",

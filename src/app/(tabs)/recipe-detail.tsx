@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Animated, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -342,6 +342,16 @@ export default function RecipeDetailRoute() {
   // recipe scrolls, with the glyph scaling down into the collapsed band. All
   // transform-driven so it runs on the native thread.
   const [scrollY] = useState(() => new Animated.Value(0));
+  // "Jump to recipe": long ingredient lists push the steps below the fold, so
+  // a shortcut scrolls straight to them. stepsY is the section label's offset
+  // within the body; the content itself starts at HERO_MAX_HEIGHT (padding).
+  const scrollRef = useRef<ScrollView>(null);
+  const [stepsY, setStepsY] = useState(0);
+  const jumpToSteps = () =>
+    scrollRef.current?.scrollTo({
+      y: HERO_MAX_HEIGHT + stepsY - HERO_MIN_HEIGHT - spacing.md,
+      animated: true,
+    });
   const heroTranslate = scrollY.interpolate({
     inputRange: [0, HERO_SCROLL_DISTANCE],
     outputRange: [0, -HERO_SCROLL_DISTANCE],
@@ -365,6 +375,7 @@ export default function RecipeDetailRoute() {
       {/* Single scroll surface: title through steps move together; the hero
           collapses with scroll while back/save and the cook CTA stay fixed. */}
       <Animated.ScrollView
+        ref={scrollRef}
         style={styles.scrollArea}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -429,10 +440,26 @@ export default function RecipeDetailRoute() {
                 );
               })}
             </View>
+            {ingredients.length > 6 ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={jumpToSteps}
+                style={({ pressed }) => [styles.jumpButton, pressed && { opacity: 0.6 }]}
+              >
+                <Text variant="small" color={colors.primary}>
+                  {t("recipes.detail.jumpToRecipe")} ↓
+                </Text>
+              </Pressable>
+            ) : null}
           </>
         ) : null}
 
-        <Text variant="micro" muted style={styles.sectionLabel}>
+        <Text
+          variant="micro"
+          muted
+          style={styles.sectionLabel}
+          onLayout={(event) => setStepsY(event.nativeEvent.layout.y)}
+        >
           {t("recipes.detail.howToCook")}
         </Text>
 
@@ -812,6 +839,13 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     backgroundColor: colors.paper,
     overflow: "hidden",
+    marginBottom: spacing.md,
+  },
+  jumpButton: {
+    alignSelf: "center",
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: spacing.lg,
     marginBottom: spacing.md,
   },
   fridgeRow: {

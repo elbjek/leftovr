@@ -537,6 +537,7 @@ export const en = {
       fromFridgeCount: "From what you have · {{count}} items",
       ingredients: "Ingredients",
       howToCook: "How to cook",
+      jumpToRecipe: "Jump to recipe",
       preparingSteps: "Preparing the steps…",
       cookCta: "I cooked this",
       cookAgainCta: "Cook again",

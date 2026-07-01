@@ -9,12 +9,13 @@ import {
   listUserFavoriteRecipeIds,
   RecipeRow,
   toggleRecipeFavorite,
+  updateRecipeDetail,
 } from "@/repositories/recipeRepository";
 import {
   matchRecipes,
   RecipeMatch,
 } from "@/services/recipeService";
-import { generateRecipeMatches, RecipeGenerationFilters, RecipeMonthlyLimitError } from "@/services/recipeGenerationService";
+import { expandRecipe, generateRecipeMatches, RecipeGenerationFilters, RecipeMonthlyLimitError } from "@/services/recipeGenerationService";
 import { useTranslation } from "react-i18next";
 import { ingredientSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
@@ -264,6 +265,62 @@ export function useRecipes(
             consumedFreeGeneration: true,
             savedRecipes: [...savedRecipes, ...s.savedRecipes],
           }));
+
+          // Prefetch phase-2 detail in the background so opening a fresh card
+          // shows steps instantly instead of waiting on the expand call. The
+          // result lands in both the suggestion match and the saved row (all
+          // navigation paths carry full detail via params); the detail screen
+          // still expands on its own if a card is opened before this finishes.
+          for (const [index, recipe] of savedRecipes.entries()) {
+            const match = top[index];
+            if (!match || match.steps.length > 0) continue;
+            void expandRecipe({
+              title: match.title,
+              description: match.description,
+              timeMinutes: match.timeMinutes,
+              tags: match.tags,
+              usedIngredientNames: match.ingredients.map((ing) => ing.name),
+              inventory,
+              avoidances,
+              servings,
+            }).then((result) => {
+              if (!result) return;
+              updateRecipeDetail(recipe.id, {
+                ingredients: result.ingredients,
+                steps: result.steps,
+                timeMinutes: result.timeMinutes,
+                complexity: result.complexity,
+                avoidanceTags: result.avoidanceTags,
+              }).catch(() => {
+                // Non-critical: state below still carries the detail this session.
+              });
+              setState((s) => ({
+                ...s,
+                suggestions: s.suggestions.map((m) =>
+                  m.key === match.key
+                    ? {
+                        ...m,
+                        ingredients: result.ingredients,
+                        steps: result.steps,
+                        timeMinutes: result.timeMinutes,
+                        complexity: result.complexity,
+                      }
+                    : m,
+                ),
+                savedRecipes: s.savedRecipes.map((r) =>
+                  r.id === recipe.id
+                    ? {
+                        ...r,
+                        ingredients: result.ingredients,
+                        steps: result.steps,
+                        time_minutes: result.timeMinutes,
+                        complexity: result.complexity,
+                      }
+                    : r,
+                ),
+              }));
+            });
+          }
 
           return { recipes: savedRecipes, matches: top };
         } catch (err) {

@@ -85,10 +85,8 @@ export function HouseholdSection({
   }
 
   async function handleLookup() {
-    if (!isPremium) {
-      onPremiumGate();
-      return;
-    }
+    // Joining is not premium-gated: invitees inherit premium from the household
+    // they join (spec §1). Only create-invite requires Household Premium.
     if (!joinCode.trim()) return;
     setLookupLoading(true);
     setLookupError(null);
