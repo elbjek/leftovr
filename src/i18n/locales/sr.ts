@@ -690,6 +690,8 @@ export const sr = {
       joinSuccess: "Pridruzio/la se domacinstvu!",
       invalidCode: "Nevazeci ili istekao pozivni kod.",
       householdFull: "Ovo domacinstvo je puno (max 3 clana).",
+      ownerBlocked:
+        "Ti si vlasnik aktivnog Household Premium plana sa drugim clanovima. Prenesi vlasnistvo ili ga otkazi pre nego sto se pridruzis drugom domacinstvu.",
       premiumRequired: "Deljenje domacinstva zahteva Household Premium.",
       addedBy: "Dodao/la {{name}}",
     },

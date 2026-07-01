@@ -688,6 +688,8 @@ export const en = {
       joinSuccess: "Joined household!",
       invalidCode: "Invalid or expired invite code.",
       householdFull: "This household is full (3 members max).",
+      ownerBlocked:
+        "You own an active Household Premium plan with other members. Transfer ownership or cancel it before joining another household.",
       premiumRequired: "Household sharing requires Household Premium.",
       addedBy: "Added by {{name}}",
     },

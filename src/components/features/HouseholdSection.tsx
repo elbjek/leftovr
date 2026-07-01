@@ -42,6 +42,7 @@ export function HouseholdSection({
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const [showJoinChoice, setShowJoinChoice] = useState(false);
 
   // Sync a newly-arrived deep-linked invite code into local state during render
@@ -52,6 +53,7 @@ export function HouseholdSection({
     setJoinCode(initialJoinCode);
     setLookupResult(null);
     setLookupError(null);
+    setJoinError(null);
   }
 
   async function handleCreateInvite() {
@@ -112,11 +114,20 @@ export function HouseholdSection({
 
   async function handleJoin(moveItems: boolean) {
     setJoinLoading(true);
+    setJoinError(null);
     try {
       await onJoin(joinCode, moveItems);
       setJoinCode("");
       setLookupResult(null);
       setShowJoinChoice(false);
+    } catch (err) {
+      // Server raises a readable message (e.g. Household Premium owner block); surface it.
+      const message = err instanceof Error ? err.message : "";
+      setJoinError(
+        message.includes("Household Premium")
+          ? t("settings.household.ownerBlocked")
+          : t("settings.household.invalidCode"),
+      );
     } finally {
       setJoinLoading(false);
     }
@@ -211,9 +222,10 @@ export function HouseholdSection({
             setJoinCode(text);
             setLookupResult(null);
             setLookupError(null);
+            setJoinError(null);
           }}
           autoCapitalize="characters"
-          error={lookupError ?? undefined}
+          error={lookupError ?? joinError ?? undefined}
         />
 
         {lookupResult ? (
