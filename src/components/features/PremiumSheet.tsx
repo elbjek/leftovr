@@ -281,7 +281,7 @@ function PlanCard({
       </Text>
       <View style={styles.planPriceRow}>
         <Text variant="h2" color={selected ? colors.surface : colors.text}>{price}</Text>
-        <Text variant="small" color={selected ? "rgba(248,244,238,0.7)" : colors.muted}>{sub}</Text>
+        <Text variant="small" color={selected ? "rgba(243,239,232,0.7)" : colors.muted}>{sub}</Text>
       </View>
     </Pressable>
   );

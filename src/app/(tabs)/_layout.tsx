@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     borderColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0px 8px 20px rgba(27, 67, 50, 0.32)",
+    boxShadow: "0px 8px 20px rgba(35, 75, 52, 0.32)",
   },
   scanLabel: {
     fontSize: 10.5,

@@ -1,9 +1,15 @@
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Dimensions, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
-import { categoryColors, CategoryTone, colors, radii, shadows, spacing, urgencyColors } from "../../theme";
+import { categoryColors, CategoryTone, colors, fonts, radii, spacing, urgencyColors } from "../../theme";
 import { FoodGlyph } from "../illustrations";
 import { Button, Card, Text } from "../primitives";
+
+// Two pills fill the card row exactly: page padding (screenX) + card padding (lg)
+// on both sides, minus the gap between the two pills.
+const ITEM_WIDTH =
+  (Dimensions.get("window").width - spacing.screenX * 2 - spacing.lg * 2 - spacing.sm) / 2;
 
 type EatFirstItem = {
   id: string;
@@ -17,6 +23,7 @@ type Props = {
   premium?: boolean;
   labels: {
     kicker: string;
+    subtitle?: string;
     heading: (count: number) => string;
     cookCta: string;
     previewTitle: string;
@@ -57,19 +64,27 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onC
     <View style={styles.wrap}>
       <View style={styles.card}>
         <View style={styles.kickerRow}>
-          <View style={styles.dot} />
-          <Text variant="micro" color={colors.red} uppercase style={styles.kicker}>
+          <LeafIcon />
+          <Text variant="label" color={colors.primary} style={styles.kicker}>
             {labels.kicker}
           </Text>
         </View>
-        <Text variant="h3" color={colors.text} style={styles.heading}>
+        <Text variant="h2" color={colors.text} style={styles.heading}>
           {labels.heading(items.length)}
         </Text>
+        {labels.subtitle ? (
+          <Text variant="small" muted style={styles.subtitle}>
+            {labels.subtitle}
+          </Text>
+        ) : null}
 
         <ScrollView
           horizontal
           scrollEnabled={items.length > 2}
           showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          snapToInterval={ITEM_WIDTH + spacing.sm}
+          snapToAlignment="start"
           contentContainerStyle={styles.carousel}
         >
           {items.map((item) => {
@@ -85,7 +100,7 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onC
                   <FoodGlyph name={item.name} color={tone.mark} size={26} />
                 </View>
                 <View style={styles.itemText}>
-                  <Text variant="label" color={colors.text} numberOfLines={2}>
+                  <Text variant="label" color={colors.text} numberOfLines={2} style={styles.itemName}>
                     {item.name}
                   </Text>
                   {item.bestBy ? (
@@ -112,6 +127,21 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onC
   );
 }
 
+function LeafIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4 20c0-8 6-14 16-14 0 10-6 15-13 15-1 0-3 0-3-1Z"
+        stroke={colors.primary}
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M4 20c2-5 6-8 11-9" stroke={colors.primary} strokeWidth={1.7} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 const styles = StyleSheet.create({
   wrap: {
     paddingHorizontal: spacing.screenX,
@@ -121,41 +151,40 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface2,
     borderRadius: radii.xxl,
     borderWidth: 1,
-    borderColor: colors.hairlineStrong,
+    borderColor: colors.cardLine,
     padding: spacing.lg,
-    gap: spacing.md,
-    ...shadows.card,
+    gap: spacing.sm,
   },
   kickerRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: urgencyColors.urgent,
+    gap: spacing.xs,
   },
   kicker: {
-    letterSpacing: 0.6,
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "700",
   },
   heading: {
-    marginTop: -spacing.xs,
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "700",
+    marginTop: spacing.xxs,
+  },
+  subtitle: {
+    marginTop: -spacing.xxs,
   },
   carousel: {
     flexDirection: "row",
     gap: spacing.sm,
   },
   itemCard: {
-    width: 184,
+    width: ITEM_WIDTH,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: colors.paper,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.hairline,
+    borderColor: colors.cardLine,
     padding: spacing.sm,
   },
   itemPressed: {
@@ -171,6 +200,9 @@ const styles = StyleSheet.create({
   itemText: {
     flex: 1,
     gap: 1,
+  },
+  itemName: {
+    fontFamily: fonts.bodyBold,
   },
   cta: {
     flexDirection: "row",
@@ -197,7 +229,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.sageSoft,
     alignItems: "center",
     justifyContent: "center",
   },

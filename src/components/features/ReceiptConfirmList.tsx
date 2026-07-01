@@ -130,7 +130,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t("scan.manual.expiryLabel")}
-                style={styles.expiryBox}
+                style={[styles.expiryBox, expiryPickerRowId === row.id && styles.expiryBoxActive]}
                 onPress={() => setExpiryPickerRowId(row.id)}
               >
                 <Text variant="micro" muted uppercase>
@@ -313,12 +313,15 @@ const styles = StyleSheet.create({
   },
   expiryBox: {
     borderWidth: 1,
-    borderColor: colors.hairline,
+    borderColor: colors.cardLine,
     borderRadius: radii.lg,
     backgroundColor: colors.paper,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.xs,
+  },
+  expiryBoxActive: {
+    borderColor: colors.sage,
   },
   expiryValueRow: {
     flexDirection: "row",

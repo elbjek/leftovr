@@ -1,6 +1,44 @@
 import { i18n } from "@/i18n";
 import { MockRecipe, RECIPE_LIBRARY } from "@/mocks/recipeLibrary";
-import { canonicalFoodName, InventoryLot, resolveUrgency } from "./inventoryRules";
+import { canonicalFoodName, InventoryCategory, InventoryLot, resolveUrgency } from "./inventoryRules";
+
+/** What a dish is built around. Soft AI-only guide; the matcher ignores it. */
+export type BasePreference =
+  | "protein" | "vegetables" | "pasta" | "rice" | "potatoes" | "bread" | "cheese";
+
+export const BASE_PREFERENCES: BasePreference[] = [
+  "protein", "vegetables", "pasta", "rice", "potatoes", "bread", "cheese",
+];
+
+// Maps coarse inventory (category + item name) onto cook bases. Name keywords are
+// the only way to split pasta/rice/potatoes — they all land in the `pantry` category.
+// ponytail: keyword heuristic, known ceiling; extend the lists as misses show up.
+const BASE_MATCHERS: { base: BasePreference; categories?: InventoryCategory[]; keywords?: string[] }[] = [
+  { base: "protein", categories: ["meat", "fish"], keywords: ["chicken", "beef", "pork", "turkey", "egg", "tofu", "bean", "lentil", "chickpea", "ham", "bacon", "sausage", "mince", "tuna", "salmon"] },
+  { base: "vegetables", categories: ["vegetables"] },
+  { base: "pasta", keywords: ["pasta", "spaghetti", "penne", "noodle", "macaroni", "lasagn", "fusilli", "rigatoni", "tagliatelle", "gnocchi"] },
+  { base: "rice", keywords: ["rice", "risotto"] },
+  { base: "potatoes", keywords: ["potato"] },
+  { base: "bread", categories: ["bakery"], keywords: ["bread", "bun", "tortilla", "wrap", "pita", "baguette", "roll"] },
+  { base: "cheese", keywords: ["cheese", "mozzarella", "cheddar", "parmesan", "feta", "halloumi"] },
+];
+
+/** Bases the household actually has stock for, most-stocked first. Falls back to a
+ *  core set when the fridge is empty so the picker is never blank. */
+export function availableBaseOptions(lots: InventoryLot[]): BasePreference[] {
+  const counts = new Map<BasePreference, number>();
+  for (const lot of lots) {
+    const name = lot.normalized_name?.toLowerCase() ?? "";
+    for (const m of BASE_MATCHERS) {
+      const hit =
+        (m.categories?.includes(lot.category) ?? false) ||
+        (m.keywords?.some((k) => name.includes(k)) ?? false);
+      if (hit) counts.set(m.base, (counts.get(m.base) ?? 0) + 1);
+    }
+  }
+  const present = [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([base]) => base);
+  return present.length ? present : ["protein", "vegetables", "pasta", "rice"];
+}
 
 export type RecipeMatch = MockRecipe & {
   matchedItems: MatchedItem[];
@@ -33,9 +71,9 @@ export type RecipeMatcherInput = {
       | "any" | "italian" | "mexican" | "american" | "greek" | "mediterranean"
       | "french" | "indian" | "middle_eastern" | "asian" | "japanese" | "thai"
       | "chinese" | "korean" | "british" | "spanish" | "eastern_european";
-    /** Soft guide for what to build the dish around. "anything" = no preference.
+    /** Soft guide for what to build the dish around (omitted = no preference).
      *  Not enforced by the mock matcher; the AI prompt treats it as a guide. */
-    basePreference?: "anything" | "protein" | "potatoes" | "pasta" | "vegetables";
+    basePreference?: BasePreference;
   };
 };
 

@@ -167,12 +167,12 @@ function HeroStat({ summary, savedDelta, currency }: { summary: InsightsSummary;
       </Text>
       <View style={styles.heroValueRow}>
         <Text style={styles.heroValue}>{items}</Text>
-        <Text variant="small" color="rgba(248,244,238,0.72)" style={styles.heroMeta}>
+        <Text variant="small" color="rgba(243,239,232,0.72)" style={styles.heroMeta}>
           {t("insights.heroMeta", { count: items, amount })}
         </Text>
       </View>
       <View style={styles.heroDivider} />
-      <Text variant="small" color="rgba(248,244,238,0.86)">
+      <Text variant="small" color="rgba(243,239,232,0.86)">
         {summary.isSparse
           ? t("insights.heroSparse")
           : savedDelta > 0
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   heroDivider: {
     height: 1,
-    backgroundColor: "rgba(248,244,238,0.15)",
+    backgroundColor: "rgba(243,239,232,0.15)",
     marginVertical: 18,
   },
   miniGrid: {

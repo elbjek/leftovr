@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { getLocales } from "expo-localization";
 
-import { BackButton, Button, ChoiceCard, Screen, Text, TextField } from "@/components";
+import { BackButton, Button, ChoiceCard, ChoiceIcon, CHOICE_ICON_NAMES, Screen, Text, TextField } from "@/components";
 import { consumePendingInviteCode, useAuth } from "@/features";
 import {
   acceptHouseholdInvite,
@@ -272,6 +272,7 @@ export default function OnboardingRoute() {
                 key={choice.value}
                 title={choice.label}
                 selected={avoidances.includes(choice.value)}
+                icon={CHOICE_ICON_NAMES.includes(choice.value) ? <ChoiceIcon name={choice.value} /> : undefined}
                 onPress={() => toggleAvoidance(choice.value)}
               />
             ))}
@@ -338,7 +339,13 @@ function ChoiceList({
           title={choice.label}
           subtitle={choice.subtitle}
           selected={selected === choice.value}
-          icon={choice.emoji ? <Text style={styles.choiceEmoji}>{choice.emoji}</Text> : undefined}
+          icon={
+            CHOICE_ICON_NAMES.includes(choice.value) ? (
+              <ChoiceIcon name={choice.value} />
+            ) : choice.emoji ? (
+              <Text style={styles.choiceEmoji}>{choice.emoji}</Text>
+            ) : undefined
+          }
           onPress={() => onSelect(choice)}
         />
       ))}

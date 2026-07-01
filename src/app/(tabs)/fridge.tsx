@@ -56,6 +56,7 @@ export default function FridgeRoute() {
   const [expandedShelf, setExpandedShelf] = useState<{ name: string; groups: InventoryGroup[] } | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
   const [search, setSearch] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const query = search.trim().toLowerCase();
   const filteredGroups = groups.filter(
     (group) =>
@@ -130,7 +131,7 @@ export default function FridgeRoute() {
 
       {groups.length > 0 ? (
         <View style={styles.searchRow}>
-          <View style={styles.searchField}>
+          <View style={[styles.searchField, searchFocused && styles.searchFieldFocused]}>
             <SearchIcon />
             <TextInput
               value={search}
@@ -140,6 +141,8 @@ export default function FridgeRoute() {
               style={styles.searchInput}
               autoCorrect={false}
               returnKeyType="search"
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
             />
           </View>
           <Pressable
@@ -180,6 +183,7 @@ export default function FridgeRoute() {
           }))}
           labels={{
             kicker: t("fridge.eatFirstTitle"),
+            subtitle: t("fridge.eatFirstSubtitle"),
             heading: (count) => t("fridge.eatFirstHeading", { count }),
             cookCta: t("fridge.eatFirstCook"),
             previewTitle: t("fridge.eatFirstPreviewTitle"),
@@ -265,7 +269,7 @@ export default function FridgeRoute() {
           name={shelf.name}
           groups={shelf.groups}
           moreLabel={t("fridge.shelves.more")}
-          seeAllLabel={t("fridge.shelves.seeAll")}
+          expanded={categoryFilter !== "all"}
           showAddedBy={showAddedBy}
           onItemPress={(group) => setActionGroup(group)}
           onMorePress={() => setExpandedShelf({ name: shelf.name, groups: shelf.groups })}
@@ -304,7 +308,7 @@ function CategoryShelf({
   name,
   groups,
   moreLabel,
-  seeAllLabel,
+  expanded,
   showAddedBy,
   onItemPress,
   onMorePress,
@@ -312,7 +316,7 @@ function CategoryShelf({
   name: string;
   groups: InventoryGroup[];
   moreLabel: string;
-  seeAllLabel?: string;
+  expanded?: boolean;
   showAddedBy: boolean;
   onItemPress: (group: InventoryGroup) => void;
   onMorePress: () => void;
@@ -322,9 +326,9 @@ function CategoryShelf({
       name={name}
       count={groups.length}
       layout="grid"
-      maxVisibleItems={6}
+      maxVisibleItems={expanded ? undefined : 6}
       moreLabel={moreLabel}
-      seeAllLabel={groups.length > 6 ? seeAllLabel : undefined}
+      showTitle={false}
       items={groups.map((group) => ({
         id: group.key,
         name: group.name,
@@ -723,9 +727,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     backgroundColor: colors.paper,
     borderWidth: 1,
-    borderColor: colors.hairline,
+    borderColor: colors.cardLine,
     borderRadius: radii.lg,
     minHeight: 48,
+  },
+  searchFieldFocused: {
+    borderColor: colors.sage,
   },
   searchInput: {
     flex: 1,
@@ -753,12 +760,12 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
-    minHeight: 40,
-    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    minHeight: 46,
+    paddingHorizontal: spacing.xl,
     borderRadius: radii.pill,
     borderWidth: 1,
-    borderColor: colors.hairline,
+    borderColor: colors.cardLine,
     backgroundColor: colors.paper,
   },
   chipActive: {

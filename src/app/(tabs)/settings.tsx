@@ -872,7 +872,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarText: {
-    fontFamily: fonts.displayItalic,
+    fontFamily: fonts.bodyBold,
     fontSize: 18,
     lineHeight: 22,
     color: colors.accent,
