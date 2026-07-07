@@ -76,16 +76,31 @@ export default function RecipeDetailRoute() {
   const complexity = detail.complexity;
 
   useEffect(() => {
+    // Expo Router reuses this screen instance across recipes (same route, new
+    // params), so useState initializers are stale on re-navigation. Re-seed the
+    // detail from the current params keyed to recipeId — otherwise the previous
+    // recipe's ingredients/steps render under the new title.
+    const baseIngredients: IngredientItem[] = params.ingredients
+      ? JSON.parse(params.ingredients)
+      : [];
+    const baseSteps: string[] = params.steps ? JSON.parse(params.steps) : [];
+    const baseTime = Number(params.timeMinutes ?? 20);
+    setDetail({
+      ingredients: baseIngredients,
+      steps: baseSteps,
+      timeMinutes: baseTime,
+      complexity: params.complexity ?? "simple",
+    });
     // Already expanded (or opened from a persisted, expanded row): nothing to do.
-    if (detail.steps.length > 0 || detail.ingredients.length === 0) return;
+    if (baseSteps.length > 0 || baseIngredients.length === 0) return;
     let cancelled = false;
     setExpanding(true);
     (async () => {
       const result = await expandRecipe({
         title,
         description,
-        timeMinutes: detail.timeMinutes,
-        usedIngredientNames: detail.ingredients.map((ing) => ing.name),
+        timeMinutes: baseTime,
+        usedIngredientNames: baseIngredients.map((ing) => ing.name),
         inventory: lots,
         avoidances: profile?.avoidances ?? [],
         servings,
@@ -174,7 +189,9 @@ export default function RecipeDetailRoute() {
   // messy names (e.g. "Krastavac domaci"), so name-matching alone misses items
   // the recipe genuinely used — `required` is the reliable signal.
   const isOwned = (ing: IngredientItem) =>
-    ing.required || liveFridgeNames.has(normalizeFoodName(ing.name));
+    ing.required ||
+    isPantryStaple(ing.name) ||
+    liveFridgeNames.has(normalizeFoodName(ing.name));
   const fridgeCount = ingredients.filter(isOwned).length;
 
   function handleCookPress() {
@@ -402,11 +419,24 @@ export default function RecipeDetailRoute() {
 
         {ingredients.length > 0 ? (
           <>
-            <Text variant="micro" muted style={styles.sectionLabel}>
-              {fridgeCount > 0
-                ? t("recipes.detail.fromFridgeCount", { count: fridgeCount })
-                : t("recipes.detail.ingredients")}
-            </Text>
+            <View style={styles.fridgeHeader}>
+              <Text variant="micro" muted style={[styles.sectionLabel, styles.fridgeHeaderLabel]}>
+                {fridgeCount > 0
+                  ? t("recipes.detail.fromFridgeCount", { count: fridgeCount })
+                  : t("recipes.detail.ingredients")}
+              </Text>
+              {ingredients.length > 6 ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={jumpToSteps}
+                  style={({ pressed }) => [styles.jumpButton, pressed && { opacity: 0.6 }]}
+                >
+                  <Text variant="small" color={colors.primary}>
+                    {t("recipes.detail.jumpToRecipe")} ↓
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
             <View style={styles.fridgeCard}>
               {ingredients.map((ing, i) => {
                 const inFridge = isOwned(ing);
@@ -440,17 +470,6 @@ export default function RecipeDetailRoute() {
                 );
               })}
             </View>
-            {ingredients.length > 6 ? (
-              <Pressable
-                accessibilityRole="button"
-                onPress={jumpToSteps}
-                style={({ pressed }) => [styles.jumpButton, pressed && { opacity: 0.6 }]}
-              >
-                <Text variant="small" color={colors.primary}>
-                  {t("recipes.detail.jumpToRecipe")} ↓
-                </Text>
-              </Pressable>
-            ) : null}
           </>
         ) : null}
 
@@ -841,12 +860,20 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: spacing.md,
   },
+  fridgeHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
+  fridgeHeaderLabel: {
+    marginBottom: 0,
+    flexShrink: 1,
+  },
   jumpButton: {
-    alignSelf: "center",
     minHeight: 44,
     justifyContent: "center",
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
+    paddingLeft: spacing.md,
   },
   fridgeRow: {
     flexDirection: "row",
