@@ -529,7 +529,6 @@ export const en = {
         familyFriendly: "Family",
         budget: "Budget",
       },
-      surprise: "Surprise",
       generate: "Find recipes",
     },
     detail: {

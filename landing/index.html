@@ -269,6 +269,7 @@
     transition: border 0.15s ease, box-shadow 0.15s ease;
   }
   .field::placeholder { color: var(--muted-2); }
+  .captcha-widget { margin-top: 12px; min-height: 65px; }
   .field:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-50); }
   .privacy {
     display: flex; align-items: center; gap: 7px;
@@ -547,7 +548,9 @@
     h2.sec-title { font-size: 33px; }
     .final h2 { font-size: 34px; }
     .capture-row { flex-direction: column; }
-    .capture-row .btn { width: 100%; }
+    .capture-row .btn { width: 100%; height: 56px; }
+    /* Full width + 16px font stops iOS Safari zooming on focus; taller for presence. */
+    .capture-row .field { width: 100%; height: 56px; font-size: 16px; }
     .nav .btn { height: 44px; padding: 0 18px; font-size: 14px; }
     .sticky-cta { display: block; }
     body { padding-bottom: 84px; }
@@ -560,6 +563,8 @@
     .nav-right .btn { display: none; }
   }
 </style>
+<!-- Cloudflare Turnstile (bot captcha). Explicit render via onTurnstileLoad below. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer></script>
 </head>
 <body>
 
@@ -626,6 +631,7 @@
             <input class="field" type="email" id="hero-email" name="email" placeholder="you@email.com" data-i18n-ph="hero.placeholder" autocomplete="email" required>
             <button class="btn btn-primary" type="submit" data-i18n="hero.submit">Join the waitlist</button>
           </div>
+          <div id="hero-captcha" class="captcha-widget"></div>
           <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
           <div class="privacy">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="#6B7A6D" stroke-width="1.2" stroke-linejoin="round"/></svg>
@@ -1019,6 +1025,7 @@
             <input class="field" type="email" id="final-email" name="email" placeholder="you@email.com" data-i18n-ph="hero.placeholder" autocomplete="email" required>
             <button class="btn btn-accent" type="submit" data-i18n="hero.submit">Join the waitlist</button>
           </div>
+          <div id="final-captcha" class="captcha-widget"></div>
           <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
           <div class="privacy">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="rgba(248,244,238,0.65)" stroke-width="1.2" stroke-linejoin="round"/></svg>
@@ -1239,6 +1246,7 @@
       "foot.copy": "© 2026 leftovr",
       "sticky.cta": "Get early access — it's free to start",
       "wl.invalid": "Please enter a valid email address.",
+      "wl.captcha": "Please complete the captcha first.",
       "wl.joining": "Joining…",
       "wl.generic": "Something went wrong. Please try again.",
       "wl.network": "Couldn't reach the waitlist right now. Please try again in a minute.",
@@ -1392,6 +1400,7 @@
       "foot.copy": "© 2026 leftovr",
       "sticky.cta": "Rani pristup — besplatno za početak",
       "wl.invalid": "Unesi ispravnu imejl adresu.",
+      "wl.captcha": "Prvo popuni kapču.",
       "wl.joining": "Prijavljujem…",
       "wl.generic": "Nešto je pošlo naopako. Pokušaj ponovo.",
       "wl.network": "Trenutno ne mogu da dođem do liste. Pokušaj ponovo za minut.",
@@ -1474,6 +1483,17 @@
     btn.addEventListener("click", function () { applyLanguage(btn.dataset.lang); });
   });
 
+  // ---------- Turnstile captcha ----------
+  // Cloudflare Turnstile site key (public). Matching secret lives in the
+  // TURNSTILE_SECRET_KEY env var on Vercel.
+  var TURNSTILE_SITE_KEY = "0x4AAAAAADxgkqYVh9S5dYsq";
+  window.onTurnstileLoad = function () {
+    ["hero-captcha", "final-captcha"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && window.turnstile) window.turnstile.render(el, { sitekey: TURNSTILE_SITE_KEY });
+    });
+  };
+
   // ---------- Waitlist forms → /api/waitlist → Resend ----------
   var WAITLIST_ENDPOINT = "/api/waitlist";
   function wireForm(formId, msgId, successId) {
@@ -1500,6 +1520,12 @@
         email.focus();
         return;
       }
+      var captcha = form.querySelector('[name="cf-turnstile-response"]');
+      var token = captcha ? captcha.value : "";
+      if (!token) {
+        showMsg(t("wl.captcha"), false);
+        return;
+      }
       var label = submit.textContent;
       submit.disabled = true;
       submit.textContent = t("wl.joining");
@@ -1507,7 +1533,7 @@
         var res = await fetch(WAITLIST_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: value, company: honeypot ? honeypot.value : "", lang: currentLang }),
+          body: JSON.stringify({ email: value, company: honeypot ? honeypot.value : "", lang: currentLang, turnstileToken: token }),
         });
         var data = await res.json().catch(function () { return {}; });
         if (res.ok) {
@@ -1521,6 +1547,9 @@
       } finally {
         submit.disabled = false;
         submit.textContent = label;
+        // Turnstile tokens are single-use; reset so a retry gets a fresh one.
+        var cw = form.querySelector(".captcha-widget");
+        if (window.turnstile && cw) window.turnstile.reset(cw);
       }
     });
   }
