@@ -653,7 +653,14 @@ function cleanTitle(raw: string): string {
     /^(delicious|tasty|easy|quick|simple|amazing|ultimate|perfect|hearty|healthy|homemade|classic|wholesome|yummy)\s+/i,
     "",
   );
-  if (t.length > 48) t = t.slice(0, 48).replace(/\s+\S*$/, "").trim();
+  if (t.length > 48) {
+    const cut = t.slice(0, 48);
+    // Prefer a clean phrase boundary so we don't strand "...and roasted".
+    const boundary = Math.max(cut.lastIndexOf(" with "), cut.lastIndexOf(" and "), cut.lastIndexOf(", "));
+    t = (boundary > 20 ? cut.slice(0, boundary) : cut.replace(/\s+\S*$/, "")).trim();
+    // Drop a trailing connector left dangling by a word-boundary cut.
+    t = t.replace(/[\s,]+(and|with|in|on|of|the|a|&)$/i, "").trim();
+  }
   return t || raw.trim();
 }
 
