@@ -57,7 +57,6 @@ type Props = {
     cuisine: string;
     eatFirstNote: string;
     cuisineOptions: Record<Cuisine, string>;
-    surprise: string;
     generate: string;
     cookingFor?: string;
     cookingForOptions?: Record<CookingMode, string>;
@@ -124,15 +123,6 @@ export function CookPromptSheet({
       cuisine: cuisine === "any" ? undefined : cuisine,
       basePreference: base ?? undefined,
     };
-  }
-
-  function handleSurprise() {
-    // Clear optional filters and fall back to no preference, then generate.
-    setMeal("any");
-    setBase(null);
-    setTime("any");
-    setCuisine("any");
-    onGenerate(undefined);
   }
 
   const showCookingFor = Boolean(cookingMode && onCookingModeChange && labels.cookingForOptions);
@@ -261,14 +251,6 @@ export function CookPromptSheet({
           iconRight={<ChevronRightIcon />}
           onPress={() => onGenerate(buildFilters())}
           style={styles.ctaPrimary}
-        />
-        <Button
-          title={labels.surprise}
-          variant="ghost"
-          disabled={generating}
-          iconLeft={<SparkleIcon />}
-          onPress={handleSurprise}
-          style={styles.ctaSurprise}
         />
       </View>
     </BottomSheet>
@@ -493,16 +475,6 @@ function CheckIcon() {
   );
 }
 
-function SparkleIcon() {
-  const p = { stroke: colors.primary, strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24">
-      <Path d="M12 4c.5 3 1.5 4 4.5 4.5C13.5 9 12.5 10 12 13c-.5-3-1.5-4-4.5-4.5C10.5 8 11.5 7 12 4Z" {...p} />
-      <Path d="M18 14c.3 1.5.8 2 2.3 2.3-1.5.3-2 .8-2.3 2.3-.3-1.5-.8-2-2.3-2.3 1.5-.3 2-.8 2.3-2.3Z" {...p} />
-    </Svg>
-  );
-}
-
 function CloseIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
@@ -684,10 +656,6 @@ const styles = StyleSheet.create({
   },
   ctaPrimary: {
     flex: 2,
-  },
-  ctaSurprise: {
-    flex: 1,
-    paddingHorizontal: spacing.sm,
   },
   pressed: {
     opacity: 0.85,

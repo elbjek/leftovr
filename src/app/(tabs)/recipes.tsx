@@ -668,7 +668,6 @@ export default function RecipesRoute() {
             spanish: t("recipes.cookPrompt.cuisineOptions.spanish"),
             eastern_european: t("recipes.cookPrompt.cuisineOptions.eastern_european"),
           },
-          surprise: t("recipes.cookPrompt.surprise"),
           generate: t("recipes.cookPrompt.generate"),
           cookingFor: t("recipes.cookingMode.title"),
           cookingForOptions: {
