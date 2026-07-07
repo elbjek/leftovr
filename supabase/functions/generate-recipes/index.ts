@@ -479,7 +479,9 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
     return { response: Response.json({ error: "recipe_generation_quota_exceeded" }, { status: 402 }) };
   }
 
-  const dailyLimit = premium ? 50 : 5;
+  // Free tier is gated to one lifetime generation above (free_recipe_generation_used_at),
+  // so this daily cap only ever applies to premium.
+  const dailyLimit = premium ? 50 : 1;
   if ((dailyCount ?? 0) >= dailyLimit) {
     return { response: Response.json({ error: "recipe_generation_rate_limited" }, { status: 429 }) };
   }
