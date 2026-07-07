@@ -23,7 +23,7 @@ export default function RecipesRoute() {
   const { t } = useTranslation();
   const { autoGenerate } = useLocalSearchParams<{ autoGenerate?: string }>();
   const { profile, activeHousehold, refresh } = useAuth();
-  const { lots: inventory } = useInventory(activeHousehold?.id);
+  const { lots: inventory, loading: inventoryLoading } = useInventory(activeHousehold?.id);
   const baseOptions = useMemo(() => availableBaseOptions(inventory), [inventory]);
   const { members, combinedAvoidances } = useHousehold(activeHousehold?.id);
   const isPremium = resolvePremium(profile, activeHousehold);
@@ -130,9 +130,12 @@ export default function RecipesRoute() {
   // handleGenerate (free users hit the premium sheet).
   useEffect(() => {
     if (autoGenerate !== "1") return;
+    // Wait for inventory to finish loading; firing on the initial empty [] would
+    // generate against an empty fridge and always surface noneFound.
+    if (inventoryLoading) return;
     router.setParams({ autoGenerate: undefined });
     void handleGenerate(undefined);
-  }, [autoGenerate, handleGenerate]);
+  }, [autoGenerate, inventoryLoading, handleGenerate]);
 
   // Single navigation builder. The detail screen recomputes which ingredients
   // are in-fridge/urgent from live inventory and depletes by name, so neither
