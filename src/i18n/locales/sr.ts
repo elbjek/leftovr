@@ -530,7 +530,6 @@ export const sr = {
         familyFriendly: "Porodicno",
         budget: "Povoljno",
       },
-      surprise: "Iznenadi",
       generate: "Pronađi recepte",
     },
     detail: {
