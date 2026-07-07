@@ -53,6 +53,8 @@ export type InventoryLot = {
   removed_at: string | null;
   added_by: string | null;
   added_by_name: string | null;
+  purchase_price: number | null;
+  purchase_amount: number | null;
 };
 
 export type InventoryGroup = {
@@ -150,6 +152,8 @@ const FOOD_ALIASES: Record<string, string> = {
   losos: "salmon",
   spanac: "spinach",
   paradajz: "tomatoes",
+  sargarepa: "carrot",
+  sargarepe: "carrot",
   banane: "bananas",
   pirinac: "rice",
   "smrznuti grasak": "frozen peas",

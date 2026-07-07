@@ -18,7 +18,7 @@ export function FoodGlyph({ name, color = colors.primary, size = 36 }: Props) {
     strokeLinejoin: "round" as const,
   };
 
-  if (n.includes("egg")) {
+  if (n.includes("egg") || n.includes("jaj")) {
     return (
       <Svg width={size} height={size} viewBox="0 0 36 36">
         <Ellipse cx="18" cy="20" rx="10" ry="13" {...common} />
@@ -26,7 +26,7 @@ export function FoodGlyph({ name, color = colors.primary, size = 36 }: Props) {
     );
   }
 
-  if (n.includes("yog") || n.includes("milk")) {
+  if (n.includes("yog") || n.includes("milk") || n.includes("jogurt") || n.includes("mlek") || n.includes("kiselo")) {
     return (
       <Svg width={size} height={size} viewBox="0 0 36 36">
         <Rect x="9" y="8" width="18" height="22" rx="2" {...common} />
@@ -35,7 +35,7 @@ export function FoodGlyph({ name, color = colors.primary, size = 36 }: Props) {
     );
   }
 
-  if (n.includes("spin") || n.includes("lettuce") || n.includes("kale")) {
+  if (n.includes("spin") || n.includes("lettuce") || n.includes("kale") || n.includes("špinat") || n.includes("spanac") || n.includes("salat")) {
     return (
       <Svg width={size} height={size} viewBox="0 0 36 36">
         <Path d="M6 22 Q10 8 18 8 Q26 8 30 22 Q26 28 18 28 Q10 28 6 22Z" {...common} />
@@ -44,7 +44,7 @@ export function FoodGlyph({ name, color = colors.primary, size = 36 }: Props) {
     );
   }
 
-  if (n.includes("tomato")) {
+  if (n.includes("tomato") || n.includes("paradajz")) {
     return (
       <Svg width={size} height={size} viewBox="0 0 36 36">
         <Circle cx="18" cy="20" r="10" {...common} />
@@ -53,7 +53,11 @@ export function FoodGlyph({ name, color = colors.primary, size = 36 }: Props) {
     );
   }
 
-  if (n.includes("chick") || n.includes("beef") || n.includes("pork") || n.includes("meat")) {
+  if (
+    n.includes("chick") || n.includes("beef") || n.includes("pork") || n.includes("meat") ||
+    n.includes("meso") || n.includes("pilet") || n.includes("svin") || n.includes("junet") ||
+    n.includes("govedin") || n.includes("slanin")
+  ) {
     return (
       <Svg width={size} height={size} viewBox="0 0 36 36">
         <Path d="M10 20 Q10 12 18 12 Q26 12 26 20 Q26 26 18 26 Q10 26 10 20Z" {...common} />
@@ -62,7 +66,10 @@ export function FoodGlyph({ name, color = colors.primary, size = 36 }: Props) {
     );
   }
 
-  if (n.includes("pasta") || n.includes("rice") || n.includes("bread") || n.includes("sourdough")) {
+  if (
+    n.includes("pasta") || n.includes("rice") || n.includes("bread") || n.includes("sourdough") ||
+    n.includes("hleb") || n.includes("hljeb") || n.includes("testenin") || n.includes("pirin")
+  ) {
     return (
       <Svg width={size} height={size} viewBox="0 0 36 36">
         <Path d="M8 22 L28 22 L26 12 L10 12 Z" {...common} />
@@ -70,7 +77,7 @@ export function FoodGlyph({ name, color = colors.primary, size = 36 }: Props) {
     );
   }
 
-  if (n.includes("cheese")) {
+  if (n.includes("cheese") || n.includes("sir")) {
     return (
       <Svg width={size} height={size} viewBox="0 0 36 36">
         <Path d="M6 24 L18 10 L30 24 Z" {...common} />

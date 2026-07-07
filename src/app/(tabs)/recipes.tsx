@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
@@ -13,7 +13,7 @@ import {
   formatTimeLabel,
   RecipeMatch,
 } from "@/services/recipeService";
-import { normalizeFoodName } from "@/services";
+import { availableBaseOptions, normalizeFoodName } from "@/services";
 import { colors, fonts, radii, spacing } from "@/theme";
 
 type RecipeTab = "all" | "saved" | "cooked" | "household";
@@ -21,8 +21,10 @@ type RecipeIngredientParam = { name: string };
 
 export default function RecipesRoute() {
   const { t } = useTranslation();
+  const { autoGenerate } = useLocalSearchParams<{ autoGenerate?: string }>();
   const { profile, activeHousehold, refresh } = useAuth();
   const { lots: inventory } = useInventory(activeHousehold?.id);
+  const baseOptions = useMemo(() => availableBaseOptions(inventory), [inventory]);
   const { members, combinedAvoidances } = useHousehold(activeHousehold?.id);
   const isPremium = resolvePremium(profile, activeHousehold);
   const userAvoidances = profile?.avoidances ?? [];
@@ -36,12 +38,18 @@ export default function RecipesRoute() {
   const [cookPromptKey, setCookPromptKey] = useState(0);
   const [cookingMode, setCookingMode] = useState<CookingMode>("household");
   const [generateNotice, setGenerateNotice] = useState<string | null>(null);
+  const [lastFilters, setLastFilters] = useState<CookFilters | undefined>(undefined);
+  const [refreshing, setRefreshing] = useState(false);
 
   const showCookingMode = members.length >= 2;
   const activeAvoidances = cookingMode === "household" ? combinedAvoidances : userAvoidances;
-  const servings = cookingMode === "household"
+  // Default comes from household/profile; the cook prompt's stepper can override
+  // it for a single generation. Override resets when the cooking mode changes.
+  const defaultServings = cookingMode === "household"
     ? (activeHousehold?.default_servings ?? profile?.default_servings ?? 2)
     : (profile?.default_servings ?? 2);
+  const [servingsOverride, setServingsOverride] = useState<number | null>(null);
+  const servings = servingsOverride ?? defaultServings;
 
   const {
     loading,
@@ -71,6 +79,15 @@ export default function RecipesRoute() {
     }, [refreshRecipes]),
   );
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refreshRecipes(), refresh()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshRecipes, refresh]);
+
   const openCookPrompt = useCallback(() => {
     if (!canGenerate) {
       setShowPremium(true);
@@ -92,9 +109,30 @@ export default function RecipesRoute() {
     setFilterTime(null);
     setTab("all");
     setShowCookPrompt(false);
+    setLastFilters(filters);
     const result = await generateSession(cookingMode, filters);
     setGenerateNotice(result && result.recipes.length === 0 ? t("recipes.noMakeable") : null);
   }, [canGenerate, cookingMode, generateSession, t]);
+
+  // "Show me others": regenerate with the last-used filters, skipping the
+  // cook prompt — premium taps it when the two suggestions don't land.
+  const handleShowOthers = useCallback(() => {
+    if (!canGenerate) {
+      setShowPremium(true);
+      return;
+    }
+    void handleGenerate(lastFilters);
+  }, [canGenerate, handleGenerate, lastFilters]);
+
+  // Arriving from the "Tonight's idea" card: kick off a generation right away
+  // (expiring items lead, per the edge prompt) instead of dropping the user on
+  // an idle list. Clear the param first so it fires once. Gating lives in
+  // handleGenerate (free users hit the premium sheet).
+  useEffect(() => {
+    if (autoGenerate !== "1") return;
+    router.setParams({ autoGenerate: undefined });
+    void handleGenerate(undefined);
+  }, [autoGenerate, handleGenerate]);
 
   // Single navigation builder. The detail screen recomputes which ingredients
   // are in-fridge/urgent from live inventory and depletes by name, so neither
@@ -358,6 +396,9 @@ export default function RecipesRoute() {
             style={styles.listScroll}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+            }
           >
             {hasActiveFilters ? (
               <View style={styles.activeFilterRow}>
@@ -432,8 +473,8 @@ export default function RecipesRoute() {
                       </Text>
                     </View>
                     <View style={styles.inlineMeta}>
-                      <ClockIcon color="rgba(248,244,238,0.85)" />
-                      <Text variant="small" color="rgba(248,244,238,0.85)">
+                      <ClockIcon color="rgba(243,239,232,0.85)" />
+                      <Text variant="small" color="rgba(243,239,232,0.85)">
                         {cookAgainPick.time_minutes ?? 20} min · {t("recipes.cookAgain.items", {
                           have: cookAgainCoverage.have,
                           total: cookAgainCoverage.total,
@@ -476,6 +517,19 @@ export default function RecipesRoute() {
                     })
                   )}
                 </View>
+                {filteredSuggestions.length > 0 ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={generating}
+                    onPress={handleShowOthers}
+                    style={({ pressed }) => [styles.showOthers, pressed && styles.savedRowPressed]}
+                  >
+                    <RefreshIcon />
+                    <Text variant="label" color={colors.primary}>
+                      {t("recipes.showOthers")}
+                    </Text>
+                  </Pressable>
+                ) : null}
               </View>
             ) : null}
 
@@ -551,6 +605,7 @@ export default function RecipesRoute() {
         key={cookPromptKey}
         visible={showCookPrompt}
         labels={{
+          eyebrow: t("recipes.cookPrompt.eyebrow"),
           title: t("recipes.cookPrompt.title"),
           meal: t("recipes.cookPrompt.meal"),
           mealOptions: {
@@ -560,37 +615,73 @@ export default function RecipesRoute() {
             dinner: t("recipes.cookPrompt.mealOptions.dinner"),
             snack: t("recipes.cookPrompt.mealOptions.snack"),
           },
+          mealSubtitles: {
+            breakfast: t("recipes.cookPrompt.mealSubtitles.breakfast"),
+            lunch: t("recipes.cookPrompt.mealSubtitles.lunch"),
+            dinner: t("recipes.cookPrompt.mealSubtitles.dinner"),
+            snack: t("recipes.cookPrompt.mealSubtitles.snack"),
+          },
+          buildAround: t("recipes.cookPrompt.buildAround"),
+          baseOptions: {
+            protein: t("recipes.cookPrompt.baseOptions.protein"),
+            vegetables: t("recipes.cookPrompt.baseOptions.vegetables"),
+            pasta: t("recipes.cookPrompt.baseOptions.pasta"),
+            rice: t("recipes.cookPrompt.baseOptions.rice"),
+            potatoes: t("recipes.cookPrompt.baseOptions.potatoes"),
+            bread: t("recipes.cookPrompt.baseOptions.bread"),
+            cheese: t("recipes.cookPrompt.baseOptions.cheese"),
+          },
           time: t("recipes.cookPrompt.time"),
           timeOptions: {
-            any: t("recipes.cookPrompt.timeOptions.any"),
-            "20": t("recipes.cookPrompt.timeOptions.20"),
-            "45": t("recipes.cookPrompt.timeOptions.45"),
-            "60plus": t("recipes.cookPrompt.timeOptions.60plus"),
+            "15": t("recipes.cookPrompt.timeOptions.15"),
+            "30": t("recipes.cookPrompt.timeOptions.30"),
+            norush: t("recipes.cookPrompt.timeOptions.norush"),
           },
-          vibe: t("recipes.cookPrompt.vibe"),
-          vibeOptions: {
-            comfort: t("recipes.cookPrompt.vibeOptions.comfort"),
-            healthy: t("recipes.cookPrompt.vibeOptions.healthy"),
-            veggie: t("recipes.cookPrompt.vibeOptions.veggie"),
-            quick: t("recipes.cookPrompt.vibeOptions.quick"),
-            high_protein: t("recipes.cookPrompt.vibeOptions.highProtein"),
-            light: t("recipes.cookPrompt.vibeOptions.light"),
-            family_friendly: t("recipes.cookPrompt.vibeOptions.familyFriendly"),
-            budget: t("recipes.cookPrompt.vibeOptions.budget"),
+          timeSubtitles: {
+            "15": t("recipes.cookPrompt.timeSubtitles.15"),
+            "30": t("recipes.cookPrompt.timeSubtitles.30"),
+            norush: t("recipes.cookPrompt.timeSubtitles.norush"),
+          },
+          servingsLabel: t("recipes.cookPrompt.servingsLabel"),
+          peopleCount: (count: number) => t("recipes.cookPrompt.peopleCount", { count }),
+          cuisine: t("recipes.cookPrompt.cuisine"),
+          eatFirstNote: t("recipes.cookPrompt.eatFirstNote"),
+          cuisineOptions: {
+            any: t("recipes.cookPrompt.cuisineOptions.any"),
+            italian: t("recipes.cookPrompt.cuisineOptions.italian"),
+            mexican: t("recipes.cookPrompt.cuisineOptions.mexican"),
+            american: t("recipes.cookPrompt.cuisineOptions.american"),
+            greek: t("recipes.cookPrompt.cuisineOptions.greek"),
+            mediterranean: t("recipes.cookPrompt.cuisineOptions.mediterranean"),
+            french: t("recipes.cookPrompt.cuisineOptions.french"),
+            indian: t("recipes.cookPrompt.cuisineOptions.indian"),
+            middle_eastern: t("recipes.cookPrompt.cuisineOptions.middle_eastern"),
+            asian: t("recipes.cookPrompt.cuisineOptions.asian"),
+            japanese: t("recipes.cookPrompt.cuisineOptions.japanese"),
+            thai: t("recipes.cookPrompt.cuisineOptions.thai"),
+            chinese: t("recipes.cookPrompt.cuisineOptions.chinese"),
+            korean: t("recipes.cookPrompt.cuisineOptions.korean"),
+            british: t("recipes.cookPrompt.cuisineOptions.british"),
+            spanish: t("recipes.cookPrompt.cuisineOptions.spanish"),
+            eastern_european: t("recipes.cookPrompt.cuisineOptions.eastern_european"),
           },
           surprise: t("recipes.cookPrompt.surprise"),
           generate: t("recipes.cookPrompt.generate"),
-          servings: t("recipes.detail.servings", { count: servings }),
           cookingFor: t("recipes.cookingMode.title"),
           cookingForOptions: {
             household: t("recipes.cookingMode.household"),
             just_me: t("recipes.cookingMode.justMe"),
           },
         }}
+        baseOptions={baseOptions}
         generating={generating}
         servings={servings}
+        onServingsChange={setServingsOverride}
         cookingMode={showCookingMode ? cookingMode : undefined}
-        onCookingModeChange={setCookingMode}
+        onCookingModeChange={(mode) => {
+          setCookingMode(mode);
+          setServingsOverride(null);
+        }}
         onDismiss={() => setShowCookPrompt(false)}
         onGenerate={handleGenerate}
       />
@@ -665,7 +756,7 @@ export default function RecipesRoute() {
       {generating ? (
         <GeneratingOverlay
           title={t("recipes.generatingOverlay.title")}
-          phrases={[
+          steps={[
             t("recipes.generatingOverlay.phrase1"),
             t("recipes.generatingOverlay.phrase2"),
             t("recipes.generatingOverlay.phrase3"),
@@ -724,7 +815,7 @@ function ActiveFilterToken({ label, onRemove }: { label: string; onRemove: () =>
       <Text variant="micro" color={colors.surface} style={styles.activeFilterText}>
         {label}
       </Text>
-      <CloseIcon color="rgba(248,244,238,0.75)" />
+      <CloseIcon color="rgba(243,239,232,0.75)" />
     </Pressable>
   );
 }
@@ -765,6 +856,21 @@ function SearchIcon() {
     <Svg width={16} height={16} viewBox="0 0 16 16">
       <Circle cx={7} cy={7} r={5} stroke={colors.muted} strokeWidth={1.6} fill="none" />
       <Path d="M11 11l3 3" stroke={colors.muted} strokeWidth={1.6} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function RefreshIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16">
+      <Path
+        d="M13 5A5.5 5.5 0 1 0 14 8"
+        stroke={colors.primary}
+        strokeWidth={1.6}
+        fill="none"
+        strokeLinecap="round"
+      />
+      <Path d="M13 2v3h-3" stroke={colors.primary} strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -1025,6 +1131,18 @@ const styles = StyleSheet.create({
   },
   cardList: {
     gap: spacing.md,
+  },
+  showOthers: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    minHeight: 44,
+    marginTop: spacing.md,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.paper,
   },
   sectionBlock: {
     paddingHorizontal: spacing.screenX,

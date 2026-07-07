@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(28,28,26,0.42)",
+    backgroundColor: "rgba(31,31,31,0.42)",
   },
   sheet: {
     // Tall content must scroll inside the sheet, never push it past the top.

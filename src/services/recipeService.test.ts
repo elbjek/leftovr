@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { matchRecipes, selectMakeableRecipes } from "./recipeService";
-import { InventoryLot } from "./inventoryRules";
+import { availableBaseOptions, matchRecipes, selectMakeableRecipes } from "./recipeService";
+import { InventoryCategory, InventoryLot } from "./inventoryRules";
 
 const base = { inventory: [], avoidances: [], isPremium: false };
 
@@ -23,6 +23,8 @@ function lot(name: string, normalized_name: string): InventoryLot {
     added_at: "2026-06-01T12:00:00.000Z",
     removed_at: null,
     expires_at: null,
+    purchase_price: null,
+    purchase_amount: null,
   };
 }
 
@@ -39,6 +41,30 @@ const demoShop: InventoryLot[] = [
   lot("Sourdough", "sourdough"),
   lot("Rice", "rice"),
 ];
+
+function catLot(name: string, category: InventoryCategory): InventoryLot {
+  return { ...lot(name, name.toLowerCase()), category };
+}
+
+describe("availableBaseOptions", () => {
+  it("derives bases from category and name, hides absent ones, orders by stock", () => {
+    const bases = availableBaseOptions([
+      catLot("Chicken breast", "meat"),
+      catLot("Spaghetti", "pantry"),
+      catLot("Penne", "pantry"),
+      catLot("Spinach", "vegetables"),
+    ]);
+    expect(bases).toContain("protein");
+    expect(bases).toContain("pasta");
+    expect(bases).toContain("vegetables");
+    expect(bases).not.toContain("rice"); // no rice in stock
+    expect(bases[0]).toBe("pasta"); // two pasta items → most stocked first
+  });
+
+  it("falls back to a core set when the fridge is empty", () => {
+    expect(availableBaseOptions([])).toEqual(["protein", "vegetables", "pasta", "rice"]);
+  });
+});
 
 describe("matchRecipes filters", () => {
   it("returns all (avoidance-filtered) recipes when no filters given", () => {

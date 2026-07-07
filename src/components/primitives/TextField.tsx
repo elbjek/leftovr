@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   box: {
     borderWidth: 1,
-    borderColor: colors.hairline,
+    borderColor: colors.cardLine,
     borderRadius: radii.lg,
     backgroundColor: colors.paper,
     paddingHorizontal: spacing.md,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   boxFocused: {
-    borderColor: colors.primary,
+    borderColor: colors.sage,
   },
   boxError: {
     borderColor: colors.red,

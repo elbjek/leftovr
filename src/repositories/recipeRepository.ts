@@ -121,6 +121,31 @@ export async function createRecipe(input: CreateRecipeInput) {
   return { ...data, is_favorite: false };
 }
 
+export type UpdateRecipeDetailInput = {
+  ingredients: unknown;
+  steps: string[];
+  timeMinutes: number;
+  complexity: string;
+  avoidanceTags: string[];
+};
+
+/** Fills a card-stage recipe (empty steps) with its expanded detail so the next
+ *  open reads it straight from the DB instead of re-calling the model. */
+export async function updateRecipeDetail(recipeId: string, input: UpdateRecipeDetailInput) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from("recipes")
+    .update({
+      ingredients: input.ingredients,
+      steps: input.steps,
+      time_minutes: input.timeMinutes,
+      complexity: input.complexity,
+      avoidance_tags: input.avoidanceTags,
+    })
+    .eq("id", recipeId);
+  if (error) throw error;
+}
+
 export async function listHouseholdRecipes(householdId: string) {
   const supabase = getSupabaseClient();
 

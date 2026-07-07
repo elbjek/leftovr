@@ -1,13 +1,25 @@
 import { describe, expect, it } from "vitest";
 import {
   buildConfirmedReceiptInventoryRows,
+  buildReceiptConfirmItemsFromLines,
+  looksUnnamed,
+  NormalizedReceiptLine,
   ReceiptConfirmItem,
 } from "./receiptService";
+
+function line(name: string, normalizedName: string, confidence: number): NormalizedReceiptLine {
+  return {
+    rawText: name,
+    confidence,
+    item: { name, normalizedName, category: "other", quantity: 1, unit: "item", netAmount: null, netUnit: null },
+  };
+}
 
 const baseItems: ReceiptConfirmItem[] = [
   {
     id: "row-1",
     name: "  Greek yogurt  ",
+    normalizedName: "greek yogurt",
     category: "dairy_eggs",
     quantity: 2,
     unit: " tub ",
@@ -18,6 +30,7 @@ const baseItems: ReceiptConfirmItem[] = [
   {
     id: "row-2",
     name: "Avcado",
+    normalizedName: "avocado",
     category: "fruit",
     quantity: 2,
     unit: "item",
@@ -97,6 +110,26 @@ describe("receipt service", () => {
     );
 
     expect(rows[0]).toMatchObject({ expires_at: "2026-07-01" });
+  });
+
+  it("flags junk names even when the model is confident, keeps real food clean", () => {
+    const items = buildReceiptConfirmItemsFromLines([
+      line("Milk", "milk", 0.98),
+      line("ART 4729", "art 4729", 0.95), // digits — high confidence but not a food
+      line("BRD", "brd", 0.92), // vowel-less OCR code
+      line("Greek yogurt", "greek yogurt", 0.9),
+    ]);
+
+    expect(items.map((i) => i.lowConfidence)).toEqual([false, true, true, false]);
+  });
+
+  it("looksUnnamed: digits, codes, and stubs are flagged; foods are not", () => {
+    expect(looksUnnamed("milk")).toBe(false);
+    expect(looksUnnamed("greek yogurt")).toBe(false);
+    expect(looksUnnamed("art 4729")).toBe(true);
+    expect(looksUnnamed("brd")).toBe(true);
+    expect(looksUnnamed("x")).toBe(true);
+    expect(looksUnnamed("**")).toBe(true);
   });
 
   it("defaults expiry to null when none is picked", () => {

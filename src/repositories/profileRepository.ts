@@ -8,6 +8,7 @@ export type OnboardingPersonalization = {
   shoppingStyle: string;
   primaryGoal: string;
   avoidances: string[];
+  currencyCode: string;
 };
 
 export async function getCurrentProfile() {
@@ -37,7 +38,7 @@ export async function getHouseholdById(householdId: string) {
 
   const { data, error } = await supabase
     .from("households")
-    .select("id, name, status, plan_tier, default_servings, first_fill_completed_at")
+    .select("id, name, status, plan_tier, default_servings, currency_code, first_fill_completed_at")
     .eq("id", householdId)
     .single<Household>();
 
@@ -76,7 +77,7 @@ export async function completeCurrentProfileOnboarding(
   if (seedActiveHouseholdDefault && profile.active_household_id) {
     const { error: householdError } = await supabase
       .from("households")
-      .update({ default_servings: input.defaultServings })
+      .update({ default_servings: input.defaultServings, currency_code: input.currencyCode })
       .eq("id", profile.active_household_id);
 
     if (householdError) {

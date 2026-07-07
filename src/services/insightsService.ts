@@ -7,19 +7,18 @@ export type InsightsSummary = {
   removedItems: number;
   itemsSaved: number;
   estimatedItemsSaved: number;
-  estimatedMoneySaved: number;
+  moneySpent: number;
+  moneySaved: number;
+  moneyWasted: number;
   mostUsedCategory: string | null;
   isSparse: boolean;
   cookedRecipes: { title: string; count: number }[];
 };
 
-const ESTIMATED_VALUE_PER_ITEM = 1.5;
-
 export function computeInsightsSummary(raw: InsightsRawData): InsightsSummary {
   // "Saved" means consumed — cooked or fully used up — not merely added to the
-  // fridge. The money figure stays an estimate (flat value per item).
+  // fridge. Money figures are real, summed from value_events.
   const estimatedItemsSaved = raw.itemsUsed;
-  const estimatedMoneySaved = estimatedItemsSaved * ESTIMATED_VALUE_PER_ITEM;
 
   let mostUsedCategory: string | null = null;
   let maxCount = 0;
@@ -39,7 +38,9 @@ export function computeInsightsSummary(raw: InsightsRawData): InsightsSummary {
     removedItems: raw.removedItems,
     itemsSaved: raw.itemsUsed,
     estimatedItemsSaved,
-    estimatedMoneySaved,
+    moneySpent: raw.moneySpent,
+    moneySaved: raw.moneySaved,
+    moneyWasted: raw.moneyWasted,
     mostUsedCategory,
     isSparse,
     cookedRecipes: raw.cookedRecipes,

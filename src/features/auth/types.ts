@@ -25,6 +25,7 @@ export type Household = {
   status: "active" | "archived";
   plan_tier: "free" | "premium" | "household_premium";
   default_servings: number;
+  currency_code: string;
   first_fill_completed_at: string | null;
 };
 

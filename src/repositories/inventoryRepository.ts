@@ -1,5 +1,12 @@
 import { getSupabaseClient } from "@/lib/supabase";
+import { valueOfAmount, deriveUnitPrice } from "@/lib/money";
 import {
+  insertValueEvent,
+  fetchPricedLots,
+  categoryAverageUnitPrice,
+} from "./valueEventRepository";
+import {
+  canonicalFoodName,
   getCatalogFood,
   getCatalogNet,
   getGramsPerItem,
@@ -9,7 +16,6 @@ import {
   InventoryCategory,
   InventoryLot,
   InventorySource,
-  normalizeFoodName,
   PartialState,
   planDepletion,
   resolveUrgency,
@@ -28,6 +34,8 @@ export type AddInventoryItemInput = {
   expiresAt?: string | null;
   source?: InventorySource;
   addedAt?: string;
+  /** Total price paid for this lot, in household currency. Null/undefined = approximate. */
+  price?: number | null;
 };
 
 export async function listActiveHouseholdInventory(householdId: string) {
@@ -36,7 +44,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
   const { data, error } = await supabase
     .from("inventory_items")
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at, added_by, profiles!added_by(display_name)",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at, added_by, purchase_price, purchase_amount, profiles!added_by(display_name)",
     )
     .eq("household_id", householdId)
     .is("removed_at", null)
@@ -64,6 +72,8 @@ export async function listActiveHouseholdInventory(householdId: string) {
     removed_at: row.removed_at,
     added_by: row.added_by,
     added_by_name: row.profiles?.display_name ?? null,
+    purchase_price: row.purchase_price ?? null,
+    purchase_amount: row.purchase_amount ?? null,
   })) as InventoryLot[];
 }
 
@@ -92,13 +102,15 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
   const inputNetUnit = input.netUnit ?? null;
   const netUnit = inputNetUnit ?? catalogNet?.netUnit ?? null;
   const netAmount = inputNetAmount ?? (catalogNet ? catalogNet.netAmount * quantity : null);
+  // purchase_amount: the amount the price covers, for proportional attribution.
+  const purchaseAmount = netAmount ?? quantity;
 
   const { data, error } = await supabase
     .from("inventory_items")
     .insert({
       household_id: input.householdId,
       name,
-      normalized_name: normalizeFoodName(name),
+      normalized_name: canonicalFoodName(name),
       brand_name: input.brandName?.trim() || null,
       category,
       quantity,
@@ -111,9 +123,11 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       source: input.source ?? "manual",
       added_by: userId,
       added_at: addedAt,
+      purchase_price: input.price ?? null,
+      purchase_amount: input.price != null ? purchaseAmount : null,
     })
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at, purchase_price, purchase_amount",
     )
     .single<InventoryLot>();
 
@@ -121,20 +135,63 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
     throw error;
   }
 
+  // Money: emit a spend event. Use the entered price, else approximate from the
+  // household's own category averages (cold start => value 0 => skipped).
+  let spendValue = input.price ?? 0;
+  if (input.price == null) {
+    const lots = await fetchPricedLots(input.householdId);
+    spendValue = valueOfAmount(purchaseAmount, categoryAverageUnitPrice(lots, category));
+  }
+  await insertValueEvent({
+    householdId: input.householdId,
+    kind: "spend",
+    value: spendValue,
+    normalizedName: canonicalFoodName(name),
+    category,
+    createdBy: userId,
+  });
+
   return data;
 }
 
-export async function removeInventoryGroup(lotIds: string[], reason = "removed") {
-  if (lotIds.length === 0) return;
+type RemovableLot = Pick<
+  InventoryLot,
+  "id" | "normalized_name" | "category" | "net_amount" | "quantity" | "purchase_price" | "purchase_amount"
+>;
+
+/**
+ * Remove lots and record the money outcome of the amount that left inventory:
+ * "used" → saved, "discarded" → wasted. Each priced lot's remaining amount is
+ * valued at its unit price.
+ */
+export async function removeInventoryGroup(
+  lots: RemovableLot[],
+  reason: "used" | "discarded",
+  householdId: string,
+) {
+  if (lots.length === 0) return;
   const supabase = getSupabaseClient();
 
   const { error } = await supabase
     .from("inventory_items")
     .update({ removed_at: new Date().toISOString(), removal_reason: reason })
-    .in("id", lotIds);
+    .in("id", lots.map((lot) => lot.id));
 
   if (error) {
     throw error;
+  }
+
+  const kind = reason === "discarded" ? "wasted" : "saved";
+  for (const lot of lots) {
+    const unit = deriveUnitPrice(lot.purchase_price, lot.purchase_amount);
+    const remaining = lot.net_amount ?? lot.quantity;
+    await insertValueEvent({
+      householdId,
+      kind,
+      value: valueOfAmount(remaining, unit),
+      normalizedName: lot.normalized_name,
+      category: lot.category,
+    });
   }
 }
 
@@ -209,6 +266,48 @@ export async function depleteItemQuantity(
     p_ops: ops,
   });
 
+  if (error) throw error;
+}
+
+export type UpdateInventoryItemInput = {
+  name?: string;
+  category?: InventoryCategory;
+  quantity?: number;
+  unit?: string;
+  expiresAt?: string | null;
+  netAmount?: number | null;
+};
+
+// Edits one lot. When the name changes we also recompute normalized_name (so
+// grouping + depletion still match) and shelf_life_range (so urgency stays
+// consistent for items without an explicit expiry).
+export async function updateInventoryItem(itemId: string, input: UpdateInventoryItemInput) {
+  const supabase = getSupabaseClient();
+  const patch: Record<string, unknown> = {};
+
+  if (input.name !== undefined) {
+    const name = input.name.trim();
+    if (!name) throw new Error("name is required");
+    const category = input.category ?? inferCategory(name);
+    patch.name = name;
+    patch.normalized_name = canonicalFoodName(name);
+    patch.category = category;
+    patch.shelf_life_range = getShelfLifeRange(name, category);
+  }
+  if (input.quantity !== undefined) {
+    if (!(input.quantity > 0)) throw new Error("quantity must be positive");
+    patch.quantity = input.quantity;
+  }
+  if (input.unit !== undefined) patch.unit = input.unit;
+  if (input.expiresAt !== undefined) patch.expires_at = input.expiresAt;
+  if (input.netAmount !== undefined) {
+    if (input.netAmount != null && !(input.netAmount > 0)) throw new Error("net amount must be positive");
+    patch.net_amount = input.netAmount;
+  }
+
+  if (Object.keys(patch).length === 0) return;
+
+  const { error } = await supabase.from("inventory_items").update(patch).eq("id", itemId);
   if (error) throw error;
 }
 

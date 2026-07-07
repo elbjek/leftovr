@@ -10,6 +10,7 @@ export type ShelfItem = {
   category?: string;
   meta: string;
   metaLines?: string[];
+  bestBy?: string;
   urgency?: "safe" | "useSoon" | "urgent";
   addedBy?: string | null;
 };
@@ -23,6 +24,7 @@ type Props = {
   maxVisibleItems?: number;
   moreLabel?: string;
   seeAllLabel?: string;
+  showTitle?: boolean;
   onItemPress?: (item: ShelfItem) => void;
   onMorePress?: () => void;
 };
@@ -36,6 +38,7 @@ export function ShelfRow({
   maxVisibleItems,
   moreLabel,
   seeAllLabel,
+  showTitle = true,
   onItemPress,
   onMorePress,
 }: Props) {
@@ -45,22 +48,30 @@ export function ShelfRow({
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          {tone ? <View style={[styles.tone, { backgroundColor: tone }]} /> : null}
-          <Text variant="h3">
-            {name}{" "}
-            <Text variant="h3" muted style={styles.count}>
-              · {count}
-            </Text>
-          </Text>
+      {showTitle || seeAllLabel ? (
+        <View style={styles.header}>
+          {showTitle ? (
+            <View style={styles.titleRow}>
+              {tone ? <View style={[styles.tone, { backgroundColor: tone }]} /> : null}
+              <Text variant="h3">
+                {name}{" "}
+                <Text variant="h3" muted style={styles.count}>
+                  · {count}
+                </Text>
+              </Text>
+            </View>
+          ) : (
+            <View />
+          )}
+          {seeAllLabel ? (
+            <Pressable accessibilityRole="button" onPress={onMorePress} hitSlop={8}>
+              <Text variant="small" muted style={styles.seeAll}>
+                {seeAllLabel}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
-        {seeAllLabel ? (
-          <Text variant="small" muted style={styles.seeAll}>
-            {seeAllLabel}
-          </Text>
-        ) : null}
-      </View>
+      ) : null}
       {grid ? (
         <View style={styles.grid}>
           {visibleItems.map((item) => (
@@ -70,6 +81,7 @@ export function ShelfRow({
               category={item.category}
               meta={item.meta}
               metaLines={item.metaLines}
+              bestBy={item.bestBy}
               urgency={item.urgency}
               addedBy={item.addedBy}
               onPress={() => onItemPress?.(item)}
@@ -104,6 +116,7 @@ export function ShelfRow({
               category={item.category}
               meta={item.meta}
               metaLines={item.metaLines}
+              bestBy={item.bestBy}
               urgency={item.urgency}
               addedBy={item.addedBy}
               onPress={() => onItemPress?.(item)}

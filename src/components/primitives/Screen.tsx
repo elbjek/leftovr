@@ -12,6 +12,8 @@ type Props = {
   backgroundColor?: string;
   contentContainerStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
+  /** Pull-to-refresh control; only applies when scroll is true. Enables bounce. */
+  refreshControl?: React.ComponentProps<typeof ScrollView>["refreshControl"];
 };
 
 export function Screen({
@@ -23,6 +25,7 @@ export function Screen({
   backgroundColor = colors.surface,
   contentContainerStyle,
   style,
+  refreshControl,
 }: Props) {
   const contentStyle = [
     padded && styles.padded,
@@ -41,7 +44,8 @@ export function Screen({
     >
       {scroll ? (
         <ScrollView
-          bounces={false}
+          bounces={Boolean(refreshControl)}
+          refreshControl={refreshControl}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={contentStyle}
           style={styles.fill}

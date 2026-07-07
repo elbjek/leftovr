@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +8,7 @@ import { EmptyState, PremiumSheet, RecipeGlyph, Screen, ScreenHeader, SegmentedC
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useHousehold, useInsights } from "@/hooks";
 import { formatCategoryLabel, InsightsSummary } from "@/services/insightsService";
+import { formatMoney } from "@/lib/money";
 import { colors, radii, spacing } from "@/theme";
 
 export default function InsightsRoute() {
@@ -15,6 +16,7 @@ export default function InsightsRoute() {
   const { profile, activeHousehold, refresh } = useAuth();
   const isPremium = resolvePremium(profile, activeHousehold);
   const [showPremium, setShowPremium] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [scope, setScope] = useState<"you" | "household">("you");
   const { members } = useHousehold(activeHousehold?.id);
   const showHouseholdScope = members.length >= 2;
@@ -35,6 +37,15 @@ export default function InsightsRoute() {
       void refreshInsights();
     }, [refreshInsights]),
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refreshInsights(), refresh()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshInsights, refresh]);
 
   if (!isPremium) {
     return (
@@ -68,6 +79,7 @@ export default function InsightsRoute() {
 
   const summary =
     (scope === "household" ? householdWeeklySummary : weeklySummary) ?? getEmptySummary();
+  const currency = activeHousehold?.currency_code ?? "USD";
   // Real week-over-week deltas (personal scope only; household scope shows no trend).
   const lastWeek = scope === "you" ? lastWeekSummary : null;
   const savedDelta = lastWeek ? summary.estimatedItemsSaved - lastWeek.estimatedItemsSaved : 0;
@@ -95,14 +107,30 @@ export default function InsightsRoute() {
       </View>
 
       <View style={styles.heroWrap}>
-        <HeroStat summary={summary} savedDelta={savedDelta} />
+        <HeroStat summary={summary} savedDelta={savedDelta} currency={currency} />
       </View>
 
       <ScrollView
         style={styles.scrollArea}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+        }
       >
+        <View style={styles.miniGrid}>
+          <MiniStat
+            label={t("insights.moneySpent")}
+            value={formatMoney(summary.moneySpent, currency)}
+            sub={t("insights.weeklyTitle")}
+          />
+          <MiniStat
+            label={t("insights.moneyWasted")}
+            value={formatMoney(summary.moneyWasted, currency)}
+            sub={t("insights.weeklyTitle")}
+          />
+        </View>
+
         <View style={styles.miniGrid}>
           <MiniStat
             label={t("insights.recipesCooked")}
@@ -127,10 +155,10 @@ export default function InsightsRoute() {
   );
 }
 
-function HeroStat({ summary, savedDelta }: { summary: InsightsSummary; savedDelta: number }) {
+function HeroStat({ summary, savedDelta, currency }: { summary: InsightsSummary; savedDelta: number; currency: string }) {
   const { t } = useTranslation();
   const items = summary.estimatedItemsSaved;
-  const amount = summary.estimatedMoneySaved.toFixed(0);
+  const amount = formatMoney(summary.moneySaved, currency);
 
   return (
     <View style={styles.heroCard}>
@@ -139,12 +167,12 @@ function HeroStat({ summary, savedDelta }: { summary: InsightsSummary; savedDelt
       </Text>
       <View style={styles.heroValueRow}>
         <Text style={styles.heroValue}>{items}</Text>
-        <Text variant="small" color="rgba(248,244,238,0.72)" style={styles.heroMeta}>
+        <Text variant="small" color="rgba(243,239,232,0.72)" style={styles.heroMeta}>
           {t("insights.heroMeta", { count: items, amount })}
         </Text>
       </View>
       <View style={styles.heroDivider} />
-      <Text variant="small" color="rgba(248,244,238,0.86)">
+      <Text variant="small" color="rgba(243,239,232,0.86)">
         {summary.isSparse
           ? t("insights.heroSparse")
           : savedDelta > 0
@@ -241,7 +269,9 @@ function getEmptySummary(): InsightsSummary {
     removedItems: 0,
     itemsSaved: 0,
     estimatedItemsSaved: 0,
-    estimatedMoneySaved: 0,
+    moneySpent: 0,
+    moneySaved: 0,
+    moneyWasted: 0,
     mostUsedCategory: null,
     isSparse: true,
     cookedRecipes: [],
@@ -307,7 +337,7 @@ const styles = StyleSheet.create({
   },
   heroDivider: {
     height: 1,
-    backgroundColor: "rgba(248,244,238,0.15)",
+    backgroundColor: "rgba(243,239,232,0.15)",
     marginVertical: 18,
   },
   miniGrid: {

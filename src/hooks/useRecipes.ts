@@ -9,12 +9,13 @@ import {
   listUserFavoriteRecipeIds,
   RecipeRow,
   toggleRecipeFavorite,
+  updateRecipeDetail,
 } from "@/repositories/recipeRepository";
 import {
   matchRecipes,
   RecipeMatch,
 } from "@/services/recipeService";
-import { generateRecipeMatches, RecipeGenerationFilters, RecipeMonthlyLimitError } from "@/services/recipeGenerationService";
+import { expandRecipe, generateRecipeMatches, RecipeGenerationFilters, RecipeMonthlyLimitError } from "@/services/recipeGenerationService";
 import { useTranslation } from "react-i18next";
 import { ingredientSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
@@ -55,6 +56,9 @@ export function useRecipes(
   // Mirrors saved recipes so a generation can dedupe against them without the
   // callback closing over a stale state snapshot.
   const savedRecipesRef = useRef<RecipeRow[]>([]);
+  // The on-screen session's recipes must not block its own replacement when
+  // the user asks for fresh ideas ("Show me others") from a small pantry.
+  const currentSessionIdRef = useRef<string | null>(null);
 
   const [state, setState] = useState<RecipesState>({
     loading: Boolean(householdId),
@@ -147,6 +151,10 @@ export function useRecipes(
     savedRecipesRef.current = state.savedRecipes;
   }, [state.savedRecipes]);
 
+  useEffect(() => {
+    currentSessionIdRef.current = state.currentSessionId;
+  }, [state.currentSessionId]);
+
   // One-time free taste: free users get exactly one generation, ever. The
   // profile flag covers past sessions; the local flag covers the one just
   // created (profile refetch lags the DB trigger).
@@ -189,9 +197,11 @@ export function useRecipes(
           // generation, or duplicated across this run's premium variants — so
           // the recipe list doesn't accumulate same-dish-different-title dupes.
           const existingSignatures = new Set(
-            savedRecipesRef.current.map((recipe) =>
-              ingredientSignature(recipe.ingredients as { name?: string }[]),
-            ),
+            savedRecipesRef.current
+              .filter((recipe) => recipe.session_id !== currentSessionIdRef.current)
+              .map((recipe) =>
+                ingredientSignature(recipe.ingredients as { name?: string }[]),
+              ),
           );
           const runSignatures = new Set<string>();
           const top = candidates.filter((match) => {
@@ -206,7 +216,7 @@ export function useRecipes(
           // Nothing new makeable (all duplicates or empty): don't create a
           // session (so it doesn't burn a weekly count) and signal empty.
           if (top.length === 0) {
-            setState((s) => ({ ...s, generating: false }));
+            setState((s) => ({ ...s, generating: false, error: t("recipes.noneFound") }));
             return { recipes: [], matches: [] };
           }
 
@@ -255,6 +265,62 @@ export function useRecipes(
             consumedFreeGeneration: true,
             savedRecipes: [...savedRecipes, ...s.savedRecipes],
           }));
+
+          // Prefetch phase-2 detail in the background so opening a fresh card
+          // shows steps instantly instead of waiting on the expand call. The
+          // result lands in both the suggestion match and the saved row (all
+          // navigation paths carry full detail via params); the detail screen
+          // still expands on its own if a card is opened before this finishes.
+          for (const [index, recipe] of savedRecipes.entries()) {
+            const match = top[index];
+            if (!match || match.steps.length > 0) continue;
+            void expandRecipe({
+              title: match.title,
+              description: match.description,
+              timeMinutes: match.timeMinutes,
+              tags: match.tags,
+              usedIngredientNames: match.ingredients.map((ing) => ing.name),
+              inventory,
+              avoidances,
+              servings,
+            }).then((result) => {
+              if (!result) return;
+              updateRecipeDetail(recipe.id, {
+                ingredients: result.ingredients,
+                steps: result.steps,
+                timeMinutes: result.timeMinutes,
+                complexity: result.complexity,
+                avoidanceTags: result.avoidanceTags,
+              }).catch(() => {
+                // Non-critical: state below still carries the detail this session.
+              });
+              setState((s) => ({
+                ...s,
+                suggestions: s.suggestions.map((m) =>
+                  m.key === match.key
+                    ? {
+                        ...m,
+                        ingredients: result.ingredients,
+                        steps: result.steps,
+                        timeMinutes: result.timeMinutes,
+                        complexity: result.complexity,
+                      }
+                    : m,
+                ),
+                savedRecipes: s.savedRecipes.map((r) =>
+                  r.id === recipe.id
+                    ? {
+                        ...r,
+                        ingredients: result.ingredients,
+                        steps: result.steps,
+                        time_minutes: result.timeMinutes,
+                        complexity: result.complexity,
+                      }
+                    : r,
+                ),
+              }));
+            });
+          }
 
           return { recipes: savedRecipes, matches: top };
         } catch (err) {
@@ -307,7 +373,7 @@ export function useRecipes(
         });
       },
     }),
-    [householdId, inventory, avoidances, isPremium, servings, load],
+    [householdId, inventory, avoidances, isPremium, servings, load, t],
   );
 
   return {

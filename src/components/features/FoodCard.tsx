@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
-import { CategoryTone, categoryColors, colors, radii, spacing, Urgency, urgencyColors } from "../../theme";
+import { CategoryTone, categoryColors, colors, fonts, radii, spacing, Urgency, urgencyColors } from "../../theme";
 import { FoodGlyph } from "../illustrations";
 import { Text } from "../primitives";
 
@@ -45,13 +45,13 @@ export function FoodCard({
         style,
       ]}
     >
-      <View style={[styles.image, isLarge && styles.largeImage, { backgroundColor: tone.background }]}>
+      <View style={[styles.image, isLarge && styles.largeImage]}>
         <FoodGlyph name={name} color={tone.mark} size={isLarge ? 46 : 36} />
         <View style={[styles.dot, { backgroundColor: urgencyColors[urgency] }]} />
       </View>
       <View style={styles.copy}>
         <View>
-          <Text variant="label" numberOfLines={2} style={isLarge && styles.largeTitle}>
+          <Text variant="label" numberOfLines={2} style={[styles.title, isLarge && styles.largeTitle]}>
             {name}
           </Text>
           {bestBy ? null : (
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.paper,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.hairline,
+    borderColor: colors.cardLine,
     padding: spacing.sm + 2,
     gap: spacing.sm,
   },
@@ -100,6 +100,7 @@ const styles = StyleSheet.create({
   image: {
     aspectRatio: 1,
     borderRadius: radii.sm,
+    backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
@@ -121,6 +122,9 @@ const styles = StyleSheet.create({
   copy: {
     paddingHorizontal: spacing.xxs,
     paddingBottom: spacing.xxs,
+  },
+  title: {
+    fontFamily: fonts.bodyBold,
   },
   largeTitle: {
     fontSize: 14,

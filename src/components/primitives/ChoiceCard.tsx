@@ -48,7 +48,7 @@ export function ChoiceCard({
       ) : null}
       <View style={styles.copy}>
         <View style={styles.titleRow}>
-          <Text variant={compact ? "label" : "h3"} color={active ? colors.surface : colors.text}>
+          <Text variant={compact ? "label" : "h3"} color={colors.text}>
             {title}
           </Text>
           {recommended && recommendedLabel ? (
@@ -62,7 +62,7 @@ export function ChoiceCard({
         {subtitle ? (
           <Text
             variant="small"
-            color={active ? "rgba(248,244,238,0.85)" : colors.muted}
+            color={colors.muted}
             style={styles.subtitle}
           >
             {subtitle}
@@ -95,8 +95,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
   },
   active: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.sageSoft,
+    borderColor: colors.sage,
   },
   pressed: {
     transform: [{ scale: 0.99 }],
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   activeIcon: {
-    backgroundColor: "rgba(248,244,238,0.15)",
+    backgroundColor: colors.paper,
   },
   copy: {
     flex: 1,

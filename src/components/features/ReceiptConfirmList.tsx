@@ -6,7 +6,8 @@ import Svg, { Path } from "react-native-svg";
 
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import { ReceiptConfirmItem } from "@/services";
-import { colors, radii, spacing } from "../../theme";
+import { CategoryTone, categoryColors, colors, radii, spacing } from "../../theme";
+import { FoodGlyph } from "../illustrations";
 import { Button, Card, Text, TextField, UnitPicker } from "../primitives";
 
 type Props = {
@@ -68,18 +69,29 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
         <Button title={t("common.cancel")} variant="text" onPress={onCancel} />
       </View>
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-        {rows.map((row) => (
+        {rows.map((row) => {
+          const tone = categoryColors[row.category as CategoryTone] ?? categoryColors.other;
+          return (
           <Card key={row.id} style={styles.row}>
             <View style={styles.header}>
-              {row.lowConfidence ? (
-                <View style={styles.badge}>
-                  <Text variant="micro" color={colors.text}>
-                    {t("scan.confirm.checkThis")}
-                  </Text>
-                </View>
-              ) : (
-                <View />
-              )}
+              <View style={[styles.iconBox, { backgroundColor: tone.background }]}>
+                <FoodGlyph name={row.name} color={tone.mark} size={26} />
+              </View>
+              <View style={styles.scannedCol}>
+                <Text variant="micro" muted uppercase>
+                  {t("scan.confirm.scannedAs")}
+                </Text>
+                <Text style={styles.scannedText} color={colors.text} numberOfLines={2}>
+                  {`"${(row.rawText ?? row.name).toUpperCase()}"`}
+                </Text>
+                {row.lowConfidence ? (
+                  <View style={styles.badge}>
+                    <Text variant="micro" color={colors.text}>
+                      {t("scan.confirm.checkThis")}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t("scan.confirm.removeItem")}
@@ -118,7 +130,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t("scan.manual.expiryLabel")}
-                style={styles.expiryBox}
+                style={[styles.expiryBox, expiryPickerRowId === row.id && styles.expiryBoxActive]}
                 onPress={() => setExpiryPickerRowId(row.id)}
               >
                 <Text variant="micro" muted uppercase>
@@ -147,7 +159,8 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
               </Pressable>
             </View>
           </Card>
-        ))}
+          );
+        })}
       </ScrollView>
 
       {expiryPickerRowId !== null ? (
@@ -248,9 +261,27 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: spacing.sm,
     marginBottom: spacing.sm,
+  },
+  iconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scannedCol: {
+    flex: 1,
+    gap: 2,
+    paddingTop: 2,
+  },
+  scannedText: {
+    fontFamily: Platform.select({ ios: "Courier", android: "monospace", default: "monospace" }),
+    fontSize: 13,
+    lineHeight: 17,
+    letterSpacing: 0.3,
   },
   remove: {
     width: 28,
@@ -268,6 +299,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
+    marginTop: 4,
   },
   inlineFields: {
     flexDirection: "row",
@@ -281,12 +313,15 @@ const styles = StyleSheet.create({
   },
   expiryBox: {
     borderWidth: 1,
-    borderColor: colors.hairline,
+    borderColor: colors.cardLine,
     borderRadius: radii.lg,
     backgroundColor: colors.paper,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.xs,
+  },
+  expiryBoxActive: {
+    borderColor: colors.sage,
   },
   expiryValueRow: {
     flexDirection: "row",

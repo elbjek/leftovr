@@ -1,6 +1,6 @@
 import React from "react";
 import { Text as RNText, TextProps as RNTextProps, StyleProp, StyleSheet, TextStyle } from "react-native";
-import { colors, fonts, typography } from "../../theme";
+import { colors, typography } from "../../theme";
 
 export type TextVariant = keyof typeof typography;
 
@@ -44,11 +44,7 @@ export function Text({
   );
 }
 
-function getItalicStyle(variant: TextVariant): TextStyle {
-  if (variant === "display" || variant === "hero") {
-    return { fontFamily: fonts.displayItalic, fontStyle: "normal" };
-  }
-
+function getItalicStyle(_variant: TextVariant): TextStyle {
   return styles.italic;
 }
 

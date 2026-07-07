@@ -555,6 +555,10 @@
     .strip-step { width: 100%; max-width: 240px; }
     .strip-arrow { display: none; }
   }
+  @media (max-width: 360px) {
+    /* Header CTA overflows on ≤350px; the sticky bottom bar already carries it. */
+    .nav-right .btn { display: none; }
+  }
 </style>
 </head>
 <body>
