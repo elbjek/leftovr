@@ -5,7 +5,58 @@
 //   WAITLIST_FROM     (optional — defaults to onboarding@resend.dev; use a verified domain in prod)
 
 const RESEND_API_URL = "https://api.resend.com";
+const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// Rate limit: max signups per IP within the window.
+// ponytail: in-memory, so the limit is per warm instance, not global — good
+// enough for a waitlist as a throttle on top of the captcha. For a hard global
+// cap, back this with Vercel KV / Upstash Redis keyed by IP.
+const RATE_LIMIT_MAX = 5;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const rateHits = new Map();
+
+function clientIp(req) {
+  const fwd = req.headers["x-forwarded-for"];
+  if (typeof fwd === "string" && fwd.length > 0) return fwd.split(",")[0].trim();
+  return req.socket?.remoteAddress || "unknown";
+}
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const hits = (rateHits.get(ip) || []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  if (hits.length >= RATE_LIMIT_MAX) {
+    rateHits.set(ip, hits);
+    return true;
+  }
+  hits.push(now);
+  rateHits.set(ip, hits);
+  return false;
+}
+
+async function verifyTurnstile(token, ip) {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  // No secret configured yet: don't block signups. Swap in real keys to enforce.
+  if (!secret) {
+    console.warn("TURNSTILE_SECRET_KEY not set — captcha verification skipped");
+    return true;
+  }
+  if (!token) return false;
+  try {
+    const params = new URLSearchParams({ secret, response: token });
+    if (ip && ip !== "unknown") params.append("remoteip", ip);
+    const res = await fetch(TURNSTILE_VERIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    });
+    const data = await res.json().catch(() => ({}));
+    return data.success === true;
+  } catch (err) {
+    console.error("Turnstile verify error:", err);
+    return false;
+  }
+}
 
 function welcomeEmail(lang) {
   // Email-client-safe: table layout, inline styles, hosted PNG logo, web-safe font fallbacks.
@@ -133,6 +184,12 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  const ip = clientIp(req);
+  if (isRateLimited(ip)) {
+    res.status(429).json({ error: "Too many attempts. Please try again in a few minutes." });
+    return;
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error("RESEND_API_KEY is not set");
@@ -144,6 +201,13 @@ module.exports = async function handler(req, res) {
   // Honeypot: real users never fill it, bots do.
   if (typeof body.company === "string" && body.company.length > 0) {
     res.status(200).json({ ok: true });
+    return;
+  }
+
+  // Captcha: block bots before doing any paid work (Resend calls).
+  const captchaOk = await verifyTurnstile(body.turnstileToken, ip);
+  if (!captchaOk) {
+    res.status(403).json({ error: "Captcha verification failed. Please try again." });
     return;
   }
 
