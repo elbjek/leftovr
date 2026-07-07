@@ -1,4 +1,10 @@
 import { getSupabaseClient } from "@/lib/supabase";
+import { valueOfAmount } from "@/lib/money";
+import {
+  insertValueEvent,
+  fetchPricedLots,
+  categoryAverageUnitPrice,
+} from "./valueEventRepository";
 import {
   buildReceiptConfirmItemsFromLines,
   buildConfirmedReceiptInventoryRows,
@@ -161,6 +167,24 @@ export async function confirmNormalizedReceiptScan(input: {
       .insert(inventoryRows);
     if (inventoryError) {
       throw inventoryError;
+    }
+
+    // Money: emit a spend event per receipt line (these rows bypass
+    // addInventoryItem). Unpriced lines approximate from category averages.
+    const pricedLots = inventoryRows.some((r) => r.purchase_price == null)
+      ? await fetchPricedLots(input.householdId)
+      : [];
+    for (const row of inventoryRows) {
+      const spend = row.purchase_price ??
+        valueOfAmount(row.purchase_amount ?? row.quantity, categoryAverageUnitPrice(pricedLots, row.category));
+      await insertValueEvent({
+        householdId: input.householdId,
+        kind: "spend",
+        value: spend,
+        normalizedName: row.normalized_name,
+        category: row.category,
+        createdBy: userId,
+      });
     }
   }
 

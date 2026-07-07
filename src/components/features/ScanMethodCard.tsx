@@ -32,11 +32,11 @@ export function ScanMethodCard({
         return (
           <View style={[styles.card, active && styles.cardActive]}>
             <View style={[styles.iconBox, active && styles.iconBoxActive]}>
-              <ScanMethodIcon method={method} color={active ? colors.surface : colors.primary} />
+              <ScanMethodIcon method={method} color={colors.primary} />
             </View>
             <View style={styles.copy}>
               <View style={styles.titleRow}>
-                <Text variant="h3" color={active ? colors.surface : colors.text}>
+                <Text variant="h3" color={colors.text}>
                   {t(`scanMethods.${method}.title`)}
                 </Text>
                 {recommended ? (
@@ -47,11 +47,11 @@ export function ScanMethodCard({
                   </View>
                 ) : null}
               </View>
-              <Text variant="small" color={active ? colors.surface : colors.muted}>
+              <Text variant="small" color={colors.muted}>
                 {body}
               </Text>
             </View>
-            <ChevronIcon color={active ? colors.surface : colors.muted} />
+            <ChevronIcon color={colors.muted} />
           </View>
         );
       }}
@@ -123,8 +123,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
   },
   cardActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.sageSoft,
+    borderColor: colors.sage,
   },
   iconBox: {
     width: 46,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconBoxActive: {
-    backgroundColor: "rgba(248,244,238,0.15)",
+    backgroundColor: colors.paper,
   },
   copy: {
     flex: 1,

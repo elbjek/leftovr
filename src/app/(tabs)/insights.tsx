@@ -8,6 +8,7 @@ import { EmptyState, PremiumSheet, RecipeGlyph, Screen, ScreenHeader, SegmentedC
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useHousehold, useInsights } from "@/hooks";
 import { formatCategoryLabel, InsightsSummary } from "@/services/insightsService";
+import { formatMoney } from "@/lib/money";
 import { colors, radii, spacing } from "@/theme";
 
 export default function InsightsRoute() {
@@ -78,6 +79,7 @@ export default function InsightsRoute() {
 
   const summary =
     (scope === "household" ? householdWeeklySummary : weeklySummary) ?? getEmptySummary();
+  const currency = activeHousehold?.currency_code ?? "USD";
   // Real week-over-week deltas (personal scope only; household scope shows no trend).
   const lastWeek = scope === "you" ? lastWeekSummary : null;
   const savedDelta = lastWeek ? summary.estimatedItemsSaved - lastWeek.estimatedItemsSaved : 0;
@@ -105,7 +107,7 @@ export default function InsightsRoute() {
       </View>
 
       <View style={styles.heroWrap}>
-        <HeroStat summary={summary} savedDelta={savedDelta} />
+        <HeroStat summary={summary} savedDelta={savedDelta} currency={currency} />
       </View>
 
       <ScrollView
@@ -116,6 +118,19 @@ export default function InsightsRoute() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
+        <View style={styles.miniGrid}>
+          <MiniStat
+            label={t("insights.moneySpent")}
+            value={formatMoney(summary.moneySpent, currency)}
+            sub={t("insights.weeklyTitle")}
+          />
+          <MiniStat
+            label={t("insights.moneyWasted")}
+            value={formatMoney(summary.moneyWasted, currency)}
+            sub={t("insights.weeklyTitle")}
+          />
+        </View>
+
         <View style={styles.miniGrid}>
           <MiniStat
             label={t("insights.recipesCooked")}
@@ -140,10 +155,10 @@ export default function InsightsRoute() {
   );
 }
 
-function HeroStat({ summary, savedDelta }: { summary: InsightsSummary; savedDelta: number }) {
+function HeroStat({ summary, savedDelta, currency }: { summary: InsightsSummary; savedDelta: number; currency: string }) {
   const { t } = useTranslation();
   const items = summary.estimatedItemsSaved;
-  const amount = summary.estimatedMoneySaved.toFixed(0);
+  const amount = formatMoney(summary.moneySaved, currency);
 
   return (
     <View style={styles.heroCard}>
@@ -152,12 +167,12 @@ function HeroStat({ summary, savedDelta }: { summary: InsightsSummary; savedDelt
       </Text>
       <View style={styles.heroValueRow}>
         <Text style={styles.heroValue}>{items}</Text>
-        <Text variant="small" color="rgba(248,244,238,0.72)" style={styles.heroMeta}>
+        <Text variant="small" color="rgba(243,239,232,0.72)" style={styles.heroMeta}>
           {t("insights.heroMeta", { count: items, amount })}
         </Text>
       </View>
       <View style={styles.heroDivider} />
-      <Text variant="small" color="rgba(248,244,238,0.86)">
+      <Text variant="small" color="rgba(243,239,232,0.86)">
         {summary.isSparse
           ? t("insights.heroSparse")
           : savedDelta > 0
@@ -254,7 +269,9 @@ function getEmptySummary(): InsightsSummary {
     removedItems: 0,
     itemsSaved: 0,
     estimatedItemsSaved: 0,
-    estimatedMoneySaved: 0,
+    moneySpent: 0,
+    moneySaved: 0,
+    moneyWasted: 0,
     mostUsedCategory: null,
     isSparse: true,
     cookedRecipes: [],
@@ -320,7 +337,7 @@ const styles = StyleSheet.create({
   },
   heroDivider: {
     height: 1,
-    backgroundColor: "rgba(248,244,238,0.15)",
+    backgroundColor: "rgba(243,239,232,0.15)",
     marginVertical: 18,
   },
   miniGrid: {

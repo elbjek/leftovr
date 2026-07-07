@@ -30,7 +30,7 @@ export function UnitPicker({ label, value, onChange, containerStyle }: Props) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${t(`units.${selected}`)}`}
-        style={styles.box}
+        style={[styles.box, open && styles.boxActive]}
         onPress={() => setOpen(true)}
       >
         <Text variant="micro" muted uppercase>
@@ -88,12 +88,15 @@ const styles = StyleSheet.create({
   },
   box: {
     borderWidth: 1,
-    borderColor: colors.hairline,
+    borderColor: colors.cardLine,
     borderRadius: radii.lg,
     backgroundColor: colors.paper,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.xs,
+  },
+  boxActive: {
+    borderColor: colors.sage,
   },
   valueRow: {
     flexDirection: "row",
@@ -119,7 +122,9 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
   },
   optionActive: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.sageSoft,
+    borderWidth: 1,
+    borderColor: colors.sage,
   },
   optionTextActive: {
     color: colors.primary,

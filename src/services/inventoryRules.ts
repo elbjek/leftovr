@@ -53,6 +53,8 @@ export type InventoryLot = {
   removed_at: string | null;
   added_by: string | null;
   added_by_name: string | null;
+  purchase_price: number | null;
+  purchase_amount: number | null;
 };
 
 export type InventoryGroup = {

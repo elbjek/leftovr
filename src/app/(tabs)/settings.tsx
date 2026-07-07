@@ -22,6 +22,7 @@ import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { deleteAccount, exportAccountData, registerDevice } from "@/services";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
 import {
+  updateHouseholdCurrency,
   updateHouseholdDefaultServings,
   updateProfileAvoidances,
   updateProfileField,
@@ -32,6 +33,7 @@ const PRIMARY_GOAL_OPTIONS = ["waste", "money", "quick", "all"] as const;
 const SHOPPING_STYLE_OPTIONS = ["weekly", "few", "asneed"] as const;
 const AVOIDANCE_OPTIONS = ["meat", "fish", "dairy", "gluten", "nuts"] as const;
 const SERVINGS_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
+const CURRENCY_OPTIONS = ["USD", "EUR", "RSD", "GBP"] as const;
 
 const PRIVACY_URL = "https://leftovr.co/privacy/";
 const TERMS_URL = "https://leftovr.co/terms/";
@@ -60,6 +62,7 @@ export default function SettingsRoute() {
   const [editingStyle, setEditingStyle] = useState(false);
   const [editingAvoidances, setEditingAvoidances] = useState(false);
   const [editingServings, setEditingServings] = useState(false);
+  const [editingCurrency, setEditingCurrency] = useState(false);
   const [localAvoidances, setLocalAvoidances] = useState<string[]>(profile?.avoidances ?? []);
 
   const household = useHousehold(activeHousehold?.id);
@@ -145,6 +148,18 @@ export default function SettingsRoute() {
     } finally {
       setSaving(false);
       setEditingServings(false);
+    }
+  }
+
+  async function saveCurrency(code: string) {
+    if (!activeHousehold?.id) return;
+    setSaving(true);
+    try {
+      await updateHouseholdCurrency(activeHousehold.id, code);
+      await refresh();
+    } finally {
+      setSaving(false);
+      setEditingCurrency(false);
     }
   }
 
@@ -301,6 +316,13 @@ export default function SettingsRoute() {
               label={t("settings.servingsTitle")}
               value={t("settings.servingsLabel", { count: activeHousehold.default_servings })}
               onPress={() => setEditingServings(true)}
+            />
+          ) : null}
+          {activeHousehold ? (
+            <SettingsRow
+              label={t("settings.currencyTitle")}
+              value={activeHousehold.currency_code}
+              onPress={() => setEditingCurrency(true)}
               last
             />
           ) : null}
@@ -557,6 +579,24 @@ export default function SettingsRoute() {
                   setMeasurementSystem(value);
                   setEditingUnits(false);
                 }}
+              />
+            ))}
+          </View>
+        </View>
+      </BottomSheet>
+
+      {/* Currency sheet */}
+      <BottomSheet visible={editingCurrency} onDismiss={() => setEditingCurrency(false)}>
+        <View style={styles.sheetContent}>
+          <Text variant="h2">{t("settings.currencyTitle")}</Text>
+          <View style={styles.choiceList}>
+            {CURRENCY_OPTIONS.map((code) => (
+              <ChoiceCard
+                compact
+                key={code}
+                title={code}
+                selected={activeHousehold?.currency_code === code}
+                onPress={() => saveCurrency(code)}
               />
             ))}
           </View>
@@ -832,7 +872,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarText: {
-    fontFamily: fonts.displayItalic,
+    fontFamily: fonts.bodyBold,
     fontSize: 18,
     lineHeight: 22,
     color: colors.accent,

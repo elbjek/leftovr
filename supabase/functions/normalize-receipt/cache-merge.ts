@@ -11,6 +11,10 @@ export type NormalizedItem = {
   unit: string | null;
   netAmount: number | null;
   netUnit: string | null;
+  // Per-purchase, so never cached: price stays with the live scan, not the
+  // canonical item identity (the same product costs differently over time).
+  price: number | null;
+  priceApproximate: boolean;
 };
 
 export type NormalizedLine = {
@@ -71,6 +75,9 @@ export function mergeWithCache(
           unit: cached.unit,
           netAmount: cached.net_amount,
           netUnit: cached.net_unit,
+          // Price comes from the current scan, not the cache.
+          price: line.item.price,
+          priceApproximate: line.item.priceApproximate,
         },
       });
       continue;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -13,7 +13,7 @@ import {
   formatTimeLabel,
   RecipeMatch,
 } from "@/services/recipeService";
-import { normalizeFoodName } from "@/services";
+import { availableBaseOptions, normalizeFoodName } from "@/services";
 import { colors, fonts, radii, spacing } from "@/theme";
 
 type RecipeTab = "all" | "saved" | "cooked" | "household";
@@ -24,6 +24,7 @@ export default function RecipesRoute() {
   const { autoGenerate } = useLocalSearchParams<{ autoGenerate?: string }>();
   const { profile, activeHousehold, refresh } = useAuth();
   const { lots: inventory } = useInventory(activeHousehold?.id);
+  const baseOptions = useMemo(() => availableBaseOptions(inventory), [inventory]);
   const { members, combinedAvoidances } = useHousehold(activeHousehold?.id);
   const isPremium = resolvePremium(profile, activeHousehold);
   const userAvoidances = profile?.avoidances ?? [];
@@ -472,8 +473,8 @@ export default function RecipesRoute() {
                       </Text>
                     </View>
                     <View style={styles.inlineMeta}>
-                      <ClockIcon color="rgba(248,244,238,0.85)" />
-                      <Text variant="small" color="rgba(248,244,238,0.85)">
+                      <ClockIcon color="rgba(243,239,232,0.85)" />
+                      <Text variant="small" color="rgba(243,239,232,0.85)">
                         {cookAgainPick.time_minutes ?? 20} min · {t("recipes.cookAgain.items", {
                           have: cookAgainCoverage.have,
                           total: cookAgainCoverage.total,
@@ -622,18 +623,24 @@ export default function RecipesRoute() {
           },
           buildAround: t("recipes.cookPrompt.buildAround"),
           baseOptions: {
-            anything: t("recipes.cookPrompt.baseOptions.anything"),
             protein: t("recipes.cookPrompt.baseOptions.protein"),
-            potatoes: t("recipes.cookPrompt.baseOptions.potatoes"),
-            pasta: t("recipes.cookPrompt.baseOptions.pasta"),
             vegetables: t("recipes.cookPrompt.baseOptions.vegetables"),
+            pasta: t("recipes.cookPrompt.baseOptions.pasta"),
+            rice: t("recipes.cookPrompt.baseOptions.rice"),
+            potatoes: t("recipes.cookPrompt.baseOptions.potatoes"),
+            bread: t("recipes.cookPrompt.baseOptions.bread"),
+            cheese: t("recipes.cookPrompt.baseOptions.cheese"),
           },
           time: t("recipes.cookPrompt.time"),
           timeOptions: {
             "15": t("recipes.cookPrompt.timeOptions.15"),
             "30": t("recipes.cookPrompt.timeOptions.30"),
-            "45": t("recipes.cookPrompt.timeOptions.45"),
             norush: t("recipes.cookPrompt.timeOptions.norush"),
+          },
+          timeSubtitles: {
+            "15": t("recipes.cookPrompt.timeSubtitles.15"),
+            "30": t("recipes.cookPrompt.timeSubtitles.30"),
+            norush: t("recipes.cookPrompt.timeSubtitles.norush"),
           },
           servingsLabel: t("recipes.cookPrompt.servingsLabel"),
           peopleCount: (count: number) => t("recipes.cookPrompt.peopleCount", { count }),
@@ -666,6 +673,7 @@ export default function RecipesRoute() {
             just_me: t("recipes.cookingMode.justMe"),
           },
         }}
+        baseOptions={baseOptions}
         generating={generating}
         servings={servings}
         onServingsChange={setServingsOverride}
@@ -748,7 +756,7 @@ export default function RecipesRoute() {
       {generating ? (
         <GeneratingOverlay
           title={t("recipes.generatingOverlay.title")}
-          phrases={[
+          steps={[
             t("recipes.generatingOverlay.phrase1"),
             t("recipes.generatingOverlay.phrase2"),
             t("recipes.generatingOverlay.phrase3"),
@@ -807,7 +815,7 @@ function ActiveFilterToken({ label, onRemove }: { label: string; onRemove: () =>
       <Text variant="micro" color={colors.surface} style={styles.activeFilterText}>
         {label}
       </Text>
-      <CloseIcon color="rgba(248,244,238,0.75)" />
+      <CloseIcon color="rgba(243,239,232,0.75)" />
     </Pressable>
   );
 }

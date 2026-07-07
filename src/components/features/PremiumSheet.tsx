@@ -276,12 +276,12 @@ function PlanCard({
           <Text variant="micro" color={colors.text} style={styles.planBadgeText}>{badge}</Text>
         </View>
       ) : null}
-      <Text variant="micro" color={selected ? colors.surface : colors.muted} style={styles.planPeriod}>
+      <Text variant="micro" color={colors.muted} style={styles.planPeriod}>
         {label}
       </Text>
       <View style={styles.planPriceRow}>
-        <Text variant="h2" color={selected ? colors.surface : colors.text}>{price}</Text>
-        <Text variant="small" color={selected ? "rgba(248,244,238,0.7)" : colors.muted}>{sub}</Text>
+        <Text variant="h2" color={colors.text}>{price}</Text>
+        <Text variant="small" color={colors.muted}>{sub}</Text>
       </View>
     </Pressable>
   );
@@ -337,13 +337,13 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     backgroundColor: colors.paper,
     borderWidth: 1.5,
-    borderColor: colors.hairline,
+    borderColor: colors.cardLine,
     borderRadius: radii.lg,
     position: "relative",
   },
   planCardSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.sageSoft,
+    borderColor: colors.sage,
   },
   planBadge: {
     position: "absolute",
@@ -363,9 +363,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   planPriceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: 3,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 2,
   },
   currentPlanBanner: {
     backgroundColor: colors.primary50,

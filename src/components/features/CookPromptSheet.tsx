@@ -5,8 +5,9 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { BottomSheet, Button, IconButton, SegmentedControl, Text } from "../primitives";
 import { colors, fonts, radii, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
+import { BasePreference } from "@/services";
 
-export type BasePreference = "anything" | "protein" | "potatoes" | "pasta" | "vegetables";
+export type { BasePreference };
 export type Cuisine =
   | "any"
   | "italian"
@@ -36,7 +37,7 @@ export type CookFilters = {
 
 type Meal = "breakfast" | "lunch" | "dinner" | "snack";
 type MealOption = "any" | Meal;
-type TimeOption = "any" | "15" | "30" | "45" | "norush";
+type TimeOption = "any" | "15" | "30" | "norush";
 
 type Props = {
   visible: boolean;
@@ -50,6 +51,7 @@ type Props = {
     baseOptions: Record<BasePreference, string>;
     time: string;
     timeOptions: Record<Exclude<TimeOption, "any">, string>;
+    timeSubtitles: Record<Exclude<TimeOption, "any">, string>;
     servingsLabel: string;
     peopleCount: (count: number) => string;
     cuisine: string;
@@ -60,6 +62,8 @@ type Props = {
     cookingFor?: string;
     cookingForOptions?: Record<CookingMode, string>;
   };
+  /** Build-around bases the household has stock for, most-stocked first. */
+  baseOptions: BasePreference[];
   /** Shown only when provided (households with 2+ members). */
   cookingMode?: CookingMode;
   servings?: number;
@@ -71,8 +75,7 @@ type Props = {
 };
 
 const MEAL_OPTIONS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
-const BASE_OPTIONS: BasePreference[] = ["anything", "protein", "potatoes", "pasta", "vegetables"];
-const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["15", "30", "45", "norush"];
+const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["15", "30", "norush"];
 // Single-select cuisine guide, sent to the AI as a soft preference.
 const CUISINE_OPTIONS: Cuisine[] = [
   "any",
@@ -99,6 +102,7 @@ const SERVINGS_MAX = 12;
 export function CookPromptSheet({
   visible,
   labels,
+  baseOptions,
   cookingMode,
   servings = 2,
   generating = false,
@@ -108,24 +112,24 @@ export function CookPromptSheet({
   onGenerate,
 }: Props) {
   const [meal, setMeal] = useState<MealOption>("any");
-  const [base, setBase] = useState<BasePreference>("anything");
+  const [base, setBase] = useState<BasePreference | null>(null);
   const [time, setTime] = useState<TimeOption>("any");
   const [cuisine, setCuisine] = useState<Cuisine>("any");
 
   function buildFilters(): CookFilters {
-    const numericTime = time === "15" || time === "30" || time === "45" ? Number(time) : undefined;
+    const numericTime = time === "15" || time === "30" ? Number(time) : undefined;
     return {
       mealType: meal === "any" ? undefined : meal,
       maxMinutes: numericTime,
       cuisine: cuisine === "any" ? undefined : cuisine,
-      basePreference: base === "anything" ? undefined : base,
+      basePreference: base ?? undefined,
     };
   }
 
   function handleSurprise() {
     // Clear optional filters and fall back to no preference, then generate.
     setMeal("any");
-    setBase("anything");
+    setBase(null);
     setTime("any");
     setCuisine("any");
     onGenerate(undefined);
@@ -135,7 +139,7 @@ export function CookPromptSheet({
 
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss} style={styles.sheet}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.headerText}>
             <Text variant="micro" muted uppercase>
@@ -178,26 +182,27 @@ export function CookPromptSheet({
 
         <Section label={labels.buildAround}>
           <View style={styles.chipWrap}>
-            {BASE_OPTIONS.map((option) => (
+            {baseOptions.map((option) => (
               <Chip
                 key={option}
                 label={labels.baseOptions[option]}
                 active={base === option}
-                tone="primary"
-                onPress={() => setBase(option)}
+                onPress={() => setBase((current) => (current === option ? null : option))}
               />
             ))}
           </View>
         </Section>
 
         <Section label={labels.time}>
-          <View style={styles.chipWrap}>
+          <View style={styles.timeRow}>
             {TIME_OPTIONS.map((option) => (
-              <Chip
+              <IconOptionCard
                 key={option}
-                label={labels.timeOptions[option]}
+                compact
+                title={labels.timeOptions[option]}
+                subtitle={labels.timeSubtitles[option]}
+                icon={<TimeIcon option={option} color={colors.primary} />}
                 active={time === option}
-                tone="primary"
                 onPress={() => setTime((current) => (current === option ? "any" : option))}
               />
             ))}
@@ -238,7 +243,6 @@ export function CookPromptSheet({
                 key={option}
                 label={labels.cuisineOptions[option]}
                 active={cuisine === option}
-                tone="accent"
                 onPress={() => setCuisine(option)}
               />
             ))}
@@ -247,23 +251,26 @@ export function CookPromptSheet({
             {labels.eatFirstNote}
           </Text>
         </Section>
-
-        <View style={styles.ctaGroup}>
-          <Button
-            title={labels.generate}
-            loading={generating}
-            disabled={generating}
-            iconRight={<ChevronRightIcon />}
-            onPress={() => onGenerate(buildFilters())}
-          />
-          <Button
-            title={labels.surprise}
-            variant="text"
-            disabled={generating}
-            onPress={handleSurprise}
-          />
-        </View>
       </ScrollView>
+
+      <View style={styles.ctaGroup}>
+        <Button
+          title={labels.generate}
+          loading={generating}
+          disabled={generating}
+          iconRight={<ChevronRightIcon />}
+          onPress={() => onGenerate(buildFilters())}
+          style={styles.ctaPrimary}
+        />
+        <Button
+          title={labels.surprise}
+          variant="ghost"
+          disabled={generating}
+          iconLeft={<SparkleIcon />}
+          onPress={handleSurprise}
+          style={styles.ctaSurprise}
+        />
+      </View>
     </BottomSheet>
   );
 }
@@ -292,7 +299,6 @@ function MealCard({
   active: boolean;
   onPress: () => void;
 }) {
-  const iconColor = active ? colors.accent : colors.primary;
   return (
     <Pressable
       accessibilityRole="button"
@@ -301,15 +307,61 @@ function MealCard({
       style={({ pressed }) => [styles.mealCard, active && styles.mealCardActive, pressed && styles.pressed]}
     >
       <View style={[styles.mealIconTile, active && styles.mealIconTileActive]}>
-        <MealIcon meal={meal} color={iconColor} />
+        <MealIcon meal={meal} color={colors.primary} />
       </View>
       <View style={styles.mealCardText}>
-        <Text variant="label" color={active ? colors.surface : colors.text}>
+        <Text variant="label" color={colors.text}>
           {title}
         </Text>
-        <Text variant="small" color={active ? colors.accentSoft : colors.muted}>
+        <Text variant="small" color={colors.muted}>
           {subtitle}
         </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function IconOptionCard({
+  title,
+  subtitle,
+  icon,
+  active,
+  compact,
+  onPress,
+}: {
+  title: string;
+  subtitle?: string;
+  icon: React.ReactNode;
+  active: boolean;
+  compact?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.mealCard,
+        compact && styles.mealCardCompact,
+        active && styles.mealCardActive,
+        pressed && styles.pressed,
+      ]}
+    >
+      <View style={[styles.mealIconTile, active && styles.mealIconTileActive]}>{icon}</View>
+      <View style={[styles.mealCardText, compact && styles.mealCardTextCompact]}>
+        <Text variant="label" color={colors.text}>
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text
+            variant="small"
+            color={colors.muted}
+            style={compact ? styles.compactSubtitle : undefined}
+          >
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -318,25 +370,21 @@ function MealCard({
 function Chip({
   label,
   active,
-  tone,
   onPress,
 }: {
   label: string;
   active: boolean;
-  tone: "primary" | "accent";
   onPress: () => void;
 }) {
-  const activeStyle = tone === "accent" ? styles.chipAccentActive : styles.chipPrimaryActive;
-  const activeText = tone === "accent" ? colors.text : colors.surface;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
       onPress={onPress}
-      style={({ pressed }) => [styles.chip, active && activeStyle, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.chip, active && styles.chipActive, pressed && styles.pressed]}
     >
-      {active && tone === "accent" ? <CheckIcon /> : null}
-      <Text variant="small" color={active ? activeText : colors.text} style={styles.chipText}>
+      {active ? <CheckIcon /> : null}
+      <Text variant="small" color={colors.text} style={styles.chipText}>
         {label}
       </Text>
     </Pressable>
@@ -398,6 +446,35 @@ function MealIcon({ meal, color }: { meal: Meal; color: string }) {
   );
 }
 
+function TimeIcon({ option, color }: { option: Exclude<TimeOption, "any">; color: string }) {
+  const p = { stroke: color, strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
+  if (option === "15") {
+    // Lightning — quick
+    return (
+      <Svg width={22} height={22} viewBox="0 0 24 24">
+        <Path d="M13 3 5 13h5l-1 8 8-10h-5l1-8Z" {...p} />
+      </Svg>
+    );
+  }
+  if (option === "30") {
+    // Clock — weeknight
+    return (
+      <Svg width={22} height={22} viewBox="0 0 24 24">
+        <Circle cx={12} cy={12} r={8} {...p} />
+        <Path d="M12 8v4l3 2" {...p} />
+      </Svg>
+    );
+  }
+  // Mug with steam — no rush, take your time
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24">
+      <Path d="M5 11h11v4a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4v-4Z" {...p} />
+      <Path d="M16 12h1.5a2.5 2.5 0 0 1 0 5H16" {...p} />
+      <Path d="M8.5 7.5c.7-.9.7-1.4 0-2.3M12 7.5c.7-.9.7-1.4 0-2.3" {...p} />
+    </Svg>
+  );
+}
+
 function PeopleIcon() {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
@@ -412,6 +489,16 @@ function CheckIcon() {
   return (
     <Svg width={15} height={15} viewBox="0 0 16 16" fill="none">
       <Path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function SparkleIcon() {
+  const p = { stroke: colors.primary, strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24">
+      <Path d="M12 4c.5 3 1.5 4 4.5 4.5C13.5 9 12.5 10 12 13c-.5-3-1.5-4-4.5-4.5C10.5 8 11.5 7 12 4Z" {...p} />
+      <Path d="M18 14c.3 1.5.8 2 2.3 2.3-1.5.3-2 .8-2.3 2.3-.3-1.5-.8-2-2.3-2.3 1.5-.3 2-.8 2.3-2.3Z" {...p} />
     </Svg>
   );
 }
@@ -436,9 +523,13 @@ const styles = StyleSheet.create({
   sheet: {
     maxHeight: "92%",
   },
+  // Lets the scroll area shrink so the CTA footer below it always stays in view.
+  scroll: {
+    flexShrink: 1,
+  },
   content: {
     gap: spacing.xl,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.lg,
   },
   header: {
     flexDirection: "row",
@@ -473,9 +564,31 @@ const styles = StyleSheet.create({
     borderColor: colors.hairline,
     backgroundColor: colors.paper,
   },
+  // Inline 3-up variant (time): icon stacked over centered label.
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: spacing.sm,
+  },
+  mealCardCompact: {
+    width: undefined,
+    flex: 1,
+    flexBasis: 0,
+    flexDirection: "column",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
+  },
+  mealCardTextCompact: {
+    alignItems: "center",
+  },
+  compactSubtitle: {
+    textAlign: "center",
+  },
   mealCardActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.sageSoft,
+    borderColor: colors.sage,
   },
   mealIconTile: {
     width: 42,
@@ -486,7 +599,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface2,
   },
   mealIconTileActive: {
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.surface,
   },
   mealCardText: {
     flex: 1,
@@ -514,13 +627,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xs,
   },
-  chipPrimaryActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  chipAccentActive: {
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.accent,
+  chipActive: {
+    backgroundColor: colors.sageSoft,
+    borderColor: colors.sage,
   },
   chipText: {
     fontWeight: "600",
@@ -563,9 +672,22 @@ const styles = StyleSheet.create({
   eatFirstNote: {
     marginTop: spacing.xs,
   },
+  // Pinned footer below the scroll area — separated by a hairline so it reads
+  // as a fixed action bar even when content scrolls behind it.
   ctaGroup: {
-    gap: spacing.xs,
-    marginTop: spacing.xs,
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: spacing.sm,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
+  },
+  ctaPrimary: {
+    flex: 2,
+  },
+  ctaSurprise: {
+    flex: 1,
+    paddingHorizontal: spacing.sm,
   },
   pressed: {
     opacity: 0.85,

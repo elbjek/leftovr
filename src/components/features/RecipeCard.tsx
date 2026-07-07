@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     right: spacing.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    backgroundColor: "rgba(248,244,238,0.92)",
+    backgroundColor: "rgba(243,239,232,0.92)",
     borderRadius: radii.pill,
   },
   copy: {

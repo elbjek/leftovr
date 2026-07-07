@@ -4,6 +4,7 @@ export * from "./EatFirstShelf";
 export * from "./EmptyFridge";
 export * from "./HouseholdSection";
 export * from "./FoodCard";
+export * from "./KitchenPulse";
 export * from "./PremiumSheet";
 export * from "./ReceiptConfirmList";
 export * from "./RecipeCard";

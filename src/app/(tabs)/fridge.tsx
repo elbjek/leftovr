@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
-import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -15,7 +15,7 @@ import {
   toUiCategory,
   toUiUrgency,
 } from "@/services";
-import { colors, radii, spacing } from "@/theme";
+import { colors, fonts, radii, spacing } from "@/theme";
 import { router, useFocusEffect } from "expo-router";
 
 const CATEGORY_ORDER = [
@@ -46,7 +46,7 @@ export default function FridgeRoute() {
     refresh,
   } = useInventory(activeHousehold?.id);
   const prototypeDay = profile?.prototype_day ?? 1;
-  const { day1Suggestion, showDay5Nudge, day7Recap } = useRetention(
+  const { showDay5Nudge, day7Recap } = useRetention(
     prototypeDay,
     activeHousehold?.id,
     groups,
@@ -54,13 +54,44 @@ export default function FridgeRoute() {
   );
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   const [expandedShelf, setExpandedShelf] = useState<{ name: string; groups: InventoryGroup[] } | null>(null);
-  const [filterOpen, setFilterOpen] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  const filteredGroups = categoryFilter === "all" ? groups : groups.filter((group) => group.category === categoryFilter);
+  const [search, setSearch] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const query = search.trim().toLowerCase();
+  const filteredGroups = groups.filter(
+    (group) =>
+      (categoryFilter === "all" || group.category === categoryFilter) &&
+      (!query || group.name.toLowerCase().includes(query)),
+  );
   const isPremium = resolvePremium(profile, activeHousehold);
-  const { weeklySummary, refresh: refreshInsights } = useInsights(activeHousehold?.id);
-  const eatFirstGroups = getEatFirstGroups(filteredGroups);
+  const { refresh: refreshInsights } = useInsights(activeHousehold?.id);
+  // Eat-first is global (urgency, not the active category/search filter).
+  const eatFirstGroups = getEatFirstGroups(groups);
   const runningLowGroups = filteredGroups.filter(isMetricAmountRunningLow);
+  // Category chips: counts per category, only those present.
+  const categoryCounts = new Map<CategoryFilter, number>();
+  for (const group of groups) {
+    categoryCounts.set(group.category as CategoryFilter, (categoryCounts.get(group.category as CategoryFilter) ?? 0) + 1);
+  }
+  const categoryChips: { key: CategoryFilter; label: string; count: number }[] = [
+    { key: "all", label: t("fridge.filter.all"), count: groups.length },
+    ...CATEGORY_ORDER.map((category) => ({
+      key: category as CategoryFilter,
+      label: t(`scan.categories.${category}` as never),
+      count: categoryCounts.get(category as CategoryFilter) ?? 0,
+    })).filter((option) => option.count > 0),
+  ];
+  // Whole-kitchen freshness composition for the Kitchen Pulse bar.
+  const pulse = groups.reduce(
+    (acc, group) => {
+      if (group.urgency === "urgent") acc.urgent += 1;
+      else if (group.urgency === "use_soon") acc.soon += 1;
+      else acc.fresh += 1;
+      return acc;
+    },
+    { fresh: 0, soon: 0, urgent: 0 },
+  );
+  const weekday = new Date().toLocaleDateString(undefined, { weekday: "long" });
   const categoryShelves = buildCategoryShelves(filteredGroups, t);
   const { members } = useHousehold(activeHousehold?.id);
   const showAddedBy = members.length > 1;
@@ -93,53 +124,74 @@ export default function FridgeRoute() {
     >
       <ScreenHeader
         style={styles.header}
-        eyebrow={profile?.display_name ? t("fridge.greetingWithName", { name: profile.display_name }) : t("fridge.greeting")}
+        eyebrow={`${t("fridge.greeting")} · ${weekday}`}
         title={t("fridge.homeTitle")}
-        actions={
-          <>
-            <IconButton label={t("fridge.filter.title")} onPress={() => setFilterOpen(true)}><FilterIcon active={categoryFilter !== "all"} /></IconButton>
-            <IconButton label={t("fridge.refresh")} onPress={refresh}><RefreshIcon /></IconButton>
-          </>
-        }
+        actions={<IconButton label={t("fridge.refresh")} onPress={refresh}><RefreshIcon /></IconButton>}
       />
 
-      {weeklySummary && weeklySummary.itemsSaved > 0 ? (
-        <Pressable
-          accessibilityRole="button"
-          style={styles.statsStrip}
-          onPress={isPremium ? () => router.push("/(tabs)/insights") : undefined}
-        >
-          <View style={styles.statsIcon}>
-            <Svg width={22} height={22} viewBox="0 0 16 16" fill="none">
-              <Path d="M2 12 L6 7 L10 9 L14 3" stroke={colors.surface} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
+      {groups.length > 0 ? (
+        <View style={styles.searchRow}>
+          <View style={[styles.searchField, searchFocused && styles.searchFieldFocused]}>
+            <SearchIcon />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder={t("fridge.searchPlaceholder")}
+              placeholderTextColor={colors.muted}
+              style={styles.searchInput}
+              autoCorrect={false}
+              returnKeyType="search"
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+            />
           </View>
-          <Text variant="label" color={colors.primary}>
-            {t("fridge.statsStrip.title", { count: weeklySummary.itemsSaved })}
-          </Text>
-        </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("fridge.addItem")}
+            onPress={() => router.push("/(tabs)/scan")}
+            style={({ pressed }) => [styles.addButton, pressed && styles.savedRowPressed]}
+          >
+            <PlusIcon />
+          </Pressable>
+        </View>
       ) : null}
 
       {groups.length > 0 ? (
+        <View style={styles.pulseWrap}>
+          <KitchenPulse
+            fresh={pulse.fresh}
+            soon={pulse.soon}
+            urgent={pulse.urgent}
+            labels={{
+              today: t("fridge.kitchenPulse.today"),
+              soon: t("fridge.kitchenPulse.soon"),
+              fresh: t("fridge.kitchenPulse.fresh"),
+              total: (count) => t("fridge.kitchenPulse.total", { count }),
+            }}
+          />
+        </View>
+      ) : null}
+
+      {(isPremium ? eatFirstGroups.length > 0 : groups.length > 0) ? (
         <EatFirstShelf
           premium={isPremium}
           items={eatFirstGroups.map((group) => ({
             id: group.key,
             name: group.name,
             category: toUiCategory(group.category),
-            note: group.meta,
             bestBy: computeBestByLabel(group, t),
-            urgency: toUiUrgency(group.urgency),
           }))}
           labels={{
-            premium: t("fridge.eatFirstPremium"),
-            title: t("fridge.eatFirstTitle"),
-            itemCount: (count) => t("fridge.eatFirstCount", { count }),
+            kicker: t("fridge.eatFirstTitle"),
+            subtitle: t("fridge.eatFirstSubtitle"),
+            heading: (count) => t("fridge.eatFirstHeading", { count }),
+            cookCta: t("fridge.eatFirstCook"),
             previewTitle: t("fridge.eatFirstPreviewTitle"),
             previewBody: t("fridge.eatFirstPreviewBody"),
             unlockAction: t("fridge.eatFirstUnlock"),
           }}
           onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
+          onCook={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
           onUpgradePress={() => router.push("/(tabs)/settings")}
         />
       ) : null}
@@ -151,17 +203,6 @@ export default function FridgeRoute() {
             body={t("retention.day5Body")}
             actionLabel={t("retention.day5Action")}
             onAction={() => router.push({ pathname: "/(tabs)/scan", params: { mode: "receipt" } })}
-          />
-        </View>
-      ) : null}
-
-      {day1Suggestion && !showDay5Nudge && !day7Recap ? (
-        <View style={styles.retentionWrap}>
-          <RetentionCard
-            title={t("retention.day1Title")}
-            body={t("retention.day1Body", { body: day1Suggestion.body })}
-            actionLabel={t("retention.day1Action")}
-            onAction={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
           />
         </View>
       ) : null}
@@ -185,6 +226,32 @@ export default function FridgeRoute() {
 
       {!loading && !error && groups.length === 0 ? <EmptyFridge /> : null}
 
+      {groups.length > 0 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipsRow}
+        >
+          {categoryChips.map((chip) => {
+            const active = chip.key === categoryFilter;
+            return (
+              <Pressable
+                key={chip.key}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                onPress={() => setCategoryFilter(chip.key)}
+                style={[styles.chip, active && styles.chipActive]}
+              >
+                <Text variant="label" color={active ? colors.surface : colors.text}>{chip.label}</Text>
+                <View style={[styles.chipBadge, active && styles.chipBadgeActive]}>
+                  <Text variant="micro" color={active ? colors.surface : colors.muted}>{chip.count}</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      ) : null}
+
       {runningLowGroups.length > 0 ? (
         <CategoryShelf
           name={t("fridge.shelves.runningLow")}
@@ -202,6 +269,7 @@ export default function FridgeRoute() {
           name={shelf.name}
           groups={shelf.groups}
           moreLabel={t("fridge.shelves.more")}
+          expanded={categoryFilter !== "all"}
           showAddedBy={showAddedBy}
           onItemPress={(group) => setActionGroup(group)}
           onMorePress={() => setExpandedShelf({ name: shelf.name, groups: shelf.groups })}
@@ -216,8 +284,8 @@ export default function FridgeRoute() {
           await updateFirstLot(group, input);
           setActionGroup(null);
         }}
-        onRemove={async (group) => {
-          await removeGroup(group);
+        onRemove={async (group, reason) => {
+          await removeGroup(group, reason);
           setActionGroup(null);
         }}
       />
@@ -232,22 +300,7 @@ export default function FridgeRoute() {
         }}
       />
 
-      <CategoryFilterSheet
-        visible={filterOpen}
-        selected={categoryFilter}
-        groups={groups}
-        labels={{
-          title: t("fridge.filter.title"),
-          all: t("fridge.filter.all"),
-        }}
-        t={t}
-        onSelect={(category) => {
-          setCategoryFilter(category);
-          setFilterOpen(false);
-        }}
-        onDismiss={() => setFilterOpen(false)}
-      />
-    </Screen>
+      </Screen>
   );
 }
 
@@ -255,6 +308,7 @@ function CategoryShelf({
   name,
   groups,
   moreLabel,
+  expanded,
   showAddedBy,
   onItemPress,
   onMorePress,
@@ -262,6 +316,7 @@ function CategoryShelf({
   name: string;
   groups: InventoryGroup[];
   moreLabel: string;
+  expanded?: boolean;
   showAddedBy: boolean;
   onItemPress: (group: InventoryGroup) => void;
   onMorePress: () => void;
@@ -271,8 +326,9 @@ function CategoryShelf({
       name={name}
       count={groups.length}
       layout="grid"
-      maxVisibleItems={6}
+      maxVisibleItems={expanded ? undefined : 6}
       moreLabel={moreLabel}
+      showTitle={false}
       items={groups.map((group) => ({
         id: group.key,
         name: group.name,
@@ -340,7 +396,8 @@ function ItemActionSheet({
     remove: string;
     removeTitle: string;
     removeBody: string;
-    removeConfirm: string;
+    usedConfirm: string;
+    discardedConfirm: string;
     nameLabel: string;
     quantityLabel: string;
     unitLabel: string;
@@ -354,7 +411,7 @@ function ItemActionSheet({
     group: InventoryGroup,
     input: { name: string; quantity: number; unit: string; expiresAt: string | null; netAmount?: number },
   ) => Promise<void>;
-  onRemove: (group: InventoryGroup) => void;
+  onRemove: (group: InventoryGroup, reason: "used" | "discarded") => void;
 }) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -391,7 +448,8 @@ function ItemActionSheet({
             </Text>
           </View>
           <View style={styles.sheetButtons}>
-            <Button title={labels.removeConfirm} variant="accent" onPress={() => group && onRemove(group)} />
+            <Button title={labels.usedConfirm} onPress={() => group && onRemove(group, "used")} />
+            <Button title={labels.discardedConfirm} variant="accent" onPress={() => group && onRemove(group, "discarded")} />
             <Button title={labels.cancel} variant="text" onPress={() => setConfirmingRemove(false)} />
           </View>
         </View>
@@ -551,86 +609,17 @@ function buildCategoryShelves(groups: InventoryGroup[], t: ReturnType<typeof use
     .filter((shelf) => shelf.groups.length > 0);
 }
 
-function CategoryFilterSheet({
-  visible,
-  selected,
-  groups,
-  labels,
-  t,
-  onSelect,
-  onDismiss,
-}: {
-  visible: boolean;
-  selected: CategoryFilter;
-  groups: InventoryGroup[];
-  labels: {
-    title: string;
-    all: string;
-  };
-  t: ReturnType<typeof useTranslation>["t"];
-  onSelect: (category: CategoryFilter) => void;
-  onDismiss: () => void;
-}) {
-  const counts = new Map<CategoryFilter, number>([["all", groups.length]]);
-  for (const group of groups) {
-    counts.set(group.category as CategoryFilter, (counts.get(group.category as CategoryFilter) ?? 0) + 1);
-  }
-
-  const options: { key: CategoryFilter; label: string; count: number }[] = [
-    { key: "all", label: labels.all, count: groups.length },
-    ...CATEGORY_ORDER.map((category) => ({
-      key: category,
-      label: t(`scan.categories.${category}` as any),
-      count: counts.get(category) ?? 0,
-    })).filter((option) => option.count > 0),
-  ];
-
-  return (
-    <BottomSheet visible={visible} onDismiss={onDismiss}>
-      <View style={styles.sheetContent}>
-        <Text variant="h2">{labels.title}</Text>
-        <View style={styles.filterGrid}>
-          {options.map((option) => {
-            const active = option.key === selected;
-            return (
-              <Pressable
-                key={option.key}
-                accessibilityRole="button"
-                onPress={() => onSelect(option.key)}
-                style={({ pressed }) => [
-                  styles.filterChoice,
-                  active && styles.filterChoiceActive,
-                  pressed && styles.filterChoicePressed,
-                ]}
-              >
-                <Text variant="label" color={active ? colors.surface : colors.primary}>
-                  {option.label}
-                </Text>
-                <Text variant="micro" color={active ? colors.surface : colors.muted}>
-                  {option.count}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-    </BottomSheet>
-  );
-}
-
 function getCardMetaLines(meta: string) {
   return meta.split(" · ").slice(0, 2);
 }
 
+// Urgent items only — these are the ones worth a dedicated, actionable block
+// ("Cook with these"). Soonest-expiring first. Soon/fresh live in the pulse
+// overview and the category shelves below.
 function getEatFirstGroups(groups: InventoryGroup[]) {
-  const urgentOrSoon = groups.filter((group) => group.urgency === "urgent" || group.urgency === "use_soon");
-  if (urgentOrSoon.length > 0) return urgentOrSoon.slice(0, 3);
-
-  const lowRiskCategories = new Set(["pantry", "frozen", "drinks"]);
   return groups
-    .filter((group) => !lowRiskCategories.has(group.category))
-    .sort((a, b) => shelfLifeStart(a.shelfLifeRange) - shelfLifeStart(b.shelfLifeRange))
-    .slice(0, 3);
+    .filter((group) => group.urgency === "urgent")
+    .sort((a, b) => shelfLifeStart(a.shelfLifeRange) - shelfLifeStart(b.shelfLifeRange));
 }
 
 function shelfLifeStart(range: string) {
@@ -644,8 +633,6 @@ function computeBestByLabel(group: InventoryGroup, t: ReturnType<typeof useTrans
   );
 
   let remaining: number;
-  // An explicit expiry date wins over shelf-life estimation (CODE_REVIEW #3) —
-  // otherwise the badge can disagree with the card's urgency.
   if (oldestLot.expires_at) {
     const expiry = new Date(`${oldestLot.expires_at}T23:59:59`);
     remaining = Math.max(0, Math.ceil((expiry.getTime() - Date.now()) / 86_400_000));
@@ -671,11 +658,18 @@ function RefreshIcon() {
   );
 }
 
-function FilterIcon({ active }: { active: boolean }) {
-  const color = active ? colors.accent : colors.primary;
+function SearchIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Path d="M3 4.5H15M5.5 9H12.5M7.5 13.5H10.5" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
+      <Path d="M8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12ZM12.5 12.5L16 16" stroke={colors.muted} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function PlusIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
+      <Path d="M10 4V16M4 10H16" stroke={colors.surface} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -695,7 +689,8 @@ function getActionLabels(t: ReturnType<typeof useTranslation>["t"]) {
     remove: t("fridge.actions.remove"),
     removeTitle: t("fridge.removeSheet.title"),
     removeBody: t("fridge.removeSheet.body"),
-    removeConfirm: t("fridge.removeSheet.confirm"),
+    usedConfirm: t("fridge.removeSheet.usedConfirm"),
+    discardedConfirm: t("fridge.removeSheet.discardedConfirm"),
     nameLabel: t("fridge.actions.nameLabel"),
     quantityLabel: t("fridge.actions.quantityLabel"),
     unitLabel: t("scan.manual.unitLabel"),
@@ -715,23 +710,78 @@ const styles = StyleSheet.create({
   retentionWrap: {
     paddingHorizontal: spacing.screenX,
   },
-  statsStrip: {
-    marginHorizontal: spacing.screenX,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.surface2,
-    borderRadius: radii.xl,
+  pulseWrap: {
+    paddingHorizontal: spacing.screenX,
+  },
+  searchRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.lg,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.screenX,
   },
-  statsIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.md,
+  searchField: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    borderRadius: radii.lg,
+    minHeight: 48,
+  },
+  searchFieldFocused: {
+    borderColor: colors.sage,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.text,
+    paddingVertical: 12,
+  },
+  addButton: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.lg,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
+  },
+  savedRowPressed: {
+    opacity: 0.85,
+  },
+  chipsRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.screenX,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 46,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.paper,
+  },
+  chipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  chipBadge: {
+    minWidth: 22,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    alignItems: "center",
+  },
+  chipBadgeActive: {
+    backgroundColor: colors.primary700,
   },
   header: {
     paddingHorizontal: spacing.screenX,

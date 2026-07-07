@@ -1,41 +1,51 @@
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-import { colors, radii, spacing } from "../../theme";
-import { FoodCard } from "./FoodCard";
+import { Dimensions, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
+
+import { categoryColors, CategoryTone, colors, fonts, radii, spacing, urgencyColors } from "../../theme";
+import { FoodGlyph } from "../illustrations";
 import { Button, Card, Text } from "../primitives";
+
+// Two pills fill the card row exactly: page padding (screenX) + card padding (lg)
+// on both sides, minus the gap between the two pills.
+const ITEM_WIDTH =
+  (Dimensions.get("window").width - spacing.screenX * 2 - spacing.lg * 2 - spacing.sm) / 2;
 
 type EatFirstItem = {
   id: string;
   name: string;
   category?: string;
-  note: string;
   bestBy?: string;
-  urgency?: "safe" | "useSoon" | "urgent";
 };
 
 type Props = {
   items: EatFirstItem[];
   premium?: boolean;
   labels: {
-    premium?: string;
-    title: string;
-    itemCount: (count: number) => string;
+    kicker: string;
+    subtitle?: string;
+    heading: (count: number) => string;
+    cookCta: string;
     previewTitle: string;
     previewBody: string;
     unlockAction: string;
   };
   onItemPress?: (item: EatFirstItem) => void;
+  onCook?: () => void;
   onUpgradePress?: () => void;
 };
 
-export function EatFirstShelf({ items, premium = false, labels, onItemPress, onUpgradePress }: Props) {
+
+// The hero block: items that need using today + the one action the plain shelves
+// can't offer — cook with them before they spoil.
+export function EatFirstShelf({ items, premium = false, labels, onItemPress, onCook, onUpgradePress }: Props) {
   if (!premium) {
     return (
       <View style={styles.previewWrap}>
         <Card dashed style={styles.preview}>
           <View style={styles.previewIcon}>
             <Text variant="h2" color={colors.primary} italic>
-              3
+              {items.length || 3}
             </Text>
           </View>
           <View style={styles.previewCopy}>
@@ -52,78 +62,159 @@ export function EatFirstShelf({ items, premium = false, labels, onItemPress, onU
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.heading}>
-        <View>
-          <Text variant="micro" color={colors.accent} uppercase>
-            {labels.premium}
-          </Text>
-          <Text variant="h2" italic style={styles.title}>
-            {labels.title}
+      <View style={styles.card}>
+        <View style={styles.kickerRow}>
+          <LeafIcon />
+          <Text variant="label" color={colors.primary} style={styles.kicker}>
+            {labels.kicker}
           </Text>
         </View>
-        <Text variant="small" muted>
-          {labels.itemCount(items.length)}
+        <Text variant="h2" color={colors.text} style={styles.heading}>
+          {labels.heading(items.length)}
         </Text>
-      </View>
-      <View style={styles.panelOuter}>
+        {labels.subtitle ? (
+          <Text variant="small" muted style={styles.subtitle}>
+            {labels.subtitle}
+          </Text>
+        ) : null}
+
         <ScrollView
           horizontal
-          scrollEnabled={items.length > 3}
+          scrollEnabled={items.length > 2}
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.panelScroll}
+          decelerationRate="fast"
+          snapToInterval={ITEM_WIDTH + spacing.sm}
+          snapToAlignment="start"
+          contentContainerStyle={styles.carousel}
         >
-          {items.map((item) => (
-            <FoodCard
-              key={item.id}
-              name={item.name}
-              category={item.category}
-              meta={item.note}
-              bestBy={item.bestBy}
-              urgency={item.urgency}
-              style={styles.eatFirstCard}
-              onPress={() => onItemPress?.(item)}
-            />
-          ))}
+          {items.map((item) => {
+            const tone = categoryColors[(item.category as CategoryTone)] ?? categoryColors.other;
+            return (
+              <Pressable
+                key={item.id}
+                accessibilityRole="button"
+                onPress={() => onItemPress?.(item)}
+                style={({ pressed }) => [styles.itemCard, pressed && styles.itemPressed]}
+              >
+                <View style={[styles.thumb, { backgroundColor: tone.background }]}>
+                  <FoodGlyph name={item.name} color={tone.mark} size={26} />
+                </View>
+                <View style={styles.itemText}>
+                  <Text variant="label" color={colors.text} numberOfLines={2} style={styles.itemName}>
+                    {item.name}
+                  </Text>
+                  {item.bestBy ? (
+                    <Text variant="small" color={urgencyColors.urgent} numberOfLines={1}>
+                      {item.bestBy}
+                    </Text>
+                  ) : null}
+                </View>
+              </Pressable>
+            );
+          })}
         </ScrollView>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={onCook}
+          style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+        >
+          <Text variant="label" color={colors.surface}>{labels.cookCta}</Text>
+          <Text variant="label" color={colors.surface}>›</Text>
+        </Pressable>
       </View>
     </View>
   );
 }
 
+function LeafIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4 20c0-8 6-14 16-14 0 10-6 15-13 15-1 0-3 0-3-1Z"
+        stroke={colors.primary}
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M4 20c2-5 6-8 11-9" stroke={colors.primary} strokeWidth={1.7} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 const styles = StyleSheet.create({
   wrap: {
-    paddingBottom: spacing.xxxl,
+    paddingHorizontal: spacing.screenX,
+    paddingBottom: spacing.xxl,
+  },
+  card: {
+    backgroundColor: colors.surface2,
+    borderRadius: radii.xxl,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  kickerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  kicker: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "700",
   },
   heading: {
-    paddingHorizontal: spacing.screenX,
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "700",
+    marginTop: spacing.xxs,
+  },
+  subtitle: {
+    marginTop: -spacing.xxs,
+  },
+  carousel: {
     flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    marginBottom: spacing.md,
+    gap: spacing.sm,
   },
-  title: {
-    marginTop: spacing.xs,
-    fontFamily: "Fraunces",
-    fontWeight: "500",
+  itemCard: {
+    width: ITEM_WIDTH,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.paper,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    padding: spacing.sm,
   },
-  panelOuter: {
-    marginHorizontal: spacing.screenX,
-    padding: 14,
-    borderRadius: radii.xl,
+  itemPressed: {
+    opacity: 0.9,
+  },
+  thumb: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  itemText: {
+    flex: 1,
+    gap: 1,
+  },
+  itemName: {
+    fontFamily: fonts.bodyBold,
+  },
+  cta: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    minHeight: 52,
+    borderRadius: radii.lg,
     backgroundColor: colors.primary,
-    overflow: "hidden",
   },
-  panelScroll: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  eatFirstCard: {
-    width: 112,
-    backgroundColor: "rgba(248,244,238,0.95)",
-  },
-  row: {
-    paddingHorizontal: spacing.screenX,
-    gap: spacing.md,
+  ctaPressed: {
+    opacity: 0.9,
   },
   previewWrap: {
     paddingHorizontal: spacing.screenX,
@@ -138,7 +229,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.sageSoft,
     alignItems: "center",
     justifyContent: "center",
   },

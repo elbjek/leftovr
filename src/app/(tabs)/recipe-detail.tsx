@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, Animated, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -13,8 +13,8 @@ import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
 import { colors, radii, spacing } from "@/theme";
 
-const HERO_MAX_HEIGHT = 280;
-const HERO_MIN_HEIGHT = 110;
+const HERO_MAX_HEIGHT = 168;
+const HERO_MIN_HEIGHT = 84;
 const HERO_SCROLL_DISTANCE = HERO_MAX_HEIGHT - HERO_MIN_HEIGHT;
 
 type IngredientItem = {
@@ -152,8 +152,6 @@ export default function RecipeDetailRoute() {
   const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
-  // Ingredient pill currently showing its amount (name-only pills otherwise).
-  const [expandedIngredient, setExpandedIngredient] = useState<number | null>(null);
 
   const showCookCoachMark =
     (profile?.prototype_day ?? 1) >= 3 && !profile?.cooked_coachmark_seen_at;
@@ -344,6 +342,16 @@ export default function RecipeDetailRoute() {
   // recipe scrolls, with the glyph scaling down into the collapsed band. All
   // transform-driven so it runs on the native thread.
   const [scrollY] = useState(() => new Animated.Value(0));
+  // "Jump to recipe": long ingredient lists push the steps below the fold, so
+  // a shortcut scrolls straight to them. stepsY is the section label's offset
+  // within the body; the content itself starts at HERO_MAX_HEIGHT (padding).
+  const scrollRef = useRef<ScrollView>(null);
+  const [stepsY, setStepsY] = useState(0);
+  const jumpToSteps = () =>
+    scrollRef.current?.scrollTo({
+      y: HERO_MAX_HEIGHT + stepsY - HERO_MIN_HEIGHT - spacing.md,
+      animated: true,
+    });
   const heroTranslate = scrollY.interpolate({
     inputRange: [0, HERO_SCROLL_DISTANCE],
     outputRange: [0, -HERO_SCROLL_DISTANCE],
@@ -367,6 +375,7 @@ export default function RecipeDetailRoute() {
       {/* Single scroll surface: title through steps move together; the hero
           collapses with scroll while back/save and the cook CTA stay fixed. */}
       <Animated.ScrollView
+        ref={scrollRef}
         style={styles.scrollArea}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -398,50 +407,59 @@ export default function RecipeDetailRoute() {
                 ? t("recipes.detail.fromFridgeCount", { count: fridgeCount })
                 : t("recipes.detail.ingredients")}
             </Text>
-            <View style={styles.ingredientChips}>
+            <View style={styles.fridgeCard}>
               {ingredients.map((ing, i) => {
                 const inFridge = isOwned(ing);
                 const isUrgent = matchedUrgentItems.includes(ing.name);
                 const missingRequired = !inFridge && ing.required;
-                const expanded = expandedIngredient === i;
+                const dotColor = isUrgent || missingRequired ? colors.red : inFridge ? colors.green : colors.muted2;
+                const meta = isUrgent
+                  ? t("recipes.detail.bestToday")
+                  : missingRequired
+                    ? t("recipes.detail.missing")
+                    : !ing.required && !inFridge
+                      ? t("recipes.detail.niceToHave")
+                      : ing.amount;
+                const metaColor = isUrgent || missingRequired ? colors.red : colors.muted;
                 return (
-                  // Name-only pills stay short enough to pack 2-3 per row;
-                  // tap to reveal the amount (steps spell amounts out anyway).
-                  <Pressable
-                    key={i}
-                    accessibilityRole="button"
-                    accessibilityState={{ expanded }}
-                    onPress={() => setExpandedIngredient(expanded ? null : i)}
-                    style={[styles.ingredientChip, missingRequired && styles.ingredientChipMissing]}
-                  >
-                    <View style={[styles.dot, { backgroundColor: isUrgent ? colors.red : inFridge ? colors.green : missingRequired ? colors.red : colors.muted2 }]} />
-                    <Text
-                      variant="small"
-                      color={missingRequired ? colors.red : colors.text}
-                      style={styles.ingredientName}
-                    >
-                      {ing.name}
-                    </Text>
-                    {expanded ? (
-                      <Text variant="small" muted numberOfLines={1} style={styles.ingredientAmount}>
-                        · {isUrgent ? t("recipes.detail.bestToday") : ing.amount}
-                        {missingRequired
-                          ? ` · ${t("recipes.detail.missing")}`
-                          : !ing.required && !inFridge
-                            // "nice to have" only matters when you DON'T have
-                            // the optional item.
-                            ? ` · ${t("recipes.detail.niceToHave")}`
-                            : ""}
+                  <View key={i} style={[styles.fridgeRow, i > 0 && styles.fridgeRowDivider]}>
+                    <View style={styles.fridgeRowLeft}>
+                      <View style={[styles.dot, { backgroundColor: dotColor }]} />
+                      <Text
+                        variant="body"
+                        color={missingRequired ? colors.red : colors.text}
+                        style={styles.ingredientName}
+                      >
+                        {ing.name}
                       </Text>
-                    ) : null}
-                  </Pressable>
+                    </View>
+                    <Text variant="small" color={metaColor} style={styles.fridgeMeta}>
+                      {meta}
+                    </Text>
+                  </View>
                 );
               })}
             </View>
+            {ingredients.length > 6 ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={jumpToSteps}
+                style={({ pressed }) => [styles.jumpButton, pressed && { opacity: 0.6 }]}
+              >
+                <Text variant="small" color={colors.primary}>
+                  {t("recipes.detail.jumpToRecipe")} ↓
+                </Text>
+              </Pressable>
+            ) : null}
           </>
         ) : null}
 
-        <Text variant="micro" muted style={styles.sectionLabel}>
+        <Text
+          variant="micro"
+          muted
+          style={styles.sectionLabel}
+          onLayout={(event) => setStepsY(event.nativeEvent.layout.y)}
+        >
           {t("recipes.detail.howToCook")}
         </Text>
 
@@ -794,7 +812,7 @@ const styles = StyleSheet.create({
     left: 24,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    backgroundColor: "rgba(248,244,238,0.85)",
+    backgroundColor: "rgba(243,239,232,0.85)",
     borderRadius: radii.pill,
   },
   body: {
@@ -815,38 +833,50 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  ingredientChips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  ingredientChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.paper,
+  fridgeCard: {
     borderWidth: 1,
     borderColor: colors.hairline,
-    borderRadius: radii.pill,
+    borderRadius: radii.lg,
+    backgroundColor: colors.paper,
+    overflow: "hidden",
+    marginBottom: spacing.md,
   },
-  ingredientChipMissing: {
-    backgroundColor: "rgba(199, 104, 69, 0.08)",
-    borderColor: "rgba(199, 104, 69, 0.35)",
-    borderStyle: "dashed",
+  jumpButton: {
+    alignSelf: "center",
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  fridgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  fridgeRowDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
+  },
+  fridgeRowLeft: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
   },
   ingredientName: {
     fontWeight: "600",
   },
-  ingredientAmount: {
-    flexShrink: 1,
+  fridgeMeta: {
+    fontWeight: "600",
+    textAlign: "right",
   },
   steps: {
     gap: spacing.lg,

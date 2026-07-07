@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
   ActivityIndicator,
@@ -12,6 +12,12 @@ import Svg, { Line, Path } from "react-native-svg";
 
 import { colors, spacing } from "../../theme";
 import { Text } from "./Text";
+
+export type ProcessingStep = "recognising" | "matching" | "estimating" | "complete";
+
+const STEP_ORDER: Exclude<ProcessingStep, "complete">[] = ["recognising", "matching", "estimating"];
+
+type RowStatus = "done" | "active" | "pending";
 
 function useReduceMotion() {
   const [reduce, setReduce] = useState(false);
@@ -77,9 +83,14 @@ function ReceiptPulse() {
   );
 }
 
+/** Green check that scales in when a step completes. */
 function CheckDot() {
+  const [scale] = useState(() => new Animated.Value(0.6));
+  useEffect(() => {
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 6, tension: 120 }).start();
+  }, [scale]);
   return (
-    <View style={styles.checkDot}>
+    <Animated.View style={[styles.checkDot, { transform: [{ scale }] }]}>
       <Svg width={11} height={11} viewBox="0 0 11 11">
         <Path
           d="M2 6L4.5 8.5L9 3"
@@ -90,22 +101,57 @@ function CheckDot() {
           strokeLinejoin="round"
         />
       </Svg>
-    </View>
+    </Animated.View>
+  );
+}
+
+function StepRow({ label, status }: { label: string; status: RowStatus }) {
+  const opacity = useRef(new Animated.Value(status === "pending" ? 0.4 : 1)).current;
+
+  useEffect(() => {
+    Animated.timing(opacity, {
+      toValue: status === "pending" ? 0.4 : 1,
+      duration: 300,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  }, [status, opacity]);
+
+  return (
+    <Animated.View style={[styles.stepRow, { opacity }]}>
+      {status === "done" ? (
+        <CheckDot />
+      ) : status === "active" ? (
+        <ActivityIndicator size="small" color={colors.primary} style={styles.spinner} />
+      ) : (
+        <View style={styles.pendingDot} />
+      )}
+      <Text variant="small" style={status === "active" ? undefined : styles.stepMuted}>
+        {label}
+      </Text>
+    </Animated.View>
   );
 }
 
 /**
- * Receipt-reading loading state: pulsing receipt glyph, title/body, and a
- * status checklist (first steps done, last one in progress). The checklist is
- * a reassurance cue, not wired to real OCR stages.
+ * Receipt-reading loading state driven by real processing progress. Each step
+ * shows done (check) / active (spinner) / pending (dim), derived from `step`.
+ * The last step and the "complete" transition are gated on the real backend
+ * response — earlier steps auto-advance as reassurance.
  */
-export function ReceiptReadingProgress() {
+export function ReceiptReadingProgress({ step = "recognising" }: { step?: ProcessingStep }) {
   const { t } = useTranslation();
-  const steps = [
-    { label: t("scan.processingStep1"), done: true },
-    { label: t("scan.processingStep2"), done: true },
-    { label: t("scan.processingStep3"), done: false },
-  ];
+
+  const currentIndex = step === "complete" ? STEP_ORDER.length : STEP_ORDER.indexOf(step);
+  const labels = [t("scan.processingStep1"), t("scan.processingStep2"), t("scan.processingStep3")];
+  const bodyKey =
+    step === "recognising" ? "scan.processingBody1" : step === "matching" ? "scan.processingBody2" : "scan.processingBody3";
+
+  function statusFor(index: number): RowStatus {
+    if (index < currentIndex) return "done";
+    if (index === currentIndex) return "active";
+    return "pending";
+  }
 
   return (
     <View style={styles.wrap}>
@@ -115,21 +161,12 @@ export function ReceiptReadingProgress() {
           {t("scan.processingTitle")}
         </Text>
         <Text variant="body" muted center style={styles.body}>
-          {t("scan.processingBody")}
+          {t(bodyKey)}
         </Text>
       </View>
       <View style={styles.steps}>
-        {steps.map((step, index) => (
-          <View key={index} style={styles.stepRow}>
-            {step.done ? (
-              <CheckDot />
-            ) : (
-              <ActivityIndicator size="small" color={colors.primary} style={styles.spinner} />
-            )}
-            <Text variant="small" style={step.done ? styles.stepDone : undefined}>
-              {step.label}
-            </Text>
-          </View>
+        {labels.map((label, index) => (
+          <StepRow key={index} label={label} status={statusFor(index)} />
         ))}
       </View>
     </View>
@@ -185,7 +222,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  stepDone: {
+  pendingDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: colors.hairlineStrong,
+  },
+  stepMuted: {
     color: colors.muted,
   },
 });

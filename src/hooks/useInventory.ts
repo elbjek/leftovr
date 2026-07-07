@@ -87,12 +87,13 @@ export function useInventory(householdId?: string | null) {
         await updateInventoryItem(lot.id, { category: group.category, ...input });
         await reloadAndBroadcast();
       },
-      removeGroup: async (group: InventoryGroup) => {
-        await removeInventoryGroup(group.lots.map((lot) => lot.id));
+      removeGroup: async (group: InventoryGroup, reason: "used" | "discarded") => {
+        if (!householdId) return;
+        await removeInventoryGroup(group.lots, reason, householdId);
         await reloadAndBroadcast();
       },
     }),
-    [load, reloadAndBroadcast],
+    [load, reloadAndBroadcast, householdId],
   );
 
   // Group at render so the metric/imperial toggle re-formats labels live,

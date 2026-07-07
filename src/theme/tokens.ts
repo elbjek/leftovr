@@ -1,27 +1,35 @@
 export const colors = {
-  primary: "#1B4332",
-  primary700: "#163829",
-  primary50: "rgba(27, 67, 50, 0.06)",
-  primary100: "rgba(27, 67, 50, 0.12)",
-  surface: "#F8F4EE",
-  surface2: "#F1ECE2",
-  surface3: "#E8E1D3",
-  paper: "#FFFEFB",
-  appBackground: "#EFE9DD",
-  accent: "#D4A843",
-  accentSoft: "#F0DDA8",
-  text: "#1C1C1A",
-  // Darkened from #6B7A6D for 4.5:1+ contrast on cream surfaces at small sizes.
-  muted: "#5D6C60",
+  primary: "#234B34",
+  primary700: "#1A3A28",
+  primary50: "rgba(35, 75, 52, 0.06)",
+  primary100: "rgba(35, 75, 52, 0.12)",
+  surface: "#F9F6F1",
+  surface2: "#F3F3EB",
+  surface3: "#E2DBCD",
+  paper: "#FDF8F6",
+  appBackground: "#F9F6F1",
+  // Flat neutral hairline for card outlines (no shadows).
+  cardLine: "#E6E4D8",
+  accent: "#F2C14E",
+  accentSoft: "#FBE7B4",
+  text: "#1F1F1F",
+  // Green-gray tuned for 4.5:1+ contrast on cream surfaces at small sizes.
+  muted: "#55655A",
   muted2: "#9AA59C",
-  green: "#4F8A5B",
-  yellow: "#D4A843",
-  red: "#C76845",
-  hairline: "rgba(27, 67, 50, 0.10)",
-  hairlineStrong: "rgba(27, 67, 50, 0.18)",
-  black: "#1C1C1A",
+  green: "#5E9A64",
+  yellow: "#F2C14E",
+  red: "#E76F51",
+  // Light sage highlight (from brand palette) for selected/active states.
+  sage: "#A7C3A3",
+  sageSoft: "rgba(167, 195, 163, 0.28)",
+  // Solid light-sage fill for thumbnails/tiles.
+  sageTint: "#D8E4D1",
+  sageBorder: "rgba(35, 75, 52, 0.28)",
+  hairline: "rgba(35, 75, 52, 0.10)",
+  hairlineStrong: "rgba(35, 75, 52, 0.18)",
+  black: "#1F1F1F",
   white: "#FFFFFF",
-  overlay: "rgba(28, 28, 26, 0.55)",
+  overlay: "rgba(31, 31, 31, 0.55)",
 } as const;
 
 export const fonts = {
@@ -45,34 +53,34 @@ export const fontWeights = {
 
 export const typography = {
   display: {
-    fontFamily: fonts.display,
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 40,
     lineHeight: 42,
-    fontWeight: fontWeights.medium,
+    fontWeight: fontWeights.bold,
   },
   hero: {
-    fontFamily: fonts.display,
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 38,
     lineHeight: 38,
-    fontWeight: fontWeights.medium,
+    fontWeight: fontWeights.bold,
   },
   h1: {
-    fontFamily: fonts.displaySemiBold,
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 28,
     lineHeight: 34,
-    fontWeight: fontWeights.semibold,
+    fontWeight: fontWeights.bold,
   },
   h2: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 22,
     lineHeight: 26,
     fontWeight: fontWeights.bold,
   },
   h3: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodyBold,
     fontSize: 17,
     lineHeight: 22,
-    fontWeight: fontWeights.semibold,
+    fontWeight: fontWeights.bold,
   },
   body: {
     fontFamily: fonts.body,
@@ -131,13 +139,16 @@ export const radii = {
 
 export const shadows = {
   primaryButton: {
-    boxShadow: "0px 8px 24px rgba(27, 67, 50, 0.18)",
+    boxShadow: "0px 8px 24px rgba(35, 75, 52, 0.18)",
   },
   card: {
-    boxShadow: "0px 6px 14px rgba(28, 28, 26, 0.04)",
+    boxShadow: "0px 6px 14px rgba(31, 31, 31, 0.04)",
+  },
+  elevated: {
+    boxShadow: "0px 14px 34px rgba(31, 31, 31, 0.10)",
   },
   sheet: {
-    boxShadow: "0px -8px 28px rgba(28, 28, 26, 0.18)",
+    boxShadow: "0px -8px 28px rgba(31, 31, 31, 0.18)",
   },
 } as const;
 
