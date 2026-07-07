@@ -1484,11 +1484,9 @@
   });
 
   // ---------- Turnstile captcha ----------
-  // TODO: replace with your real Cloudflare Turnstile site key. Default below is
-  // Cloudflare's always-passes TEST key, so the form works before you configure
-  // keys — but it gives NO protection until you swap it (and set the matching
-  // TURNSTILE_SECRET_KEY env var on the server).
-  var TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
+  // Cloudflare Turnstile site key (public). Matching secret lives in the
+  // TURNSTILE_SECRET_KEY env var on Vercel.
+  var TURNSTILE_SITE_KEY = "0x4AAAAAADxgkqYVh9S5dYsq";
   window.onTurnstileLoad = function () {
     ["hero-captcha", "final-captcha"].forEach(function (id) {
       var el = document.getElementById(id);
