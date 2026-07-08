@@ -16,7 +16,7 @@ export const INVENTORY_CATEGORIES = [
 ] as const;
 
 export const PARTIAL_STATES = ["full", "some_used", "low"] as const;
-export const URGENCY_BANDS = ["safe", "use_soon", "urgent"] as const;
+export const URGENCY_BANDS = ["safe", "use_soon", "urgent", "expired"] as const;
 
 export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number];
 export type PartialState = (typeof PARTIAL_STATES)[number];
@@ -253,6 +253,7 @@ export function computeUrgency(input: {
   const ageDays = Math.max(0, (now.getTime() - addedAt.getTime()) / 86_400_000);
   const useSoonAt = Math.max(1, range[0] * 0.7);
 
+  if (ageDays >= range[1]) return "expired";
   if (ageDays >= range[0]) return "urgent";
   if (ageDays >= useSoonAt) return "use_soon";
   return "safe";
@@ -261,6 +262,8 @@ export function computeUrgency(input: {
 export function urgencyFromExpiry(expiresAt: string, now: Date = new Date()): UrgencyBand {
   const expiry = new Date(`${expiresAt}T23:59:59`);
   const daysLeft = (expiry.getTime() - now.getTime()) / 86_400_000;
+  // Grace window: still "best today" up to 3 days past the date, then expired.
+  if (daysLeft <= -3) return "expired";
   if (daysLeft <= 2) return "urgent";
   if (daysLeft <= 5) return "use_soon";
   return "safe";
@@ -369,7 +372,8 @@ export function isMetricAmountRunningLow(
 }
 
 export function formatUrgency(urgency: UrgencyBand) {
-  const key = urgency === "urgent" ? "urgent" : urgency === "use_soon" ? "useSoon" : "safe";
+  const key =
+    urgency === "expired" ? "expired" : urgency === "urgent" ? "urgent" : urgency === "use_soon" ? "useSoon" : "safe";
   return i18n.t(`fridge.meta.${key}`);
 }
 
@@ -407,6 +411,7 @@ function mergePartialState(a: PartialState, b: PartialState): PartialState {
 }
 
 export function urgencyRank(urgency: UrgencyBand | null) {
+  if (urgency === "expired") return 4;
   if (urgency === "urgent") return 3;
   if (urgency === "use_soon") return 2;
   return 1;

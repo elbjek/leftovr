@@ -174,9 +174,14 @@ export function useRecipes(
         setState((s) => ({ ...s, generating: true, error: null }));
 
         try {
+          // Expired items are too old to cook with — keep them out of both the
+          // generation input and the saved fridge snapshot.
+          const usableInventory = inventory.filter(
+            (lot) => resolveUrgency(lot) !== "expired",
+          );
           const { matches, source } = await generateRecipeMatches({
             householdId,
-            inventory,
+            inventory: usableInventory,
             avoidances,
             isPremium,
             servings,
@@ -224,7 +229,7 @@ export function useRecipes(
             householdId,
             cookingMode,
             avoidancesUsed: avoidances,
-            fridgeSnapshot: inventory.map((lot) => ({
+            fridgeSnapshot: usableInventory.map((lot) => ({
               normalized_name: lot.normalized_name,
               category: lot.category,
               quantity: lot.quantity,

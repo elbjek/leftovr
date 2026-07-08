@@ -156,6 +156,7 @@ export const urgencyColors = {
   safe: colors.green,
   useSoon: colors.yellow,
   urgent: colors.red,
+  expired: colors.muted2,
 } as const;
 
 export const categoryColors = {

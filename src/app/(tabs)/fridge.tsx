@@ -84,6 +84,7 @@ export default function FridgeRoute() {
   // Whole-kitchen freshness composition for the Kitchen Pulse bar.
   const pulse = groups.reduce(
     (acc, group) => {
+      if (group.urgency === "expired") return acc; // expired isn't fresh/soon/urgent
       if (group.urgency === "urgent") acc.urgent += 1;
       else if (group.urgency === "use_soon") acc.soon += 1;
       else acc.fresh += 1;

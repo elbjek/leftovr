@@ -11,7 +11,7 @@ export type ShelfItem = {
   meta: string;
   metaLines?: string[];
   bestBy?: string;
-  urgency?: "safe" | "useSoon" | "urgent";
+  urgency?: "safe" | "useSoon" | "urgent" | "expired";
   addedBy?: string | null;
 };
 
