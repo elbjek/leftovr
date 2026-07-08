@@ -260,6 +260,7 @@ export const sr = {
       urgent: "Pojedi prvo",
       useSoon: "Uskoro iskoristi",
       safe: "Sveze",
+      expired: "Isteklo",
       full: "Puno",
       someUsed: "Delimicno potroseno",
       low: "Pri kraju",

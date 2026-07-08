@@ -260,6 +260,7 @@ export const en = {
       urgent: "Eat first",
       useSoon: "Use soon",
       safe: "Fresh",
+      expired: "Expired",
       full: "Full",
       someUsed: "Some used",
       low: "Low",
