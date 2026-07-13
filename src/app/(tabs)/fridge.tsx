@@ -4,12 +4,13 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
 import {
   getCatalogFood,
+  hasExplicitExpiredLot,
   InventoryGroup,
   isMetricAmountRunningLow,
   toUiCategory,
@@ -42,6 +43,7 @@ export default function FridgeRoute() {
     groups,
     error,
     updateFirstLot,
+    markGroupStillGood,
     removeGroup,
     refresh,
   } = useInventory(activeHousehold?.id);
@@ -58,7 +60,11 @@ export default function FridgeRoute() {
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const query = search.trim().toLowerCase();
-  const filteredGroups = groups.filter(
+  // Expired groups leave the category shelves, chips, and filters entirely —
+  // they live in the "Check these" block below eat-first.
+  const expiredGroups = groups.filter((group) => group.urgency === "expired");
+  const activeGroups = groups.filter((group) => group.urgency !== "expired");
+  const filteredGroups = activeGroups.filter(
     (group) =>
       (categoryFilter === "all" || group.category === categoryFilter) &&
       (!query || group.name.toLowerCase().includes(query)),
@@ -70,11 +76,11 @@ export default function FridgeRoute() {
   const runningLowGroups = filteredGroups.filter(isMetricAmountRunningLow);
   // Category chips: counts per category, only those present.
   const categoryCounts = new Map<CategoryFilter, number>();
-  for (const group of groups) {
+  for (const group of activeGroups) {
     categoryCounts.set(group.category as CategoryFilter, (categoryCounts.get(group.category as CategoryFilter) ?? 0) + 1);
   }
   const categoryChips: { key: CategoryFilter; label: string; count: number }[] = [
-    { key: "all", label: t("fridge.filter.all"), count: groups.length },
+    { key: "all", label: t("fridge.filter.all"), count: activeGroups.length },
     ...CATEGORY_ORDER.map((category) => ({
       key: category as CategoryFilter,
       label: t(`scan.categories.${category}` as never),
@@ -194,6 +200,34 @@ export default function FridgeRoute() {
           onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
           onCook={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
           onUpgradePress={() => router.push("/(tabs)/settings")}
+        />
+      ) : null}
+
+      {expiredGroups.length > 0 ? (
+        <CheckTheseShelf
+          items={expiredGroups.map((group) => ({
+            id: group.key,
+            name: group.name,
+            category: toUiCategory(group.category),
+            label: hasExplicitExpiredLot(group.lots)
+              ? t("fridge.meta.expired")
+              : t("fridge.checkThese.pastBest"),
+          }))}
+          labels={{
+            kicker: t("fridge.checkThese.title"),
+            subtitle: t("fridge.checkThese.subtitle"),
+            stillGood: t("fridge.checkThese.stillGood"),
+            toss: t("fridge.checkThese.toss"),
+          }}
+          onItemPress={(item) => setActionGroup(expiredGroups.find((group) => group.key === item.id) ?? null)}
+          onStillGood={(item) => {
+            const group = expiredGroups.find((candidate) => candidate.key === item.id);
+            if (group) void markGroupStillGood(group);
+          }}
+          onToss={(item) => {
+            const group = expiredGroups.find((candidate) => candidate.key === item.id);
+            if (group) void removeGroup(group, "discarded");
+          }}
         />
       ) : null}
 

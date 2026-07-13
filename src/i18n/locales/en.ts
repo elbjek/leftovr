@@ -235,6 +235,13 @@ export const en = {
     eatFirstPreviewTitle: "Eat First preview",
     eatFirstPreviewBody: "Unlock a ranked shelf of what is best eaten soon.",
     eatFirstUnlock: "Unlock",
+    checkThese: {
+      title: "Check these",
+      subtitle: "Probably past their best. Give them a look before you use them.",
+      stillGood: "Still good",
+      toss: "Toss",
+      pastBest: "Past its best",
+    },
     bestBy: {
       today: "Best today",
       tomorrow: "Best tomorrow",

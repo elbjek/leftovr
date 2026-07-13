@@ -240,15 +240,19 @@ async function computeDepletionOps(
     net_unit: "ml" | "g" | null;
   }[];
 
+  // Expired lots are never cooked with — they wait in "Check these" for the
+  // user to vouch for or toss, so depletion must not consume them.
+  const usableLots = lots.filter((lot) => resolveUrgency(lot) !== "expired");
+
   // Most-urgent first (urgency computed live, not from the dropped column),
   // then soonest-added — so depletion spills out the at-risk lots first.
-  lots.sort((a, b) => {
+  usableLots.sort((a, b) => {
     const rank = urgencyRank(resolveUrgency(b)) - urgencyRank(resolveUrgency(a));
     if (rank !== 0) return rank;
     return a.added_at.localeCompare(b.added_at);
   });
 
-  return planDepletion(lots, { amount, unit }, { gramsPerItem: getGramsPerItem(normalizedName) });
+  return planDepletion(usableLots, { amount, unit }, { gramsPerItem: getGramsPerItem(normalizedName) });
 }
 
 export type UpdateInventoryItemInput = {
@@ -290,6 +294,18 @@ export async function updateInventoryItem(itemId: string, input: UpdateInventory
   if (Object.keys(patch).length === 0) return;
 
   const { error } = await supabase.from("inventory_items").update(patch).eq("id", itemId);
+  if (error) throw error;
+}
+
+// "Still good" on an expired group: the user vouched for the food, so write
+// an explicit expiry date on every lot at once.
+export async function setInventoryLotsExpiry(lotIds: string[], expiresAt: string) {
+  if (lotIds.length === 0) return;
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from("inventory_items")
+    .update({ expires_at: expiresAt })
+    .in("id", lotIds);
   if (error) throw error;
 }
 

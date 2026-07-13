@@ -235,6 +235,13 @@ export const sr = {
     eatFirstPreviewTitle: "Pregled za prvo pojesti",
     eatFirstPreviewBody: "Otkljucaj rangiranu policu stvari koje su najbolje uskoro.",
     eatFirstUnlock: "Otkljucaj",
+    checkThese: {
+      title: "Proveri ovo",
+      subtitle: "Verovatno vise nisu najbolji. Pogledaj ih pre upotrebe.",
+      stillGood: "Jos je dobro",
+      toss: "Baci",
+      pastBest: "Nije vise najsvezije",
+    },
     bestBy: {
       today: "Najbolje danas",
       tomorrow: "Najbolje sutra",

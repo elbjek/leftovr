@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   getShelfLifeDays,
+  hasExplicitExpiredLot,
   inferCategory,
   InventoryLot,
   isMetricAmountRunningLow,
   isPantryStaple,
   resolveUrgency,
+  stillGoodExpiryDate,
   urgencyFromExpiry,
 } from "./inventoryRules";
 
@@ -89,6 +91,28 @@ describe("resolveUrgency", () => {
 
   it("is safe for a freshly added item with no expiry", () => {
     expect(resolveUrgency(lot({}), now)).toBe("safe");
+  });
+});
+
+describe("hasExplicitExpiredLot", () => {
+  const now = new Date("2026-06-10T12:00:00Z");
+
+  it("is true only when a user-entered date has passed", () => {
+    expect(hasExplicitExpiredLot([{ expires_at: "2026-06-01" }], now)).toBe(true);
+    expect(hasExplicitExpiredLot([{ expires_at: "2026-06-11" }], now)).toBe(false);
+  });
+
+  it("is false for lots without an explicit date (band was our estimate)", () => {
+    expect(hasExplicitExpiredLot([{ expires_at: null }], now)).toBe(false);
+    expect(hasExplicitExpiredLot([{ expires_at: null }, { expires_at: "2026-06-01" }], now)).toBe(true);
+  });
+});
+
+describe("stillGoodExpiryDate", () => {
+  it("returns a local date 3 days out", () => {
+    expect(stillGoodExpiryDate(new Date(2026, 5, 10, 12))).toBe("2026-06-13");
+    // Rolls over month ends correctly.
+    expect(stillGoodExpiryDate(new Date(2026, 5, 29, 12))).toBe("2026-07-02");
   });
 });
 

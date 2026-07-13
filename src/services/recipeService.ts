@@ -80,6 +80,9 @@ export function matchRecipes(
   const { inventory, avoidances, isPremium } = input;
   const inventoryByNorm = new Map<string, { lot: InventoryLot; key: string }>();
   for (const lot of inventory) {
+    // Expired lots never count as "in fridge" — an ingredient backed only by
+    // one must go through the missing-ingredient flow, not into a pan.
+    if (resolveUrgency(lot) === "expired") continue;
     const key = canonicalFoodName(lot.normalized_name);
     if (!inventoryByNorm.has(key)) {
       inventoryByNorm.set(key, { lot, key });

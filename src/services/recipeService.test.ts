@@ -20,7 +20,8 @@ function lot(name: string, normalized_name: string): InventoryLot {
     source: "receipt",
     added_by: "user-1",
     added_by_name: "Test User",
-    added_at: "2026-06-01T12:00:00.000Z",
+    // Fresh at test time — expired lots are excluded from matching entirely.
+    added_at: new Date().toISOString(),
     removed_at: null,
     expires_at: null,
     purchase_price: null,
@@ -161,5 +162,13 @@ describe("coverage + selectMakeableRecipes", () => {
         r.matchedItems.some((m) => m.inFridge && m.ingredientName.toLowerCase().includes("yogurt")),
       ),
     ).toBe(true);
+  });
+
+  it("never counts an expired lot as in the fridge", () => {
+    // Same single-yogurt fridge, but the lot's explicit date is long past.
+    const expired = { ...lot("Greek yogurt", "greek yogurt"), expires_at: "2026-01-01" };
+    const matches = matchRecipes({ ...base, inventory: [expired] });
+    expect(matches.every((r) => r.matchedItems.every((m) => !m.inFridge))).toBe(true);
+    expect(selectMakeableRecipes(matches, { isPremium: false })).toEqual([]);
   });
 });
