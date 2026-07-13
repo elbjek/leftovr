@@ -658,6 +658,10 @@ export const en = {
     subscriptionTitle: "Subscription",
     subscriptionBody: "Your current plan.",
     upgrade: "Upgrade to Premium",
+    support: {
+      title: "Support",
+      contact: "Contact support",
+    },
     legal: {
       title: "Legal",
       privacy: "Privacy Policy",

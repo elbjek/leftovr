@@ -37,6 +37,7 @@ const CURRENCY_OPTIONS = ["USD", "EUR", "RSD", "GBP"] as const;
 
 const PRIVACY_URL = "https://leftovr.co/privacy/";
 const TERMS_URL = "https://leftovr.co/terms/";
+const SUPPORT_EMAIL = "support@twobricklabs.com";
 
 export default function SettingsRoute() {
   const { t, i18n } = useTranslation();
@@ -506,6 +507,16 @@ export default function SettingsRoute() {
             />
           </View>
         </Card>
+
+        {/* Support */}
+        <SettingsGroup label={t("settings.support.title")}>
+          <SettingsRow
+            label={t("settings.support.contact")}
+            value={SUPPORT_EMAIL}
+            onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}
+            last
+          />
+        </SettingsGroup>
 
         {/* Legal */}
         <SettingsGroup label={t("settings.legal.title")}>
