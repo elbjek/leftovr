@@ -5,7 +5,7 @@ import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "../
 import { FoodGlyph } from "../illustrations";
 import { Text } from "../primitives";
 
-type CheckItem = {
+export type CheckItem = {
   id: string;
   name: string;
   category?: string;
@@ -13,23 +13,35 @@ type CheckItem = {
   label: string;
 };
 
+// The card previews this many rows; the rest live in the "see all" sheet.
+const PREVIEW_COUNT = 3;
+
+type RowLabels = {
+  stillGood: string;
+  toss: string;
+};
+
 type Props = {
   items: CheckItem[];
-  labels: {
+  labels: RowLabels & {
     kicker: string;
     subtitle: string;
-    stillGood: string;
-    toss: string;
+    seeAll: string;
   };
   onItemPress?: (item: CheckItem) => void;
   onStillGood: (item: CheckItem) => void;
   onToss: (item: CheckItem) => void;
+  onSeeAll: () => void;
 };
 
 // Items past their (known or estimated) date. They left the category shelves
 // and everything that cooks — this block exists to be emptied: vouch for the
-// food ("still good") or toss it.
-export function CheckTheseShelf({ items, labels, onItemPress, onStillGood, onToss }: Props) {
+// food ("still good") or toss it. Long tails collapse behind "see all" so a
+// neglected fridge doesn't bury the rest of the screen.
+export function CheckTheseShelf({ items, labels, onItemPress, onStillGood, onToss, onSeeAll }: Props) {
+  const preview = items.slice(0, PREVIEW_COUNT);
+  const hiddenCount = items.length - preview.length;
+
   return (
     <View style={styles.wrap}>
       <View style={styles.card}>
@@ -46,47 +58,82 @@ export function CheckTheseShelf({ items, labels, onItemPress, onStillGood, onTos
           {labels.subtitle}
         </Text>
 
-        {items.map((item) => {
-          const tone = categoryColors[(item.category as CategoryTone)] ?? categoryColors.other;
-          return (
-            <View key={item.id} style={styles.row}>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => onItemPress?.(item)}
-                style={({ pressed }) => [styles.rowMain, pressed && styles.pressed]}
-              >
-                <View style={[styles.thumb, { backgroundColor: tone.background }]}>
-                  <FoodGlyph name={item.name} color={tone.mark} size={22} />
-                </View>
-                <View style={styles.rowText}>
-                  <Text variant="label" color={colors.text} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text variant="small" muted numberOfLines={1}>
-                    {item.label}
-                  </Text>
-                </View>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`${labels.stillGood}: ${item.name}`}
-                onPress={() => onStillGood(item)}
-                style={({ pressed }) => [styles.action, pressed && styles.pressed]}
-              >
-                <Text variant="label" color={colors.primary}>{labels.stillGood}</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`${labels.toss}: ${item.name}`}
-                onPress={() => onToss(item)}
-                style={({ pressed }) => [styles.action, pressed && styles.pressed]}
-              >
-                <Text variant="label" color={colors.red}>{labels.toss}</Text>
-              </Pressable>
-            </View>
-          );
-        })}
+        {preview.map((item) => (
+          <CheckTheseRow
+            key={item.id}
+            item={item}
+            labels={labels}
+            onPress={onItemPress}
+            onStillGood={onStillGood}
+            onToss={onToss}
+          />
+        ))}
+
+        {hiddenCount > 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onSeeAll}
+            style={({ pressed }) => [styles.seeAll, pressed && styles.pressed]}
+          >
+            <Text variant="label" color={colors.primary}>{labels.seeAll}</Text>
+          </Pressable>
+        ) : null}
       </View>
+    </View>
+  );
+}
+
+// One expired item with its vouch/toss actions. Shared between the card
+// preview and the full-list sheet.
+export function CheckTheseRow({
+  item,
+  labels,
+  onPress,
+  onStillGood,
+  onToss,
+}: {
+  item: CheckItem;
+  labels: RowLabels;
+  onPress?: (item: CheckItem) => void;
+  onStillGood: (item: CheckItem) => void;
+  onToss: (item: CheckItem) => void;
+}) {
+  const tone = categoryColors[(item.category as CategoryTone)] ?? categoryColors.other;
+  return (
+    <View style={styles.row}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => onPress?.(item)}
+        style={({ pressed }) => [styles.rowMain, pressed && styles.pressed]}
+      >
+        <View style={[styles.thumb, { backgroundColor: tone.background }]}>
+          <FoodGlyph name={item.name} color={tone.mark} size={22} />
+        </View>
+        <View style={styles.rowText}>
+          <Text variant="label" color={colors.text} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <Text variant="small" muted numberOfLines={1}>
+            {item.label}
+          </Text>
+        </View>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${labels.stillGood}: ${item.name}`}
+        onPress={() => onStillGood(item)}
+        style={({ pressed }) => [styles.action, pressed && styles.pressed]}
+      >
+        <Text variant="label" color={colors.primary}>{labels.stillGood}</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${labels.toss}: ${item.name}`}
+        onPress={() => onToss(item)}
+        style={({ pressed }) => [styles.action, pressed && styles.pressed]}
+      >
+        <Text variant="label" color={colors.red}>{labels.toss}</Text>
+      </Pressable>
     </View>
   );
 }
@@ -165,6 +212,15 @@ const styles = StyleSheet.create({
   action: {
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.sm,
+  },
+  seeAll: {
+    minHeight: 44,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.paper,
+    alignItems: "center",
+    justifyContent: "center",
   },
   pressed: {
     opacity: 0.8,
