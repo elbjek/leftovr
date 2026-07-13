@@ -26,7 +26,8 @@ const input: RecipeGenerationInput = {
       source: "receipt",
       added_by: "user-1",
       added_by_name: "Test User",
-      added_at: "2026-06-01T12:00:00.000Z",
+      // Fresh at test time — expired lots are excluded from matching entirely.
+      added_at: new Date().toISOString(),
       removed_at: null,
       expires_at: null,
       purchase_price: null,

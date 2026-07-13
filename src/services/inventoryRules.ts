@@ -279,6 +279,30 @@ export function resolveUrgency(
     : computeUrgency({ name: lot.name, category: lot.category, addedAt: lot.added_at, now });
 }
 
+// "Expired" is only claimed when the user gave us a real date and it has
+// passed. Otherwise the band came from our shelf-life estimate and the UI
+// softens the label to "past its best".
+export function hasExplicitExpiredLot(
+  lots: Pick<InventoryLot, "expires_at">[],
+  now: Date = new Date(),
+): boolean {
+  return lots.some(
+    (lot) => lot.expires_at != null && new Date(`${lot.expires_at}T23:59:59`) < now,
+  );
+}
+
+// "Still good" writes an explicit expiry this many days out, turning our
+// shelf-life guess into a user-confirmed date.
+export const STILL_GOOD_EXTENSION_DAYS = 3;
+
+export function stillGoodExpiryDate(now: Date = new Date()): string {
+  const date = new Date(now);
+  date.setDate(date.getDate() + STILL_GOOD_EXTENSION_DAYS);
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export function getNextPartialState(state: PartialState): PartialState {
   if (state === "full") return "some_used";
   if (state === "some_used") return "low";

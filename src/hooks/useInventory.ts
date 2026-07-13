@@ -4,10 +4,11 @@ import {
   advanceInventoryPartialState,
   listActiveHouseholdInventory,
   removeInventoryGroup,
+  setInventoryLotsExpiry,
   updateInventoryItem,
   UpdateInventoryItemInput,
 } from "@/repositories";
-import { groupInventoryLots, InventoryGroup, InventoryLot } from "@/services";
+import { groupInventoryLots, InventoryGroup, InventoryLot, stillGoodExpiryDate } from "@/services";
 import { useMeasurementSystem } from "@/features/settings/useMeasurementSystem";
 
 type InventoryState = {
@@ -85,6 +86,10 @@ export function useInventory(householdId?: string | null) {
         const lot = group.lots[0];
         if (!lot) return;
         await updateInventoryItem(lot.id, { category: group.category, ...input });
+        await reloadAndBroadcast();
+      },
+      markGroupStillGood: async (group: InventoryGroup) => {
+        await setInventoryLotsExpiry(group.lots.map((lot) => lot.id), stillGoodExpiryDate());
         await reloadAndBroadcast();
       },
       removeGroup: async (group: InventoryGroup, reason: "used" | "discarded") => {
