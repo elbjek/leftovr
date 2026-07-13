@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, CheckItem, CheckTheseRow, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -44,6 +44,7 @@ export default function FridgeRoute() {
     error,
     updateFirstLot,
     markGroupStillGood,
+    markGroupsStillGood,
     removeGroup,
     removeGroups,
     refresh,
@@ -68,15 +69,17 @@ export default function FridgeRoute() {
   const [checkSheetVisible, setCheckSheetVisible] = useState(false);
   const toCheckItem = (group: InventoryGroup): CheckItem => {
     const expiry = earliestExpiry(group.lots);
+    // In the expired band any explicit date has necessarily passed, so a
+    // present date means "Expired <date>"; no date means our estimate.
+    const hasDate = Boolean(expiry) && hasExplicitExpiredLot(group.lots);
     return {
       id: group.key,
       name: group.name,
       category: toUiCategory(group.category),
-      // In the expired band any explicit date has necessarily passed, so a
-      // present date means "Expired <date>"; no date means our estimate.
-      label: expiry && hasExplicitExpiredLot(group.lots)
-        ? `${t("fridge.meta.expired")} · ${formatExpiryDate(expiry)}`
+      label: hasDate
+        ? `${t("fridge.meta.expired")} · ${formatExpiryDate(expiry as string)}`
         : `${t("fridge.checkThese.pastBest")} · ${t("fridge.checkThese.noExpiry")}`,
+      shortLabel: hasDate ? formatExpiryDate(expiry as string) : t("fridge.checkThese.noDate"),
     };
   };
   const checkItems: CheckItem[] = expiredGroups.map(toCheckItem);
@@ -365,21 +368,21 @@ export default function FridgeRoute() {
         sections={checkSections}
         labels={{
           title: t("fridge.checkThese.title"),
-          stillGood: t("fridge.checkThese.stillGood"),
-          toss: t("fridge.checkThese.toss"),
-          tossAll: t("fridge.checkThese.tossAll", { count: expiredGroups.length }),
-          tossAllTitle: t("fridge.checkThese.tossAllTitle", { count: expiredGroups.length }),
-          tossAllBody: t("fridge.checkThese.tossAllBody"),
-          tossAllConfirm: t("fridge.checkThese.tossAllConfirm"),
+          selectAll: t("fridge.checkThese.selectAll"),
+          clearSelection: t("fridge.checkThese.clearSelection"),
+          stillGoodCount: (count) => t("fridge.checkThese.stillGoodCount", { count }),
+          tossCount: (count) => t("fridge.checkThese.tossCount", { count }),
+          tossConfirmTitle: (count) => t("fridge.checkThese.tossAllTitle", { count }),
+          tossConfirmBody: t("fridge.checkThese.tossAllBody"),
+          tossConfirm: t("fridge.checkThese.tossAllConfirm"),
           cancel: t("common.cancel"),
         }}
         onDismiss={() => setCheckSheetVisible(false)}
-        onItemPress={onCheckItemPress}
-        onStillGood={onCheckStillGood}
-        onToss={onCheckToss}
-        onTossAll={() => {
-          setCheckSheetVisible(false);
-          void removeGroups(expiredGroups, "discarded");
+        onStillGoodMany={(ids) => {
+          void markGroupsStillGood(expiredGroups.filter((group) => ids.includes(group.key)));
+        }}
+        onTossMany={(ids) => {
+          void removeGroups(expiredGroups.filter((group) => ids.includes(group.key)), "discarded");
         }}
       />
 
@@ -467,56 +470,84 @@ function FullShelfSheet({
 
 // Full expired list behind the card's "See all": scrollable rows with the
 // same vouch/toss actions, plus the bulk "toss all" with a confirm step.
+// Multi-select triage for a big expired pile: dense checkbox rows grouped by
+// category, per-section select-all, one batch action bar. Tossing always
+// re-confirms with the exact count.
 function CheckTheseSheet({
   visible,
   sections,
   labels,
   onDismiss,
-  onItemPress,
-  onStillGood,
-  onToss,
-  onTossAll,
+  onStillGoodMany,
+  onTossMany,
 }: {
   visible: boolean;
   sections: { key: string; name: string; items: CheckItem[] }[];
   labels: {
     title: string;
-    stillGood: string;
-    toss: string;
-    tossAll: string;
-    tossAllTitle: string;
-    tossAllBody: string;
-    tossAllConfirm: string;
+    selectAll: string;
+    clearSelection: string;
+    stillGoodCount: (count: number) => string;
+    tossCount: (count: number) => string;
+    tossConfirmTitle: (count: number) => string;
+    tossConfirmBody: string;
+    tossConfirm: string;
     cancel: string;
   };
   onDismiss: () => void;
-  onItemPress: (item: CheckItem) => void;
-  onStillGood: (item: CheckItem) => void;
-  onToss: (item: CheckItem) => void;
-  onTossAll: () => void;
+  onStillGoodMany: (ids: string[]) => void;
+  onTossMany: (ids: string[]) => void;
 }) {
-  const [confirmingTossAll, setConfirmingTossAll] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmingToss, setConfirmingToss] = useState(false);
   const [wasVisible, setWasVisible] = useState(visible);
 
-  // Reset the confirm step whenever the sheet re-opens.
+  // Reset selection and the confirm step whenever the sheet re-opens.
   if (visible !== wasVisible) {
     setWasVisible(visible);
-    setConfirmingTossAll(false);
+    setSelected(new Set());
+    setConfirmingToss(false);
   }
 
-  if (confirmingTossAll) {
+  const toggle = (id: string) => {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSection = (items: CheckItem[]) => {
+    setSelected((current) => {
+      const next = new Set(current);
+      const allSelected = items.every((item) => next.has(item.id));
+      items.forEach((item) => (allSelected ? next.delete(item.id) : next.add(item.id)));
+      return next;
+    });
+  };
+
+  if (confirmingToss) {
     return (
       <BottomSheet visible={visible} onDismiss={onDismiss}>
         <View style={styles.sheetContent}>
           <View style={styles.sheetCopy}>
-            <Text variant="h2">{labels.tossAllTitle}</Text>
+            <Text variant="h2">{labels.tossConfirmTitle(selected.size)}</Text>
             <Text variant="body" muted>
-              {labels.tossAllBody}
+              {labels.tossConfirmBody}
             </Text>
           </View>
           <View style={styles.sheetButtons}>
-            <Button title={labels.tossAllConfirm} variant="accent" onPress={onTossAll} />
-            <Button title={labels.cancel} variant="text" onPress={() => setConfirmingTossAll(false)} />
+            <Button
+              title={labels.tossConfirm}
+              variant="accent"
+              onPress={() => {
+                setConfirmingToss(false);
+                onTossMany(Array.from(selected));
+                setSelected(new Set());
+              }}
+            />
+            <Button title={labels.cancel} variant="text" onPress={() => setConfirmingToss(false)} />
           </View>
         </View>
       </BottomSheet>
@@ -528,35 +559,76 @@ function CheckTheseSheet({
       <View style={styles.sheetContent}>
         <Text variant="h2">{labels.title}</Text>
         <ScrollView style={styles.fullShelfScroll} contentContainerStyle={styles.checkSheetList}>
-          {sections.map((section) => (
-            <View key={section.key} style={styles.checkSection}>
-              <Text variant="micro" muted uppercase>
-                {section.name} · {section.items.length}
-              </Text>
-              {section.items.map((item) => (
-                <CheckTheseRow
-                  key={item.id}
-                  item={item}
-                  labels={labels}
-                  onPress={onItemPress}
-                  onStillGood={onStillGood}
-                  onToss={onToss}
-                />
-              ))}
-            </View>
-          ))}
+          {sections.map((section) => {
+            const allSelected = section.items.every((item) => selected.has(item.id));
+            return (
+              <View key={section.key} style={styles.checkSection}>
+                <View style={styles.checkSectionHead}>
+                  <Text variant="micro" muted uppercase>
+                    {section.name} · {section.items.length}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => toggleSection(section.items)}
+                    hitSlop={spacing.sm}
+                  >
+                    <Text variant="micro" color={colors.primary}>
+                      {allSelected ? labels.clearSelection : labels.selectAll}
+                    </Text>
+                  </Pressable>
+                </View>
+                {section.items.map((item) => {
+                  const isSelected = selected.has(item.id);
+                  return (
+                    <Pressable
+                      key={item.id}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: isSelected }}
+                      accessibilityLabel={`${item.name} · ${item.shortLabel ?? item.label}`}
+                      onPress={() => toggle(item.id)}
+                      style={({ pressed }) => [
+                        styles.checkPickRow,
+                        isSelected && styles.checkPickRowSelected,
+                        pressed && styles.expiryPressed,
+                      ]}
+                    >
+                      <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>
+                        {isSelected ? <CheckMarkIcon /> : null}
+                      </View>
+                      <Text variant="label" color={colors.text} numberOfLines={1} style={styles.checkPickName}>
+                        {item.name}
+                      </Text>
+                      <Text variant="micro" muted numberOfLines={1}>
+                        {item.shortLabel ?? item.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            );
+          })}
         </ScrollView>
-        {/* Deliberately quiet: bulk-discard is a rescue hatch, not the main path. */}
-        <View style={styles.checkSheetFooter}>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => setConfirmingTossAll(true)}
-            style={({ pressed }) => [styles.tossAllLink, pressed && styles.expiryPressed]}
-          >
-            <Text variant="small" color={colors.red}>
-              {labels.tossAll}
-            </Text>
-          </Pressable>
+        {selected.size > 0 ? (
+          <View style={styles.checkActionBar}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                onStillGoodMany(Array.from(selected));
+                setSelected(new Set());
+              }}
+              style={({ pressed }) => [styles.checkActionBtn, styles.checkKeepBtn, pressed && styles.expiryPressed]}
+            >
+              <Text variant="label" color={colors.primary}>{labels.stillGoodCount(selected.size)}</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setConfirmingToss(true)}
+              style={({ pressed }) => [styles.checkActionBtn, styles.checkTossBtn, pressed && styles.expiryPressed]}
+            >
+              <Text variant="label" color={colors.red}>{labels.tossCount(selected.size)}</Text>
+            </Pressable>
+          </View>
+        ) : (
           <Pressable
             accessibilityRole="button"
             onPress={onDismiss}
@@ -566,9 +638,17 @@ function CheckTheseSheet({
               {labels.cancel}
             </Text>
           </Pressable>
-        </View>
+        )}
       </View>
     </BottomSheet>
+  );
+}
+
+function CheckMarkIcon() {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 12 12" fill="none">
+      <Path d="M2.5 6.5 5 9l4.5-6" stroke={colors.surface} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 
@@ -1060,14 +1140,62 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   tossAllLink: {
+    alignSelf: "center",
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  checkSheetFooter: {
+  checkSectionHead: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+  },
+  checkPickRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 44,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radii.md,
+  },
+  checkPickRowSelected: {
+    backgroundColor: colors.sageSoft,
+  },
+  checkPickName: {
+    flex: 1,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.hairlineStrong,
+    backgroundColor: colors.paper,
+    alignItems: "center",
     justifyContent: "center",
-    gap: spacing.xl,
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkActionBar: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  checkActionBtn: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkKeepBtn: {
+    backgroundColor: colors.sageSoft,
+    borderColor: colors.sageBorder,
+  },
+  checkTossBtn: {
+    backgroundColor: colors.paper,
+    borderColor: colors.red,
   },
   checkSheetList: {
     gap: spacing.sm,
