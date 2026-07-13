@@ -66,7 +66,7 @@ export default function FridgeRoute() {
   const expiredGroups = groups.filter((group) => group.urgency === "expired");
   const activeGroups = groups.filter((group) => group.urgency !== "expired");
   const [checkSheetVisible, setCheckSheetVisible] = useState(false);
-  const checkItems: CheckItem[] = expiredGroups.map((group) => {
+  const toCheckItem = (group: InventoryGroup): CheckItem => {
     const expiry = earliestExpiry(group.lots);
     return {
       id: group.key,
@@ -78,7 +78,16 @@ export default function FridgeRoute() {
         ? `${t("fridge.meta.expired")} · ${formatExpiryDate(expiry)}`
         : `${t("fridge.checkThese.pastBest")} · ${t("fridge.checkThese.noExpiry")}`,
     };
-  });
+  };
+  const checkItems: CheckItem[] = expiredGroups.map(toCheckItem);
+  // The see-all sheet groups the pile by category so 70+ rows stay scannable.
+  const checkSections = CATEGORY_ORDER
+    .map((category) => ({
+      key: category as string,
+      name: t(`scan.categories.${category}` as never) as string,
+      items: expiredGroups.filter((group) => group.category === category).map(toCheckItem),
+    }))
+    .filter((section) => section.items.length > 0);
   const onCheckItemPress = (item: CheckItem) => {
     setCheckSheetVisible(false);
     setActionGroup(expiredGroups.find((group) => group.key === item.id) ?? null);
@@ -353,7 +362,7 @@ export default function FridgeRoute() {
 
       <CheckTheseSheet
         visible={checkSheetVisible && expiredGroups.length > 0}
-        items={checkItems}
+        sections={checkSections}
         labels={{
           title: t("fridge.checkThese.title"),
           stillGood: t("fridge.checkThese.stillGood"),
@@ -460,7 +469,7 @@ function FullShelfSheet({
 // same vouch/toss actions, plus the bulk "toss all" with a confirm step.
 function CheckTheseSheet({
   visible,
-  items,
+  sections,
   labels,
   onDismiss,
   onItemPress,
@@ -469,7 +478,7 @@ function CheckTheseSheet({
   onTossAll,
 }: {
   visible: boolean;
-  items: CheckItem[];
+  sections: { key: string; name: string; items: CheckItem[] }[];
   labels: {
     title: string;
     stillGood: string;
@@ -519,18 +528,34 @@ function CheckTheseSheet({
       <View style={styles.sheetContent}>
         <Text variant="h2">{labels.title}</Text>
         <ScrollView style={styles.fullShelfScroll} contentContainerStyle={styles.checkSheetList}>
-          {items.map((item) => (
-            <CheckTheseRow
-              key={item.id}
-              item={item}
-              labels={labels}
-              onPress={onItemPress}
-              onStillGood={onStillGood}
-              onToss={onToss}
-            />
+          {sections.map((section) => (
+            <View key={section.key} style={styles.checkSection}>
+              <Text variant="micro" muted uppercase>
+                {section.name} · {section.items.length}
+              </Text>
+              {section.items.map((item) => (
+                <CheckTheseRow
+                  key={item.id}
+                  item={item}
+                  labels={labels}
+                  onPress={onItemPress}
+                  onStillGood={onStillGood}
+                  onToss={onToss}
+                />
+              ))}
+            </View>
           ))}
         </ScrollView>
-        <Button title={labels.tossAll} variant="accent" onPress={() => setConfirmingTossAll(true)} />
+        {/* Deliberately quiet: bulk-discard is a rescue hatch, not the main path. */}
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setConfirmingTossAll(true)}
+          style={({ pressed }) => [styles.tossAllLink, pressed && styles.expiryPressed]}
+        >
+          <Text variant="small" color={colors.red}>
+            {labels.tossAll}
+          </Text>
+        </Pressable>
       </View>
     </BottomSheet>
   );
@@ -1018,6 +1043,15 @@ const styles = StyleSheet.create({
   },
   fullShelfCard: {
     width: "31.5%",
+  },
+  checkSection: {
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  tossAllLink: {
+    alignSelf: "center",
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   checkSheetList: {
     gap: spacing.sm,
