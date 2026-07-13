@@ -241,6 +241,11 @@ export const sr = {
       stillGood: "Jos je dobro",
       toss: "Baci",
       pastBest: "Nije vise najsvezije",
+      seeAll: "Prikazi sve ({{count}})",
+      tossAll: "Baci sve ({{count}})",
+      tossAllTitle: "Baciti {{count}} stavki?",
+      tossAllBody: "Bice uklonjene iz frizidera i uracunate u otpad.",
+      tossAllConfirm: "Baci sve",
     },
     bestBy: {
       today: "Najbolje danas",

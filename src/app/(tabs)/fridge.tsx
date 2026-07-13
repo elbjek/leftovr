@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, CheckTheseRow, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -45,6 +45,7 @@ export default function FridgeRoute() {
     updateFirstLot,
     markGroupStillGood,
     removeGroup,
+    removeGroups,
     refresh,
   } = useInventory(activeHousehold?.id);
   const prototypeDay = profile?.prototype_day ?? 1;
@@ -64,6 +65,27 @@ export default function FridgeRoute() {
   // they live in the "Check these" block below eat-first.
   const expiredGroups = groups.filter((group) => group.urgency === "expired");
   const activeGroups = groups.filter((group) => group.urgency !== "expired");
+  const [checkSheetVisible, setCheckSheetVisible] = useState(false);
+  const checkItems: CheckItem[] = expiredGroups.map((group) => ({
+    id: group.key,
+    name: group.name,
+    category: toUiCategory(group.category),
+    label: hasExplicitExpiredLot(group.lots)
+      ? t("fridge.meta.expired")
+      : t("fridge.checkThese.pastBest"),
+  }));
+  const onCheckItemPress = (item: CheckItem) => {
+    setCheckSheetVisible(false);
+    setActionGroup(expiredGroups.find((group) => group.key === item.id) ?? null);
+  };
+  const onCheckStillGood = (item: CheckItem) => {
+    const group = expiredGroups.find((candidate) => candidate.key === item.id);
+    if (group) void markGroupStillGood(group);
+  };
+  const onCheckToss = (item: CheckItem) => {
+    const group = expiredGroups.find((candidate) => candidate.key === item.id);
+    if (group) void removeGroup(group, "discarded");
+  };
   const filteredGroups = activeGroups.filter(
     (group) =>
       (categoryFilter === "all" || group.category === categoryFilter) &&
@@ -205,29 +227,18 @@ export default function FridgeRoute() {
 
       {expiredGroups.length > 0 ? (
         <CheckTheseShelf
-          items={expiredGroups.map((group) => ({
-            id: group.key,
-            name: group.name,
-            category: toUiCategory(group.category),
-            label: hasExplicitExpiredLot(group.lots)
-              ? t("fridge.meta.expired")
-              : t("fridge.checkThese.pastBest"),
-          }))}
+          items={checkItems}
           labels={{
             kicker: t("fridge.checkThese.title"),
             subtitle: t("fridge.checkThese.subtitle"),
             stillGood: t("fridge.checkThese.stillGood"),
             toss: t("fridge.checkThese.toss"),
+            seeAll: t("fridge.checkThese.seeAll", { count: expiredGroups.length }),
           }}
-          onItemPress={(item) => setActionGroup(expiredGroups.find((group) => group.key === item.id) ?? null)}
-          onStillGood={(item) => {
-            const group = expiredGroups.find((candidate) => candidate.key === item.id);
-            if (group) void markGroupStillGood(group);
-          }}
-          onToss={(item) => {
-            const group = expiredGroups.find((candidate) => candidate.key === item.id);
-            if (group) void removeGroup(group, "discarded");
-          }}
+          onItemPress={onCheckItemPress}
+          onStillGood={onCheckStillGood}
+          onToss={onCheckToss}
+          onSeeAll={() => setCheckSheetVisible(true)}
         />
       ) : null}
 
@@ -335,6 +346,29 @@ export default function FridgeRoute() {
         }}
       />
 
+      <CheckTheseSheet
+        visible={checkSheetVisible && expiredGroups.length > 0}
+        items={checkItems}
+        labels={{
+          title: t("fridge.checkThese.title"),
+          stillGood: t("fridge.checkThese.stillGood"),
+          toss: t("fridge.checkThese.toss"),
+          tossAll: t("fridge.checkThese.tossAll", { count: expiredGroups.length }),
+          tossAllTitle: t("fridge.checkThese.tossAllTitle", { count: expiredGroups.length }),
+          tossAllBody: t("fridge.checkThese.tossAllBody"),
+          tossAllConfirm: t("fridge.checkThese.tossAllConfirm"),
+          cancel: t("common.cancel"),
+        }}
+        onDismiss={() => setCheckSheetVisible(false)}
+        onItemPress={onCheckItemPress}
+        onStillGood={onCheckStillGood}
+        onToss={onCheckToss}
+        onTossAll={() => {
+          setCheckSheetVisible(false);
+          void removeGroups(expiredGroups, "discarded");
+        }}
+      />
+
       </Screen>
   );
 }
@@ -412,6 +446,86 @@ function FullShelfSheet({
             />
           ))}
         </ScrollView>
+      </View>
+    </BottomSheet>
+  );
+}
+
+// Full expired list behind the card's "See all": scrollable rows with the
+// same vouch/toss actions, plus the bulk "toss all" with a confirm step.
+function CheckTheseSheet({
+  visible,
+  items,
+  labels,
+  onDismiss,
+  onItemPress,
+  onStillGood,
+  onToss,
+  onTossAll,
+}: {
+  visible: boolean;
+  items: CheckItem[];
+  labels: {
+    title: string;
+    stillGood: string;
+    toss: string;
+    tossAll: string;
+    tossAllTitle: string;
+    tossAllBody: string;
+    tossAllConfirm: string;
+    cancel: string;
+  };
+  onDismiss: () => void;
+  onItemPress: (item: CheckItem) => void;
+  onStillGood: (item: CheckItem) => void;
+  onToss: (item: CheckItem) => void;
+  onTossAll: () => void;
+}) {
+  const [confirmingTossAll, setConfirmingTossAll] = useState(false);
+  const [wasVisible, setWasVisible] = useState(visible);
+
+  // Reset the confirm step whenever the sheet re-opens.
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
+    setConfirmingTossAll(false);
+  }
+
+  if (confirmingTossAll) {
+    return (
+      <BottomSheet visible={visible} onDismiss={onDismiss}>
+        <View style={styles.sheetContent}>
+          <View style={styles.sheetCopy}>
+            <Text variant="h2">{labels.tossAllTitle}</Text>
+            <Text variant="body" muted>
+              {labels.tossAllBody}
+            </Text>
+          </View>
+          <View style={styles.sheetButtons}>
+            <Button title={labels.tossAllConfirm} variant="accent" onPress={onTossAll} />
+            <Button title={labels.cancel} variant="text" onPress={() => setConfirmingTossAll(false)} />
+          </View>
+        </View>
+      </BottomSheet>
+    );
+  }
+
+  return (
+    <BottomSheet visible={visible} onDismiss={onDismiss}>
+      <View style={styles.sheetContent}>
+        <Text variant="h2">{labels.title}</Text>
+        <ScrollView style={styles.fullShelfScroll} contentContainerStyle={styles.checkSheetList}>
+          {items.map((item) => (
+            <CheckTheseRow
+              key={item.id}
+              item={item}
+              labels={labels}
+              onPress={onItemPress}
+              onStillGood={onStillGood}
+              onToss={onToss}
+            />
+          ))}
+        </ScrollView>
+        <Button title={labels.tossAll} variant="accent" onPress={() => setConfirmingTossAll(true)} />
       </View>
     </BottomSheet>
   );
@@ -887,6 +1001,10 @@ const styles = StyleSheet.create({
   },
   fullShelfCard: {
     width: "31.5%",
+  },
+  checkSheetList: {
+    gap: spacing.sm,
+    paddingBottom: spacing.lg,
   },
   netRow: {
     flexDirection: "row",

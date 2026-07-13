@@ -97,6 +97,13 @@ export function useInventory(householdId?: string | null) {
         await removeInventoryGroup(group.lots, reason, householdId);
         await reloadAndBroadcast();
       },
+      // Bulk variant ("toss all" in Check these): one removal call and one
+      // reload for the whole pile instead of one per group.
+      removeGroups: async (groups: InventoryGroup[], reason: "used" | "discarded") => {
+        if (!householdId || groups.length === 0) return;
+        await removeInventoryGroup(groups.flatMap((group) => group.lots), reason, householdId);
+        await reloadAndBroadcast();
+      },
     }),
     [load, reloadAndBroadcast, householdId],
   );

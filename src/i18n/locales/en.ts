@@ -241,6 +241,11 @@ export const en = {
       stillGood: "Still good",
       toss: "Toss",
       pastBest: "Past its best",
+      seeAll: "See all ({{count}})",
+      tossAll: "Toss all ({{count}})",
+      tossAllTitle: "Toss {{count}} items?",
+      tossAllBody: "They will be removed from your fridge and counted as waste.",
+      tossAllConfirm: "Toss them all",
     },
     bestBy: {
       today: "Best today",
