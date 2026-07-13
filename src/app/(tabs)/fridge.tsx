@@ -378,6 +378,7 @@ export default function FridgeRoute() {
           cancel: t("common.cancel"),
         }}
         onDismiss={() => setCheckSheetVisible(false)}
+        onItemPress={onCheckItemPress}
         onStillGoodMany={(ids) => {
           void markGroupsStillGood(expiredGroups.filter((group) => ids.includes(group.key)));
         }}
@@ -478,6 +479,7 @@ function CheckTheseSheet({
   sections,
   labels,
   onDismiss,
+  onItemPress,
   onStillGoodMany,
   onTossMany,
 }: {
@@ -495,6 +497,7 @@ function CheckTheseSheet({
     cancel: string;
   };
   onDismiss: () => void;
+  onItemPress: (item: CheckItem) => void;
   onStillGoodMany: (ids: string[]) => void;
   onTossMany: (ids: string[]) => void;
 }) {
@@ -580,28 +583,38 @@ function CheckTheseSheet({
                 {section.items.map((item) => {
                   const isSelected = selected.has(item.id);
                   return (
-                    <Pressable
+                    <View
                       key={item.id}
-                      accessibilityRole="checkbox"
-                      accessibilityState={{ checked: isSelected }}
-                      accessibilityLabel={`${item.name} · ${item.shortLabel ?? item.label}`}
-                      onPress={() => toggle(item.id)}
-                      style={({ pressed }) => [
-                        styles.checkPickRow,
-                        isSelected && styles.checkPickRowSelected,
-                        pressed && styles.expiryPressed,
-                      ]}
+                      style={[styles.checkPickRow, isSelected && styles.checkPickRowSelected]}
                     >
-                      <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>
+                      <Pressable
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: isSelected }}
+                        accessibilityLabel={`${item.name} · ${item.shortLabel ?? item.label}`}
+                        onPress={() => toggle(item.id)}
+                        hitSlop={spacing.sm}
+                        style={({ pressed }) => [
+                          styles.checkbox,
+                          isSelected && styles.checkboxChecked,
+                          pressed && styles.expiryPressed,
+                        ]}
+                      >
                         {isSelected ? <CheckMarkIcon /> : null}
-                      </View>
-                      <Text variant="label" color={colors.text} numberOfLines={1} style={styles.checkPickName}>
-                        {item.name}
-                      </Text>
-                      <Text variant="micro" muted numberOfLines={1}>
-                        {item.shortLabel ?? item.label}
-                      </Text>
-                    </Pressable>
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={item.name}
+                        onPress={() => onItemPress(item)}
+                        style={({ pressed }) => [styles.checkPickBody, pressed && styles.expiryPressed]}
+                      >
+                        <Text variant="label" color={colors.text} numberOfLines={1} style={styles.checkPickName}>
+                          {item.name}
+                        </Text>
+                        <Text variant="micro" muted numberOfLines={1}>
+                          {item.shortLabel ?? item.label}
+                        </Text>
+                      </Pressable>
+                    </View>
                   );
                 })}
               </View>
@@ -1141,7 +1154,10 @@ const styles = StyleSheet.create({
   },
   tossAllLink: {
     alignSelf: "center",
-    paddingVertical: spacing.sm,
+    justifyContent: "center",
+    // Matches the 48px select-actions bar so the sheet height stays constant
+    // when the footer swaps between Cancel and the still-good/toss buttons.
+    minHeight: 48,
     paddingHorizontal: spacing.md,
   },
   checkSectionHead: {
@@ -1162,6 +1178,13 @@ const styles = StyleSheet.create({
   },
   checkPickName: {
     flex: 1,
+  },
+  checkPickBody: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 44,
   },
   checkbox: {
     width: 20,
