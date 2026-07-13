@@ -251,6 +251,7 @@ export const sr = {
       tossAllTitle: "Baciti {{count}} stavki?",
       tossAllBody: "Bice uklonjene iz frizidera i uracunate u otpad.",
       tossAllConfirm: "Baci ih",
+      edit: "Izmeni {{name}}",
     },
     bestBy: {
       today: "Najbolje danas",

@@ -376,6 +376,7 @@ export default function FridgeRoute() {
           tossConfirmBody: t("fridge.checkThese.tossAllBody"),
           tossConfirm: t("fridge.checkThese.tossAllConfirm"),
           cancel: t("common.cancel"),
+          edit: (name) => t("fridge.checkThese.edit", { name }),
         }}
         onDismiss={() => setCheckSheetVisible(false)}
         onItemPress={onCheckItemPress}
@@ -495,6 +496,7 @@ function CheckTheseSheet({
     tossConfirmBody: string;
     tossConfirm: string;
     cancel: string;
+    edit: (name: string) => string;
   };
   onDismiss: () => void;
   onItemPress: (item: CheckItem) => void;
@@ -583,38 +585,37 @@ function CheckTheseSheet({
                 {section.items.map((item) => {
                   const isSelected = selected.has(item.id);
                   return (
-                    <View
+                    <Pressable
                       key={item.id}
-                      style={[styles.checkPickRow, isSelected && styles.checkPickRowSelected]}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: isSelected }}
+                      accessibilityLabel={`${item.name} · ${item.shortLabel ?? item.label}`}
+                      onPress={() => toggle(item.id)}
+                      style={({ pressed }) => [
+                        styles.checkPickRow,
+                        isSelected && styles.checkPickRowSelected,
+                        pressed && styles.expiryPressed,
+                      ]}
                     >
-                      <Pressable
-                        accessibilityRole="checkbox"
-                        accessibilityState={{ checked: isSelected }}
-                        accessibilityLabel={`${item.name} · ${item.shortLabel ?? item.label}`}
-                        onPress={() => toggle(item.id)}
-                        hitSlop={spacing.sm}
-                        style={({ pressed }) => [
-                          styles.checkbox,
-                          isSelected && styles.checkboxChecked,
-                          pressed && styles.expiryPressed,
-                        ]}
-                      >
+                      <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>
                         {isSelected ? <CheckMarkIcon /> : null}
-                      </Pressable>
+                      </View>
+                      <Text variant="label" color={colors.text} numberOfLines={1} style={styles.checkPickName}>
+                        {item.name}
+                      </Text>
+                      <Text variant="micro" muted numberOfLines={1}>
+                        {item.shortLabel ?? item.label}
+                      </Text>
                       <Pressable
                         accessibilityRole="button"
-                        accessibilityLabel={item.name}
+                        accessibilityLabel={labels.edit(item.name)}
                         onPress={() => onItemPress(item)}
-                        style={({ pressed }) => [styles.checkPickBody, pressed && styles.expiryPressed]}
+                        hitSlop={spacing.sm}
+                        style={({ pressed }) => [styles.checkEditBtn, pressed && styles.expiryPressed]}
                       >
-                        <Text variant="label" color={colors.text} numberOfLines={1} style={styles.checkPickName}>
-                          {item.name}
-                        </Text>
-                        <Text variant="micro" muted numberOfLines={1}>
-                          {item.shortLabel ?? item.label}
-                        </Text>
+                        <PencilIcon />
                       </Pressable>
-                    </View>
+                    </Pressable>
                   );
                 })}
               </View>
@@ -661,6 +662,20 @@ function CheckMarkIcon() {
   return (
     <Svg width={12} height={12} viewBox="0 0 12 12" fill="none">
       <Path d="M2.5 6.5 5 9l4.5-6" stroke={colors.surface} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function PencilIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+      <Path
+        d="M9.8 3.2 12.8 6.2M3 13l.6-3 7.6-7.6a1.5 1.5 0 0 1 2.1 0l.3.3a1.5 1.5 0 0 1 0 2.1L6 12.4 3 13Z"
+        stroke={colors.muted}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }
@@ -1179,12 +1194,12 @@ const styles = StyleSheet.create({
   checkPickName: {
     flex: 1,
   },
-  checkPickBody: {
-    flex: 1,
-    flexDirection: "row",
+  checkEditBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.pill,
     alignItems: "center",
-    gap: spacing.sm,
-    minHeight: 44,
+    justifyContent: "center",
   },
   checkbox: {
     width: 20,
