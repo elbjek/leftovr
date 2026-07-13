@@ -40,3 +40,6 @@ GEMINI.md
 .windsurfrules
 .github/copilot-instructions.md
 .mcp.json
+
+appstore-screenshots/
+.playwright-mcp/
