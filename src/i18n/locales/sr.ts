@@ -660,6 +660,10 @@ export const sr = {
     subscriptionTitle: "Pretplata",
     subscriptionBody: "Tvoj trenutni plan.",
     upgrade: "Pređi na Premium",
+    support: {
+      title: "Podrska",
+      contact: "Kontaktiraj podrsku",
+    },
     legal: {
       title: "Pravno",
       privacy: "Politika privatnosti",
