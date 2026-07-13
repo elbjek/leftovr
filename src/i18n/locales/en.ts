@@ -251,6 +251,7 @@ export const en = {
       tossAllTitle: "Toss {{count}} items?",
       tossAllBody: "They will be removed from your fridge and counted as waste.",
       tossAllConfirm: "Toss them",
+      edit: "Edit {{name}}",
     },
     bestBy: {
       today: "Best today",
