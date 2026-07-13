@@ -92,6 +92,14 @@ export function useInventory(householdId?: string | null) {
         await setInventoryLotsExpiry(group.lots.map((lot) => lot.id), stillGoodExpiryDate());
         await reloadAndBroadcast();
       },
+      // Bulk variant (batch "still good" in Check these): one expiry write
+      // and one reload for the whole selection.
+      markGroupsStillGood: async (groups: InventoryGroup[]) => {
+        if (groups.length === 0) return;
+        const lotIds = groups.flatMap((group) => group.lots.map((lot) => lot.id));
+        await setInventoryLotsExpiry(lotIds, stillGoodExpiryDate());
+        await reloadAndBroadcast();
+      },
       removeGroup: async (group: InventoryGroup, reason: "used" | "discarded") => {
         if (!householdId) return;
         await removeInventoryGroup(group.lots, reason, householdId);

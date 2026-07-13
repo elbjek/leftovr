@@ -11,6 +11,8 @@ export type CheckItem = {
   category?: string;
   /** "Expired" when the user-entered date passed, else "Past its best". */
   label: string;
+  /** Compact date-only variant for dense lists ("5 Jul 2026" / "No date"). */
+  shortLabel?: string;
 };
 
 // The card previews this many rows; the rest live in the "see all" sheet.
