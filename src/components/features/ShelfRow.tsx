@@ -4,7 +4,7 @@ import { colors, radii, spacing } from "../../theme";
 import { FoodCard } from "./FoodCard";
 import { Text } from "../primitives";
 
-export type ShelfItem = {
+type ShelfItem = {
   id: string;
   name: string;
   category?: string;

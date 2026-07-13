@@ -37,7 +37,7 @@ export type RecipeRow = {
 // Trimmed snapshot shape: full InventoryLot rows duplicated household data
 // outside the inventory lifecycle and grew unbounded (one copy per session).
 // Urgency is resolved live at snapshot time (the stored column was dropped).
-export type FridgeSnapshotItem = Pick<
+type FridgeSnapshotItem = Pick<
   InventoryLot,
   "normalized_name" | "category" | "quantity" | "unit"
 > & { urgency: UrgencyBand };
@@ -160,7 +160,7 @@ export async function listHouseholdRecipes(householdId: string) {
   return data ?? [];
 }
 
-export type CookedEventRow = { recipe_id: string; cooked_by: string; created_at: string };
+type CookedEventRow = { recipe_id: string; cooked_by: string; created_at: string };
 
 // Who cooked what, household-wide, newest first. Single source for cooked
 // counts, the cooked tab, and the "cooked by" badges (was 3 separate queries).

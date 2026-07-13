@@ -1,4 +1,4 @@
-export type MockIngredient = {
+type MockIngredient = {
   name: string;
   amount: string;
   required: boolean;

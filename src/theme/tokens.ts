@@ -44,7 +44,7 @@ export const fonts = {
   fallback: "System",
 } as const;
 
-export const fontWeights = {
+const fontWeights = {
   regular: "400",
   medium: "500",
   semibold: "600",
@@ -176,18 +176,5 @@ export const categoryColors = {
   other: { background: colors.surface3, mark: colors.primary },
 } as const;
 
-export const tokens = {
-  colors,
-  fonts,
-  fontWeights,
-  typography,
-  spacing,
-  radii,
-  shadows,
-  urgencyColors,
-  categoryColors,
-} as const;
-
-export type LeftovrColor = keyof typeof colors;
 export type Urgency = keyof typeof urgencyColors;
 export type CategoryTone = keyof typeof categoryColors;
