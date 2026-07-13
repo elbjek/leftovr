@@ -124,7 +124,7 @@ export function CheckTheseRow({
         onPress={() => onStillGood(item)}
         style={({ pressed }) => [styles.actionPill, styles.stillGoodPill, pressed && styles.pressed]}
       >
-        <Text variant="label" color={colors.primary}>{labels.stillGood}</Text>
+        <ThumbsUpIcon />
       </Pressable>
       <Pressable
         accessibilityRole="button"
@@ -132,9 +132,37 @@ export function CheckTheseRow({
         onPress={() => onToss(item)}
         style={({ pressed }) => [styles.actionPill, styles.tossPill, pressed && styles.pressed]}
       >
-        <Text variant="label" color={colors.red}>{labels.toss}</Text>
+        <BinIcon />
       </Pressable>
     </View>
+  );
+}
+
+function ThumbsUpIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M7 10.5v9M7 10.5H4.5A1 1 0 0 0 3.5 11.5v7a1 1 0 0 0 1 1H7M7 10.5l3.5-6.7a1.8 1.8 0 0 1 3.4 0.8v3.9h4.6a2 2 0 0 1 2 2.4l-1.2 6a2 2 0 0 1-2 1.6H7"
+        stroke={colors.primary}
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function BinIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
+      <Path
+        d="M3.5 5H14.5M7 2.5H11M7.5 8V12.5M10.5 8V12.5M4.5 5L5.2 14.2A1.3 1.3 0 0 0 6.5 15.4H11.5A1.3 1.3 0 0 0 12.8 14.2L13.5 5"
+        stroke={colors.red}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
   );
 }
 
