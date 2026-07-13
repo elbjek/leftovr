@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AccessibilityInfo,
   ActivityIndicator,
@@ -106,7 +106,7 @@ function CheckDot() {
 }
 
 function StepRow({ label, status }: { label: string; status: RowStatus }) {
-  const opacity = useRef(new Animated.Value(status === "pending" ? 0.4 : 1)).current;
+  const [opacity] = useState(() => new Animated.Value(status === "pending" ? 0.4 : 1));
 
   useEffect(() => {
     Animated.timing(opacity, {

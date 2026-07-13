@@ -195,7 +195,7 @@ export async function removeInventoryGroup(
   }
 }
 
-export async function markInventoryPartialState(itemId: string, partialState: PartialState) {
+async function markInventoryPartialState(itemId: string, partialState: PartialState) {
   const supabase = getSupabaseClient();
 
   const { error } = await supabase
@@ -251,24 +251,6 @@ async function computeDepletionOps(
   return planDepletion(lots, { amount, unit }, { gramsPerItem: getGramsPerItem(normalizedName) });
 }
 
-export async function depleteItemQuantity(
-  householdId: string,
-  normalizedName: string,
-  amount = 1,
-  unit = "item",
-) {
-  const supabase = getSupabaseClient();
-  const ops = await computeDepletionOps(householdId, normalizedName, amount, unit);
-  if (ops.length === 0) return;
-
-  const { error } = await supabase.rpc("apply_cook", {
-    p_household_id: householdId,
-    p_ops: ops,
-  });
-
-  if (error) throw error;
-}
-
 export type UpdateInventoryItemInput = {
   name?: string;
   category?: InventoryCategory;
@@ -308,16 +290,6 @@ export async function updateInventoryItem(itemId: string, input: UpdateInventory
   if (Object.keys(patch).length === 0) return;
 
   const { error } = await supabase.from("inventory_items").update(patch).eq("id", itemId);
-  if (error) throw error;
-}
-
-export async function updateInventoryNetAmount(itemId: string, netAmount: number) {
-  if (!(netAmount > 0)) throw new Error("net amount must be positive");
-  const supabase = getSupabaseClient();
-  const { error } = await supabase
-    .from("inventory_items")
-    .update({ net_amount: netAmount })
-    .eq("id", itemId);
   if (error) throw error;
 }
 

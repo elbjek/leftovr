@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { BottomSheet, Button, IconButton, SegmentedControl, Text } from "../primitives";
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, radii, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
 import { BasePreference } from "@/services";
 

@@ -59,8 +59,9 @@ describe("urgencyFromExpiry", () => {
     expect(urgencyFromExpiry("2026-06-20", now)).toBe("safe");
   });
 
-  it("treats past dates as urgent", () => {
-    expect(urgencyFromExpiry("2026-06-01", now)).toBe("urgent");
+  it("keeps items urgent through the 3-day grace window, then expired", () => {
+    expect(urgencyFromExpiry("2026-06-08", now)).toBe("urgent");
+    expect(urgencyFromExpiry("2026-06-01", now)).toBe("expired");
   });
 });
 
@@ -79,9 +80,11 @@ describe("resolveUrgency", () => {
   });
 
   it("ages from added_at when there is no expiry", () => {
-    // Spinach shelf life [2,4]; added 5 days ago → past the urgent threshold.
-    const added = new Date("2026-06-05T12:00:00Z").toISOString();
-    expect(resolveUrgency(lot({ added_at: added }), now)).toBe("urgent");
+    // Spinach shelf life [2,4]: 3 days old → urgent, 5 days old → expired.
+    const urgentAdded = new Date("2026-06-07T12:00:00Z").toISOString();
+    expect(resolveUrgency(lot({ added_at: urgentAdded }), now)).toBe("urgent");
+    const expiredAdded = new Date("2026-06-05T12:00:00Z").toISOString();
+    expect(resolveUrgency(lot({ added_at: expiredAdded }), now)).toBe("expired");
   });
 
   it("is safe for a freshly added item with no expiry", () => {

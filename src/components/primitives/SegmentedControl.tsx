@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { colors, radii, spacing } from "../../theme";
 import { Text } from "./Text";
 
-export type SegmentOption<T extends string> = {
+type SegmentOption<T extends string> = {
   label: string;
   value: T;
 };

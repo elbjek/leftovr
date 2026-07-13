@@ -6,10 +6,6 @@ import { canonicalFoodName, InventoryCategory, InventoryLot, resolveUrgency } fr
 export type BasePreference =
   | "protein" | "vegetables" | "pasta" | "rice" | "potatoes" | "bread" | "cheese";
 
-export const BASE_PREFERENCES: BasePreference[] = [
-  "protein", "vegetables", "pasta", "rice", "potatoes", "bread", "cheese",
-];
-
 // Maps coarse inventory (category + item name) onto cook bases. Name keywords are
 // the only way to split pasta/rice/potatoes — they all land in the `pantry` category.
 // ponytail: keyword heuristic, known ceiling; extend the lists as misses show up.
@@ -49,7 +45,7 @@ export type RecipeMatch = MockRecipe & {
   coverage: number;
 };
 
-export type MatchedItem = {
+type MatchedItem = {
   ingredientName: string;
   inventoryLot: InventoryLot | null;
   inFridge: boolean;

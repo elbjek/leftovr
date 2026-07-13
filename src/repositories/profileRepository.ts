@@ -100,38 +100,6 @@ export async function completeHouseholdFirstFill(householdId: string) {
   }
 }
 
-export async function resetCurrentUserOnboardingForDev() {
-  const supabase = getSupabaseClient();
-  const profile = await getCurrentProfile();
-
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({
-      cooking_for_seed: null,
-      shopping_style: null,
-      primary_goal: null,
-      avoidances: [],
-      onboarding_completed_at: null,
-    })
-    .eq("id", profile.id);
-
-  if (profileError) {
-    throw profileError;
-  }
-
-  if (!profile.active_household_id) {
-    return;
-  }
-
-  const { error: householdError } = await supabase
-    .from("households")
-    .update({ first_fill_completed_at: null })
-    .eq("id", profile.active_household_id);
-
-  if (householdError) {
-    throw householdError;
-  }
-}
 
 export async function updateProfileField(
   field: "display_name" | "primary_goal" | "shopping_style",

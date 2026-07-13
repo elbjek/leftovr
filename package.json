@@ -19,7 +19,6 @@
   "dependencies": {
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
-    "@expo/ui": "~56.0.18",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-native-google-signin/google-signin": "^16.1.2",
@@ -33,7 +32,6 @@
     "expo-clipboard": "~56.0.4",
     "expo-constants": "~56.0.16",
     "expo-dev-client": "~56.0.20",
-    "expo-device": "~56.0.4",
     "expo-document-picker": "~56.0.4",
     "expo-file-system": "~56.0.8",
     "expo-font": "~56.0.5",
@@ -47,7 +45,6 @@
     "expo-splash-screen": "~56.0.10",
     "expo-status-bar": "~56.0.4",
     "expo-system-ui": "~56.0.5",
-    "expo-web-browser": "~56.0.5",
     "i18next": "^25.7.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -68,7 +65,6 @@
     "@types/react": "~19.2.2",
     "eslint": "^9.39.4",
     "eslint-config-expo": "~56.0.4",
-    "sharp": "^0.35.1",
     "typescript": "~6.0.3",
     "vitest": "^3.2.6"
   }

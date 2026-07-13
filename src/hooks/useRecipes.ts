@@ -21,7 +21,7 @@ import { ingredientSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 
-export type CookedSummary = { count: number; cookedBy: string[] };
+type CookedSummary = { count: number; cookedBy: string[] };
 
 type RecipesState = {
   loading: boolean;

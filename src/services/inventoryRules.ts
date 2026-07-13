@@ -15,15 +15,12 @@ export const INVENTORY_CATEGORIES = [
   "other",
 ] as const;
 
-export const PARTIAL_STATES = ["full", "some_used", "low"] as const;
-export const URGENCY_BANDS = ["safe", "use_soon", "urgent", "expired"] as const;
-
 export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number];
-export type PartialState = (typeof PARTIAL_STATES)[number];
-export type UrgencyBand = (typeof URGENCY_BANDS)[number];
+export type PartialState = "full" | "some_used" | "low";
+export type UrgencyBand = "safe" | "use_soon" | "urgent" | "expired";
 export type InventorySource = "receipt" | "barcode" | "manual" | "moved_from_household";
 
-export type CatalogFood = {
+type CatalogFood = {
   name: string;
   category: InventoryCategory;
   shelfLifeDays: [number, number];
@@ -91,7 +88,7 @@ const categoryDefaults: Record<InventoryCategory, [number, number]> = {
   other: [5, 14],
 };
 
-export const demoFoodCatalog: CatalogFood[] = [
+const demoFoodCatalog: CatalogFood[] = [
   { name: "Eggs", category: "dairy_eggs", shelfLifeDays: [14, 21], unit: "egg" },
   { name: "Greek yogurt", category: "dairy_eggs", shelfLifeDays: [5, 8], unit: "tub", netAmount: 500, netUnit: "g" },
   { name: "Milk", category: "dairy_eggs", shelfLifeDays: [4, 7], unit: "carton", netAmount: 1000, netUnit: "ml" },
@@ -241,7 +238,7 @@ export function getShelfLifeRange(name: string, category: InventoryCategory) {
   return `${range[0]}-${range[1]} days`;
 }
 
-export function computeUrgency(input: {
+function computeUrgency(input: {
   name: string;
   category: InventoryCategory;
   addedAt: string | Date;
@@ -371,13 +368,13 @@ export function isMetricAmountRunningLow(
   return group.netAmount <= fullAmount * 0.25;
 }
 
-export function formatUrgency(urgency: UrgencyBand) {
+function formatUrgency(urgency: UrgencyBand) {
   const key =
     urgency === "expired" ? "expired" : urgency === "urgent" ? "urgent" : urgency === "use_soon" ? "useSoon" : "safe";
   return i18n.t(`fridge.meta.${key}`);
 }
 
-export function formatPartialState(state: PartialState) {
+function formatPartialState(state: PartialState) {
   const key = state === "some_used" ? "someUsed" : state === "low" ? "low" : "full";
   return i18n.t(`fridge.meta.${key}`);
 }

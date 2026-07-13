@@ -291,7 +291,7 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
   }
 }
 
-export function buildRecipeGenerationRequestHash(input: RecipeGenerationInput) {
+function buildRecipeGenerationRequestHash(input: RecipeGenerationInput) {
   const stable = JSON.stringify({
     householdId: input.householdId ?? null,
     inventory: input.inventory

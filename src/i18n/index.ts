@@ -6,7 +6,7 @@ import { initReactI18next } from "react-i18next";
 import { en } from "./locales/en";
 import { sr } from "./locales/sr";
 
-export const resources = {
+const resources = {
   en: { translation: en },
   sr: { translation: sr },
 } as const;
