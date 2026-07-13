@@ -547,15 +547,26 @@ function CheckTheseSheet({
           ))}
         </ScrollView>
         {/* Deliberately quiet: bulk-discard is a rescue hatch, not the main path. */}
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => setConfirmingTossAll(true)}
-          style={({ pressed }) => [styles.tossAllLink, pressed && styles.expiryPressed]}
-        >
-          <Text variant="small" color={colors.red}>
-            {labels.tossAll}
-          </Text>
-        </Pressable>
+        <View style={styles.checkSheetFooter}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onDismiss}
+            style={({ pressed }) => [styles.tossAllLink, pressed && styles.expiryPressed]}
+          >
+            <Text variant="small" muted>
+              {labels.cancel}
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setConfirmingTossAll(true)}
+            style={({ pressed }) => [styles.tossAllLink, pressed && styles.expiryPressed]}
+          >
+            <Text variant="small" color={colors.red}>
+              {labels.tossAll}
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </BottomSheet>
   );
@@ -1049,9 +1060,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   tossAllLink: {
-    alignSelf: "center",
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
+  },
+  checkSheetFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xl,
   },
   checkSheetList: {
     gap: spacing.sm,
