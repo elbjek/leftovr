@@ -241,6 +241,7 @@ export const en = {
       stillGood: "Still good",
       toss: "Toss",
       pastBest: "Past its best",
+      noExpiry: "No expiry date",
       seeAll: "See all ({{count}})",
       tossAll: "Toss all ({{count}})",
       tossAllTitle: "Toss {{count}} items?",

@@ -241,6 +241,7 @@ export const sr = {
       stillGood: "Jos je dobro",
       toss: "Baci",
       pastBest: "Nije vise najsvezije",
+      noExpiry: "Nema datuma isteka",
       seeAll: "Prikazi sve ({{count}})",
       tossAll: "Baci sve ({{count}})",
       tossAllTitle: "Baciti {{count}} stavki?",

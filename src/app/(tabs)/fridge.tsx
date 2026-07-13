@@ -66,14 +66,19 @@ export default function FridgeRoute() {
   const expiredGroups = groups.filter((group) => group.urgency === "expired");
   const activeGroups = groups.filter((group) => group.urgency !== "expired");
   const [checkSheetVisible, setCheckSheetVisible] = useState(false);
-  const checkItems: CheckItem[] = expiredGroups.map((group) => ({
-    id: group.key,
-    name: group.name,
-    category: toUiCategory(group.category),
-    label: hasExplicitExpiredLot(group.lots)
-      ? t("fridge.meta.expired")
-      : t("fridge.checkThese.pastBest"),
-  }));
+  const checkItems: CheckItem[] = expiredGroups.map((group) => {
+    const expiry = earliestExpiry(group.lots);
+    return {
+      id: group.key,
+      name: group.name,
+      category: toUiCategory(group.category),
+      // In the expired band any explicit date has necessarily passed, so a
+      // present date means "Expired <date>"; no date means our estimate.
+      label: expiry && hasExplicitExpiredLot(group.lots)
+        ? `${t("fridge.meta.expired")} · ${formatExpiryDate(expiry)}`
+        : `${t("fridge.checkThese.pastBest")} · ${t("fridge.checkThese.noExpiry")}`,
+    };
+  });
   const onCheckItemPress = (item: CheckItem) => {
     setCheckSheetVisible(false);
     setActionGroup(expiredGroups.find((group) => group.key === item.id) ?? null);
@@ -746,6 +751,18 @@ function toLocalDateString(date: Date) {
 function parseLocalDate(value: string) {
   const [year, month, day] = value.split("-").map(Number);
   return new Date(year, (month ?? 1) - 1, day ?? 1);
+}
+
+// Earliest explicit expiry date across a group's lots, if any lot has one.
+function earliestExpiry(lots: InventoryGroup["lots"]): string | null {
+  const dates = lots.map((lot) => lot.expires_at).filter((date): date is string => date != null);
+  if (dates.length === 0) return null;
+  return dates.sort()[0];
+}
+
+// Same format the item edit sheet uses for its expiry field.
+function formatExpiryDate(value: string) {
+  return parseLocalDate(value).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
 }
 
 function buildCategoryShelves(groups: InventoryGroup[], t: ReturnType<typeof useTranslation>["t"]) {
