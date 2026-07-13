@@ -122,7 +122,7 @@ export function CheckTheseRow({
         accessibilityRole="button"
         accessibilityLabel={`${labels.stillGood}: ${item.name}`}
         onPress={() => onStillGood(item)}
-        style={({ pressed }) => [styles.action, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.actionPill, styles.stillGoodPill, pressed && styles.pressed]}
       >
         <Text variant="label" color={colors.primary}>{labels.stillGood}</Text>
       </Pressable>
@@ -130,7 +130,7 @@ export function CheckTheseRow({
         accessibilityRole="button"
         accessibilityLabel={`${labels.toss}: ${item.name}`}
         onPress={() => onToss(item)}
-        style={({ pressed }) => [styles.action, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.actionPill, styles.tossPill, pressed && styles.pressed]}
       >
         <Text variant="label" color={colors.red}>{labels.toss}</Text>
       </Pressable>
@@ -209,9 +209,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  action: {
-    paddingHorizontal: spacing.xs,
-    paddingVertical: spacing.sm,
+  actionPill: {
+    minHeight: 36,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stillGoodPill: {
+    backgroundColor: colors.sageSoft,
+    borderColor: colors.sageBorder,
+  },
+  tossPill: {
+    backgroundColor: colors.paper,
+    borderColor: colors.red,
   },
   seeAll: {
     minHeight: 44,
