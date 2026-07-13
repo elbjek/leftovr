@@ -550,20 +550,20 @@ function CheckTheseSheet({
         <View style={styles.checkSheetFooter}>
           <Pressable
             accessibilityRole="button"
-            onPress={onDismiss}
-            style={({ pressed }) => [styles.tossAllLink, pressed && styles.expiryPressed]}
-          >
-            <Text variant="small" muted>
-              {labels.cancel}
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
             onPress={() => setConfirmingTossAll(true)}
             style={({ pressed }) => [styles.tossAllLink, pressed && styles.expiryPressed]}
           >
             <Text variant="small" color={colors.red}>
               {labels.tossAll}
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onDismiss}
+            style={({ pressed }) => [styles.tossAllLink, pressed && styles.expiryPressed]}
+          >
+            <Text variant="small" muted>
+              {labels.cancel}
             </Text>
           </Pressable>
         </View>
