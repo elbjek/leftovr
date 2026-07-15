@@ -6,6 +6,7 @@ import {
   categoryAverageUnitPrice,
 } from "./valueEventRepository";
 import {
+  buildPantryConfirmItems,
   buildReceiptConfirmItemsFromLines,
   buildConfirmedReceiptInventoryRows,
   NormalizedReceiptLine,
@@ -110,6 +111,103 @@ export async function normalizeReceiptPdf(input: {
     items: buildReceiptConfirmItemsFromLines(response.lines),
     duplicate: response.duplicate,
   };
+}
+
+/**
+ * Uploads 1-3 pantry/fridge photos and runs the AI detection pipeline in the
+ * normalize-pantry edge function. Same shape as a receipt scan: the edge
+ * function creates the scan row (status "processing", scan_type "pantry");
+ * nothing lands in inventory until the user confirms.
+ */
+export async function normalizePantryPhotos(input: {
+  householdId: string;
+  imagesBase64: string[];
+}): Promise<{ scanId: string; items: ReceiptConfirmItem[] }> {
+  const supabase = getSupabaseClient();
+
+  const imagePaths: string[] = [];
+  for (const imageBase64 of input.imagesBase64) {
+    const imagePath = `${input.householdId}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+    const { error: uploadError } = await supabase.storage
+      .from("receipt-images")
+      .upload(imagePath, base64ToBytes(imageBase64).buffer as ArrayBuffer, {
+        contentType: "image/jpeg",
+      });
+    if (uploadError) {
+      throw uploadError;
+    }
+    imagePaths.push(imagePath);
+  }
+
+  const { data, error } = await supabase.functions.invoke("normalize-pantry", {
+    body: { householdId: input.householdId, imagePaths },
+  });
+  if (error) {
+    throw error;
+  }
+
+  const response = data as { scanId: string; lines: NormalizedReceiptLine[] };
+
+  return {
+    scanId: response.scanId,
+    items: buildPantryConfirmItems(response.lines),
+  };
+}
+
+/**
+ * Completes a pantry-photo scan: marks it completed and inserts the confirmed
+ * items into inventory with source "pantry". Unlike a receipt confirm, no
+ * spend value events are emitted — this stock was bought in the past, so
+ * counting it as new spend would distort money insights.
+ */
+export async function confirmPantryScan(input: {
+  householdId: string;
+  scanId: string;
+  items: ReceiptConfirmItem[];
+}): Promise<ReceiptScanResult> {
+  const supabase = getSupabaseClient();
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  if (userError) {
+    throw userError;
+  }
+  const userId = userResult.user?.id;
+  if (!userId) {
+    throw new Error("No signed-in user.");
+  }
+
+  const kept = input.items.filter((item) => item.included);
+  const now = new Date().toISOString();
+
+  const { error: scanError } = await supabase
+    .from("receipt_scans")
+    .update({
+      status: "completed",
+      item_count: kept.length,
+      review_count: kept.filter((item) => item.lowConfidence).length,
+      processed_at: now,
+    })
+    .eq("id", input.scanId);
+  if (scanError) {
+    throw scanError;
+  }
+
+  if (kept.length > 0) {
+    const inventoryRows = buildConfirmedReceiptInventoryRows(kept, {
+      householdId: input.householdId,
+      scanId: input.scanId,
+      userId,
+      addedAt: now,
+      source: "pantry",
+    });
+    const { error: inventoryError } = await supabase
+      .from("inventory_items")
+      .insert(inventoryRows);
+    if (inventoryError) {
+      throw inventoryError;
+    }
+  }
+
+  return { scanId: input.scanId, addedCount: kept.length };
 }
 
 /**

@@ -21,7 +21,7 @@ export const URGENCY_BANDS = ["safe", "use_soon", "urgent"] as const;
 export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number];
 export type PartialState = (typeof PARTIAL_STATES)[number];
 export type UrgencyBand = (typeof URGENCY_BANDS)[number];
-export type InventorySource = "receipt" | "barcode" | "manual" | "moved_from_household";
+export type InventorySource = "receipt" | "pantry" | "barcode" | "manual" | "moved_from_household";
 
 export type CatalogFood = {
   name: string;

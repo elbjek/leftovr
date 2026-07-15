@@ -5,6 +5,7 @@ export * from "./barcodeService";
 export * from "./insightsService";
 export * from "./inventoryRules";
 export * from "./notificationService";
+export * from "./pantryService";
 export * from "./receiptService";
 export * from "./recipeGenerationService";
 export * from "./recipeService";

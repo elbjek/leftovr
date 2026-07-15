@@ -1,5 +1,6 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from "expo-camera";
 import * as DocumentPicker from "expo-document-picker";
+import { Image } from "expo-image";
 import * as FileSystem from "expo-file-system/legacy";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -17,6 +18,8 @@ import {
   addInventoryItem,
   completeHouseholdFirstFill,
   confirmNormalizedReceiptScan,
+  confirmPantryScan,
+  normalizePantryPhotos,
   normalizeReceiptImage,
   normalizeReceiptPdf,
   ReceiptDuplicate,
@@ -48,6 +51,7 @@ function toLocalDateString(date: Date) {
 type ScanMode =
   | "choice"
   | "camera"
+  | "pantryCamera"
   | "barcodeCamera"
   | "barcodeFallback"
   | "emptyScan"
@@ -58,11 +62,15 @@ type ScanMode =
   | "success"
   | "addSuccess"
   | "notifications";
-type ScanChoice = "receipt" | "ereceipt" | "barcode" | "manual";
+type ScanChoice = "receipt" | "ereceipt" | "pantry" | "barcode" | "manual";
 
 // E-receipts are a few small pages; cap the upload to bound the (paid) AI call
 // and block oversized/wrong documents before they reach storage or OpenAI.
 const MAX_ERECEIPT_PDF_BYTES = 10 * 1024 * 1024;
+
+// A pantry scan is one AI call over all photos; 3 shots cover a pantry or
+// fridge without letting the (paid) vision request grow unbounded.
+const MAX_PANTRY_PHOTOS = 3;
 
 export default function ScanRoute() {
   const { t } = useTranslation();
@@ -96,7 +104,11 @@ export default function ScanRoute() {
           ? canScanReceipt
             ? "camera"
             : "choice"
-          : "choice";
+          : paramChoice === "pantry"
+            ? canScanReceipt
+              ? "pantryCamera"
+              : "choice"
+            : "choice";
   const [mode, setMode] = useState<ScanMode>(initialMode);
   const [choice, setChoice] = useState<ScanChoice>(initialChoice);
   const [duplicate, setDuplicate] = useState<ReceiptDuplicate | null>(null);
@@ -121,9 +133,14 @@ export default function ScanRoute() {
   const [lastAddedName, setLastAddedName] = useState("");
   // Open straight onto the Premium sheet if the initial deep-link is a gated scan.
   const [scanPremiumVisible, setScanPremiumVisible] = useState(
-    paramChoice === "receipt" && !canScanReceipt,
+    (paramChoice === "receipt" || paramChoice === "pantry") && !canScanReceipt,
   );
   const [barcodeLocked, setBarcodeLocked] = useState(false);
+  // Captured pantry shots waiting for analysis (uri for the thumbnail strip,
+  // base64 for upload). Capturing is client-side only; the single paid AI call
+  // happens when the user taps analyze.
+  const [pantryPhotos, setPantryPhotos] = useState<{ uri: string; base64: string }[]>([]);
+  const [pantryCapturing, setPantryCapturing] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   // iOS continuous AF can lock; pulsing the mode off→on forces a refocus.
   const [focusMode, setFocusMode] = useState<"on" | "off">("on");
@@ -267,9 +284,9 @@ export default function ScanRoute() {
     setChoice(nextChoice);
     setError(null);
 
-    // Receipt scanning (photo or PDF): free once, then premium (per-scan AI
-    // cost); barcode and manual are free.
-    if ((nextChoice === "receipt" || nextChoice === "ereceipt") && !canScanReceipt && !options?.skipGate) {
+    // AI scanning (receipt photo, PDF, or pantry photos): free once, then
+    // premium (per-scan AI cost); barcode and manual are free.
+    if ((nextChoice === "receipt" || nextChoice === "ereceipt" || nextChoice === "pantry") && !canScanReceipt && !options?.skipGate) {
       setScanPremiumVisible(true);
       return;
     }
@@ -284,7 +301,7 @@ export default function ScanRoute() {
       return;
     }
 
-    if ((nextChoice === "receipt" || nextChoice === "barcode") && !permission?.granted) {
+    if ((nextChoice === "receipt" || nextChoice === "pantry" || nextChoice === "barcode") && !permission?.granted) {
       const nextPermission = await requestPermission();
       if (!nextPermission.granted) {
         consumedModeRef.current = "choice";
@@ -293,6 +310,12 @@ export default function ScanRoute() {
         setError(t("scan.cameraDenied"));
         return;
       }
+    }
+
+    if (nextChoice === "pantry") {
+      setPantryPhotos([]);
+      setMode("pantryCamera");
+      return;
     }
 
     setMode(nextChoice === "barcode" ? "barcodeCamera" : "camera");
@@ -320,6 +343,7 @@ export default function ScanRoute() {
     setConfirming(false);
     setDuplicate(null);
     setPendingScanId(null);
+    setPantryPhotos([]);
     setError(null);
     setMode("choice");
   }
@@ -423,6 +447,84 @@ export default function ScanRoute() {
     }
   }
 
+  // Capturing is free and local; photos queue up until the user asks for the
+  // (single, paid) analysis over all of them.
+  async function capturePantryPhoto() {
+    if (pantryCapturing || pantryPhotos.length >= MAX_PANTRY_PHOTOS) return;
+
+    setPantryCapturing(true);
+    setError(null);
+    try {
+      const photo = await receiptCameraRef.current?.takePictureAsync({ quality: 0.8 });
+      if (!photo?.uri) {
+        throw new Error(t("auth.genericError"));
+      }
+      // Cap resolution before upload: controls storage size and vision tokens.
+      const resized = await manipulateAsync(photo.uri, [{ resize: { width: 1500 } }], {
+        compress: 0.7,
+        format: SaveFormat.JPEG,
+        base64: true,
+      });
+      if (!resized.base64) {
+        throw new Error(t("auth.genericError"));
+      }
+      setPantryPhotos((current) => [...current, { uri: resized.uri, base64: resized.base64! }]);
+    } catch (captureError) {
+      setError(errorMessage(captureError, t("auth.genericError")));
+    } finally {
+      setPantryCapturing(false);
+    }
+  }
+
+  async function analyzePantryPhotos() {
+    if (!activeHousehold?.id || pantryPhotos.length === 0) return;
+
+    setMode("processing");
+    setProcessingStep("recognising");
+    setError(null);
+
+    try {
+      // The edge function creates the scan row and makes the AI call here;
+      // the free scan is consumed now (when the cost happens), but nothing
+      // lands in inventory until the user confirms.
+      const scan = await runStagedScan(
+        normalizePantryPhotos({
+          householdId: activeHousehold.id,
+          imagesBase64: pantryPhotos.map((photo) => photo.base64),
+        }),
+      );
+
+      setPantryPhotos([]);
+
+      // Nothing recognizable on the photos (dark, blurry, or not a pantry):
+      // a full-screen explanation with a retry, never an empty confirm sheet.
+      if (scan.items.length === 0) {
+        setMode("emptyScan");
+        return;
+      }
+
+      setPendingScanId(scan.scanId);
+      setConfirmItems(scan.items);
+      setConfirmAllowsDuplicate(false);
+      setMode("confirm");
+    } catch (scanError) {
+      // Edge function gate: free scan already used and not premium.
+      if (isReceiptQuotaError(scanError) && !canScanReceipt) {
+        setPantryPhotos([]);
+        setMode("choice");
+        setScanPremiumVisible(true);
+        return;
+      }
+      if ((await readEdgeErrorCode(scanError)) === "receipt_scan_monthly_limit") {
+        setError(t("scan.monthlyLimit"));
+        setMode("pantryCamera");
+        return;
+      }
+      setError(errorMessage(scanError, t("auth.genericError")));
+      setMode("pantryCamera");
+    }
+  }
+
   // The duplicate screen reuses the items already normalized for this scan;
   // re-invoking the edge function would pay for a second AI call.
   function proceedWithDuplicate() {
@@ -440,12 +542,20 @@ export default function ScanRoute() {
       if (!pendingScanId) {
         throw new Error(t("auth.genericError"));
       }
-      const nextResult = await confirmNormalizedReceiptScan({
-        householdId: activeHousehold.id,
-        scanId: pendingScanId,
-        items,
-        duplicateOf: confirmAllowsDuplicate ? duplicate?.id ?? null : null,
-      });
+      // Pantry confirms skip receipt-only behavior (duplicate signatures,
+      // spend value events) — the stock already belongs to the household.
+      const nextResult = choice === "pantry"
+        ? await confirmPantryScan({
+            householdId: activeHousehold.id,
+            scanId: pendingScanId,
+            items,
+          })
+        : await confirmNormalizedReceiptScan({
+            householdId: activeHousehold.id,
+            scanId: pendingScanId,
+            items,
+            duplicateOf: confirmAllowsDuplicate ? duplicate?.id ?? null : null,
+          });
 
       if (!activeHousehold.first_fill_completed_at) {
         await completeFirstFillIfNeeded();
@@ -647,6 +757,111 @@ export default function ScanRoute() {
     );
   }
 
+  if (mode === "pantryCamera") {
+    if (!permission?.granted) {
+      return (
+        <Screen>
+          <View style={styles.center}>
+            <ScanMethodIcon method="pantry" />
+            <Text variant="display" center>
+              {t("scan.pantry.cameraTitle")}
+            </Text>
+            <Text variant="body" muted center>
+              {t("scan.cameraDenied")}
+            </Text>
+            <Button title={t("common.continue")} onPress={requestPermission} />
+            <Button title={t("common.cancel")} variant="text" onPress={returnToChoice} />
+          </View>
+        </Screen>
+      );
+    }
+
+    const canCapture = pantryPhotos.length < MAX_PANTRY_PHOTOS && !pantryCapturing;
+
+    return (
+      <Screen padded={false} backgroundColor={colors.black}>
+        <View style={styles.cameraWrap}>
+          <CameraView ref={receiptCameraRef} style={styles.camera} facing="back" />
+          <View style={styles.cameraOverlay}>
+            <View style={styles.cameraTop}>
+              <Button
+                title={t("common.cancel")}
+                variant="text"
+                onPress={returnToChoice}
+              />
+              <Text variant="label" color={colors.surface}>
+                {t("scan.pantry.cameraTitle")}
+              </Text>
+            </View>
+
+            <View style={styles.coachCard}>
+              <Text variant="label">{t("scan.pantry.coachTitle")}</Text>
+              <Text variant="small" muted>
+                {t("scan.pantry.coachBody")}
+              </Text>
+            </View>
+
+            {error ? (
+              <Text variant="small" color={colors.red} center>
+                {error}
+              </Text>
+            ) : null}
+
+            <View style={styles.pantryControls}>
+              {pantryPhotos.length > 0 ? (
+                <View style={styles.pantryThumbRow}>
+                  {pantryPhotos.map((photo, index) => (
+                    <View key={photo.uri} style={styles.pantryThumbWrap}>
+                      <Image source={{ uri: photo.uri }} style={styles.pantryThumb} />
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={t("scan.pantry.removePhoto", { number: index + 1 })}
+                        hitSlop={spacing.sm}
+                        onPress={() =>
+                          setPantryPhotos((current) => current.filter((_, i) => i !== index))
+                        }
+                        style={styles.pantryThumbRemove}
+                      >
+                        <Text variant="micro" color={colors.surface}>✕</Text>
+                      </Pressable>
+                    </View>
+                  ))}
+                  <Text variant="small" color={colors.surface}>
+                    {t("scan.pantry.photoCount", {
+                      count: pantryPhotos.length,
+                      max: MAX_PANTRY_PHOTOS,
+                    })}
+                  </Text>
+                </View>
+              ) : null}
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("scan.pantry.capture")}
+                disabled={!canCapture}
+                onPress={() => capturePantryPhoto()}
+                style={[styles.captureButton, !canCapture && styles.captureButtonDisabled]}
+              >
+                {pantryCapturing ? (
+                  <ActivityIndicator color={colors.primary} />
+                ) : (
+                  <View style={styles.captureInner} />
+                )}
+              </Pressable>
+
+              {pantryPhotos.length > 0 ? (
+                <Button
+                  title={t("scan.pantry.analyzeCta")}
+                  onPress={() => analyzePantryPhotos()}
+                />
+              ) : null}
+            </View>
+          </View>
+        </View>
+      </Screen>
+    );
+  }
+
   if (mode === "barcodeCamera") {
     if (!permission?.granted) {
       return (
@@ -749,17 +964,23 @@ export default function ScanRoute() {
       <Screen>
         <BackButton onPress={returnToChoice} style={styles.backButton} />
         <View style={styles.center}>
-          <ScanMethodIcon method={choice === "ereceipt" ? "ereceipt" : "receipt"} />
+          <ScanMethodIcon
+            method={choice === "ereceipt" ? "ereceipt" : choice === "pantry" ? "pantry" : "receipt"}
+          />
           <Text variant="display" center>
-            {t("scan.emptyScanTitle")}
+            {choice === "pantry" ? t("scan.pantry.emptyTitle") : t("scan.emptyScanTitle")}
           </Text>
           <Text variant="body" muted center>
-            {t("scan.emptyScan")}
+            {choice === "pantry" ? t("scan.pantry.emptyBody") : t("scan.emptyScan")}
           </Text>
           <View style={styles.buttonStack}>
             <Button
               title={t("scan.tryAgain")}
-              onPress={() => (choice === "ereceipt" ? importEReceipt() : setMode("camera"))}
+              onPress={() =>
+                choice === "ereceipt"
+                  ? importEReceipt()
+                  : setMode(choice === "pantry" ? "pantryCamera" : "camera")
+              }
             />
             <Button title={t("common.cancel")} variant="ghost" onPress={returnToChoice} />
           </View>
@@ -1031,8 +1252,12 @@ export default function ScanRoute() {
     return (
       <Screen bottomInset={false}>
         <ScreenHeader
-          title={t("scan.confirm.title")}
-          subtitle={t("scan.confirm.body")}
+          title={
+            choice === "pantry"
+              ? t("scan.pantry.confirmTitle", { count: confirmItems.length })
+              : t("scan.confirm.title")
+          }
+          subtitle={choice === "pantry" ? t("scan.pantry.confirmBody") : t("scan.confirm.body")}
         />
         {error ? (
           <Text variant="small" color={colors.red} center style={styles.confirmError}>
@@ -1169,6 +1394,11 @@ export default function ScanRoute() {
           onPress={() => openSelectedChoice("receipt")}
         />
         <ScanMethodCard
+          method="pantry"
+          body={t("scan.pantry.body")}
+          onPress={() => openSelectedChoice("pantry")}
+        />
+        <ScanMethodCard
           method="ereceipt"
           body={t("scan.ereceipt.body")}
           onPress={() => openSelectedChoice("ereceipt")}
@@ -1249,7 +1479,7 @@ function errorMessage(err: unknown, fallback: string): string {
 }
 
 function getParamChoice(mode?: string): ScanChoice | null {
-  if (mode === "barcode" || mode === "manual" || mode === "receipt" || mode === "ereceipt") {
+  if (mode === "barcode" || mode === "manual" || mode === "receipt" || mode === "ereceipt" || mode === "pantry") {
     return mode;
   }
   return null;
@@ -1368,6 +1598,38 @@ const styles = StyleSheet.create({
     borderRadius: 29,
     borderWidth: 3,
     borderColor: colors.primary,
+  },
+  captureButtonDisabled: {
+    opacity: 0.45,
+  },
+  pantryControls: {
+    gap: spacing.md,
+  },
+  pantryThumbRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  pantryThumbWrap: {
+    position: "relative",
+  },
+  pantryThumb: {
+    width: 52,
+    height: 52,
+    borderRadius: radii.md,
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
+  pantryThumbRemove: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.black,
+    alignItems: "center",
+    justifyContent: "center",
   },
   center: {
     flex: 1,
