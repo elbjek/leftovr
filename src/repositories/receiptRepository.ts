@@ -125,8 +125,9 @@ export async function normalizePantryPhotos(input: {
 }): Promise<{ scanId: string; items: ReceiptConfirmItem[] }> {
   const supabase = getSupabaseClient();
 
-  const imagePaths: string[] = [];
-  for (const imageBase64 of input.imagesBase64) {
+  // Independent uploads — run them concurrently rather than serializing three
+  // round-trips on a path the user is actively waiting on. Paths are unique.
+  const uploads = input.imagesBase64.map(async (imageBase64) => {
     const imagePath = `${input.householdId}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
     const { error: uploadError } = await supabase.storage
       .from("receipt-images")
@@ -136,13 +137,19 @@ export async function normalizePantryPhotos(input: {
     if (uploadError) {
       throw uploadError;
     }
-    imagePaths.push(imagePath);
-  }
+    return imagePath;
+  });
+  const imagePaths = await Promise.all(uploads);
 
   const { data, error } = await supabase.functions.invoke("normalize-pantry", {
     body: { householdId: input.householdId, imagePaths },
   });
   if (error) {
+    // The edge function only deletes the photos on paths that reach the AI
+    // call; gate rejections (quota/rate-limit) and early failures return before
+    // that, which would orphan the just-uploaded photos of the user's home. We
+    // uploaded them, so clean them up here on any failure (best-effort).
+    await supabase.storage.from("receipt-images").remove(imagePaths).catch(() => {});
     throw error;
   }
 

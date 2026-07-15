@@ -219,19 +219,22 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const imageParts: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [];
-    for (const path of imagePaths) {
-      const { data: file, error: downloadError } = await supabase.storage
-        .from("receipt-images")
-        .download(path);
-      if (downloadError || !file) {
-        throw new Error(`image_download_failed: ${downloadError?.message ?? "empty"}`);
-      }
-      imageParts.push({
-        type: "image_url",
-        image_url: { url: `data:image/jpeg;base64,${bytesToBase64(new Uint8Array(await file.arrayBuffer()))}` },
-      });
-    }
+    // Independent downloads — fetch and encode all photos concurrently; map
+    // preserves order so the model sees them in capture order.
+    const imageParts: OpenAI.Chat.Completions.ChatCompletionContentPart[] = await Promise.all(
+      imagePaths.map(async (path) => {
+        const { data: file, error: downloadError } = await supabase.storage
+          .from("receipt-images")
+          .download(path);
+        if (downloadError || !file) {
+          throw new Error(`image_download_failed: ${downloadError?.message ?? "empty"}`);
+        }
+        return {
+          type: "image_url",
+          image_url: { url: `data:image/jpeg;base64,${bytesToBase64(new Uint8Array(await file.arrayBuffer()))}` },
+        } satisfies OpenAI.Chat.Completions.ChatCompletionContentPart;
+      }),
+    );
     // We don't retain pantry photos: delete as soon as they're decoded so
     // nothing lingers in storage on any path. Cleanup failure is non-fatal.
     const { error: removeError } = await supabase.storage
@@ -289,7 +292,12 @@ Deno.serve(async (req) => {
 
     await supabase
       .from("receipt_scans")
-      .update({ prompt_tokens: response.usage?.prompt_tokens ?? null })
+      .update({
+        prompt_tokens: response.usage?.prompt_tokens ?? null,
+        // Photos are already deleted and image_path is a single-path column;
+        // don't leave a comma-joined value pointing at removed objects.
+        image_path: null,
+      })
       .eq("id", scan.id);
 
     console.info("[normalize-pantry] normalized", {

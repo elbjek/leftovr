@@ -1243,7 +1243,10 @@ export default function ScanRoute() {
   if (mode === "processing") {
     return (
       <Screen>
-        <ReceiptReadingProgress step={processingStep} />
+        <ReceiptReadingProgress
+          step={processingStep}
+          variant={choice === "pantry" ? "pantry" : "receipt"}
+        />
       </Screen>
     );
   }
@@ -1270,6 +1273,7 @@ export default function ScanRoute() {
           confirming={confirming}
           onConfirm={handleConfirmScan}
           onCancel={returnToChoice}
+          rawLabel={choice === "pantry" ? t("scan.pantry.spotted") : undefined}
         />
       </Screen>
     );

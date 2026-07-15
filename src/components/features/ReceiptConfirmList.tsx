@@ -15,11 +15,14 @@ type Props = {
   confirming: boolean;
   onConfirm: (items: ReceiptConfirmItem[]) => void;
   onCancel: () => void;
+  // Label above each item's raw text. Defaults to the receipt "Scanned as";
+  // pantry passes its own ("Spotted") so shelf descriptions don't read as OCR.
+  rawLabel?: string;
 };
 
 type EditableRow = ReceiptConfirmItem & { quantityText: string };
 
-export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: Props) {
+export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, rawLabel }: Props) {
   const { t } = useTranslation();
   const [rows, setRows] = useState<EditableRow[]>(() =>
     items.map((item) => ({
@@ -79,7 +82,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel }: P
               </View>
               <View style={styles.scannedCol}>
                 <Text variant="micro" muted uppercase>
-                  {t("scan.confirm.scannedAs")}
+                  {rawLabel ?? t("scan.confirm.scannedAs")}
                 </Text>
                 <Text style={styles.scannedText} color={colors.text} numberOfLines={2}>
                   {`"${(row.rawText ?? row.name).toUpperCase()}"`}
