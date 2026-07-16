@@ -40,3 +40,7 @@ GEMINI.md
 .windsurfrules
 .github/copilot-instructions.md
 .mcp.json
+
+# App Store screenshots — finals live in App Store Connect, keep only the generator
+appstore-screenshots/*
+!appstore-screenshots/panels.html
