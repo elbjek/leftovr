@@ -41,5 +41,7 @@ GEMINI.md
 .github/copilot-instructions.md
 .mcp.json
 
-appstore-screenshots/
+# App Store screenshots — finals live in App Store Connect, keep only the generator
+appstore-screenshots/*
+!appstore-screenshots/panels.html
 .playwright-mcp/

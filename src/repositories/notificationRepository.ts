@@ -97,7 +97,9 @@ export async function getSuccessfulReceiptScanCount(householdId: string): Promis
     .from("receipt_scans")
     .select("id", { count: "exact", head: true })
     .eq("household_id", householdId)
-    .eq("status", "completed");
+    .eq("status", "completed")
+    // Shared table: the receipt-adoption nudge counts receipt scans only.
+    .eq("scan_type", "receipt");
 
   if (error) throw error;
   return count ?? 0;

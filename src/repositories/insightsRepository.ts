@@ -33,6 +33,8 @@ export async function getInsightsData(
     .select("id", { count: "exact", head: true })
     .eq("household_id", householdId)
     .eq("status", "completed")
+    // receipt_scans is shared with pantry scans; this metric counts receipts only.
+    .eq("scan_type", "receipt")
     .gte("processed_at", since);
   if (until) scansQuery = scansQuery.lt("processed_at", until);
   if (userId) scansQuery = scansQuery.eq("created_by", userId);

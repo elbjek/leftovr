@@ -18,7 +18,7 @@ export const INVENTORY_CATEGORIES = [
 export type InventoryCategory = (typeof INVENTORY_CATEGORIES)[number];
 export type PartialState = "full" | "some_used" | "low";
 export type UrgencyBand = "safe" | "use_soon" | "urgent" | "expired";
-export type InventorySource = "receipt" | "barcode" | "manual" | "moved_from_household";
+export type InventorySource = "receipt" | "pantry" | "barcode" | "manual" | "moved_from_household";
 
 type CatalogFood = {
   name: string;

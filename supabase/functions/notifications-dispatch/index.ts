@@ -195,7 +195,7 @@ async function runTopUp(supabase: any, now: Date): Promise<number> {
   for (const h of households ?? []) {
     const { count: scans } = await supabase
       .from("receipt_scans").select("id", { count: "exact", head: true })
-      .eq("household_id", h.id).eq("status", "completed");
+      .eq("household_id", h.id).eq("status", "completed").eq("scan_type", "receipt");
     if ((scans ?? 0) >= 2) continue;
     const { data: already } = await supabase
       .from("notification_sends").select("id").eq("household_id", h.id).eq("type", "topup").limit(1);

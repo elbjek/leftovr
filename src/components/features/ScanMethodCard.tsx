@@ -5,7 +5,7 @@ import Svg, { Circle, Line, Path } from "react-native-svg";
 import { colors, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
 
-export type ScanMethod = "receipt" | "ereceipt" | "barcode" | "manual";
+export type ScanMethod = "receipt" | "ereceipt" | "pantry" | "barcode" | "manual";
 
 type Props = {
   method: ScanMethod;
@@ -77,6 +77,20 @@ export function ScanMethodIcon({ method, color = colors.primary }: { method: Sca
         <Path d="M13 2.5v4h4" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
         <Line x1={8} y1={11} x2={14} y2={11} stroke={color} strokeWidth={1.6} strokeLinecap="round" />
         <Line x1={8} y1={14.5} x2={14} y2={14.5} stroke={color} strokeWidth={1.6} strokeLinecap="round" />
+      </Svg>
+    );
+  }
+
+  if (method === "pantry") {
+    // Open cupboard: two shelves with jars/boxes on them.
+    return (
+      <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+        <Path d="M3.5 3h15v16h-15V3z" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
+        <Line x1={3.5} y1={11} x2={18.5} y2={11} stroke={color} strokeWidth={1.6} />
+        <Path d="M6.5 8V6h3v2" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
+        <Circle cx={13.5} cy={7.5} r={1.6} stroke={color} strokeWidth={1.6} />
+        <Path d="M7 16.5v-2.5h2.5v2.5" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
+        <Path d="M12 16.5v-3h3.5v3" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
       </Svg>
     );
   }

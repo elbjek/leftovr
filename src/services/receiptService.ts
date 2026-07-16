@@ -53,6 +53,9 @@ export type ReceiptInventoryRowInput = {
   scanId: string;
   userId: string;
   addedAt: string;
+  // Pantry-photo scans confirm through the same builder; rows they create are
+  // sourced "pantry" so they never enter purchase/spend accounting.
+  source?: "receipt" | "pantry";
 };
 
 export type NormalizedReceiptLine = {
@@ -132,7 +135,7 @@ export function buildConfirmedReceiptInventoryRows(
         partial_state: "full" as const,
         shelf_life_range: getShelfLifeRange(name, item.category),
         expires_at: item.expiresAt ?? null,
-        source: "receipt" as const,
+        source: input.source ?? ("receipt" as const),
         source_scan_id: input.scanId,
         confidence: item.confidence,
         added_by: input.userId,

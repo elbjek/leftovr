@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=6450, initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#1B4332; --deep:#173629; --surface:#F8F4EE; --cream:#F1E7D0;
+    --accent:#D4A843; --gold:#E7C263; --accent-soft:#F0DDA8; --text:#1C1C1A;
+    --muted:#6B7A6D; --green:#4F8A5B; --red:#C76845;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;letter-spacing:-0.01em;}
+
+  .stage{position:relative;width:6450px;height:2796px;overflow:hidden;}
+
+  /* flat color blocks (no gradients) */
+  .blocks{position:absolute;inset:0;z-index:0;display:flex;}
+  .bk{width:1290px;height:100%;}
+  .bk.cream{background:#F1E7D0;}
+  .bk.green{background:#1B4332;}
+
+  .tex{position:absolute;inset:0;z-index:1;pointer-events:none;
+    background-image:radial-gradient(circle, rgba(27,67,50,0.08) 2.4px, transparent 2.8px);
+    background-size:56px 56px; opacity:.55;
+    -webkit-mask-image:linear-gradient(180deg,#000 0%, transparent 42%);
+            mask-image:linear-gradient(180deg,#000 0%, transparent 42%);}
+
+  /* continuous receipt-tape ribbon across all panels (flat) */
+  .ribbon{position:absolute;inset:0;z-index:2;pointer-events:none;}
+
+  /* big story numbers (sans) */
+  .num{position:absolute;z-index:3;font-weight:800;font-size:300px;line-height:1;letter-spacing:-0.05em;}
+
+  /* produce stickers riding the ribbon */
+  .st{position:absolute;z-index:6;width:150px;height:150px;border-radius:44px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 40px 60px -22px rgba(11,22,16,0.5);
+    border:5px solid #FFFDF8;}
+  .st svg{width:78px;height:78px;}
+
+  /* headline block */
+  .head{position:absolute;z-index:7;width:1140px;text-align:center;left:0;top:150px;}
+  .kick{display:inline-flex;align-items:center;gap:16px;padding:16px 34px;border-radius:999px;
+    font-weight:800;font-size:26px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:38px;}
+  .kick .seed{width:14px;height:14px;border-radius:50%;background:var(--accent);}
+  .step-badge{display:inline-flex;align-items:center;gap:15px;margin-bottom:34px;
+    font-weight:800;font-size:25px;letter-spacing:0.14em;text-transform:uppercase;}
+  .step-badge .dot{width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:30px;letter-spacing:0;}
+  h1{font-weight:800;font-size:108px;line-height:0.98;letter-spacing:-0.04em;}
+  .sub{font-size:41px;line-height:1.28;margin-top:42px;font-weight:600;max-width:1010px;margin-left:auto;margin-right:auto;letter-spacing:-0.015em;}
+  .uline{position:relative;white-space:nowrap;}
+  .uline svg{position:absolute;left:0;right:0;bottom:-18px;width:100%;height:28px;}
+
+  /* text theming */
+  .t-dark .kick{background:rgba(27,67,50,0.08);color:var(--primary);}
+  .t-dark h1{color:var(--text);} .t-dark h1 .mark{color:var(--primary);}
+  .t-dark .sub{color:#5C6A5E;} .t-dark .sub b{color:var(--text);}
+  .t-dark .step-badge{color:var(--primary);} .t-dark .step-badge .dot{background:var(--primary);color:var(--accent);}
+  .t-light .kick{background:rgba(248,244,238,0.12);color:var(--accent-soft);}
+  .t-light h1{color:var(--surface);} .t-light h1 .mark{color:var(--gold);}
+  .t-light .sub{color:rgba(248,244,238,0.82);} .t-light .sub b{color:var(--gold);}
+  .t-light .step-badge{color:var(--accent-soft);} .t-light .step-badge .dot{background:var(--gold);color:var(--deep);}
+
+  /* phones */
+  .phone{position:absolute;z-index:8;width:720px;padding:19px;border-radius:98px;
+    background:#141F19;
+    box-shadow:0 90px 150px -40px rgba(8,16,11,0.6), 0 40px 80px rgba(0,0,0,0.34), inset 0 0 0 3px rgba(255,255,255,0.08);}
+  .screen{position:relative;border-radius:80px;overflow:hidden;background:var(--surface);display:block;}
+  .screen::before{content:"";display:block;height:74px;background:var(--safe,#F8F4EE);}
+  .screen img{width:100%;display:block;}
+  .island{position:absolute;top:22px;left:50%;transform:translateX(-50%);width:186px;height:50px;background:#0A130D;border-radius:999px;z-index:4;}
+
+  /* callout chips */
+  .chip{position:absolute;z-index:9;display:flex;align-items:center;gap:16px;
+    background:#FFFDF8;border-radius:28px;padding:18px 28px 18px 18px;
+    box-shadow:0 44px 70px -26px rgba(11,22,16,0.5), 0 6px 14px rgba(0,0,0,0.08);}
+  .chip .ic{width:72px;height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .chip .m{display:flex;flex-direction:column;gap:5px;line-height:1;text-align:left;}
+  .chip .m b{font-size:30px;font-weight:800;letter-spacing:-0.01em;color:var(--text);}
+  .chip .m span{font-size:23px;font-weight:700;}
+  .chip.dark{background:var(--primary);}
+  .chip.dark .m b{color:var(--surface);}
+  .chip.dark .lbl{font-size:20px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);}
+  .tg-today{color:var(--red);} .tg-soon{color:#9A7B1F;} .tg-fresh{color:var(--green);}
+
+  .cut{position:absolute;top:0;width:1290px;height:2796px;z-index:50;pointer-events:none;}
+  #cut1{left:0;} #cut2{left:1290px;} #cut3{left:2580px;} #cut4{left:3870px;} #cut5{left:5160px;}
+</style></head>
+<body>
+<div class="stage" id="stage">
+
+  <div class="blocks">
+    <div class="bk cream"></div>
+    <div class="bk green"></div>
+    <div class="bk cream"></div>
+    <div class="bk green"></div>
+    <div class="bk cream"></div>
+  </div>
+  <div class="tex"></div>
+
+  <!-- continuous receipt-tape ribbon (flat) -->
+  <svg class="ribbon" viewBox="0 0 6450 2796" preserveAspectRatio="none">
+    <path d="M-100 980 C 900 640, 1700 1240, 2650 980 S 4400 700, 5350 1010 S 6600 940, 6600 940"
+          fill="none" stroke="#FBF4E4" stroke-width="150" stroke-linecap="round"/>
+    <path d="M-100 980 C 900 640, 1700 1240, 2650 980 S 4400 700, 5350 1010 S 6600 940, 6600 940"
+          fill="none" stroke="#D8A93F" stroke-width="6" stroke-linecap="round" stroke-dasharray="4 34" opacity="0.5"/>
+  </svg>
+
+  <!-- big story numbers -->
+  <div class="num" style="left:60px;top:96px;color:rgba(27,67,50,0.09);">01</div>
+  <div class="num" style="left:1360px;top:96px;color:rgba(248,244,238,0.12);">02</div>
+  <div class="num" style="left:2650px;top:96px;color:rgba(27,67,50,0.09);">03</div>
+  <div class="num" style="left:3940px;top:96px;color:rgba(248,244,238,0.12);">04</div>
+  <div class="num" style="left:5230px;top:96px;color:rgba(27,67,50,0.09);">05</div>
+
+  <!-- produce stickers riding the ribbon -->
+  <div class="st" style="left:250px;top:760px;background:#DCEBD3;transform:rotate(-10deg);"><svg viewBox="0 0 24 24" fill="none" stroke="#3C7A4A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-8-3-8-8 4 0 8 3 8 8z"/><path d="M12 21c0-6 4-12 9-14-1 7-4 12-9 14z"/></svg></div>
+  <div class="st" style="left:1080px;top:840px;background:#F6D9C9;transform:rotate(8deg);"><svg viewBox="0 0 24 24" fill="none" stroke="#C0563A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="7"/><path d="M12 7c0-2 1.6-3.6 3.6-3.6"/></svg></div>
+  <div class="st" style="left:2270px;top:770px;background:#F3E6BE;transform:rotate(-7deg);"><svg viewBox="0 0 24 24" fill="none" stroke="#9A7B1F" stroke-width="1.7"><ellipse cx="12" cy="13" rx="6" ry="8"/></svg></div>
+  <div class="st" style="left:3160px;top:900px;background:#FBF0CE;transform:rotate(11deg);"><svg viewBox="0 0 24 24" fill="none" stroke="#B98A2A" stroke-width="1.7" stroke-linejoin="round"><path d="M7 9h10l-1 11H8L7 9z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></div>
+  <div class="st" style="left:3560px;top:770px;background:#DCEBD3;transform:rotate(-9deg);"><svg viewBox="0 0 24 24" fill="none" stroke="#3C7A4A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18"/><path d="M5 11a7 7 0 0 1 14 0"/><path d="M4 15h16"/></svg></div>
+  <div class="st" style="left:4760px;top:840px;background:#FBEEBA;transform:rotate(9deg);"><svg viewBox="0 0 24 24" fill="none" stroke="#B98A2A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="6.5" ry="8.5"/><path d="M12 3.5c0 1.6 1 2.6 2.4 2.6"/></svg></div>
+  <div class="st" style="left:5520px;top:800px;background:#DCEBD3;transform:rotate(-8deg);"><svg viewBox="0 0 24 24" fill="none" stroke="#3C7A4A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-8-3-8-8 4 0 8 3 8 8z"/><path d="M12 21c0-6 4-12 9-14-1 7-4 12-9 14z"/></svg></div>
+
+  <!-- 1 · SCAN -->
+  <div class="head t-dark" style="left:75px;">
+    <div class="step-badge"><span class="dot">1</span>Scan your receipt</div>
+    <h1>Snap it.<br><span class="mark">We stock it.</span></h1>
+    <p class="sub">One grocery receipt, <b>14 items</b> in your kitchen. No typing.</p>
+  </div>
+  <div class="phone" style="left:285px;top:1150px;transform:rotate(-5deg);"><div class="screen"><div class="island"></div><img src="raw/scan2x.png"/></div></div>
+  <div class="chip dark" style="left:150px;top:1980px;transform:rotate(-4deg);">
+    <span class="ic" style="background:rgba(248,244,238,0.14);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#E7C263" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-2.3-1.8-2.35 1.8L12 19.2 9.65 21 7.3 19.2 5 21V3z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg></span>
+    <span class="m"><span class="lbl">Scan</span><b>Done in 10s</b></span>
+  </div>
+
+  <!-- 2 · FRIDGE -->
+  <div class="head t-light" style="left:1365px;">
+    <div class="step-badge"><span class="dot">2</span>Your fridge fills itself</div>
+    <h1>Everything<br>you <span class="mark">already have</span>.</h1>
+    <p class="sub">Sorted by what to use first, so nothing spoils at the back.</p>
+  </div>
+  <div class="phone" style="left:1575px;top:1150px;transform:rotate(-5deg);"><div class="screen"><div class="island"></div><img src="raw/fridge2x.png"/></div></div>
+  <div class="chip" style="left:1440px;top:1360px;transform:rotate(-4deg);">
+    <span class="ic" style="background:rgba(199,104,69,0.14);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#C76845" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-8-3-8-8 4 0 8 3 8 8z"/><path d="M12 21c0-6 4-12 9-14-1 7-4 12-9 14z"/></svg></span>
+    <span class="m"><b>Baby spinach</b><span class="tg-today">Use today</span></span>
+  </div>
+  <div class="chip" style="left:2360px;top:2020px;transform:rotate(3deg);">
+    <span class="ic" style="background:rgba(79,138,91,0.16);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4F8A5B" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+    <span class="m"><b>8 fresh</b><span class="tg-fresh">All tracked</span></span>
+  </div>
+
+  <!-- 3 · RECIPES -->
+  <div class="head t-dark" style="left:2655px;">
+    <div class="step-badge"><span class="dot">3</span>Dinner ideas appear</div>
+    <h1>What's for<br>dinner? <span class="mark">Solved.</span></h1>
+    <p class="sub">Recipes from what's in your fridge. <b>Have it all</b>, every time.</p>
+  </div>
+  <div class="phone" style="left:2865px;top:1150px;transform:rotate(-5deg);"><div class="screen"><div class="island"></div><img src="raw/recipes2x.png"/></div></div>
+  <div class="chip dark" style="left:2720px;top:1980px;transform:rotate(-4deg);">
+    <span class="ic" style="background:rgba(248,244,238,0.14);"><svg width="34" height="34" viewBox="0 0 24 24" fill="#E7C263" stroke="#E7C263" stroke-width="1.4" stroke-linejoin="round"><path d="M12 2l2.9 6.3 6.8.7-5.1 4.6 1.5 6.7L12 17.8 5.9 20.6l1.5-6.7L2.3 9.3l6.8-.7z"/></svg></span>
+    <span class="m"><span class="lbl">4 ideas</span><b>Ready to cook</b></span>
+  </div>
+
+  <!-- 4 · COOK -->
+  <div class="head t-light" style="left:3945px;">
+    <div class="step-badge"><span class="dot">4</span>Cook it, guided</div>
+    <h1>On the table in<br><span class="mark uline">20 minutes<svg viewBox="0 0 200 14" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#E7C263" stroke-width="6" fill="none" stroke-linecap="round"/></svg></span>.</h1>
+    <p class="sub">Clear steps, exact amounts, <b>zero extra shopping</b>.</p>
+  </div>
+  <div class="phone" style="left:4155px;top:1150px;transform:rotate(-5deg);--safe:#C6D6C5;"><div class="screen"><div class="island"></div><img src="raw/recipe-detail2x.png"/></div></div>
+  <div class="chip" style="left:4020px;top:1350px;transform:rotate(-4deg);">
+    <span class="ic" style="background:rgba(79,138,91,0.16);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4F8A5B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+    <span class="m"><b>20 min</b><span class="tg-fresh">Start to plate</span></span>
+  </div>
+  <div class="chip" style="left:4620px;top:2030px;transform:rotate(3deg);">
+    <span class="ic" style="background:rgba(212,168,67,0.22);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#9A7B1F" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+    <span class="m"><b>6 ingredients</b><span class="tg-soon">All in stock</span></span>
+  </div>
+
+  <!-- 5 · SAVED -->
+  <div class="head t-dark" style="left:5235px;">
+    <div class="step-badge"><span class="dot">5</span>Watch waste vanish</div>
+    <h1>You saved<br><span class="mark">€61</span> this week.</h1>
+    <p class="sub">Every item you cook or use up, counted. <b>Real money kept.</b></p>
+  </div>
+  <div class="phone" style="left:5445px;top:1150px;transform:rotate(-5deg);"><div class="screen"><div class="island"></div><img src="raw/insights2x.png"/></div></div>
+  <div class="chip dark" style="left:5310px;top:1980px;transform:rotate(-4deg);">
+    <span class="ic" style="background:rgba(248,244,238,0.14);"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#E7C263" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+    <span class="m"><span class="lbl">Kept</span><b>€61.20</b></span>
+  </div>
+
+  <div class="cut" id="cut1"></div><div class="cut" id="cut2"></div><div class="cut" id="cut3"></div><div class="cut" id="cut4"></div><div class="cut" id="cut5"></div>
+</div>
+</body></html>

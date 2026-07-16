@@ -139,13 +139,23 @@ function StepRow({ label, status }: { label: string; status: RowStatus }) {
  * The last step and the "complete" transition are gated on the real backend
  * response — earlier steps auto-advance as reassurance.
  */
-export function ReceiptReadingProgress({ step = "recognising" }: { step?: ProcessingStep }) {
+export function ReceiptReadingProgress({
+  step = "recognising",
+  variant = "receipt",
+}: {
+  step?: ProcessingStep;
+  variant?: "receipt" | "pantry";
+}) {
   const { t } = useTranslation();
 
   const currentIndex = step === "complete" ? STEP_ORDER.length : STEP_ORDER.indexOf(step);
+  // Step labels are generic to both flows; only the title and per-step body
+  // copy are pantry- vs receipt-specific.
   const labels = [t("scan.processingStep1"), t("scan.processingStep2"), t("scan.processingStep3")];
+  const titleKey = variant === "pantry" ? "scan.pantry.processingTitle" : "scan.processingTitle";
+  const bodyIndex = step === "recognising" ? 1 : step === "matching" ? 2 : 3;
   const bodyKey =
-    step === "recognising" ? "scan.processingBody1" : step === "matching" ? "scan.processingBody2" : "scan.processingBody3";
+    variant === "pantry" ? `scan.pantry.processingBody${bodyIndex}` : `scan.processingBody${bodyIndex}`;
 
   function statusFor(index: number): RowStatus {
     if (index < currentIndex) return "done";
@@ -158,7 +168,7 @@ export function ReceiptReadingProgress({ step = "recognising" }: { step?: Proces
       <ReceiptPulse />
       <View style={styles.copy}>
         <Text variant="h1" center>
-          {t("scan.processingTitle")}
+          {t(titleKey)}
         </Text>
         <Text variant="body" muted center style={styles.body}>
           {t(bodyKey)}
