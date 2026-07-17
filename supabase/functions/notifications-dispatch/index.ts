@@ -4,12 +4,15 @@ import {
   isWithinSendWindow, isRecapDay, sentToday, buildDailySuggestion,
 } from "../_shared/notificationRules.ts";
 
-// Hourly cron entrypoint. Service-role only (invoked via pg_net with the service key).
+// Hourly cron entrypoint. Guarded by CRON_SECRET (shared with the Vault
+// `cron_secret` used by invoke_edge_fn) so a logged-in user can't trigger the
+// whole dispatch batch on demand. Not the service-role key: that env var's
+// format changed under us once (JWT → sb_secret) and silently broke the
+// compare; a dedicated secret has no such coupling.
 Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  // Reject anything but the service-role bearer so a logged-in user can't
-  // trigger the whole dispatch batch on demand.
-  if (req.headers.get("Authorization") !== `Bearer ${serviceKey}`) {
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (!cronSecret || req.headers.get("Authorization") !== `Bearer ${cronSecret}`) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
 

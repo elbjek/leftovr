@@ -66,6 +66,14 @@ skip_nonce_check = true
 [functions.revenuecat-webhook]
 verify_jwt = false
 
+# Invoked from Postgres (pg_net) with the CRON_SECRET bearer, not a JWT — the
+# functions check it themselves.
+[functions.notifications-dispatch]
+verify_jwt = false
+
+[functions.notify-member-activity]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 policy = "oneshot"
