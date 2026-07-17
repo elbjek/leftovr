@@ -81,8 +81,8 @@ const RECEIPT_SCHEMA = {
 };
 
 // Upper bound on the receipt AI call. Typical scans finish in a few seconds;
-// 45s is generous headroom for a long receipt while still failing a hung call.
-const RECEIPT_AI_TIMEOUT_MS = 45_000;
+// 30s covers a long receipt while failing a hung call fast.
+const RECEIPT_AI_TIMEOUT_MS = 30_000;
 
 const PROMPT = [
   "Read this grocery receipt (a photo or a PDF e-receipt) and normalize every purchased food line item.",
@@ -310,6 +310,14 @@ Deno.serve(async (req) => {
         prompt_tokens: response.usage?.prompt_tokens ?? null,
       })
       .eq("id", scan.id);
+
+    // The free taste is consumed only by a successful scan (items found);
+    // failed and empty scans stay free so a bad photo never burns it.
+    await supabase
+      .from("profiles")
+      .update({ free_receipt_scan_used_at: new Date().toISOString() })
+      .eq("id", userId)
+      .is("free_receipt_scan_used_at", null);
 
     console.info("[normalize-receipt] normalized", {
       scanId: scan.id,

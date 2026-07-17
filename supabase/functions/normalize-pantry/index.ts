@@ -87,7 +87,9 @@ const PANTRY_SCHEMA = {
 const MAX_PANTRY_PHOTOS = 3;
 // A full pantry (~40+ items across 3 photos) takes longer than a receipt;
 // still fail a hung call instead of keeping the user waiting forever.
-const PANTRY_AI_TIMEOUT_MS = 60_000;
+// 30s: with detail:"low" thumbnails a normal extraction finishes well under
+// this; anything longer is a hung request or unusable photos — fail fast.
+const PANTRY_AI_TIMEOUT_MS = 30_000;
 
 const PROMPT = [
   "These are photos of the inside of someone's kitchen: pantry shelves, fridge, cupboards, or countertops. Identify every distinct edible food and drink item you can see.",
@@ -231,7 +233,13 @@ Deno.serve(async (req) => {
         }
         return {
           type: "image_url",
-          image_url: { url: `data:image/jpeg;base64,${bytesToBase64(new Uint8Array(await file.arrayBuffer()))}` },
+          // detail:"low" = one 512px thumbnail per photo (~2.8k tokens vs ~25k
+          // tiled). Pantry scans identify objects, not fine print, so the
+          // downscale is acceptable; receipts must stay on high detail.
+          image_url: {
+            url: `data:image/jpeg;base64,${bytesToBase64(new Uint8Array(await file.arrayBuffer()))}`,
+            detail: "low",
+          },
         } satisfies OpenAI.Chat.Completions.ChatCompletionContentPart;
       }),
     );
@@ -247,7 +255,9 @@ Deno.serve(async (req) => {
     const client = new OpenAI({ apiKey });
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
-      max_tokens: 8000,
+      // 4000 comfortably fits a large 3-photo pantry (~40 tokens/item) while
+      // keeping worst-case generation time inside the 30s timeout.
+      max_tokens: 4000,
       messages: [{
         role: "user",
         content: [{ type: "text", text: PROMPT }, ...imageParts],
@@ -299,6 +309,14 @@ Deno.serve(async (req) => {
         image_path: null,
       })
       .eq("id", scan.id);
+
+    // The free taste is consumed only by a successful scan (items found);
+    // failed and empty scans stay free so a bad photo never burns it.
+    await supabase
+      .from("profiles")
+      .update({ free_receipt_scan_used_at: new Date().toISOString() })
+      .eq("id", userId)
+      .is("free_receipt_scan_used_at", null);
 
     console.info("[normalize-pantry] normalized", {
       scanId: scan.id,
