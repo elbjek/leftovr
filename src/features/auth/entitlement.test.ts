@@ -31,14 +31,18 @@ describe("isPremium", () => {
 });
 
 describe("canShareHousehold", () => {
-  it("is true only for household_premium", () => {
-    expect(canShareHousehold(household("household_premium"))).toBe(true);
+  it("is true when the household is household_premium", () => {
+    expect(canShareHousehold(profile("free"), household("household_premium"))).toBe(true);
+  });
+  it("is true when own profile is household_premium (household row not yet synced)", () => {
+    expect(canShareHousehold(profile("household_premium"), household("free"))).toBe(true);
+    expect(canShareHousehold(profile("household_premium"), null)).toBe(true);
   });
   it("is false for individual premium", () => {
-    expect(canShareHousehold(household("premium"))).toBe(false);
+    expect(canShareHousehold(profile("premium"), household("premium"))).toBe(false);
   });
   it("is false for free and null", () => {
-    expect(canShareHousehold(household("free"))).toBe(false);
-    expect(canShareHousehold(null)).toBe(false);
+    expect(canShareHousehold(profile("free"), household("free"))).toBe(false);
+    expect(canShareHousehold(null, null)).toBe(false);
   });
 });

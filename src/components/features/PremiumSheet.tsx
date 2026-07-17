@@ -27,7 +27,7 @@ type Props = {
   onDismiss: () => void;
 };
 
-export function PremiumSheet({ visible, plan = "individual", onPurchased, onDismiss }: Props) {
+export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
   const { t } = useTranslation();
   const { profile, activeHousehold } = useAuth();
   const hasHouseholdPlan =
@@ -36,11 +36,12 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
   // The tier the user is on now (null = free) — used to mark the current plan.
   const currentType: PremiumPlan | null = hasHouseholdPlan ? "household" : hasAnyPremium ? "individual" : null;
 
-  // Tabs: everyone sees both Individual and Household. Default to the current
-  // plan when subscribed, else the caller's hint.
+  // Tabs: everyone sees both Individual and Household. The caller's hint wins
+  // (e.g. a household gate must show the Household tab even for an individual
+  // subscriber), then the current plan, then Individual.
   const [planTypeOverride, setPlanTypeOverride] = useState<PremiumPlan | null>(null);
   const [period, setPeriod] = useState<BillingPeriod>("yearly");
-  const planType = planTypeOverride ?? currentType ?? plan;
+  const planType = planTypeOverride ?? plan ?? currentType ?? "individual";
 
   const household = planType === "household";
   const isViewingCurrent = hasAnyPremium && currentType === planType;
@@ -52,6 +53,8 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
 
   useEffect(() => {
     if (!visible) return;
+    // Re-open follows the caller's plan hint again, not last session's tab.
+    setPlanTypeOverride(null);
     let active = true;
     async function load() {
       setError(null);
@@ -81,6 +84,16 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
     onDismiss();
   }
 
+  // The tier is written server-side by the RevenueCat webhook, which can land
+  // seconds after the purchase resolves on-device. One immediate refresh plus
+  // a few delayed ones so the UI picks up the new tier without a reopen.
+  async function syncTier() {
+    await onPurchased?.();
+    for (const ms of [2000, 5000, 10000]) {
+      setTimeout(() => void onPurchased?.(), ms);
+    }
+  }
+
   async function handleSubscribe() {
     if (!selectedPkg) return;
     setError(null);
@@ -88,7 +101,7 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
     try {
       const purchased = await purchasePackage(selectedPkg);
       if (purchased) {
-        await onPurchased?.();
+        await syncTier();
         handleDismiss();
       }
     } catch (e) {
@@ -104,7 +117,7 @@ export function PremiumSheet({ visible, plan = "individual", onPurchased, onDism
     setBusy(true);
     try {
       await restorePurchases();
-      await onPurchased?.();
+      await syncTier();
       handleDismiss();
     } catch {
       setError(t("premium.purchaseError"));
