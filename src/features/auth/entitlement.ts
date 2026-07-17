@@ -14,9 +14,18 @@ export function isPremium(
   return household?.plan_tier === "household_premium";
 }
 
-/** Only Household Premium unlocks inviting members. */
+/**
+ * Only Household Premium unlocks inviting members. The payer's own profile
+ * tier counts too: the webhook writes profile and household rows together,
+ * but checking both keeps the gate consistent with the tier pill and unlocks
+ * the instant either row has landed.
+ */
 export function canShareHousehold(
+  profile: Pick<Profile, "tier"> | null,
   household: Pick<Household, "plan_tier"> | null,
 ): boolean {
-  return household?.plan_tier === "household_premium";
+  return (
+    profile?.tier === "household_premium" ||
+    household?.plan_tier === "household_premium"
+  );
 }

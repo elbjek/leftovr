@@ -19,7 +19,7 @@ import {
 } from "@/components";
 import { canShareHousehold, useAuth, useMeasurementSystem } from "@/features";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
-import { deleteAccount, exportAccountData, registerDevice } from "@/services";
+import { deleteAccount, exportAccountData, presentCodeRedemptionSheet, registerDevice } from "@/services";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
 import {
   updateHouseholdCurrency,
@@ -86,7 +86,7 @@ export default function SettingsRoute() {
     if (next) await registerDevice();
     await fn(next);
   };
-  const isHouseholdPremium = canShareHousehold(activeHousehold);
+  const isHouseholdPremium = canShareHousehold(profile, activeHousehold);
 
   function handleLanguageChange(language: SupportedLanguage) {
     i18n.changeLanguage(language);
@@ -504,6 +504,11 @@ export default function SettingsRoute() {
                 setPremiumPlan(currentTier === "household_premium" ? "household" : "individual");
                 setShowPremium(true);
               }}
+            />
+            <Button
+              title={t("premium.redeemCode")}
+              variant="ghost"
+              onPress={() => void presentCodeRedemptionSheet()}
             />
           </View>
         </Card>

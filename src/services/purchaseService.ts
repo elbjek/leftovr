@@ -82,3 +82,12 @@ export async function restorePurchases(): Promise<void> {
   configurePurchases();
   await getPurchases().restorePurchases();
 }
+
+/** Open the App Store offer-code redemption sheet (iOS 14+). The sheet gives
+ *  no completion callback; entitlement lands via the RevenueCat webhook and
+ *  shows up on the next profile refresh. */
+export async function presentCodeRedemptionSheet(): Promise<void> {
+  if (!isAvailable()) return;
+  configurePurchases();
+  await getPurchases().presentCodeRedemptionSheet();
+}
