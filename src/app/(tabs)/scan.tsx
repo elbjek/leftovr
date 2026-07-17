@@ -28,6 +28,7 @@ import {
 } from "@/repositories";
 import {
   BarcodeProduct,
+  friendlyMessage,
   getShelfLifeDays,
   INVENTORY_CATEGORIES,
   InventoryCategory,
@@ -263,20 +264,29 @@ export default function ScanRoute() {
       setConfirmAllowsDuplicate(false);
       setMode("confirm");
     } catch (scanError) {
-      if (isReceiptQuotaError(scanError) && !canScanReceipt) {
+      // Server gate rejections are authoritative — the cached profile can
+      // lag behind (e.g. free taste consumed on another attempt), so never
+      // condition the paywall on local entitlement state.
+      if (isReceiptQuotaError(scanError)) {
         setMode("choice");
         setScanPremiumVisible(true);
         return;
       }
-      if ((await readEdgeErrorCode(scanError)) === "receipt_scan_monthly_limit") {
+      const code = await readEdgeErrorCode(scanError);
+      if (code === "receipt_scan_monthly_limit") {
         setError(t("scan.monthlyLimit"));
+        setMode("choice");
+        return;
+      }
+      if (code === "receipt_scan_rate_limited") {
+        setError(t("scan.rateLimited"));
         setMode("choice");
         return;
       }
       setError(errorMessage(scanError, t("auth.genericError")));
       setMode("choice");
     }
-  }, [activeHousehold?.id, canScanReceipt, t]);
+  }, [activeHousehold?.id, t]);
 
   const openSelectedChoice = useCallback(async (nextChoice = choice, options?: { skipGate?: boolean }) => {
     consumedModeRef.current = nextChoice;
@@ -431,14 +441,21 @@ export default function ScanRoute() {
       setConfirmAllowsDuplicate(false);
       setMode("confirm");
     } catch (scanError) {
-      // Edge function gate: free scan already used and not premium.
-      if (isReceiptQuotaError(scanError) && !canScanReceipt) {
+      // Server gate rejections are authoritative — the cached profile can lag
+      // behind, so never condition the paywall on local entitlement state.
+      if (isReceiptQuotaError(scanError)) {
         setMode("choice");
         setScanPremiumVisible(true);
         return;
       }
-      if ((await readEdgeErrorCode(scanError)) === "receipt_scan_monthly_limit") {
+      const code = await readEdgeErrorCode(scanError);
+      if (code === "receipt_scan_monthly_limit") {
         setError(t("scan.monthlyLimit"));
+        setMode("camera");
+        return;
+      }
+      if (code === "receipt_scan_rate_limited") {
+        setError(t("scan.rateLimited"));
         setMode("camera");
         return;
       }
@@ -508,15 +525,22 @@ export default function ScanRoute() {
       setConfirmAllowsDuplicate(false);
       setMode("confirm");
     } catch (scanError) {
-      // Edge function gate: free scan already used and not premium.
-      if (isReceiptQuotaError(scanError) && !canScanReceipt) {
+      // Server gate rejections are authoritative — the cached profile can lag
+      // behind, so never condition the paywall on local entitlement state.
+      if (isReceiptQuotaError(scanError)) {
         setPantryPhotos([]);
         setMode("choice");
         setScanPremiumVisible(true);
         return;
       }
-      if ((await readEdgeErrorCode(scanError)) === "receipt_scan_monthly_limit") {
+      const code = await readEdgeErrorCode(scanError);
+      if (code === "receipt_scan_monthly_limit") {
         setError(t("scan.monthlyLimit"));
+        setMode("pantryCamera");
+        return;
+      }
+      if (code === "receipt_scan_rate_limited") {
+        setError(t("scan.rateLimited"));
         setMode("pantryCamera");
         return;
       }
@@ -1474,13 +1498,9 @@ function isReceiptQuotaError(err: unknown): boolean {
   );
 }
 
-function errorMessage(err: unknown, fallback: string): string {
-  if (err instanceof Error) return err.message;
-  if (typeof err === "object" && err !== null && typeof (err as { message?: unknown }).message === "string") {
-    return (err as { message: string }).message;
-  }
-  return fallback;
-}
+// Shared friendlyMessage keeps meaningful messages but replaces transport
+// noise ("non-2xx", fetch failures) with the localized fallback.
+const errorMessage = friendlyMessage;
 
 function getParamChoice(mode?: string): ScanChoice | null {
   if (mode === "barcode" || mode === "manual" || mode === "receipt" || mode === "ereceipt" || mode === "pantry") {

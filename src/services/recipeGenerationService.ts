@@ -11,6 +11,13 @@ export type RecipeGenerationFilters = RecipeMatcherInput["filters"];
  *  cap message instead of falling back to mock matches. */
 export class RecipeMonthlyLimitError extends Error {}
 
+/** Server 402: free generation already spent and not premium. The server
+ *  verdict is authoritative — cached entitlement state may lag behind. */
+export class RecipeQuotaError extends Error {}
+
+/** Server 429 daily cap (premium only — free users hit the 402 gate first). */
+export class RecipeRateLimitedError extends Error {}
+
 export type AiRecipeCard = {
   title: string;
   description: string;
@@ -264,8 +271,15 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
       },
     });
     if (error) {
-      if (await readEdgeErrorCode(error) === "recipe_generation_monthly_limit") {
+      const code = await readEdgeErrorCode(error);
+      if (code === "recipe_generation_monthly_limit") {
         throw new RecipeMonthlyLimitError();
+      }
+      if (code === "recipe_generation_quota_exceeded") {
+        throw new RecipeQuotaError();
+      }
+      if (code === "recipe_generation_rate_limited") {
+        throw new RecipeRateLimitedError();
       }
       if (__DEV__) console.warn("[recipes] Edge function error", error);
       throw error;
@@ -285,7 +299,13 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
     }
     return matches;
   } catch (error) {
-    if (error instanceof RecipeMonthlyLimitError) throw error;
+    if (
+      error instanceof RecipeMonthlyLimitError ||
+      error instanceof RecipeQuotaError ||
+      error instanceof RecipeRateLimitedError
+    ) {
+      throw error;
+    }
     if (__DEV__) console.warn("[recipes] AI generation failed, using mock matcher", error);
     return null;
   }

@@ -15,7 +15,15 @@ import {
   matchRecipes,
   RecipeMatch,
 } from "@/services/recipeService";
-import { expandRecipe, generateRecipeMatches, RecipeGenerationFilters, RecipeMonthlyLimitError } from "@/services/recipeGenerationService";
+import {
+  expandRecipe,
+  generateRecipeMatches,
+  RecipeGenerationFilters,
+  RecipeMonthlyLimitError,
+  RecipeQuotaError,
+  RecipeRateLimitedError,
+} from "@/services/recipeGenerationService";
+import { friendlyMessage } from "@/services/edgeErrors";
 import { useTranslation } from "react-i18next";
 import { ingredientSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
@@ -35,6 +43,9 @@ type RecipesState = {
   cookedSummaries: Record<string, CookedSummary>;
   /** True once a session was created this app session (free taste consumed). */
   consumedFreeGeneration: boolean;
+  /** Server said 402 (free generation spent) — the screen opens the paywall.
+   *  Server verdict is authoritative over cached entitlement state. */
+  quotaExceeded: boolean;
   error: string | null;
 };
 
@@ -69,6 +80,7 @@ export function useRecipes(
     cookedRecipes: [],
     cookedSummaries: {},
     consumedFreeGeneration: false,
+    quotaExceeded: false,
     error: null,
   });
 
@@ -83,6 +95,7 @@ export function useRecipes(
         cookedRecipes: [],
         cookedSummaries: {},
         consumedFreeGeneration: s.consumedFreeGeneration,
+        quotaExceeded: false,
         error: null,
       }));
       return;
@@ -138,7 +151,7 @@ export function useRecipes(
       setState((s) => ({
         ...s,
         loading: false,
-        error: err instanceof Error ? err.message : "Could not load recipes.",
+        error: friendlyMessage(err, t("auth.genericError")),
       }));
     }
   }, [householdId, userId]);
@@ -171,7 +184,7 @@ export function useRecipes(
         }
 
         generationInFlightRef.current = true;
-        setState((s) => ({ ...s, generating: true, error: null }));
+        setState((s) => ({ ...s, generating: true, quotaExceeded: false, error: null }));
 
         try {
           // Expired items are too old to cook with — keep them out of both the
@@ -333,11 +346,19 @@ export function useRecipes(
             setState((s) => ({ ...s, generating: false, error: t("recipes.monthlyLimit") }));
             return null;
           }
+          if (err instanceof RecipeQuotaError) {
+            setState((s) => ({ ...s, generating: false, quotaExceeded: true }));
+            return null;
+          }
+          if (err instanceof RecipeRateLimitedError) {
+            setState((s) => ({ ...s, generating: false, error: t("recipes.rateLimited") }));
+            return null;
+          }
           if (__DEV__) console.warn("[recipes] generation persistence failed", err);
           setState((s) => ({
             ...s,
             generating: false,
-            error: err instanceof Error ? err.message : "Could not generate recipes.",
+            error: friendlyMessage(err, t("auth.genericError")),
           }));
           return null;
         } finally {
