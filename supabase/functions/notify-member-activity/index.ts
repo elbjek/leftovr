@@ -7,11 +7,13 @@ const COALESCE_MIN = 10;
 // Invoked by the inventory_items AFTER INSERT trigger via pg_net.
 // Body: { household_id, actor_id, count }
 Deno.serve(async (req) => {
-  // Service-role only: invoked by the inventory trigger via pg_net with the
-  // service key. A valid user JWT alone (verify_jwt gateway) is not enough —
-  // require the service-role bearer so users can't spoof activity pushes.
+  // Invoked by the inventory trigger via pg_net with the Vault `cron_secret`.
+  // A valid user JWT alone is not enough — require the shared secret so users
+  // can't spoof activity pushes. (Not the service-role key: its env format
+  // changed once and silently broke the compare.)
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  if (req.headers.get("Authorization") !== `Bearer ${serviceKey}`) {
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (!cronSecret || req.headers.get("Authorization") !== `Bearer ${cronSecret}`) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
 
