@@ -9,6 +9,7 @@ import {
   UpdateInventoryItemInput,
 } from "@/repositories";
 import { groupInventoryLots, InventoryGroup, InventoryLot, stillGoodExpiryDate } from "@/services";
+import { friendlyMessage } from "@/services/edgeErrors";
 import { useMeasurementSystem } from "@/features/settings/useMeasurementSystem";
 
 type InventoryState = {
@@ -54,7 +55,7 @@ export function useInventory(householdId?: string | null) {
       setState((current) => ({
         ...current,
         loading: false,
-        error: error instanceof Error ? error.message : "Could not load inventory.",
+        error: friendlyMessage(error, "Could not load inventory."),
       }));
     }
   }, [householdId]);

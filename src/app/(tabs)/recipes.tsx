@@ -63,6 +63,7 @@ export default function RecipesRoute() {
     toggleFavorite,
     currentSessionId,
     cookedSummaries,
+    quotaExceeded,
     error: recipeError,
   } = useRecipes(activeHousehold?.id, {
     inventory,
@@ -72,6 +73,12 @@ export default function RecipesRoute() {
     servings,
     userId: profile?.id,
   });
+
+  // Server-side 402 (free generation spent) — authoritative over the local
+  // canGenerate gate, which can lag behind the profile row.
+  useEffect(() => {
+    if (quotaExceeded) setShowPremium(true);
+  }, [quotaExceeded]);
 
   useFocusEffect(
     useCallback(() => {
