@@ -12,7 +12,10 @@ import { formatPerMonth, savePercent } from "./perMonth";
 
 // iOS deep link to the system Manage Subscriptions screen.
 const MANAGE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
-const TERMS_URL = "https://leftovr.co/terms/";
+// Apple's standard EULA (Licensed Application EULA). Used as the paywall Terms
+// of Use link because the App Store listing adopts the standard EULA rather
+// than a custom License Agreement.
+const TERMS_URL = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 const PRIVACY_URL = "https://leftovr.co/privacy/";
 
 type PremiumPlan = "individual" | "household";
