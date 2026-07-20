@@ -736,6 +736,10 @@ export const en = {
       ownerBlocked:
         "You own an active Household Premium plan with other members. Transfer ownership or cancel it before joining another household.",
       premiumRequired: "Household sharing requires Household Premium.",
+      subWarningTitle: "You have an active subscription",
+      subWarningBody:
+        "Joining this household covers your premium. Your current subscription won't be refunded and won't cancel on its own — cancel it in your App Store settings so you don't pay twice.",
+      subWarningContinue: "Join anyway",
       addedBy: "Added by {{name}}",
     },
   },
