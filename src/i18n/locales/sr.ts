@@ -738,6 +738,10 @@ export const sr = {
       ownerBlocked:
         "Ti si vlasnik aktivnog Household Premium plana sa drugim clanovima. Prenesi vlasnistvo ili ga otkazi pre nego sto se pridruzis drugom domacinstvu.",
       premiumRequired: "Deljenje domacinstva zahteva Household Premium.",
+      subWarningTitle: "Imas aktivnu pretplatu",
+      subWarningBody:
+        "Ulazak u ovo domacinstvo pokriva tvoj premium. Postojeca pretplata nece biti refundirana i nece se sama otkazati — otkazi je u App Store podesavanjima da ne placas dvaput.",
+      subWarningContinue: "Ipak se pridruzi",
       addedBy: "Dodao/la {{name}}",
     },
   },

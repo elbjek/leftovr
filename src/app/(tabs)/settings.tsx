@@ -337,6 +337,7 @@ export default function SettingsRoute() {
             currentUserId={profile.id}
             activeInvite={household.activeInvite}
             isPremium={isHouseholdPremium}
+            hasOwnPaidSub={(profile.tier ?? "free") !== "free"}
             currentItemCount={lots.length}
             onCreateInvite={household.createInvite}
             onLookupCode={household.lookupCode}

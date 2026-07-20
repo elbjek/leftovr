@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Share, StyleSheet, View } from "react-native";
+import { Alert, Share, StyleSheet, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
@@ -13,6 +13,9 @@ type Props = {
   currentUserId: string;
   activeInvite: HouseholdInvite | null;
   isPremium: boolean;
+  /** True when the user personally pays for a subscription (individual or the
+   *  household payer). Joining another household won't refund or cancel it. */
+  hasOwnPaidSub: boolean;
   currentItemCount: number;
   onCreateInvite: () => Promise<HouseholdInvite | null>;
   onLookupCode: (code: string) => Promise<InviteLookup | null>;
@@ -21,12 +24,29 @@ type Props = {
   initialJoinCode?: string;
 };
 
+// Native confirm dialog resolved as a promise so handleJoin can await the
+// user's choice before committing the (irreversible) household switch.
+function confirmActiveSubscription(t: (key: string) => string): Promise<boolean> {
+  return new Promise((resolve) => {
+    Alert.alert(
+      t("settings.household.subWarningTitle"),
+      t("settings.household.subWarningBody"),
+      [
+        { text: t("common.cancel"), style: "cancel", onPress: () => resolve(false) },
+        { text: t("settings.household.subWarningContinue"), style: "destructive", onPress: () => resolve(true) },
+      ],
+      { cancelable: true, onDismiss: () => resolve(false) },
+    );
+  });
+}
+
 export function HouseholdSection({
   householdName,
   members,
   currentUserId,
   activeInvite,
   isPremium,
+  hasOwnPaidSub,
   currentItemCount,
   onCreateInvite,
   onLookupCode,
@@ -111,6 +131,9 @@ export function HouseholdSection({
   }
 
   async function handleJoin(moveItems: boolean) {
+    // Joining is covered by the new household, but the user's own subscription
+    // won't refund or auto-cancel — warn the payer before they proceed.
+    if (hasOwnPaidSub && !(await confirmActiveSubscription(t))) return;
     setJoinLoading(true);
     setJoinError(null);
     try {
