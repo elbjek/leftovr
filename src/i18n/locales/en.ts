@@ -804,7 +804,7 @@ export const en = {
     yearly: "Yearly",
     perMonth: "/month",
     perYear: "/year",
-    saveBadge: "Save 40%",
+    saveBadge: "Save {{percent}}%",
     billedYearly: "Billed once a year",
     upToMembers: "Up to 3 members per household",
     subscribe: "Subscribe",

@@ -806,7 +806,7 @@ export const sr = {
     yearly: "Godisnje",
     perMonth: "/mesecno",
     perYear: "/godisnje",
-    saveBadge: "Usteda 40%",
+    saveBadge: "Usteda {{percent}}%",
     billedYearly: "Naplaćuje se jednom godišnje",
     upToMembers: "Do 3 clana po domacinstvu",
     subscribe: "Pretplati se",
