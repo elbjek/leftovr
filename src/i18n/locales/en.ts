@@ -207,7 +207,7 @@ export const en = {
     title: "Hey, here's what you have.",
     titleWithName: "{{name}}, here's what you have.",
     greeting: "Good evening",
-    greetingWithName: "Good evening, {{name}}",
+    greetingWithName: "Good evening {{name}}",
     homeTitle: "Your fridge",
     body: "Grouped by shelf, with rough quantities and no date math homework.",
     search: "Search your kitchen",

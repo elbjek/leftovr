@@ -207,7 +207,7 @@ export const sr = {
     title: "Hej, evo sta imas.",
     titleWithName: "{{name}}, evo sta imas.",
     greeting: "Dobro vece",
-    greetingWithName: "Dobro vece, {{name}}",
+    greetingWithName: "Dobro vece {{name}}",
     homeTitle: "Tvoj frizider",
     body: "Grupisano po policama, sa grubim kolicinama bez tacnih datuma.",
     search: "Pretrazi kuhinju",

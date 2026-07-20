@@ -138,6 +138,13 @@ export default function FridgeRoute() {
     { fresh: 0, soon: 0, urgent: 0 },
   );
   const weekday = new Date().toLocaleDateString(undefined, { weekday: "long" });
+  // Greet by first name when the profile has a usable one (not blank, not an
+  // email placeholder); otherwise fall back to the plain greeting.
+  const rawName = profile?.display_name?.trim() ?? "";
+  const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
+  const greetingText = firstName
+    ? t("fridge.greetingWithName", { name: firstName })
+    : t("fridge.greeting");
   const categoryShelves = buildCategoryShelves(filteredGroups, t);
   const { members } = useHousehold(activeHousehold?.id);
   const showAddedBy = members.length > 1;
@@ -170,7 +177,7 @@ export default function FridgeRoute() {
     >
       <ScreenHeader
         style={styles.header}
-        eyebrow={`${t("fridge.greeting")} · ${weekday}`}
+        eyebrow={`${greetingText} · ${weekday}`}
         title={t("fridge.homeTitle")}
         actions={<IconButton label={t("fridge.refresh")} onPress={refresh}><RefreshIcon /></IconButton>}
       />
