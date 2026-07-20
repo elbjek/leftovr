@@ -739,6 +739,7 @@ export const en = {
       subWarningTitle: "You have an active subscription",
       subWarningBody:
         "Joining this household covers your premium. Your current subscription won't be refunded and won't cancel on its own — cancel it in your App Store settings so you don't pay twice.",
+      subWarningManage: "Manage subscription",
       subWarningContinue: "Join anyway",
       addedBy: "Added by {{name}}",
     },

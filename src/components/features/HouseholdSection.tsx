@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Share, StyleSheet, View } from "react-native";
+import { Alert, Linking, Share, StyleSheet, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
@@ -24,8 +24,13 @@ type Props = {
   initialJoinCode?: string;
 };
 
+// Apple never lets an app cancel a user's subscription — they must do it in the
+// App Store. Deep-link straight to the manage-subscriptions screen.
+const MANAGE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
+
 // Native confirm dialog resolved as a promise so handleJoin can await the
-// user's choice before committing the (irreversible) household switch.
+// user's choice before committing the (irreversible) household switch. "Manage
+// subscription" sends them to the App Store to cancel and does not join.
 function confirmActiveSubscription(t: (key: string) => string): Promise<boolean> {
   return new Promise((resolve) => {
     Alert.alert(
@@ -33,6 +38,13 @@ function confirmActiveSubscription(t: (key: string) => string): Promise<boolean>
       t("settings.household.subWarningBody"),
       [
         { text: t("common.cancel"), style: "cancel", onPress: () => resolve(false) },
+        {
+          text: t("settings.household.subWarningManage"),
+          onPress: () => {
+            void Linking.openURL(MANAGE_SUBSCRIPTIONS_URL);
+            resolve(false);
+          },
+        },
         { text: t("settings.household.subWarningContinue"), style: "destructive", onPress: () => resolve(true) },
       ],
       { cancelable: true, onDismiss: () => resolve(false) },

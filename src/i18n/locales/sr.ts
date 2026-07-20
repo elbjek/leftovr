@@ -741,6 +741,7 @@ export const sr = {
       subWarningTitle: "Imas aktivnu pretplatu",
       subWarningBody:
         "Ulazak u ovo domacinstvo pokriva tvoj premium. Postojeca pretplata nece biti refundirana i nece se sama otkazati — otkazi je u App Store podesavanjima da ne placas dvaput.",
+      subWarningManage: "Upravljaj pretplatom",
       subWarningContinue: "Ipak se pridruzi",
       addedBy: "Dodao/la {{name}}",
     },
