@@ -8,7 +8,7 @@ import { isPremium, useAuth } from "@/features";
 import { findPackage, getCurrentOffering, PRODUCT_IDS, purchasePackage, restorePurchases } from "@/services";
 import { colors, radii, spacing } from "../../theme";
 import { BottomSheet, Button, SegmentedControl, Text } from "../primitives";
-import { formatPerMonth } from "./perMonth";
+import { formatPerMonth, savePercent } from "./perMonth";
 
 // iOS deep link to the system Manage Subscriptions screen.
 const MANAGE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
@@ -78,6 +78,7 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
   const monthlyPkg = findPackage(offering, productIds.monthly);
   const yearlyPkg = findPackage(offering, productIds.yearly);
   const selectedPkg = period === "monthly" ? monthlyPkg : yearlyPkg;
+  const yearlySave = savePercent(monthlyPkg, yearlyPkg);
 
   function handleDismiss() {
     setPlanTypeOverride(null);
@@ -197,7 +198,7 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
           price={yearlyPkg?.product.priceString ?? "—"}
           sub={yearlyPkg ? `${formatPerMonth(yearlyPkg, "")}${t("premium.perMonth")}` : t("premium.perYear")}
           selected={period === "yearly"}
-          badge={t("premium.saveBadge")}
+          badge={yearlySave ? t("premium.saveBadge", { percent: yearlySave }) : undefined}
           onPress={() => setPeriod("yearly")}
         />
       </View>
