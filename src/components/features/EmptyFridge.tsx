@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { colors, radii, spacing } from "../../theme";
 import { ReceiptToFridgeIllustration } from "../illustrations";
-import { Button, Text } from "../primitives";
+import { Button, ScanIcon, Text } from "../primitives";
 
 type Props = {
   /** Copy overrides; default to the fridge empty-state strings. */
@@ -36,6 +36,7 @@ export function EmptyFridge({ title, body, ctaLabel, style }: Props) {
       </View>
       <Button
         title={ctaLabel ?? t("fridge.emptyCta")}
+        iconLeft={<ScanIcon color={colors.surface} size={20} />}
         onPress={() => router.push("/(tabs)/scan")}
         style={styles.cta}
       />
