@@ -61,7 +61,7 @@ async function verifyTurnstile(token, ip) {
 function welcomeEmail(lang) {
   // Email-client-safe: table layout, inline styles, hosted PNG logo, web-safe font fallbacks.
   const render = (c) => {
-    const SERIF = "'Fraunces', Georgia, 'Times New Roman', serif";
+    const SERIF = "'Plus Jakarta Sans', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif";
     const SANS = "'Plus Jakarta Sans', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif";
     const step = (n, t) => `
               <tr>
@@ -78,7 +78,7 @@ function welcomeEmail(lang) {
 <meta name="supported-color-schemes" content="light only" />
 <title>${c.subject}</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
   body { margin:0; padding:0; }
   img { border:0; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
   a { text-decoration:none; }
@@ -99,7 +99,7 @@ function welcomeEmail(lang) {
           <!-- body -->
           <tr>
             <td align="center" style="padding: 22px 46px 4px;">
-              <h1 style="margin:0 0 16px; font-family: ${SERIF}; font-weight:600; font-size:32px; line-height:1.18; color:#1B4332;">${c.h1}</h1>
+              <h1 style="margin:0 0 16px; font-family: ${SERIF}; font-weight:700; font-size:32px; line-height:1.18; color:#1B4332;">${c.h1}</h1>
             </td>
           </tr>
           <tr>
