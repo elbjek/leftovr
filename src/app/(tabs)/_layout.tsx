@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
+import { ScanIcon } from "@/components";
 import { useAuth } from "@/features";
 import { colors, fonts } from "@/theme";
 
@@ -54,7 +55,7 @@ export default function TabsLayout() {
           title: t("tabs.scan"),
           tabBarIcon: () => (
             <View style={styles.scanButton}>
-              <ScanIcon color={colors.surface} />
+              <ScanIcon color={colors.surface} size={26} />
             </View>
           ),
           tabBarLabelStyle: [styles.label, styles.scanLabel],
@@ -124,7 +125,7 @@ function LeftovrTabBar({ state, navigation }: TabBarProps) {
                   pressed && styles.pressed,
                 ]}
               >
-                <ScanIcon color={colors.surface} />
+                <ScanIcon color={colors.surface} size={26} />
               </Pressable>
               <Text style={styles.scanLabel}>{label}</Text>
             </View>
@@ -209,16 +210,6 @@ function SettingsIcon({ color }: { color: string }) {
       <Circle cx={15} cy={8} r={2.6} fill={colors.surface} stroke={color} strokeWidth={1.8} />
       <Line x1={4} y1={16} x2={20} y2={16} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
       <Circle cx={9} cy={16} r={2.6} fill={colors.surface} stroke={color} strokeWidth={1.8} />
-    </Svg>
-  );
-}
-
-function ScanIcon({ color }: { color: string }) {
-  return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-      <Path d="M5 3h14v18l-2.3-1.8-2.35 1.8L12 19.2 9.65 21 7.3 19.2 5 21V3z" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Line x1={9} y1={8} x2={15} y2={8} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      <Line x1={9} y1={12} x2={13} y2={12} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
 }

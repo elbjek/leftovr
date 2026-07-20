@@ -217,7 +217,7 @@ export const sr = {
     refresh: "Osvezi",
     emptyTitle: "Ovde jos nema namirnica.",
     emptyBody: "Skeniraj racun i Leftovr ce dodati kupljene namirnice za par sekundi — bez kucanja.",
-    emptyCta: "Skeniraj racun",
+    emptyCta: "Skeniraj",
     expiringDemo: "+ Spanać ističe",
     expiringEmpty: "Nista hitno trenutno.",
     kitchenPulse: {
@@ -462,7 +462,7 @@ export const sr = {
     noMakeable: "Jos nema sta da se skuva od onoga sto imas. Skeniraj racun ili dodaj par stavki, pa pokusaj ponovo.",
     emptyAction: "Sta da kuvam?",
     generateCta: "Sta da kuvam?",
-    scanCta: "Skeniraj racun",
+    scanCta: "Skeniraj",
     scanBody: "Dodaj namirnice u kuhinju i Leftovr ce ih pretvoriti u ideje za recepte.",
     generatingOverlay: {
       title: "Smisljamo ideje",
@@ -863,7 +863,7 @@ export const sr = {
     day3Dismiss: "Razumem",
     day5Title: "Odrzi kuhinju azurnom",
     day5Body: "Skeniraj jos jedan racun da azuriras inventar. Drugi sken cini predloge mnogo pametnijim.",
-    day5Action: "Skeniraj racun",
+    day5Action: "Skeniraj",
     day7Title: "Tvoja prva nedelja",
     day7BodyWaste: "Ove nedelje si izbegao/la bacanje oko {{count}} artikala.",
     day7BodyMoney: "Ove nedelje si ustedeo/la oko ${{amount}}.",

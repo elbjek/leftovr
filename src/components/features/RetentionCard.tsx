@@ -7,10 +7,11 @@ type Props = {
   title: string;
   body: string;
   actionLabel?: string;
+  actionIcon?: React.ReactNode;
   onAction?: () => void;
 };
 
-export function RetentionCard({ title, body, actionLabel, onAction }: Props) {
+export function RetentionCard({ title, body, actionLabel, actionIcon, onAction }: Props) {
   return (
     <Card style={styles.card}>
       <View style={styles.icon}>
@@ -24,7 +25,9 @@ export function RetentionCard({ title, body, actionLabel, onAction }: Props) {
           {body}
         </Text>
       </View>
-      {actionLabel ? <Button title={actionLabel} variant="text" onPress={onAction} /> : null}
+      {actionLabel ? (
+        <Button title={actionLabel} variant="text" iconLeft={actionIcon} onPress={onAction} />
+      ) : null}
     </Card>
   );
 }

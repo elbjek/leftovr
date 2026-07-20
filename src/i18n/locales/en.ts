@@ -217,7 +217,7 @@ export const en = {
     refresh: "Refresh",
     emptyTitle: "Nothing here yet.",
     emptyBody: "Scan a grocery receipt and Leftovr adds what you bought in seconds — no typing.",
-    emptyCta: "Scan a receipt",
+    emptyCta: "Scan",
     expiringDemo: "+ Expiring spinach",
     expiringEmpty: "Nothing urgent right now.",
     kitchenPulse: {
@@ -462,7 +462,7 @@ export const en = {
     noMakeable: "Nothing to cook from what you have yet. Scan a receipt or add a few items, then try again.",
     emptyAction: "What should I cook?",
     generateCta: "What should I cook?",
-    scanCta: "Scan a receipt",
+    scanCta: "Scan",
     scanBody: "Add food to your kitchen and Leftovr turns it into recipe ideas.",
     generatingOverlay: {
       title: "Cooking up ideas",
@@ -861,7 +861,7 @@ export const en = {
     day3Dismiss: "Got it",
     day5Title: "Keep your kitchen current",
     day5Body: "Scan another receipt to keep your inventory up to date. Your second scan makes suggestions much smarter.",
-    day5Action: "Scan a receipt",
+    day5Action: "Scan",
     day7Title: "Your first week",
     day7BodyWaste: "This week you avoided wasting an estimated {{count}} items.",
     day7BodyMoney: "This week you saved an estimated ${{amount}}.",

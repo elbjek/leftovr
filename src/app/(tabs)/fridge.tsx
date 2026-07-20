@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, ScanIcon, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -265,6 +265,7 @@ export default function FridgeRoute() {
             title={t("retention.day5Title")}
             body={t("retention.day5Body")}
             actionLabel={t("retention.day5Action")}
+            actionIcon={<ScanIcon color={colors.primary} size={18} />}
             onAction={() => router.push({ pathname: "/(tabs)/scan", params: { mode: "receipt" } })}
           />
         </View>
