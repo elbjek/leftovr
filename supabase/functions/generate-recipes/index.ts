@@ -527,19 +527,21 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
     profile.tier === "premium" ||
     profile.tier === "household_premium" ||
     household?.plan_tier === "household_premium";
-  if (!premium && profile.free_recipe_generation_used_at) {
-    return { response: Response.json({ error: "recipe_generation_quota_exceeded" }, { status: 402 }) };
-  }
-
-  // Replays cost no model call, so they run before the caps below: a request
-  // that already completed (or is in flight) must never be rate-limited.
+  // Replays cost no model call, so they run before every gate: a request that
+  // already completed must never be rate-limited — or 402'd, since the server
+  // stamps the free generation the moment that run succeeded (A7), and a
+  // client that missed the response retries with the same key.
   if (existing?.status === "completed" && existing.response_json) {
     return { response: Response.json(existing.response_json) };
   }
-  // A "processing" row older than any real generation (edge fns time out well
-  // before this) is a crashed attempt: retry it instead of answering 202
-  // forever (B15). created_at is refreshed on each retry below.
-  const STALE_PROCESSING_MS = 2 * 60_000;
+
+  if (!premium && profile.free_recipe_generation_used_at) {
+    return { response: Response.json({ error: "recipe_generation_quota_exceeded" }, { status: 402 }) };
+  }
+  // A "processing" row older than any real generation (past the edge
+  // function's wall-clock limit) is a crashed attempt: retry it instead of
+  // answering 202 forever (B15). created_at is refreshed on each retry below.
+  const STALE_PROCESSING_MS = 7 * 60_000;
   if (
     existing?.status === "processing" &&
     now.getTime() - Date.parse(existing.created_at) < STALE_PROCESSING_MS
