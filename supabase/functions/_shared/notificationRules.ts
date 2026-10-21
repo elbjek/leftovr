@@ -19,9 +19,19 @@ function hhmmToMinutes(t: string): number {
   return h * 60 + m;
 }
 
+// The dispatcher runs hourly at :00, so a window counts as open when it
+// overlaps the coming hour — otherwise "13:30-14:00" would never match. A
+// window whose end is before its start crosses midnight ("22:00-07:00") (C11).
 export function isWithinSendWindow(now: Date, start: string, end: string, tz: string): boolean {
   const { minutes } = tzParts(now, tz);
-  return minutes >= hhmmToMinutes(start) && minutes < hhmmToMinutes(end);
+  const s = hhmmToMinutes(start);
+  const e = hhmmToMinutes(end);
+  if (s === e) return false;
+  const windows: [number, number][] = e > s ? [[s, e]] : [[s, 1440], [0, e]];
+  const hours: [number, number][] = minutes + 60 <= 1440
+    ? [[minutes, minutes + 60]]
+    : [[minutes, 1440], [0, minutes + 60 - 1440]];
+  return windows.some(([ws, we]) => hours.some(([hs, he]) => ws < he && we > hs));
 }
 
 export function isRecapDay(now: Date, tz: string): boolean {

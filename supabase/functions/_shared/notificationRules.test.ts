@@ -63,3 +63,18 @@ Deno.test("urgencyFromExpiry matches client thresholds; past-date items are neve
   assertEquals(urgencyFromExpiry("2026-10-20", now), "expired");  // past date: client grace, no push
   assertEquals(urgencyFromExpiry("2026-10-17", now), "expired");
 });
+
+Deno.test("isWithinSendWindow: window not on the hour opens in the hour it starts (C11)", () => {
+  const run = new Date("2026-06-19T11:00:00Z"); // 13:00 +02:00
+  assertEquals(isWithinSendWindow(run, "13:30", "14:00", "Europe/Belgrade"), true);
+  assertEquals(isWithinSendWindow(new Date("2026-06-19T12:00:00Z"), "13:30", "14:00", "Europe/Belgrade"), false); // 14:00
+});
+
+Deno.test("isWithinSendWindow: windows may cross midnight (C11)", () => {
+  const tz = "Europe/Belgrade"; // +02:00 in June
+  assertEquals(isWithinSendWindow(new Date("2026-06-19T21:00:00Z"), "22:00", "07:00", tz), true);  // 23:00
+  assertEquals(isWithinSendWindow(new Date("2026-06-19T01:00:00Z"), "22:00", "07:00", tz), true);  // 03:00
+  assertEquals(isWithinSendWindow(new Date("2026-06-19T05:00:00Z"), "22:00", "07:00", tz), false); // 07:00
+  assertEquals(isWithinSendWindow(new Date("2026-06-19T10:00:00Z"), "22:00", "07:00", tz), false); // 12:00
+  assertEquals(isWithinSendWindow(new Date("2026-06-19T19:00:00Z"), "21:30", "22:00", tz), true);  // 21:00 run
+});

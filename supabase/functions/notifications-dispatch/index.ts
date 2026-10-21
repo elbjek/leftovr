@@ -207,6 +207,7 @@ async function runTopUp(supabase: any, now: Date): Promise<number> {
     const { data: already } = await supabase
       .from("notification_sends").select("id").eq("household_id", h.id).eq("type", "topup").limit(1);
     if ((already ?? []).length > 0) continue;
+    if (!(await householdWindowOpen(supabase, h.id, now))) continue;
     count += await pushToHousehold(supabase, h.id, now, "topup",
       { title: "Keep your suggestions sharp", body: "Scan a receipt so leftovr knows what you have.", data: { type: "topup" } });
   }
@@ -217,7 +218,7 @@ async function runReengagement(supabase: any, now: Date): Promise<number> {
   const cutoff = new Date(now.getTime() - 5 * 86400000).toISOString();
   const { data: users } = await supabase
     .from("profiles")
-    .select("id, notification_preferences!inner(push_token, notifications_enabled, reengagement_enabled)")
+    .select("id, active_household_id, notification_preferences!inner(push_token, notifications_enabled, reengagement_enabled)")
     .lt("last_active_at", cutoff);
   let count = 0;
   for (const u of users ?? []) {
@@ -228,12 +229,25 @@ async function runReengagement(supabase: any, now: Date): Promise<number> {
       .from("notification_sends").select("id")
       .eq("user_id", u.id).eq("type", "reengagement").gte("sent_at", cutoff).limit(1);
     if ((recent ?? []).length > 0) continue;
+    if (u.active_household_id && !(await householdWindowOpen(supabase, u.active_household_id, now))) continue;
     const dead = await sendPush([token], { title: "What's for dinner?", body: "Open leftovr for a quick idea from what you have.", data: { type: "reengagement" } });
     await recordSends(supabase, [u.id], null, "reengagement", now);
     await nullDeadTokens(supabase, dead);
     count += 1;
   }
   return count;
+}
+
+// Top-up and re-engagement respect the household's send window too (C11).
+// No settings row → no window configured → allowed, as before.
+async function householdWindowOpen(supabase: any, householdId: string, now: Date): Promise<boolean> {
+  const { data: hs } = await supabase
+    .from("household_notification_settings")
+    .select("send_window_start, send_window_end, timezone")
+    .eq("household_id", householdId)
+    .maybeSingle();
+  if (!hs) return true;
+  return isWithinSendWindow(now, hs.send_window_start, hs.send_window_end, hs.timezone);
 }
 
 // Only used by top-up — gate by the master switch + the per-user tips opt-out.
