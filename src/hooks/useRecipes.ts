@@ -25,7 +25,7 @@ import {
 } from "@/services/recipeGenerationService";
 import { friendlyMessage } from "@/services/edgeErrors";
 import { useTranslation } from "react-i18next";
-import { ingredientSignature } from "@/lib";
+import { recipeSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 
@@ -219,19 +219,27 @@ export function useRecipes(
           // (fewer cards also keeps complex generations fast).
           const candidates = matches.slice(0, isPremium ? 2 : 1);
 
-          // Drop recipes whose ingredient set already exists — saved in a past
+          // Drop recipes that use the same fridge lots as one saved in a past
           // generation, or duplicated across this run's premium variants — so
           // the recipe list doesn't accumulate same-dish-different-title dupes.
           const existingSignatures = new Set(
             savedRecipesRef.current
               .filter((recipe) => recipe.session_id !== currentSessionIdRef.current)
               .map((recipe) =>
-                ingredientSignature(recipe.ingredients as { name?: string }[]),
+                recipeSignature(
+                  recipe.used_inventory_item_ids,
+                  recipe.ingredients as { name?: string }[],
+                ),
               ),
           );
           const runSignatures = new Set<string>();
           const top = candidates.filter((match) => {
-            const signature = ingredientSignature(match.ingredients);
+            const signature = recipeSignature(
+              match.matchedItems
+                .filter((m) => m.inFridge && m.inventoryLot)
+                .map((m) => m.inventoryLot!.id),
+              match.ingredients,
+            );
             if (!signature || existingSignatures.has(signature) || runSignatures.has(signature)) {
               return false;
             }
