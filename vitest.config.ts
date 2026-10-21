@@ -16,8 +16,13 @@ export default defineConfig({
     environment: "node",
     // Edge-function tests run under Deno (`deno test supabase/functions/...`); they
     // use Deno.test + https std imports that vitest's node loader can't resolve.
-    // Exception: cache-merge is pure TS with a vitest suite, so it runs here.
-    include: ["src/**/*.test.ts", "supabase/functions/normalize-receipt/cache-merge.test.ts"],
+    // Exceptions: cache-merge and _shared/avoidances are pure TS with vitest
+    // suites, so they run here.
+    include: [
+      "src/**/*.test.ts",
+      "supabase/functions/normalize-receipt/cache-merge.test.ts",
+      "supabase/functions/_shared/avoidances.test.ts",
+    ],
     globals: true,
   },
   define: {

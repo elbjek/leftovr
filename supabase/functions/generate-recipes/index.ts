@@ -1,5 +1,6 @@
 import OpenAI from "npm:openai@^4.77.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
+import { mentionsAvoidance } from "../_shared/avoidances.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@^2.46.1";
 
 type GenerateRecipesRequest = {
@@ -805,15 +806,14 @@ function isReadyToEatOnly(recipe: AiRecipeCard, inventory: InventoryItem[]): boo
 
 function violatesAvoidances(recipe: AiRecipeCard, avoidances: string[]) {
   if (avoidances.length === 0) return false;
-  const normalizedAvoidances = avoidances.map((avoidance) => avoidance.toLowerCase().trim());
   const searchable = [
     ...recipe.avoidanceTags,
     ...recipe.ingredients.map((ingredient) => ingredient.name),
     ...recipe.steps,
-  ].map((value) => value.toLowerCase());
+  ];
 
-  return normalizedAvoidances.some((avoidance) =>
-    searchable.some((value) => value.includes(avoidance)),
+  return avoidances.some((avoidance) =>
+    searchable.some((value) => mentionsAvoidance(value, avoidance)),
   );
 }
 
@@ -942,7 +942,6 @@ function validateCards(
   itemsById: Map<string, InventoryItem>,
   dropReasons: string[],
 ): AiRecipeCardLite[] {
-  const normalizedAvoidances = avoidances.map((a) => a.toLowerCase().trim());
   const keptSignatures: Set<string>[] = [];
   const kept: AiRecipeCardLite[] = [];
 
@@ -970,8 +969,9 @@ function validateCards(
       continue;
     }
     if (
-      normalizedAvoidances.length > 0 &&
-      normalizedAvoidances.some((a) => titleLc.includes(a) || usedNames.some((n) => n.includes(a)))
+      avoidances.some((a) =>
+        mentionsAvoidance(card.title, a) || usedNames.some((n) => mentionsAvoidance(n, a)),
+      )
     ) {
       dropReasons.push(`"${card.title}": touches an avoidance`);
       continue;
@@ -1237,8 +1237,7 @@ function deriveComplexity(stepCount: number, timeMinutes: number): AiRecipeCard[
 
 function deriveAvoidanceTags(ingredients: { name: string }[], avoidances: string[]): string[] {
   if (avoidances.length === 0) return [];
-  const names = ingredients.map((i) => i.name.toLowerCase());
-  return avoidances.filter((a) => names.some((n) => n.includes(a.toLowerCase().trim())));
+  return avoidances.filter((a) => ingredients.some((i) => mentionsAvoidance(i.name, a)));
 }
 
 function estimateTime(stepCount: number): number {
