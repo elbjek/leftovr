@@ -28,7 +28,8 @@ export default function LanguageRoute() {
   async function handleContinue() {
     await i18n.changeLanguage(selectedLanguage);
     await AsyncStorage.setItem(HAS_PICKED_LANGUAGE_KEY, "true");
-    router.replace("/(onboarding)/hook");
+    // Index routes on: hook only if not yet seen, else sign-in / profile onboarding / tabs.
+    router.replace("/");
   }
 
   return (

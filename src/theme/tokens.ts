@@ -39,11 +39,11 @@ export const fonts = {
   display: "Fraunces",
   displaySemiBold: "FrauncesSemiBold",
   displayItalic: "FrauncesItalic",
-  body: "PlusJakartaSans",
-  bodyMedium: "PlusJakartaSansMedium",
-  bodySemiBold: "PlusJakartaSansSemiBold",
-  bodyBold: "PlusJakartaSansBold",
-  bodyExtraBold: "PlusJakartaSansExtraBold",
+  body: "Nunito",
+  bodyMedium: "NunitoMedium",
+  bodySemiBold: "NunitoSemiBold",
+  bodyBold: "NunitoBold",
+  bodyExtraBold: "NunitoExtraBold",
   fallback: "System",
 } as const;
 
