@@ -25,7 +25,7 @@ function lot(name: string, normalized_name: string): InventoryLot {
     removed_at: null,
     expires_at: null,
     purchase_price: null,
-    purchase_amount: null,
+    purchase_amount: null, purchase_currency: null,
   };
 }
 

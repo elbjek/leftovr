@@ -187,7 +187,7 @@ describe("groupInventoryLots keeps different units apart (C3)", () => {
     id, name: "Potatoes", normalized_name: "potatoes", brand_name: null, category: "vegetables",
     quantity, unit, net_amount: null, net_unit: null, partial_state: "full", shelf_life_range: null,
     expires_at: null, source: "manual", added_at: new Date().toISOString(), removed_at: null,
-    added_by: null, added_by_name: null, purchase_price: null, purchase_amount: null,
+    added_by: null, added_by_name: null, purchase_price: null, purchase_amount: null, purchase_currency: null,
   });
   it("does not add 3 pcs and 0.8 kg together", () => {
     const groups = groupInventoryLots([lot("a", 3, "pcs"), lot("b", 0.8, "kg")]);

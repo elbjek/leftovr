@@ -52,6 +52,8 @@ export type InventoryLot = {
   added_by_name: string | null;
   purchase_price: number | null;
   purchase_amount: number | null;
+  /** Currency the price was entered in (C16); null when unpriced. */
+  purchase_currency: string | null;
 };
 
 export type InventoryGroup = {

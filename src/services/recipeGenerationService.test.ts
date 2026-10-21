@@ -31,7 +31,7 @@ const input: RecipeGenerationInput = {
       removed_at: null,
       expires_at: null,
       purchase_price: null,
-      purchase_amount: null,
+      purchase_amount: null, purchase_currency: null,
     },
   ],
   avoidances: ["dairy"],

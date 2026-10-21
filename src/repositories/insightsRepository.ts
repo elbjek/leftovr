@@ -86,7 +86,7 @@ export async function getInsightsData(
 
   let valueQuery = supabase
     .from("value_events")
-    .select("kind, value")
+    .select("kind, value, currency, households!inner(currency_code)")
     .eq("household_id", householdId)
     .gte("occurred_at", since);
   if (until) valueQuery = valueQuery.lt("occurred_at", until);
@@ -113,7 +113,11 @@ export async function getInsightsData(
   let moneySpent = 0;
   let moneySaved = 0;
   let moneyWasted = 0;
-  for (const row of (value.data ?? []) as { kind: string; value: number }[]) {
+  // Only the household's current currency counts: after a currency change,
+  // older amounts stay in the export but don't mix into totals (C16).
+  type ValueRow = { kind: string; value: number; currency: string | null; households: { currency_code: string } };
+  for (const row of (value.data ?? []) as unknown as ValueRow[]) {
+    if (row.currency != null && row.currency !== row.households.currency_code) continue;
     if (row.kind === "spend") moneySpent += row.value;
     else if (row.kind === "saved") moneySaved += row.value;
     else if (row.kind === "wasted") moneyWasted += row.value;

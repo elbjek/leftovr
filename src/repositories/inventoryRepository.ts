@@ -44,7 +44,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
   const { data, error } = await supabase
     .from("inventory_items")
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at, added_by, purchase_price, purchase_amount, profiles!added_by(display_name)",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at, added_by, purchase_price, purchase_amount, purchase_currency, profiles!added_by(display_name)",
     )
     .eq("household_id", householdId)
     .is("removed_at", null)
@@ -73,6 +73,7 @@ export async function listActiveHouseholdInventory(householdId: string) {
     added_by: row.added_by,
     added_by_name: row.profiles?.display_name ?? null,
     purchase_price: row.purchase_price ?? null,
+    purchase_currency: row.purchase_currency ?? null,
     purchase_amount: row.purchase_amount ?? null,
   })) as InventoryLot[];
 }
@@ -127,7 +128,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       purchase_amount: input.price != null ? purchaseAmount : null,
     })
     .select(
-      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at, purchase_price, purchase_amount",
+      "id, household_id, name, normalized_name, brand_name, category, quantity, unit, net_amount, net_unit, partial_state, shelf_life_range, expires_at, source, added_at, removed_at, purchase_price, purchase_amount, purchase_currency",
     )
     .single<InventoryLot>();
 
@@ -159,7 +160,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
 
 type RemovableLot = Pick<
   InventoryLot,
-  "id" | "normalized_name" | "category" | "net_amount" | "quantity" | "purchase_price" | "purchase_amount"
+  "id" | "normalized_name" | "category" | "net_amount" | "quantity" | "purchase_price" | "purchase_amount" | "purchase_currency"
 >;
 
 /**
@@ -213,6 +214,8 @@ export async function removeInventoryGroup(
       value: valueOfAmount(remaining, unit),
       normalizedName: lot.normalized_name,
       category: lot.category,
+      // Valued at the lot's price, so it's in the lot's currency (C16).
+      currency: lot.purchase_currency,
     });
   }
 }

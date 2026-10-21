@@ -152,6 +152,23 @@ export default function SettingsRoute() {
     }
   }
 
+  // Money totals only count the current currency (C16), so changing it starts
+  // them fresh — confirm first.
+  function confirmCurrency(code: string) {
+    if (!activeHousehold?.id || code === activeHousehold.currency_code) {
+      setEditingCurrency(false);
+      return;
+    }
+    Alert.alert(
+      t("settings.currencyChangeTitle", { code }),
+      t("settings.currencyChangeBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("settings.currencyChangeConfirm"), onPress: () => void saveCurrency(code) },
+      ],
+    );
+  }
+
   async function saveCurrency(code: string) {
     if (!activeHousehold?.id) return;
     setSaving(true);
@@ -613,7 +630,7 @@ export default function SettingsRoute() {
                 key={code}
                 title={code}
                 selected={activeHousehold?.currency_code === code}
-                onPress={() => saveCurrency(code)}
+                onPress={() => confirmCurrency(code)}
               />
             ))}
           </View>
