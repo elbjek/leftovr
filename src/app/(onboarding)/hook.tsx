@@ -12,41 +12,23 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import {
-  AliveFridgeIllustration,
-  Button,
-  ForgottenFridgeIllustration,
-  Logo,
-  PageDots,
-  ReceiptToFridgeIllustration,
-  ScanLoopIllustration,
-  Screen,
-  Text,
-} from "@/components";
+import { Button, Screen, ShowcaseSlide, ShowcaseStage, Text } from "@/components";
 import { HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
-import { colors, fonts, spacing } from "@/theme";
-
-type HookSlide = {
-  key: string;
-  title: string;
-  titleAccent?: string;
-  titleAfter?: string;
-  body: string;
-  illustration: "forgotten" | "alive" | "receipt" | "scanLoop" | "socialProof" | "wordmark";
-  steps?: string[];
-  kicker?: string;
-  wordmarkKicker?: string;
-  quotes?: { text: string; byline: string }[];
-};
+import { colors, radii, spacing } from "@/theme";
 
 export default function HookCarouselRoute() {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const slideWidth = Platform.OS === "web" ? Math.min(width, 430) : width;
-  const listRef = useRef<FlatList<HookSlide>>(null);
+  const listRef = useRef<FlatList<ShowcaseSlide>>(null);
   const [current, setCurrent] = useState(0);
+  // Horizontal lists don't stretch items vertically everywhere (web), so
+  // slides take the measured list height for the stage to fill.
+  const [listHeight, setListHeight] = useState<number>();
 
-  const slides = t("onboarding.hook.slides", { returnObjects: true }) as HookSlide[];
+  const slides = t("onboarding.hook.slides", { returnObjects: true }) as ShowcaseSlide[];
+  // The intro slide is the cover; numbering covers the feature slides only.
+  const featureCount = slides.length - 1;
   const last = current === slides.length - 1;
 
   const currentRef = useRef(0);
@@ -59,23 +41,46 @@ export default function HookCarouselRoute() {
     }
   }
 
-  async function handleContinue() {
-    if (!last) {
-      const next = current + 1;
-      listRef.current?.scrollToOffset({ offset: next * slideWidth, animated: true });
-      currentRef.current = next;
-      setCurrent(next);
-      return;
-    }
-
+  async function finish() {
     await AsyncStorage.setItem(HAS_SEEN_HOOK_KEY, "true");
     router.replace("/(auth)/sign-up");
   }
 
+  function handleContinue() {
+    if (last) {
+      void finish();
+      return;
+    }
+
+    const next = current + 1;
+    listRef.current?.scrollToOffset({ offset: next * slideWidth, animated: true });
+    currentRef.current = next;
+    setCurrent(next);
+  }
+
   return (
     <Screen padded={false} backgroundColor={colors.surface}>
+      <View style={styles.topBar}>
+        <View style={styles.progress}>
+          {slides.map((slide, index) => (
+            <View
+              key={slide.key}
+              style={[styles.progressSegment, index <= current && styles.progressSegmentOn]}
+            />
+          ))}
+        </View>
+        <Button
+          title={t("onboarding.hook.skip")}
+          variant="text"
+          onPress={() => void finish()}
+          disabled={last}
+          style={last && styles.hidden}
+        />
+      </View>
       <FlatList
         ref={listRef}
+        style={styles.list}
+        onLayout={(event) => setListHeight(event.nativeEvent.layout.height)}
         data={slides}
         keyExtractor={(item) => item.key}
         horizontal
@@ -85,242 +90,112 @@ export default function HookCarouselRoute() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         getItemLayout={(_, index) => ({ length: slideWidth, offset: slideWidth * index, index })}
-        renderItem={({ item }) => (
-          <View style={[styles.slide, { width: slideWidth }]}>
-            <View style={styles.dotsTop}>
-              <PageDots count={slides.length} current={current} />
-            </View>
-            <View style={styles.illustration}>{renderIllustration(item)}</View>
-            <View style={styles.bottomBlock}>
-              <View style={[styles.copy, item.illustration === "wordmark" && styles.copyCentered]}>
-                {item.kicker ? (
-                  <Text variant="micro" muted uppercase>
-                    {item.kicker}
+        renderItem={({ item, index }) => (
+          <View style={[styles.slide, { width: slideWidth, height: listHeight }]}>
+            <ShowcaseStage slide={item} active={index === current} />
+            <View style={styles.copy}>
+              {item.eyebrow ? (
+                <View style={styles.eyebrowRow}>
+                  <Text variant="micro" color={colors.primary} uppercase>
+                    {t("onboarding.hook.chapter", {
+                      index: String(index).padStart(2, "0"),
+                      count: String(featureCount).padStart(2, "0"),
+                      eyebrow: item.eyebrow,
+                    })}
                   </Text>
-                ) : null}
-                <Text
-                  variant="display"
-                  center={item.illustration === "wordmark"}
-                  style={styles.hookTitle}
-                >
-                  {item.title}
-                  {item.titleAccent ? (
-                    <Text variant="display" color={colors.primary} italic style={styles.hookTitle}>
-                      {item.titleAccent}
-                    </Text>
+                  {item.badge ? (
+                    <View style={styles.badge}>
+                      <Text variant="micro" color={colors.text}>
+                        {item.badge}
+                      </Text>
+                    </View>
                   ) : null}
-                  {item.titleAfter}
-                </Text>
-                {item.body ? (
-                  <Text
-                    variant="body"
-                    muted
-                    center={item.illustration === "wordmark"}
-                    style={item.illustration !== "wordmark" && styles.bodyText}
-                  >
-                    {item.body}
+                </View>
+              ) : null}
+              <Text variant="display" style={styles.title}>
+                {item.title}
+                {item.titleAccent ? (
+                  <Text variant="display" color={colors.primary} italic style={styles.title}>
+                    {item.titleAccent}
                   </Text>
                 ) : null}
-                {item.steps ? (
-                  <View style={styles.steps}>
-                    {item.steps.map((step, index) => (
-                      <View key={step} style={styles.step}>
-                        <View style={styles.stepRail}>
-                          <View style={styles.stepDot}>
-                            <Text variant="small" color={colors.surface}>
-                              {index + 1}
-                            </Text>
-                          </View>
-                          {index < (item.steps?.length ?? 0) - 1 ? (
-                            <View style={styles.stepConnector} />
-                          ) : null}
-                        </View>
-                        <View style={styles.stepLabelWrap}>
-                          <Text variant="h3" style={styles.stepLabel}>
-                            {step}
-                          </Text>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-              </View>
-              <Button
-                title={last ? t("onboarding.hook.cta") : t("common.continue")}
-                onPress={handleContinue}
-              />
+              </Text>
+              <Text variant="body" muted>
+                {item.body}
+              </Text>
             </View>
           </View>
         )}
       />
+      <View style={styles.footer}>
+        <Button
+          title={last ? t("onboarding.hook.cta") : t("common.continue")}
+          onPress={handleContinue}
+        />
+      </View>
     </Screen>
   );
 }
 
-function renderIllustration(slide: HookSlide) {
-  if (slide.illustration === "forgotten") return <ForgottenFridgeIllustration width={220} height={220} />;
-  if (slide.illustration === "scanLoop") return <ScanLoopIllustration width={260} height={160} />;
-  if (slide.illustration === "socialProof") return <SocialProofIllustration quotes={slide.quotes ?? []} />;
-  if (slide.illustration === "wordmark") return <WordmarkIllustration kicker={slide.wordmarkKicker} />;
-  if (slide.illustration === "receipt") return <ReceiptToFridgeIllustration width={280} height={200} />;
-  return <AliveFridgeIllustration width={220} height={220} />;
-}
-
-function SocialProofIllustration({ quotes }: { quotes: { text: string; byline: string }[] }) {
-  const [first, second] = quotes;
-
-  return (
-    <View style={styles.socialProof}>
-      <View style={[styles.quoteCard, styles.quoteOne]}>
-        <Text variant="small" style={styles.quoteText}>
-          {first?.text}
-        </Text>
-        <Text variant="micro" muted style={styles.quoteByline}>
-          {first?.byline}
-        </Text>
-      </View>
-      <View style={[styles.quoteCard, styles.quoteTwo]}>
-        <Text variant="small" style={styles.quoteText}>
-          {second?.text}
-        </Text>
-        <Text variant="micro" muted style={styles.quoteByline}>
-          {second?.byline}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function WordmarkIllustration({ kicker }: { kicker?: string }) {
-  return (
-    <View style={styles.wordmarkIllustration}>
-      <View style={styles.wordmarkLockup}>
-        <Logo size={56} />
-      </View>
-      {kicker ? (
-        <Text variant="micro" muted uppercase style={styles.wordmarkKicker}>
-          {kicker}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  slide: {
-    flex: 1,
-    paddingHorizontal: 28,
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.lg,
+    paddingLeft: 28,
+    paddingRight: spacing.lg,
     paddingTop: spacing.screenTop,
-    paddingBottom: 32,
-    justifyContent: "flex-start",
+    minHeight: 44,
   },
-  dotsTop: {
-    alignItems: "center",
-    marginBottom: 28,
-  },
-  illustration: {
+  progress: {
     flex: 1,
-    minHeight: 240,
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
   },
-  bottomBlock: {
-    gap: 32,
+  progressSegment: {
+    flex: 1,
+    height: 3,
+    borderRadius: radii.pill,
+    backgroundColor: colors.hairlineStrong,
+  },
+  progressSegmentOn: {
+    backgroundColor: colors.primary,
+  },
+  hidden: {
+    opacity: 0,
+  },
+  list: {
+    flex: 1,
+  },
+  slide: {
+    paddingHorizontal: 28,
+    paddingTop: spacing.lg,
+    gap: spacing.xxl,
   },
   copy: {
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
+    gap: spacing.sm,
+    minHeight: 172,
   },
-  hookTitle: {
-    fontSize: 40,
-    lineHeight: 42,
-    marginBottom: 16,
-  },
-  copyCentered: {
-    alignItems: "center",
-  },
-  bodyText: {
-    maxWidth: "90%",
-    marginBottom: 0,
-  },
-  steps: {
-    marginTop: 4,
-    marginBottom: 0,
-    alignSelf: "stretch",
-    minWidth: 210,
-  },
-  step: {
+  eyebrowRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.md,
-  },
-  stepRail: {
-    width: 28,
     alignItems: "center",
+    gap: spacing.sm,
   },
-  stepDot: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stepConnector: {
-    width: 2,
-    height: 20,
-    marginTop: 2,
-    backgroundColor: colors.primary100,
-  },
-  stepLabelWrap: {
-    height: 28,
-    justifyContent: "center",
-  },
-  stepLabel: {
-    fontFamily: fonts.bodyMedium,
-  },
-  socialProof: {
-    width: 280,
-    height: 220,
-  },
-  quoteCard: {
-    position: "absolute",
-    width: 200,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  quoteOne: {
-    left: 0,
-    top: 8,
-    backgroundColor: colors.paper,
-    transform: [{ rotate: "-3deg" }],
-  },
-  quoteTwo: {
-    left: 76,
-    top: 104,
+  badge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
     backgroundColor: colors.accentSoft,
-    transform: [{ rotate: "4deg" }],
+    borderWidth: 1,
+    borderColor: colors.accent,
+    borderRadius: radii.pill,
   },
-  quoteByline: {
-    marginTop: spacing.xs,
+  title: {
+    fontSize: 34,
+    lineHeight: 38,
   },
-  quoteText: {
-    fontFamily: fonts.bodyBold,
-  },
-  wordmarkIllustration: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 220,
-  },
-  wordmarkLockup: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
-  wordmarkKicker: {
-    marginTop: spacing.md,
+  footer: {
+    paddingHorizontal: 28,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.screenBottom,
   },
 });

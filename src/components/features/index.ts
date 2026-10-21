@@ -3,6 +3,7 @@ export * from "./CheckTheseShelf";
 export * from "./CookPromptSheet";
 export * from "./EatFirstShelf";
 export * from "./EmptyFridge";
+export * from "./FeatureShowcase";
 export * from "./HouseholdSection";
 export * from "./FoodCard";
 export * from "./KitchenPulse";

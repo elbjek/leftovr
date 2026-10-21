@@ -1,10 +1,10 @@
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { getLocales } from "expo-localization";
 
-import { BackButton, Button, ChoiceCard, ChoiceIcon, CHOICE_ICON_NAMES, Screen, Text, TextField } from "@/components";
+import { BackButton, Button, ChoiceCard, Screen, Text, TextField } from "@/components";
 import { consumePendingInviteCode, useAuth } from "@/features";
 import {
   acceptHouseholdInvite,
@@ -14,17 +14,15 @@ import {
 } from "@/repositories";
 import { colors, spacing } from "@/theme";
 
-type StepKey = "name" | "cookingFor" | "shoppingStyle" | "primaryGoal" | "currency" | "avoidances" | "invite";
+type StepKey = "name" | "currency" | "invite";
 type Choice = {
   label: string;
   subtitle?: string;
   value: string;
-  servings?: number;
-  emoji?: string;
 };
 
-const steps: StepKey[] = ["name", "cookingFor", "shoppingStyle", "primaryGoal", "currency", "avoidances", "invite"];
-const requiredStepCount = 6;
+const steps: StepKey[] = ["name", "currency", "invite"];
+const requiredStepCount = 2;
 
 const CURRENCY_CHOICES: Choice[] = [
   { label: "USD", subtitle: "$ · US dollar", value: "USD" },
@@ -48,41 +46,12 @@ function hasUsableProfileName(displayName: string | undefined, email: string | u
   return trimmedName.toLowerCase() !== emailLocalPart?.toLowerCase();
 }
 
-function getInitialStepIndex({
-  hasSavedDisplayName,
-  cookingForSeed,
-  shoppingStyle,
-  primaryGoal,
-}: {
-  hasSavedDisplayName: boolean;
-  cookingForSeed: string | null | undefined;
-  shoppingStyle: string | null | undefined;
-  primaryGoal: string | null | undefined;
-}) {
-  if (!hasSavedDisplayName) return 0;
-  if (!cookingForSeed) return 1;
-  if (!shoppingStyle) return 2;
-  if (!primaryGoal) return 3;
-  return 4;
-}
-
 export default function OnboardingRoute() {
   const { t } = useTranslation();
   const { profile, refresh, user, activeHousehold } = useAuth();
   const hasSavedDisplayName = hasUsableProfileName(profile?.display_name, user?.email);
-  const initialStepIndex = getInitialStepIndex({
-    hasSavedDisplayName,
-    cookingForSeed: profile?.cooking_for_seed,
-    shoppingStyle: profile?.shopping_style,
-    primaryGoal: profile?.primary_goal,
-  });
-  const [stepIndex, setStepIndex] = useState(initialStepIndex);
+  const [stepIndex, setStepIndex] = useState(hasSavedDisplayName ? 1 : 0);
   const [displayName, setDisplayName] = useState(hasSavedDisplayName ? profile?.display_name ?? "" : "");
-  const [cookingFor, setCookingFor] = useState(profile?.cooking_for_seed ?? "partner");
-  const [servings, setServings] = useState(profile?.default_servings ?? 2);
-  const [shoppingStyle, setShoppingStyle] = useState(profile?.shopping_style ?? "weekly");
-  const [primaryGoal, setPrimaryGoal] = useState(profile?.primary_goal ?? "waste");
-  const [avoidances, setAvoidances] = useState<string[]>(profile?.avoidances ?? []);
   const [currency, setCurrency] = useState<string>(activeHousehold?.currency_code ?? guessCurrency());
   const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -99,17 +68,9 @@ export default function OnboardingRoute() {
     eyebrow?: string;
     title: string;
     body?: string;
-    choices?: Choice[];
-    skipLabel?: string;
     inputLabel?: string;
   };
-  const canContinue = useMemo(() => {
-    if (step === "name") return displayName.trim().length > 0;
-    if (step === "cookingFor") return Boolean(cookingFor);
-    if (step === "shoppingStyle") return Boolean(shoppingStyle);
-    if (step === "primaryGoal") return Boolean(primaryGoal);
-    return true;
-  }, [cookingFor, displayName, primaryGoal, shoppingStyle, step]);
+  const canContinue = step !== "name" || displayName.trim().length > 0;
 
   function handleBack() {
     setError(null);
@@ -138,12 +99,14 @@ export default function OnboardingRoute() {
     setError(null);
 
     try {
+      // Servings, shopping style, goal and avoidances are no longer asked up
+      // front; keep anything already saved, else seed defaults (editable in Settings).
       const personalization: OnboardingPersonalization = {
-        cookingForSeed: cookingFor,
-        defaultServings: servings,
-        shoppingStyle,
-        primaryGoal,
-        avoidances,
+        cookingForSeed: profile?.cooking_for_seed ?? "partner",
+        defaultServings: profile?.default_servings ?? 2,
+        shoppingStyle: profile?.shopping_style ?? "weekly",
+        primaryGoal: profile?.primary_goal ?? "waste",
+        avoidances: profile?.avoidances ?? [],
         currencyCode: currency,
       };
 
@@ -169,14 +132,6 @@ export default function OnboardingRoute() {
     } finally {
       setSubmitting(false);
     }
-  }
-
-  function toggleAvoidance(value: string) {
-    setAvoidances((current) =>
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value],
-    );
   }
 
   return (
@@ -230,53 +185,12 @@ export default function OnboardingRoute() {
           />
         ) : null}
 
-        {step === "cookingFor" ? (
-          <ChoiceList
-            choices={stepCopy.choices ?? []}
-            selected={cookingFor}
-            onSelect={(choice) => {
-              setCookingFor(choice.value);
-              setServings(choice.servings ?? 1);
-            }}
-          />
-        ) : null}
-
-        {step === "shoppingStyle" ? (
-          <ChoiceList
-            choices={stepCopy.choices ?? []}
-            selected={shoppingStyle}
-            onSelect={(choice) => setShoppingStyle(choice.value)}
-          />
-        ) : null}
-
-        {step === "primaryGoal" ? (
-          <ChoiceList
-            choices={stepCopy.choices ?? []}
-            selected={primaryGoal}
-            onSelect={(choice) => setPrimaryGoal(choice.value)}
-          />
-        ) : null}
-
         {step === "currency" ? (
           <ChoiceList
             choices={CURRENCY_CHOICES}
             selected={currency}
             onSelect={(choice) => setCurrency(choice.value)}
           />
-        ) : null}
-
-        {step === "avoidances" ? (
-          <View style={styles.choices}>
-            {(stepCopy.choices ?? []).map((choice) => (
-              <ChoiceCard
-                key={choice.value}
-                title={choice.label}
-                selected={avoidances.includes(choice.value)}
-                icon={CHOICE_ICON_NAMES.includes(choice.value) ? <ChoiceIcon name={choice.value} /> : undefined}
-                onPress={() => toggleAvoidance(choice.value)}
-              />
-            ))}
-          </View>
         ) : null}
 
         {step === "invite" ? (
@@ -300,20 +214,18 @@ export default function OnboardingRoute() {
         <View style={styles.footer}>
           <Button
             title={
-              stepIndex === steps.length - 1
-                ? t("common.continue")
-                : stepCopy.skipLabel ?? t("common.continue")
+  t("common.continue")
             }
             disabled={!canContinue}
             loading={submitting}
             onPress={goNext}
           />
-          {step === "avoidances" || step === "invite" ? (
+          {step === "invite" ? (
             <Button
               title={t("common.skipForNow")}
               variant="text"
               disabled={submitting}
-              onPress={() => (step === "invite" ? void handleSubmit(true) : goNext())}
+              onPress={() => void handleSubmit(true)}
             />
           ) : null}
         </View>
@@ -339,13 +251,6 @@ function ChoiceList({
           title={choice.label}
           subtitle={choice.subtitle}
           selected={selected === choice.value}
-          icon={
-            CHOICE_ICON_NAMES.includes(choice.value) ? (
-              <ChoiceIcon name={choice.value} />
-            ) : choice.emoji ? (
-              <Text style={styles.choiceEmoji}>{choice.emoji}</Text>
-            ) : undefined
-          }
           onPress={() => onSelect(choice)}
         />
       ))}
@@ -393,10 +298,6 @@ const styles = StyleSheet.create({
   choices: {
     flexGrow: 1,
     gap: 10,
-  },
-  choiceEmoji: {
-    fontSize: 22,
-    lineHeight: 26,
   },
   footer: {
     gap: 8,
