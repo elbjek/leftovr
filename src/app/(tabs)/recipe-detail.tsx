@@ -7,7 +7,7 @@ import Svg, { Path } from "react-native-svg";
 import { BottomSheet, Button, Card, RecipeGlyph, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import { notifyInventoryChanged, useInventory } from "@/hooks";
-import { expandRecipe, formatComplexity, formatTimeLabel, InventoryGroup, isPantryStaple, normalizeFoodName } from "@/services";
+import { canonicalFoodName, expandRecipe, formatComplexity, formatTimeLabel, InventoryGroup, isPantryStaple } from "@/services";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
@@ -29,7 +29,7 @@ type IngredientItem = {
 // Inventory key for an ingredient. Names are localized (e.g. "paradajz"), so
 // the untranslated matchKey wins; older recipes without one fall back to name.
 const ingredientKey = (ing: { name: string; matchKey?: string | null }) =>
-  ing.matchKey ?? normalizeFoodName(ing.name);
+  ing.matchKey ?? canonicalFoodName(ing.name);
 
 export default function RecipeDetailRoute() {
   const { t } = useTranslation();
