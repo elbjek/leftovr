@@ -280,8 +280,12 @@ export async function confirmNormalizedReceiptScan(input: {
       ? await fetchPricedLots(input.householdId)
       : [];
     for (const row of inventoryRows) {
+      // Same basis as purchase_amount: net g/ml when known, else the count.
       const spend = row.purchase_price ??
-        valueOfAmount(row.purchase_amount ?? row.quantity, categoryAverageUnitPrice(pricedLots, row.category));
+        valueOfAmount(
+          row.net_amount ?? row.quantity,
+          categoryAverageUnitPrice(pricedLots, row.category, row.net_amount != null ? row.net_unit : null),
+        );
       await insertValueEvent({
         householdId: input.householdId,
         kind: "spend",

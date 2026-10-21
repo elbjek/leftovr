@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 import { sendPush } from "../_shared/sendPush.ts";
 import {
-  isWithinSendWindow, isRecapDay, sentToday, buildDailySuggestion,
+  isWithinSendWindow, isRecapDay, sentToday, buildDailySuggestion, toUrgencyGroups,
 } from "../_shared/notificationRules.ts";
 
 // Hourly cron entrypoint. Guarded by CRON_SECRET (shared with the Vault
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       .select("name, expires_at")
       .eq("household_id", h.household_id)
       .is("removed_at", null);
-    const groups = toUrgencyGroups(inv ?? []);
+    const groups = toUrgencyGroups(inv ?? [], now);
     const goal = (members?.[0] as any)?.profiles?.primary_goal ?? null;
     const payload = recap
       ? { title: "Your week with leftovr", body: "See what you used and saved this week.", data: { type } }
@@ -92,20 +92,6 @@ Deno.serve(async (req) => {
   return Response.json({ ok: true, results });
 });
 
-// Mirrors client inventoryRules urgency derivation from expires_at.
-function toUrgencyGroups(items: { name: string; expires_at: string | null }[]) {
-  const dayMs = 86400000;
-  const now = Date.now();
-  return items.map((i) => {
-    let urgency = "fresh";
-    if (i.expires_at) {
-      const days = (new Date(i.expires_at).getTime() - now) / dayMs;
-      urgency = days <= 1 ? "urgent" : days <= 3 ? "use_soon" : "fresh";
-    }
-    return { name: i.name, urgency };
-  });
-}
-
 function buildDailyPayload(groups: { name: string; urgency: string }[], goal: string | null) {
   const s = buildDailySuggestion(groups, goal);
   return s ? { title: s.title, body: s.body, data: { type: "daily", items: s.items } } : null;
@@ -118,9 +104,11 @@ function startOfDayUtcFloor(now: Date): string {
 
 async function recordSends(supabase: any, userIds: string[], householdId: string | null, type: string, now: Date) {
   if (userIds.length === 0) return;
-  await supabase.from("notification_sends").insert(
+  const { error } = await supabase.from("notification_sends").insert(
     userIds.map((user_id) => ({ user_id, household_id: householdId, type, sent_at: now.toISOString() })),
   );
+  // An unrecorded send silently breaks dedup and the daily cap — surface it.
+  if (error) console.error(`notification_sends insert failed (${type}):`, error.message);
 }
 
 async function nullDeadTokens(supabase: any, dead: string[]) {
@@ -169,7 +157,7 @@ async function runEatFirst(supabase: any, now: Date): Promise<number> {
       .select("name, expires_at")
       .eq("household_id", householdId)
       .is("removed_at", null);
-    const urgent = toUrgencyGroups(inv ?? []).filter((g) => g.urgency === "urgent");
+    const urgent = toUrgencyGroups(inv ?? [], now).filter((g) => g.urgency === "urgent");
     if (urgent.length === 0) continue;
 
     const names = urgent.slice(0, 3).map((g) => g.name);

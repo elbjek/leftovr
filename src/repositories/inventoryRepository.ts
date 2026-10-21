@@ -140,7 +140,10 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
   let spendValue = input.price ?? 0;
   if (input.price == null) {
     const lots = await fetchPricedLots(input.householdId);
-    spendValue = valueOfAmount(purchaseAmount, categoryAverageUnitPrice(lots, category));
+    spendValue = valueOfAmount(
+      purchaseAmount,
+      categoryAverageUnitPrice(lots, category, netAmount != null ? netUnit : null),
+    );
   }
   await insertValueEvent({
     householdId: input.householdId,

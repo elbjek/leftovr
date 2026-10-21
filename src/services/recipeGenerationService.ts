@@ -28,7 +28,8 @@ export type AiRecipeCard = {
   category: string;
   tags: string[];
   avoidanceTags: string[];
-  ingredients: { name: string; amount: string; required: boolean; countable: boolean }[];
+  // matchKey: household item's canonical (untranslated) name, from expand.
+  ingredients: { name: string; amount: string; required: boolean; countable: boolean; matchKey?: string | null }[];
   steps: string[];
 };
 
@@ -136,7 +137,7 @@ export function mapAiCardsToMatches(
 }
 
 export type ExpandRecipeResult = {
-  ingredients: { name: string; amount: string; required: boolean; countable: boolean }[];
+  ingredients: { name: string; amount: string; required: boolean; countable: boolean; matchKey?: string | null }[];
   steps: string[];
   timeMinutes: number;
   complexity: MockRecipe["complexity"];
