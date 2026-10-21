@@ -695,7 +695,7 @@ export default function ScanRoute() {
       setDraftProduct(null);
       setMode("addSuccess");
     } catch (addError) {
-      setError(addError instanceof Error ? addError.message : t("auth.genericError"));
+      setError(errorMessage(addError, t("auth.genericError")));
     }
   }
 
