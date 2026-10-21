@@ -42,6 +42,9 @@ export type ReceiptConfirmItem = {
   included: boolean;
   // Raw OCR text the line was scanned from; shown as "scanned as" context.
   rawText?: string;
+  // The model's display name before any user edit. When `name` differs, the
+  // user corrected a misread and `normalizedName` no longer applies (B6).
+  scannedName?: string;
   // Optional user-picked expiry (YYYY-MM-DD); falls back to shelf-life range.
   expiresAt?: string | null;
   // Per-line price (read or AI-estimated), in the receipt's currency.
@@ -98,6 +101,7 @@ export function buildReceiptConfirmItemsFromLines(
       looksUnnamed(line.item.name),
     included: true,
     rawText: line.rawText,
+    scannedName: line.item.name,
     price: line.item.price ?? null,
   }));
 }
@@ -120,13 +124,15 @@ export function buildConfirmedReceiptInventoryRows(
       return {
         household_id: input.householdId,
         name,
-        // A recognized (often edited) name wins — the user's correction is
-        // authoritative. Otherwise use the model's English canonical so a
-        // foreign receipt name still matches English recipe ingredients;
-        // fall back to the raw name only when neither is available.
-        normalized_name: getCatalogFood(name)
-          ? canonicalFoodName(name)
-          : item.normalizedName?.trim() || normalizeFoodName(name),
+        // A recognized or edited name wins — the user's correction is
+        // authoritative, even for foods outside the catalog (B6). Otherwise
+        // use the model's English canonical so a foreign receipt name still
+        // matches English recipe ingredients; fall back to the raw name only
+        // when neither is available.
+        normalized_name:
+          getCatalogFood(name) || (item.scannedName != null && name !== item.scannedName.trim())
+            ? canonicalFoodName(name)
+            : item.normalizedName?.trim() || normalizeFoodName(name),
         category: item.category,
         quantity,
         unit,

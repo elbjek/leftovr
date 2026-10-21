@@ -143,3 +143,34 @@ describe("receipt service", () => {
     expect(rows[0].expires_at).toBeNull();
   });
 });
+
+describe("confirmed rows from scanned lines", () => {
+  const scanned = (overrides: Partial<NormalizedReceiptLine["item"]> = {}): NormalizedReceiptLine => ({
+    rawText: "JOGURT 180G",
+    confidence: 0.95,
+    item: { name: "Jogurt", normalizedName: "yogurt", category: "dairy_eggs", quantity: 2, unit: "cup", netAmount: 180, netUnit: "g", ...overrides },
+  });
+  const input = { householdId: "h", scanId: "s", userId: "u", addedAt: "2026-10-21T10:00:00.000Z" };
+
+  it("keeps the model's match key when the name wasn't edited", () => {
+    const [row] = buildConfirmedReceiptInventoryRows(
+      buildReceiptConfirmItemsFromLines([scanned({ name: "Ajvar", normalizedName: "roasted pepper relish" })]),
+      input,
+    );
+    expect(row.normalized_name).toBe("roasted pepper relish");
+  });
+
+  it("re-derives the match key from an edited name (B6)", () => {
+    const [item] = buildReceiptConfirmItemsFromLines([scanned({ name: "Pckl", normalizedName: "pickles" })]);
+    const [row] = buildConfirmedReceiptInventoryRows([{ ...item, name: "Paradajz" }], input);
+    expect(row.normalized_name).toBe("tomatoes");
+  });
+
+  it("falls back to the catalog size when nothing is printed", () => {
+    const [row] = buildConfirmedReceiptInventoryRows(
+      buildReceiptConfirmItemsFromLines([scanned({ name: "Greek yogurt", normalizedName: "greek yogurt", netAmount: null, netUnit: null })]),
+      input,
+    );
+    expect(row).toMatchObject({ net_amount: 1000, net_unit: "g" });
+  });
+});
