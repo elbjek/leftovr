@@ -404,6 +404,9 @@ Deno.serve(async (req) => {
         .eq("id", gate.attemptId);
     }
 
+    if (recipes.length > 0 && !(await claimFreeGeneration(gate))) {
+      return Response.json({ error: "recipe_generation_quota_exceeded" }, { status: 402 });
+    }
     return Response.json(payload);
   } catch (error) {
     console.error("[generate-recipes] generation failed", error);
@@ -420,6 +423,31 @@ Deno.serve(async (req) => {
     return Response.json({ error: "generation_failed" }, { status: 500 });
   }
 });
+
+// Free users' one lifetime generation is stamped here, server-side, only once
+// a generation succeeds — not by the client saving a session (it could skip
+// that). The conditional update is atomic: when parallel requests both pass the
+// gate, only the first to finish claims it; the rest get 402 and no recipes.
+// Premium always passes. (The recipe_sessions trigger still stamps too; it is a
+// no-op once this has run.)
+async function claimFreeGeneration(
+  gate: { supabase?: SupabaseClient; premium?: boolean; userId?: string },
+): Promise<boolean> {
+  if (gate.premium || !gate.supabase || !gate.userId) return true;
+  const { data, error } = await gate.supabase
+    .from("profiles")
+    .update({ free_recipe_generation_used_at: new Date().toISOString() })
+    .eq("id", gate.userId)
+    .is("free_recipe_generation_used_at", null)
+    .select("id");
+  if (error) {
+    // Don't withhold a paid-for result over a bookkeeping error; the session
+    // trigger is the fallback stamp.
+    console.error("[generate-recipes] free generation stamp failed", error);
+    return true;
+  }
+  return (data?.length ?? 0) > 0;
+}
 
 async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeader: string | null) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -541,7 +569,7 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
         attempt_count: (existing.attempt_count ?? 1) + 1,
       })
       .eq("id", existing.id);
-    return { attemptId: existing.id, supabase, premium };
+    return { attemptId: existing.id, supabase, premium, userId };
   }
 
   const insert = await supabase
@@ -557,7 +585,7 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
     .single();
 
   if (!insert.error) {
-    return { attemptId: insert.data.id as string, supabase, premium };
+    return { attemptId: insert.data.id as string, supabase, premium, userId };
   }
   // A parallel request with the same key won the insert: it is in flight.
   if (insert.error.code === "23505") {
@@ -814,7 +842,7 @@ type InventoryItem = NonNullable<GenerateRecipesRequest["inventory"]>[number];
 
 async function handleCards(
   input: GenerateRecipesRequest,
-  gate: { attemptId?: string; supabase?: ReturnType<typeof createClient>; premium?: boolean },
+  gate: { attemptId?: string; supabase?: ReturnType<typeof createClient>; premium?: boolean; userId?: string },
   client: OpenAI,
   recentTitles: string[],
 ): Promise<Response> {
@@ -876,6 +904,9 @@ async function handleCards(
           completed_at: new Date().toISOString(),
         })
         .eq("id", gate.attemptId);
+    }
+    if (cards.length > 0 && !(await claimFreeGeneration(gate))) {
+      return Response.json({ error: "recipe_generation_quota_exceeded" }, { status: 402 });
     }
     return Response.json(payload);
   } catch (error) {
