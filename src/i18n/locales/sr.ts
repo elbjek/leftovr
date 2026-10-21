@@ -509,6 +509,7 @@ export const sr = {
     freeGenerationUsed: "Besplatno generisanje iskorisceno - Premium otkljucava neogranicena",
     monthlyLimit: "Dostigli ste mesečni limit recepata. Obnavlja se početkom sledećeg meseca.",
     rateLimited: "Dostignut je dnevni limit recepata. Obnavlja se sutra.",
+    generationFailed: "Trenutno ne mozemo da napravimo recepte. Vas besplatni recept je sacuvan — pokusajte ponovo malo kasnije.",
     noneFound: "Nema dovoljno za pravi obrok danas. Vreme je za nabavku 🛒",
     freePlan: "Besplatan plan",
     upgrade: "Nadogradnja",

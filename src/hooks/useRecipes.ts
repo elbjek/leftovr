@@ -207,6 +207,14 @@ export function useRecipes(
               matchCount: matches.length,
             });
           }
+          // AI failed and we fell back to canned recipes. Free users get one
+          // lifetime generation, consumed only on success — creating a session
+          // here would stamp it (DB trigger) for mock output. Show an error and
+          // keep the free generation. Premium still gets the fallback.
+          if (source === "mock" && !isPremium) {
+            setState((s) => ({ ...s, generating: false, error: t("recipes.generationFailed") }));
+            return null;
+          }
           // Premium sees two distinct options; free gets the single best pick
           // (fewer cards also keeps complex generations fast).
           const candidates = matches.slice(0, isPremium ? 2 : 1);

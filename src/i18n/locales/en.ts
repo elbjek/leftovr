@@ -509,6 +509,7 @@ export const en = {
     freeGenerationUsed: "Free generation used - Premium unlocks unlimited",
     monthlyLimit: "You've reached this month's recipe limit. It resets at the start of next month.",
     rateLimited: "Daily recipe limit reached. It resets tomorrow.",
+    generationFailed: "Couldn't make recipes right now. Your free recipe is still yours — try again in a bit.",
     noneFound: "Not enough to cook a real meal today. Time for a food run 🛒",
     freePlan: "Free plan",
     upgrade: "Upgrade",
