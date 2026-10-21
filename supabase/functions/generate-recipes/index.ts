@@ -445,13 +445,13 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
     return { response: Response.json({ error: "invalid_authorization" }, { status: 401 }) };
   }
 
-  // These three reads are independent (keyed on userId/householdId), so run
+  // These reads are independent (keyed on userId/householdId/key), so run
   // them concurrently. Auth is already validated above; the gate checks below
-  // still run in the same order and reject before the attempt insert.
+  // still run in order and reject before any attempt write.
   const now = new Date();
   const dayAgo = new Date(now.getTime() - 86_400_000).toISOString();
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
-  const [profileResult, householdResult, dailyCountResult, monthlyCountResult] = await Promise.all([
+  const [profileResult, householdResult, dailyResult, monthlyCountResult, existingResult] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, tier, active_household_id, free_recipe_generation_used_at")
@@ -464,7 +464,7 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
       .maybeSingle(),
     supabase
       .from("recipe_generation_attempts")
-      .select("id", { count: "exact", head: true })
+      .select("status, attempt_count")
       .eq("user_id", userId)
       .gte("created_at", dayAgo),
     supabase
@@ -472,12 +472,21 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .gte("created_at", monthStart),
+    supabase
+      .from("recipe_generation_attempts")
+      .select("id, status, response_json, attempt_count")
+      .eq("user_id", userId)
+      .eq("idempotency_key", input.idempotencyKey)
+      .maybeSingle(),
   ]);
   const profile = profileResult.data;
   const profileError = profileResult.error;
   const household = householdResult.data;
-  const dailyCount = dailyCountResult.count;
+  const dailyRows = (dailyResult.data ?? []) as { status: string; attempt_count: number | null }[];
   const monthlyCount = monthlyCountResult.count;
+  const existing = existingResult.data as
+    | { id: string; status: string; response_json: unknown; attempt_count: number | null }
+    | null;
 
   if (profileError || !profile) {
     return { response: Response.json({ error: "profile_not_found" }, { status: 403 }) };
@@ -493,16 +502,46 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
     return { response: Response.json({ error: "recipe_generation_quota_exceeded" }, { status: 402 }) };
   }
 
-  // Free tier is gated to one lifetime generation above (free_recipe_generation_used_at),
-  // so this daily cap only ever applies to premium.
-  const dailyLimit = premium ? 50 : 1;
-  if ((dailyCount ?? 0) >= dailyLimit) {
+  // Replays cost no model call, so they run before the caps below: a request
+  // that already completed (or is in flight) must never be rate-limited.
+  if (existing?.status === "completed" && existing.response_json) {
+    return { response: Response.json(existing.response_json) };
+  }
+  if (existing?.status === "processing") {
+    return { response: Response.json({ source: "processing" }, { status: 202 }) };
+  }
+
+  // Caps count model calls: attempt_count is bumped each time a failed attempt
+  // is retried under the same key, so retries can't run unbounded.
+  // Free: one lifetime generation is gated above; here a FAILED try must not
+  // lock them out (only a completed one does), but failures are still capped.
+  const dailyAttempts = dailyRows.reduce((sum, row) => sum + (row.attempt_count ?? 1), 0);
+  const dailyCompleted = dailyRows.filter((row) => row.status === "completed").length;
+  const FREE_DAILY_ATTEMPT_CAP = 5;
+  const rateLimited = premium
+    ? dailyAttempts >= 50
+    : dailyCompleted >= 1 || dailyAttempts >= FREE_DAILY_ATTEMPT_CAP;
+  if (rateLimited) {
     return { response: Response.json({ error: "recipe_generation_rate_limited" }, { status: 429 }) };
   }
 
   const RECIPE_MONTHLY_CAP = 150;
   if (premium && (monthlyCount ?? 0) >= RECIPE_MONTHLY_CAP) {
     return { response: Response.json({ error: "recipe_generation_monthly_limit" }, { status: 429 }) };
+  }
+
+  // Retry of a failed attempt: reuse its row (unique per user + key).
+  if (existing?.id) {
+    await supabase
+      .from("recipe_generation_attempts")
+      .update({
+        status: "processing",
+        error_message: null,
+        completed_at: null,
+        attempt_count: (existing.attempt_count ?? 1) + 1,
+      })
+      .eq("id", existing.id);
+    return { attemptId: existing.id, supabase, premium };
   }
 
   const insert = await supabase
@@ -520,33 +559,11 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
   if (!insert.error) {
     return { attemptId: insert.data.id as string, supabase, premium };
   }
-  if (insert.error.code !== "23505") {
-    return { response: Response.json({ error: "generation_lock_failed" }, { status: 500 }) };
-  }
-
-  const { data: existing } = await supabase
-    .from("recipe_generation_attempts")
-    .select("id, status, response_json, created_at")
-    .eq("user_id", userId)
-    .eq("idempotency_key", input.idempotencyKey)
-    .single();
-
-  if (existing?.status === "completed" && existing.response_json) {
-    return { response: Response.json(existing.response_json) };
-  }
-  if (existing?.status === "processing") {
+  // A parallel request with the same key won the insert: it is in flight.
+  if (insert.error.code === "23505") {
     return { response: Response.json({ source: "processing" }, { status: 202 }) };
   }
-
-  if (existing?.id) {
-    await supabase
-      .from("recipe_generation_attempts")
-      .update({ status: "processing", error_message: null, completed_at: null })
-      .eq("id", existing.id);
-    return { attemptId: existing.id as string, supabase, premium };
-  }
-
-  return { response: Response.json({ error: "generation_lock_conflict" }, { status: 409 }) };
+  return { response: Response.json({ error: "generation_lock_failed" }, { status: 500 }) };
 }
 
 // Stable rules — identical across requests, so it stays in the `system` message
