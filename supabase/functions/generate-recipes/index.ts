@@ -1,5 +1,6 @@
 import OpenAI from "npm:openai@^4.77.0";
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@^2.46.1";
 
 type GenerateRecipesRequest = {
   inventory?: Array<{
@@ -222,13 +223,24 @@ Deno.serve(async (req) => {
     return Response.json({ error: "missing_openai_api_key" }, { status: 500 });
   }
 
-  const input = await req.json().catch(() => ({})) as GenerateRecipesRequest;
+  const raw = await req.text();
+  let input: GenerateRecipesRequest = {};
+  try {
+    input = JSON.parse(raw);
+  } catch {
+    // Invalid JSON: fall through with an empty request, as before.
+  }
   const authHeader = req.headers.get("Authorization");
 
   // Expand happens after a card is tapped: it does NOT consume a generation
-  // credit (the card phase already did) and has no idempotency lock, so it
-  // skips the quota gate entirely.
+  // credit (the card phase already did) and has no idempotency lock. It has its
+  // own per-user daily cap (handleExpand) and a body size cap, since the whole
+  // body ends up in the prompt.
   if (input.mode === "expand") {
+    // ponytail: one whole-body cap instead of per-field limits.
+    if (raw.length > EXPAND_MAX_BODY_CHARS) {
+      return Response.json({ error: "expand_request_too_large" }, { status: 413 });
+    }
     return await handleExpand(input, authHeader, apiKey);
   }
 
@@ -576,7 +588,7 @@ const SYSTEM_PROMPT = [
 // generations away from dishes already suggested. Best-effort: on any error it
 // returns [] so generation still proceeds.
 async function fetchRecentRecipeTitles(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   householdId: string,
 ): Promise<string[]> {
   const { data } = await supabase
@@ -973,6 +985,8 @@ async function handleExpand(
   }
   const auth = await authenticate(authHeader);
   if (auth.response) return auth.response;
+  const limited = await consumeExpandQuota(auth.supabase, auth.userId);
+  if (limited) return limited;
 
   const client = new OpenAI({ apiKey });
   try {
@@ -1075,8 +1089,63 @@ function buildExpandMessages(
   ];
 }
 
-// Lightweight auth for expand: validates the bearer token only (no quota, no
-// attempt lock). Mirrors the head of acquireGenerationAttempt.
+// A full pantry (~200 lots) serializes to ~50k chars; anything far past that is
+// not a real request.
+const EXPAND_MAX_BODY_CHARS = 100_000;
+// Premium makes up to 50 generations/day × 2 cards, each prefetch-expanded,
+// plus detail opens. Free gets one lifetime generation, so 20 covers reopening
+// saved recipes.
+const EXPAND_DAILY_LIMIT_PREMIUM = 200;
+const EXPAND_DAILY_LIMIT_FREE = 20;
+
+// Per-user rolling 24h cap on expand calls; records this call when allowed.
+// ponytail: count-then-insert, so parallel calls can overshoot by a few; use an
+// RPC with a row lock if that ever matters.
+async function consumeExpandQuota(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<Response | null> {
+  const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
+  const [profileResult, countResult] = await Promise.all([
+    supabase.from("profiles").select("tier, active_household_id").eq("id", userId).single(),
+    supabase
+      .from("recipe_expand_events")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", dayAgo),
+  ]);
+  const profile = profileResult.data as { tier: string; active_household_id: string | null } | null;
+  if (profileResult.error || !profile) {
+    return Response.json({ error: "profile_not_found" }, { status: 403 });
+  }
+  if (countResult.error) {
+    return Response.json({ error: "expand_quota_failed" }, { status: 500 });
+  }
+
+  let premium = profile.tier === "premium" || profile.tier === "household_premium";
+  if (!premium && profile.active_household_id) {
+    const { data: household } = await supabase
+      .from("households")
+      .select("plan_tier")
+      .eq("id", profile.active_household_id)
+      .maybeSingle();
+    premium = (household as { plan_tier: string } | null)?.plan_tier === "household_premium";
+  }
+
+  const limit = premium ? EXPAND_DAILY_LIMIT_PREMIUM : EXPAND_DAILY_LIMIT_FREE;
+  if ((countResult.count ?? 0) >= limit) {
+    return Response.json({ error: "recipe_expand_rate_limited" }, { status: 429 });
+  }
+
+  const { error } = await supabase.from("recipe_expand_events").insert({ user_id: userId });
+  if (error) {
+    return Response.json({ error: "expand_quota_failed" }, { status: 500 });
+  }
+  return null;
+}
+
+// Lightweight auth for expand: validates the bearer token only. Mirrors the
+// head of acquireGenerationAttempt; the quota lives in consumeExpandQuota.
 async function authenticate(authHeader: string | null) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
