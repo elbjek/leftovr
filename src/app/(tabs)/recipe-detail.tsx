@@ -7,6 +7,7 @@ import Svg, { Path } from "react-native-svg";
 import { BottomSheet, Button, Card, RecipeGlyph, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import { notifyInventoryChanged, useInventory } from "@/hooks";
+import { newClientId } from "@/lib";
 import { canonicalFoodName, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple } from "@/services";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
@@ -174,6 +175,7 @@ export default function RecipeDetailRoute() {
   const [extraAmount, setExtraAmount] = useState("1");
   const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
+  const cookIdRef = useRef<string | null>(null);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
 
   const showCookCoachMark =
@@ -306,6 +308,9 @@ export default function RecipeDetailRoute() {
   async function confirmCooked() {
     if (!activeHousehold?.id) return;
     setCooking(true);
+    // One id per cook, kept across retries (timeout, re-confirm, sheet
+    // reopened) until a cook succeeds, so the server never depletes twice.
+    cookIdRef.current ??= newClientId();
     try {
       // Deplete by item name against current inventory (spilling across lots,
       // soonest-expiry first) instead of stale snapshot lot ids. Sum duplicate
@@ -335,11 +340,13 @@ export default function RecipeDetailRoute() {
           recipeId: recipeId || null,
           servings,
           usedItems,
+          cookId: cookIdRef.current,
         }),
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error(t("common.fridgeUpdateError"))), 20000),
         ),
       ]);
+      cookIdRef.current = null;
       notifyInventoryChanged();
       setShowCooked(false);
       router.replace("/(tabs)/fridge");

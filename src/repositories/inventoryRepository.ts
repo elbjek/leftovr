@@ -333,6 +333,8 @@ export async function recordCookedEventAndDepleteInventory(input: {
   recipeId?: string | null;
   servings?: number | null;
   usedItems: { normalizedName: string; amount?: number | null; unit?: string | null }[];
+  /** Same id on every retry of one cook; apply_cook skips an id it already applied. */
+  cookId?: string;
 }) {
   const supabase = getSupabaseClient();
 
@@ -356,6 +358,7 @@ export async function recordCookedEventAndDepleteInventory(input: {
     p_recipe_id: input.recipeId ?? null,
     p_servings: input.servings ?? null,
     p_used_items: input.usedItems,
+    p_cook_id: input.cookId ?? null,
   });
 
   if (error) {
