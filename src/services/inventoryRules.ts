@@ -279,6 +279,20 @@ export function resolveUrgency(
     : computeUrgency({ name: lot.name, category: lot.category, addedAt: lot.added_at, now });
 }
 
+// Days until a lot should be used: its explicit date when it has one, else our
+// shelf-life estimate (end of the catalog range, where it turns "expired").
+// Negative once past. Used to order Eat-first by what runs out first (B2).
+export function daysLeft(
+  lot: Pick<InventoryLot, "name" | "category" | "expires_at" | "added_at">,
+  now: Date = new Date(),
+): number {
+  if (lot.expires_at) {
+    return (new Date(`${lot.expires_at}T23:59:59`).getTime() - now.getTime()) / 86_400_000;
+  }
+  const [, maxDays] = getShelfLifeDays(lot.name, lot.category);
+  return maxDays - (now.getTime() - new Date(lot.added_at).getTime()) / 86_400_000;
+}
+
 // "Expired" is only claimed when the user gave us a real date and it has
 // passed. Otherwise the band came from our shelf-life estimate and the UI
 // softens the label to "past its best".

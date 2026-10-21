@@ -9,6 +9,7 @@ import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
 import {
+  daysLeft,
   getCatalogFood,
   hasExplicitExpiredLot,
   InventoryGroup,
@@ -937,7 +938,12 @@ function getCardMetaLines(meta: string) {
 function getEatFirstGroups(groups: InventoryGroup[]) {
   return groups
     .filter((group) => group.urgency === "urgent")
-    .sort((a, b) => shelfLifeStart(a.shelfLifeRange) - shelfLifeStart(b.shelfLifeRange));
+    .sort((a, b) => groupDaysLeft(a) - groupDaysLeft(b));
+}
+
+// Soonest-running-out lot in the group (explicit date or estimate).
+function groupDaysLeft(group: InventoryGroup) {
+  return Math.min(...group.lots.map((lot) => daysLeft(lot)));
 }
 
 function shelfLifeStart(range: string) {

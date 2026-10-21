@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  daysLeft,
   getShelfLifeDays,
   hasExplicitExpiredLot,
   inferCategory,
@@ -137,5 +138,27 @@ describe("isPantryStaple", () => {
     expect(isPantryStaple("red pepper")).toBe(false);
     expect(isPantryStaple("lemon")).toBe(false);
     expect(isPantryStaple("chicken breast")).toBe(false);
+  });
+});
+
+describe("daysLeft (FIXES B2)", () => {
+  const now = new Date("2026-10-21T12:00:00");
+  it("uses the explicit date when there is one", () => {
+    expect(daysLeft({ name: "Milk", category: "dairy_eggs", expires_at: "2026-10-23", added_at: "2026-10-01T00:00:00Z" }, now))
+      .toBeCloseTo(2.5, 1);
+  });
+  it("is negative past the date", () => {
+    expect(daysLeft({ name: "Milk", category: "dairy_eggs", expires_at: "2026-10-19", added_at: "2026-10-01T00:00:00Z" }, now))
+      .toBeLessThan(0);
+  });
+  it("estimates from the shelf-life range end without a date", () => {
+    // Spinach: 2-4 days; added 1 day ago -> ~3 days left.
+    expect(daysLeft({ name: "Spinach", category: "vegetables", expires_at: null, added_at: "2026-10-20T12:00:00" }, now))
+      .toBeCloseTo(3, 1);
+  });
+  it("orders a dated item expiring tomorrow before an estimated one with 3 days", () => {
+    const dated = daysLeft({ name: "Rice", category: "pantry", expires_at: "2026-10-22", added_at: "2026-01-01T00:00:00Z" }, now);
+    const estimated = daysLeft({ name: "Spinach", category: "vegetables", expires_at: null, added_at: "2026-10-20T12:00:00" }, now);
+    expect(dated).toBeLessThan(estimated);
   });
 });
