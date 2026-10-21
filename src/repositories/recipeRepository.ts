@@ -6,7 +6,8 @@ export type CookingMode = "household" | "just_me";
 export type RecipeSessionRow = {
   id: string;
   household_id: string;
-  generated_by: string;
+  // Null once the member who generated it deleted their account (B22).
+  generated_by: string | null;
   cooking_mode: CookingMode;
   avoidances_used: string[];
   fridge_snapshot: unknown;
@@ -29,7 +30,8 @@ export type RecipeRow = {
   tags: string[];
   avoidance_tags: string[];
   is_favorite: boolean;
-  generated_by: string;
+  // Null once the member who generated it deleted their account (B22).
+  generated_by: string | null;
   created_at: string;
   cooked_count?: number;
 };
@@ -160,7 +162,7 @@ export async function listHouseholdRecipes(householdId: string) {
   return data ?? [];
 }
 
-type CookedEventRow = { recipe_id: string; cooked_by: string; created_at: string };
+type CookedEventRow = { recipe_id: string; cooked_by: string | null; created_at: string };
 
 // Who cooked what, household-wide, newest first. Single source for cooked
 // counts, the cooked tab, and the "cooked by" badges (was 3 separate queries).

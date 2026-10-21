@@ -217,7 +217,7 @@ export default function RecipesRoute() {
   );
 
   const memberName = useCallback(
-    (id: string) =>
+    (id: string | null) =>
       id === profile?.id
         ? t("settings.household.you")
         : members.find((m) => m.user_id === id)?.display_name ?? "?",

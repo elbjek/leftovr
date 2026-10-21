@@ -6,8 +6,10 @@ import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 //   - others remain → reassign ownership to the next member, keep the household
 //
 // households.created_by → profiles is RESTRICT, so households the user created
-// MUST be reassigned or deleted BEFORE the profile/user can be removed. Every
-// other user-owned row cascades from the profile delete.
+// MUST be reassigned or deleted BEFORE the profile/user can be removed.
+// Personal rows (memberships, notification prefs, favorites…) cascade from the
+// profile delete; shared household rows they authored (fridge items, scans,
+// recipes, cook/usage history) are kept with the author set to NULL (B22).
 //
 // Auth: the user's JWT identifies them; the service-role client performs the
 // privileged deletes (a client can never delete an auth user).
@@ -118,7 +120,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Profile delete cascades the rest (memberships, items added, recipes, etc.).
+    // Profile delete cascades personal rows; shared household rows keep, author → NULL.
     const { error: profileError } = await supabase.from("profiles").delete().eq("id", userId);
     if (profileError) throw profileError;
 

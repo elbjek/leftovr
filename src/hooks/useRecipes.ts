@@ -29,7 +29,7 @@ import { ingredientSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 
-type CookedSummary = { count: number; cookedBy: string[] };
+type CookedSummary = { count: number; cookedBy: (string | null)[] };
 
 type RecipesState = {
   loading: boolean;
