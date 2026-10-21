@@ -7,7 +7,7 @@ import Svg, { Path } from "react-native-svg";
 import { BottomSheet, Button, Card, RecipeGlyph, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import { notifyInventoryChanged, useInventory } from "@/hooks";
-import { canonicalFoodName, expandRecipe, formatComplexity, formatTimeLabel, InventoryGroup, isPantryStaple } from "@/services";
+import { canonicalFoodName, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple } from "@/services";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
@@ -207,12 +207,14 @@ export default function RecipeDetailRoute() {
     // not just the ones matched when the recipe was generated.
     const items = ingredients.map((ing) => {
       const inFridge = isOwned(ing);
-      const parsed = parseIngredientAmount(ing.amount);
+      // Parsed from the amount text, not the stored `countable` flag: older
+      // recipes flagged "250 grama" / "2 šolje" countable (FIXES B10).
+      const use = ingredientUse(ing.amount);
       return {
         name: ing.name,
         amount: ing.amount,
-        quantityToUse: ing.countable ? parsed.value : (parsed.unit ? parsed.value : 1),
-        unit: ing.countable ? "item" : (parsed.unit ?? "item"),
+        quantityToUse: use.quantity,
+        unit: use.unit,
         used: inFridge,
         inFridge,
         matchKey: ing.matchKey ?? null,
@@ -775,16 +777,6 @@ export default function RecipeDetailRoute() {
       </BottomSheet>
     </View>
   );
-}
-
-function parseIngredientAmount(amount: string): { value: number; unit: string | null } {
-  const match = amount.match(/(\d+(?:\.\d+)?)\s*([a-zA-Z]+)?/);
-  const value = match ? Number(match[1]) : NaN;
-  const unit = match?.[2]?.toLowerCase() ?? null;
-  return {
-    value: Number.isFinite(value) && value > 0 ? value : 1,
-    unit,
-  };
 }
 
 const styles = StyleSheet.create({

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { ingredientUse } from "./units";
 import { planDepletion, PlanLot } from "./depletionPlan";
 
 const lot = (over: Partial<PlanLot>): PlanLot => ({
@@ -73,5 +74,21 @@ describe("planDepletion - counted produce (onion problem)", () => {
     // No gramsPerItem: must fall back to a single use, not Math.round(200) items
     const ops = planDepletion(lots, { amount: 200, unit: "g" });
     expect(ops).toEqual([{ kind: "setQuantity", id: "a", quantity: 2 }]);
+  });
+});
+
+describe("planDepletion with parsed recipe amounts (FIXES B10)", () => {
+  const threePack = [{ id: "a", quantity: 3, partial_state: "full" as const, unit: "item", net_amount: null, net_unit: null }];
+  it("does not wipe a counted lot for a metric amount", () => {
+    const need = ingredientUse("250 grama");
+    expect(planDepletion(threePack, { amount: need.quantity, unit: need.unit })).toEqual([
+      { kind: "setQuantity", id: "a", quantity: 2 },
+    ]);
+  });
+  it("still counts whole items", () => {
+    const need = ingredientUse("2 tomatoes");
+    expect(planDepletion(threePack, { amount: need.quantity, unit: need.unit })).toEqual([
+      { kind: "setQuantity", id: "a", quantity: 1 },
+    ]);
   });
 });

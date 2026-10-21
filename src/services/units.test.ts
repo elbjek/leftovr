@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dimensionOf, formatAmount, toMetric } from "./units";
+import { dimensionOf, formatAmount, ingredientUse, parseIngredientAmount, toMetric } from "./units";
 
 describe("toMetric", () => {
   it("converts volume units to ml", () => {
@@ -47,5 +47,57 @@ describe("formatAmount", () => {
   });
   it("formats imperial mass in oz", () => {
     expect(formatAmount(28.35, "g", "imperial")).toBe("1 oz");
+  });
+});
+
+describe("parseIngredientAmount", () => {
+  const cases: [string, { value: number; unit: string | null; kind: string }][] = [
+    ["250 grama", { value: 250, unit: "g", kind: "measure" }],
+    ["400g rice", { value: 400, unit: "g", kind: "measure" }],
+    ["0,5 kg", { value: 0.5, unit: "kg", kind: "measure" }],
+    ["½ kg", { value: 0.5, unit: "kg", kind: "measure" }],
+    ["1 cup", { value: 1, unit: "cup", kind: "measure" }],
+    ["1/2 cup milk", { value: 0.5, unit: "cup", kind: "measure" }],
+    ["1 1/2 tbsp", { value: 1.5, unit: "tbsp", kind: "measure" }],
+    ["1½ tbsp", { value: 1.5, unit: "tbsp", kind: "measure" }],
+    ["2 šolje", { value: 2, unit: "cup", kind: "measure" }],
+    ["2 kašike ulja", { value: 2, unit: "tbsp", kind: "measure" }],
+    ["1 kašičica soli", { value: 1, unit: "tsp", kind: "measure" }],
+    ["2 dl mleka", { value: 200, unit: "ml", kind: "measure" }],
+    ["100ml", { value: 100, unit: "ml", kind: "measure" }],
+    ["1 l", { value: 1, unit: "l", kind: "measure" }],
+    ["2 tomatoes", { value: 2, unit: null, kind: "count" }],
+    ["3 jaja", { value: 3, unit: null, kind: "count" }],
+    ["2 kom", { value: 2, unit: null, kind: "count" }],
+    ["2-3 carrots", { value: 2, unit: null, kind: "count" }],
+    ["", { value: 1, unit: null, kind: "count" }],
+    ["2 cloves garlic", { value: 2, unit: "cloves", kind: "other" }],
+    ["2 čena belog luka", { value: 2, unit: "čena", kind: "other" }],
+    ["pinch of salt", { value: 1, unit: "pinch", kind: "other" }],
+  ];
+  it.each(cases)("parses %j", (input, expected) => {
+    const parsed = parseIngredientAmount(input);
+    expect(parsed.kind).toBe(expected.kind);
+    expect(parsed.unit).toBe(expected.unit);
+    expect(parsed.value).toBeCloseTo(expected.value, 3);
+  });
+  it("converts imperial mass to grams", () => {
+    expect(parseIngredientAmount("8 oz cheese")).toMatchObject({ unit: "g", kind: "measure" });
+    expect(parseIngredientAmount("8 oz cheese").value).toBeCloseTo(226.8, 1);
+    expect(parseIngredientAmount("1 lb").value).toBeCloseTo(453.6, 1);
+  });
+});
+
+describe("ingredientUse", () => {
+  it("never reads a metric amount as an item count", () => {
+    expect(ingredientUse("250 grama")).toEqual({ quantity: 250, unit: "g" });
+    expect(ingredientUse("2 šolje")).toEqual({ quantity: 2, unit: "cup" });
+  });
+  it("counts whole items", () => {
+    expect(ingredientUse("2 tomatoes")).toEqual({ quantity: 2, unit: "item" });
+  });
+  it("passes single-use units through (depletion takes one use)", () => {
+    expect(ingredientUse("2 cloves garlic")).toEqual({ quantity: 2, unit: "cloves" });
+    expect(toMetric(2, ingredientUse("2 cloves garlic").unit).dimension).toBeNull();
   });
 });
