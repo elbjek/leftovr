@@ -338,6 +338,7 @@ export const sr = {
     },
   },
   scan: {
+    barcodeOffline: "Nije moguće povezati se sa bazom proizvoda. Proveri vezu i pokušaj ponovo.",
     title: "Dodaj u kuhinju",
     body: "Prvo skeniraj racun. Barkod i rucni unos su tu kada treba samo jedna stavka.",
     limitStatus: "Dostupno je 1 besplatno skeniranje racuna.",

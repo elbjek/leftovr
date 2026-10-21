@@ -610,7 +610,15 @@ export default function ScanRoute() {
     setBarcodeLocked(true);
     setError(null);
 
-    const product = await lookupBarcodeProduct(barcode);
+    let product: Awaited<ReturnType<typeof lookupBarcodeProduct>>;
+    try {
+      product = await lookupBarcodeProduct(barcode);
+    } catch {
+      // Couldn't reach the product database: don't pretend it doesn't exist.
+      setError(t("scan.barcodeOffline"));
+      setBarcodeLocked(false);
+      return;
+    }
 
     if (!product) {
       setManualQuery("");

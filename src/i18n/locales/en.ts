@@ -338,6 +338,7 @@ export const en = {
     },
   },
   scan: {
+    barcodeOffline: "Couldn't reach the product database. Check your connection and try again.",
     title: "Add to your kitchen",
     body: "Scan a receipt first. Barcode and manual add are there when you only need one item.",
     limitStatus: "1 free receipt scan available.",

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  BarcodeLookupError,
   inferOpenFoodFactsCategory,
   lookupBarcodeProduct,
   lookupOpenFoodFactsBarcode,
@@ -45,6 +46,13 @@ describe("barcodeService", () => {
     })));
 
     await expect(lookupBarcodeProduct("unknown-demo-code")).resolves.toBeNull();
+  });
+
+  it("throws BarcodeLookupError when the database can't be reached (C5)", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("Network request failed"); }));
+    await expect(lookupBarcodeProduct("737628064502")).rejects.toBeInstanceOf(BarcodeLookupError);
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) })));
+    await expect(lookupBarcodeProduct("737628064502")).rejects.toBeInstanceOf(BarcodeLookupError);
   });
 
   it("infers app categories from Open Food Facts category tags", () => {

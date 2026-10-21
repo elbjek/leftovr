@@ -43,6 +43,10 @@ const OPEN_FOOD_FACTS_FIELDS = [
 // Live Open Food Facts lookup — barcodes are decoded on-device by the camera,
 // then resolved against the free OFF database. Unknown products fall through
 // to the manual-add flow (scan.tsx barcodeFallback).
+/** The product database couldn't be reached (offline, timeout, 5xx) — not the
+ *  same as "no such product", which resolves null (C5). */
+export class BarcodeLookupError extends Error {}
+
 export async function lookupBarcodeProduct(barcode: string): Promise<BarcodeProduct | null> {
   return lookupOpenFoodFactsBarcode(barcode);
 }
@@ -65,6 +69,7 @@ export async function lookupOpenFoodFactsBarcode(barcode: string): Promise<Barco
       signal: controller.signal,
     });
 
+    if (response.status >= 500) throw new BarcodeLookupError(`open_food_facts_${response.status}`);
     if (!response.ok) return null;
 
     const payload = (await response.json()) as OpenFoodFactsResponse;
@@ -84,8 +89,10 @@ export async function lookupOpenFoodFactsBarcode(barcode: string): Promise<Barco
       netAmount: packageAmount?.netAmount ?? null,
       netUnit: packageAmount?.netUnit ?? null,
     };
-  } catch {
-    return null;
+  } catch (error) {
+    // Network failure or the time-box abort: unknown, not "not found".
+    if (error instanceof BarcodeLookupError) throw error;
+    throw new BarcodeLookupError(error instanceof Error ? error.message : "lookup_failed");
   } finally {
     clearTimeout(timeout);
   }
