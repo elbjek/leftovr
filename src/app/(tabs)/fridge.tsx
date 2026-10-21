@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -96,13 +96,24 @@ export default function FridgeRoute() {
     setCheckSheetVisible(false);
     setActionGroup(expiredGroups.find((group) => group.key === item.id) ?? null);
   };
+  // Inventory writes fail offline; say so instead of failing silently (C1).
+  // Returns false on failure so sheets can stay open.
+  const runFridgeAction = async (action: () => Promise<void>) => {
+    try {
+      await action();
+      return true;
+    } catch {
+      Alert.alert(t("common.error"), t("common.fridgeUpdateError"));
+      return false;
+    }
+  };
   const onCheckStillGood = (item: CheckItem) => {
     const group = expiredGroups.find((candidate) => candidate.key === item.id);
-    if (group) void markGroupStillGood(group);
+    if (group) void runFridgeAction(() => markGroupStillGood(group));
   };
   const onCheckToss = (item: CheckItem) => {
     const group = expiredGroups.find((candidate) => candidate.key === item.id);
-    if (group) void removeGroup(group, "discarded");
+    if (group) void runFridgeAction(() => removeGroup(group, "discarded"));
   };
   const filteredGroups = activeGroups.filter(
     (group) =>
@@ -353,12 +364,10 @@ export default function FridgeRoute() {
         labels={getActionLabels(t)}
         onDismiss={() => setActionGroup(null)}
         onSave={async (group, input) => {
-          await updateFirstLot(group, input);
-          setActionGroup(null);
+          if (await runFridgeAction(() => updateFirstLot(group, input))) setActionGroup(null);
         }}
         onRemove={async (group, reason) => {
-          await removeGroup(group, reason);
-          setActionGroup(null);
+          if (await runFridgeAction(() => removeGroup(group, reason))) setActionGroup(null);
         }}
       />
 
@@ -390,10 +399,14 @@ export default function FridgeRoute() {
         onDismiss={() => setCheckSheetVisible(false)}
         onItemPress={onCheckItemPress}
         onStillGoodMany={(ids) => {
-          void markGroupsStillGood(expiredGroups.filter((group) => ids.includes(group.key)));
+          void runFridgeAction(() =>
+            markGroupsStillGood(expiredGroups.filter((group) => ids.includes(group.key))),
+          );
         }}
         onTossMany={(ids) => {
-          void removeGroups(expiredGroups.filter((group) => ids.includes(group.key)), "discarded");
+          void runFridgeAction(() =>
+            removeGroups(expiredGroups.filter((group) => ids.includes(group.key)), "discarded"),
+          );
         }}
       />
 
