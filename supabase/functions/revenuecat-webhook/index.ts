@@ -17,25 +17,34 @@ type RevenueCatEvent = {
   type: string;
   app_user_id?: string;
   product_id?: string;
+  cancel_reason?: string;
   // TRANSFER events carry no app_user_id/product_id — just the ids the
   // entitlement moved between.
   transferred_to?: string[];
   transferred_from?: string[];
 };
 
-// Events that mean the entitlement is currently active.
+// Events that mean the entitlement is currently active. PRODUCT_CHANGE is NOT
+// here: per RevenueCat it is informative only (downgrades are scheduled, and
+// product_id is still the old product). When the change takes effect RC sends
+// RENEWAL (Apple/Stripe) or INITIAL_PURCHASE (Play) carrying the new product.
 const GRANT_EVENTS = new Set([
   "INITIAL_PURCHASE",
   "RENEWAL",
-  "PRODUCT_CHANGE",
   "UNCANCELLATION",
   "NON_RENEWING_PURCHASE",
   "SUBSCRIPTION_EXTENDED",
 ]);
 
-// Events that mean access has ended. (CANCELLATION is NOT here: the sub stays
-// active until it actually expires.)
-const REVOKE_EVENTS = new Set(["EXPIRATION", "REFUND"]);
+// Access has ended. A plain CANCELLATION keeps access until EXPIRATION, but
+// RevenueCat has no REFUND event: refunds arrive as CANCELLATION with
+// cancel_reason CUSTOMER_SUPPORT and revoke immediately.
+// ponytail: a refund of an old transaction while a newer one is active would
+// revoke early; re-resolve via resolveTierFromRevenueCat if that shows up.
+function isRevoke(event: RevenueCatEvent): boolean {
+  return event.type === "EXPIRATION" ||
+    (event.type === "CANCELLATION" && event.cancel_reason === "CUSTOMER_SUPPORT");
+}
 
 function tierFromProduct(productId: string | undefined): Tier {
   return productId?.includes("household") ? "household_premium" : "premium";
@@ -139,6 +148,7 @@ Deno.serve(async (req) => {
     type: event.type,
     app_user_id: event.app_user_id,
     product_id: event.product_id,
+    cancel_reason: event.cancel_reason,
     transferred_to: event.transferred_to,
     transferred_from: event.transferred_from,
   });
@@ -165,8 +175,8 @@ Deno.serve(async (req) => {
     }
 
     const grant = GRANT_EVENTS.has(event.type);
-    const revoke = REVOKE_EVENTS.has(event.type);
-    // Ignore events that don't change access (CANCELLATION, TEST, etc.).
+    const revoke = isRevoke(event);
+    // Ignore events that don't change access (plain CANCELLATION, PRODUCT_CHANGE, TEST, etc.).
     if (!grant && !revoke) {
       return Response.json({ ok: true, ignored: event.type });
     }
