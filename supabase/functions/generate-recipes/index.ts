@@ -502,7 +502,7 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
       .gte("created_at", monthStart),
     supabase
       .from("recipe_generation_attempts")
-      .select("id, status, response_json, attempt_count")
+      .select("id, status, response_json, attempt_count, created_at")
       .eq("user_id", userId)
       .eq("idempotency_key", input.idempotencyKey)
       .maybeSingle(),
@@ -513,7 +513,7 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
   const dailyRows = (dailyResult.data ?? []) as { status: string; attempt_count: number | null }[];
   const monthlyCount = monthlyCountResult.count;
   const existing = existingResult.data as
-    | { id: string; status: string; response_json: unknown; attempt_count: number | null }
+    | { id: string; status: string; response_json: unknown; attempt_count: number | null; created_at: string }
     | null;
 
   if (profileError || !profile) {
@@ -535,7 +535,14 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
   if (existing?.status === "completed" && existing.response_json) {
     return { response: Response.json(existing.response_json) };
   }
-  if (existing?.status === "processing") {
+  // A "processing" row older than any real generation (edge fns time out well
+  // before this) is a crashed attempt: retry it instead of answering 202
+  // forever (B15). created_at is refreshed on each retry below.
+  const STALE_PROCESSING_MS = 2 * 60_000;
+  if (
+    existing?.status === "processing" &&
+    now.getTime() - Date.parse(existing.created_at) < STALE_PROCESSING_MS
+  ) {
     return { response: Response.json({ source: "processing" }, { status: 202 }) };
   }
 
@@ -558,7 +565,8 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
     return { response: Response.json({ error: "recipe_generation_monthly_limit" }, { status: 429 }) };
   }
 
-  // Retry of a failed attempt: reuse its row (unique per user + key).
+  // Retry of a failed (or stale processing) attempt: reuse its row (unique per
+  // user + key).
   if (existing?.id) {
     await supabase
       .from("recipe_generation_attempts")
@@ -567,6 +575,7 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
         error_message: null,
         completed_at: null,
         attempt_count: (existing.attempt_count ?? 1) + 1,
+        created_at: now.toISOString(),
       })
       .eq("id", existing.id);
     return { attemptId: existing.id, supabase, premium, userId };
