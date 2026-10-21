@@ -7,12 +7,12 @@ import {
   Fraunces_700Bold,
 } from "@expo-google-fonts/fraunces";
 import {
-  Nunito_400Regular,
-  Nunito_500Medium,
-  Nunito_600SemiBold,
-  Nunito_700Bold,
-  Nunito_800ExtraBold,
-} from "@expo-google-fonts/nunito";
+  NunitoSans_400Regular,
+  NunitoSans_500Medium,
+  NunitoSans_600SemiBold,
+  NunitoSans_700Bold,
+  NunitoSans_800ExtraBold,
+} from "@expo-google-fonts/nunito-sans";
 import { useFonts } from "expo-font";
 
 export function useLeftovrFonts() {
@@ -24,11 +24,11 @@ export function useLeftovrFonts() {
     FrauncesRegularItalic: Fraunces_400Regular_Italic,
     FrauncesSemiBold: Fraunces_600SemiBold,
     FrauncesBold: Fraunces_700Bold,
-    // Nunito — every text style except the logo wordmark.
-    Nunito: Nunito_400Regular,
-    NunitoMedium: Nunito_500Medium,
-    NunitoSemiBold: Nunito_600SemiBold,
-    NunitoBold: Nunito_700Bold,
-    NunitoExtraBold: Nunito_800ExtraBold,
+    // Nunito Sans — every text style except the logo wordmark.
+    NunitoSans: NunitoSans_400Regular,
+    NunitoSansMedium: NunitoSans_500Medium,
+    NunitoSansSemiBold: NunitoSans_600SemiBold,
+    NunitoSansBold: NunitoSans_700Bold,
+    NunitoSansExtraBold: NunitoSans_800ExtraBold,
   });
 }

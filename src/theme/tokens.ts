@@ -39,11 +39,11 @@ export const fonts = {
   display: "Fraunces",
   displaySemiBold: "FrauncesSemiBold",
   displayItalic: "FrauncesItalic",
-  body: "Nunito",
-  bodyMedium: "NunitoMedium",
-  bodySemiBold: "NunitoSemiBold",
-  bodyBold: "NunitoBold",
-  bodyExtraBold: "NunitoExtraBold",
+  body: "NunitoSans",
+  bodyMedium: "NunitoSansMedium",
+  bodySemiBold: "NunitoSansSemiBold",
+  bodyBold: "NunitoSansBold",
+  bodyExtraBold: "NunitoSansExtraBold",
   fallback: "System",
 } as const;
 
