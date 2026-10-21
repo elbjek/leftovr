@@ -107,6 +107,9 @@ export default function RecipeDetailRoute() {
     });
     // Already expanded (or opened from a persisted, expanded row): nothing to do.
     setExpandFailed(false);
+    // A new recipe is a new cook: never reuse a pending id from a failed cook
+    // of the previous recipe on this reused screen.
+    cookIdRef.current = null;
     pendingExpandRef.current =
       baseSteps.length > 0 || baseIngredients.length === 0 ? null : recipeId;
     // Re-seed only when the recipe changes; params are read at call time.
@@ -124,6 +127,7 @@ export default function RecipeDetailRoute() {
       : [];
     const baseTime = Number(params.timeMinutes ?? 20);
     let cancelled = false;
+    let finished = false;
     setExpanding(true);
     setExpandFailed(false);
     (async () => {
@@ -157,10 +161,18 @@ export default function RecipeDetailRoute() {
           });
         }
       }
+      finished = true;
       setExpanding(false);
     })();
     return () => {
       cancelled = true;
+      // An inventory reload (or recipe change) mid-expand cancels this run:
+      // re-arm it so the next effect run expands again instead of leaving
+      // the skeleton up forever. A new recipe's seed effect overwrites this.
+      if (!finished) {
+        pendingExpandRef.current = recipeId;
+        setExpanding(false);
+      }
     };
     // Expand once per opened recipe; lots/profile are read at call time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
