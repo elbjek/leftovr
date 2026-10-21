@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { getSupabaseClient } from "@/lib/supabase";
+import { updateNotificationPreferences } from "@/repositories/notificationRepository";
 
 let googleConfigured = false;
 
@@ -118,6 +119,14 @@ export async function signInWithApple() {
 
 export async function signOut() {
   const supabase = getSupabaseClient();
+  // Detach this device from the account first (needs the session that's about
+  // to end): otherwise the signed-out phone keeps getting the household's
+  // pushes. Best-effort — an offline sign-out must still sign out.
+  try {
+    await updateNotificationPreferences({ push_token: null });
+  } catch (error) {
+    if (__DEV__) console.warn("[auth] push token clear failed", error);
+  }
   const { error } = await supabase.auth.signOut();
 
   if (error) {
