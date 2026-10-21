@@ -352,7 +352,9 @@ export function groupInventoryLots(
 
   lots.forEach((lot) => {
     const urgency = resolveUrgency(lot);
-    const key = `${lot.normalized_name}:${lot.category}:${urgency}`;
+    // Unit is part of the key: quantities in different units can't be summed
+    // ("3 pcs" + "0.8 kg" showed as "3.8 pcs") (C3).
+    const key = `${lot.normalized_name}:${lot.category}:${urgency}:${lot.unit.trim().toLowerCase()}`;
     const existing = groups.get(key);
 
     if (existing) {
