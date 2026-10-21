@@ -184,6 +184,25 @@ export async function removeInventoryGroup(
     throw error;
   }
 
+  // "Used it" is a use, like cooking: log it so Insights' "items saved"
+  // counts it (C7). One event per distinct food, matching apply_cook.
+  if (reason === "used") {
+    const { data: userResult } = await supabase.auth.getUser();
+    const userId = userResult.user?.id;
+    if (userId) {
+      const byFood = new Map(lots.map((lot) => [lot.normalized_name, lot.category]));
+      const { error: usageError } = await supabase.from("item_usage_events").insert(
+        [...byFood].map(([normalizedName, category]) => ({
+          household_id: householdId,
+          normalized_name: normalizedName,
+          category,
+          used_by: userId,
+        })),
+      );
+      if (usageError && __DEV__) console.warn("[inventory] usage event failed", usageError);
+    }
+  }
+
   const kind = reason === "discarded" ? "wasted" : "saved";
   for (const lot of lots) {
     const unit = deriveUnitPrice(lot.purchase_price, lot.purchase_amount);
