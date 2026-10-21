@@ -769,7 +769,7 @@ export const en = {
       invalidCode: "Invalid or expired invite code.",
       householdFull: "This household is full (3 members max).",
       ownerBlocked:
-        "You own an active Household Premium plan with other members. Transfer ownership or cancel it before joining another household.",
+        "You own an active Household Premium plan with other members. Cancel it in your App Store subscriptions before joining another household.",
       premiumRequired: "Household sharing requires Household Premium.",
       subWarningTitle: "You have an active subscription",
       subWarningBody:
