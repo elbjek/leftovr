@@ -18,6 +18,14 @@ export type ReceiptDuplicate = {
   created_at: string;
 };
 
+/** A concurrent scan of the same receipt completed first; `duplicate` is it,
+ *  so "Add anyway" can confirm with `duplicateOf` (B9). */
+export class ReceiptDuplicateError extends Error {
+  constructor(public duplicate: ReceiptDuplicate | null) {
+    super("Duplicate receipt needs confirmation.");
+  }
+}
+
 export type ReceiptScanResult = {
   scanId: string;
   addedCount: number;
@@ -217,6 +225,28 @@ export async function confirmPantryScan(input: {
   return { scanId: input.scanId, addedCount: kept.length };
 }
 
+// The completed scan that owns this scan's receipt signature.
+async function findCompletedDuplicate(householdId: string, scanId: string): Promise<ReceiptDuplicate | null> {
+  const supabase = getSupabaseClient();
+  const { data: scan } = await supabase
+    .from("receipt_scans")
+    .select("receipt_signature")
+    .eq("id", scanId)
+    .maybeSingle<{ receipt_signature: string | null }>();
+  if (!scan?.receipt_signature) return null;
+  const { data } = await supabase
+    .from("receipt_scans")
+    .select("id, created_at")
+    .eq("household_id", householdId)
+    .eq("receipt_signature", scan.receipt_signature)
+    .eq("status", "completed")
+    .is("duplicate_of", null)
+    .neq("id", scanId)
+    .limit(1)
+    .maybeSingle<ReceiptDuplicate>();
+  return data ?? null;
+}
+
 /**
  * Completes a scan the edge function already created: marks it completed and
  * inserts the confirmed items into inventory. `duplicateOf` dodges the unique
@@ -255,7 +285,7 @@ export async function confirmNormalizedReceiptScan(input: {
     // Unique signature index caught a concurrent scan of the same receipt
     // (cross-device race on an identical receipt).
     if ((scanError as { code?: string }).code === "23505") {
-      throw new Error("Duplicate receipt needs confirmation.");
+      throw new ReceiptDuplicateError(await findCompletedDuplicate(input.householdId, input.scanId));
     }
     throw scanError;
   }

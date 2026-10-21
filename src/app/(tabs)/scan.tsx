@@ -23,6 +23,7 @@ import {
   normalizeReceiptImage,
   normalizeReceiptPdf,
   ReceiptDuplicate,
+  ReceiptDuplicateError,
   ReceiptScanResult,
   setNotificationPermissionPreview,
 } from "@/repositories";
@@ -590,8 +591,10 @@ export default function ScanRoute() {
       setMode("success");
     } catch (scanError) {
       // Concurrent scan of the same receipt slipped in while confirming
-      // (cross-device race), bounce to the duplicate screen.
-      if (scanError instanceof Error && scanError.message.includes("Duplicate receipt")) {
+      // (cross-device race): bounce to the duplicate screen with the scan that
+      // won, so "Add anyway" can confirm past the signature index.
+      if (scanError instanceof ReceiptDuplicateError) {
+        setDuplicate(scanError.duplicate);
         setMode("duplicate");
         return;
       }
