@@ -4,6 +4,7 @@ import {
   StyleProp,
   StyleSheet,
   TextInput,
+  TextInputInstance,
   TextInputProps,
   View,
   ViewStyle,
@@ -27,7 +28,7 @@ export function TextField({
   onBlur,
   ...props
 }: Props) {
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const [focused, setFocused] = useState(false);
 
   return (

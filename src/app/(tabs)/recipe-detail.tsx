@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Animated, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Animated, Pressable, ScrollView, ScrollViewInstance, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
@@ -362,7 +362,7 @@ export default function RecipeDetailRoute() {
   // "Jump to recipe": long ingredient lists push the steps below the fold, so
   // a shortcut scrolls straight to them. stepsY is the section label's offset
   // within the body; the content itself starts at HERO_MAX_HEIGHT (padding).
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const [stepsY, setStepsY] = useState(0);
   const jumpToSteps = () =>
     scrollRef.current?.scrollTo({

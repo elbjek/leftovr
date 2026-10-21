@@ -12,12 +12,12 @@ type TabBarProps = {
     index: number;
     routes: { key: string; name: string }[];
   };
-  navigation: {
+  emitter: {
     emit: (event: { type: "tabPress"; target: string; canPreventDefault: true }) => {
       defaultPrevented: boolean;
     };
-    navigate: (name: string) => void;
   };
+  navigateToTab: (routeKey: string) => void;
 };
 
 export default function TabsLayout() {
@@ -82,7 +82,7 @@ export default function TabsLayout() {
   );
 }
 
-function LeftovrTabBar({ state, navigation }: TabBarProps) {
+function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ mode?: string }>();
   const activeRoute = state.routes[state.index]?.name;
@@ -102,14 +102,14 @@ function LeftovrTabBar({ state, navigation }: TabBarProps) {
         const label = getTabLabel(route.name, t);
 
         function onPress() {
-          const event = navigation.emit({
+          const event = emitter.emit({
             type: "tabPress",
             target: route.key,
             canPreventDefault: true,
           });
 
           if (!focused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+            navigateToTab(route.key);
           }
         }
 
