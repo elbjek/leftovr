@@ -27,6 +27,9 @@ export const colors = {
   sageBorder: "rgba(35, 75, 52, 0.28)",
   hairline: "rgba(35, 75, 52, 0.10)",
   hairlineStrong: "rgba(35, 75, 52, 0.18)",
+  // Hairlines on primary (dark green) surfaces.
+  inverseHairline: "rgba(249, 246, 241, 0.12)",
+  inverseHairlineStrong: "rgba(249, 246, 241, 0.24)",
   black: "#1F1F1F",
   white: "#FFFFFF",
   overlay: "rgba(31, 31, 31, 0.55)",

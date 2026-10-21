@@ -8,7 +8,6 @@ export * from "./EmptyState";
 export * from "./FilterChip";
 export * from "./GeneratingOverlay";
 export * from "./IconButton";
-export * from "./PageDots";
 export * from "./ReceiptReadingProgress";
 export * from "./ScanIcon";
 export * from "./Screen";
