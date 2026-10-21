@@ -367,6 +367,8 @@ export const sr = {
       body: "Izmeni cudne stavke, ukloni pogresne, pa dodaj u kuhinju.",
       checkThis: "Proveri ovo",
       scannedAs: "Skenirano kao",
+      categoryTitle: "Kategorija",
+      changeCategory: "Kategorija: {{category}}. Dodirni za promenu",
       nameLabel: "Stavka",
       addCta: "Dodaj {{count}} stavki",
       removeItem: "Ukloni stavku",

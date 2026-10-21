@@ -367,6 +367,8 @@ export const en = {
       body: "Edit anything weird, remove anything wrong, then add it to your kitchen.",
       checkThis: "Check this",
       scannedAs: "Scanned as",
+      categoryTitle: "Category",
+      changeCategory: "Category: {{category}}. Tap to change",
       nameLabel: "Item",
       addCta: "Add {{count}} items",
       removeItem: "Remove item",

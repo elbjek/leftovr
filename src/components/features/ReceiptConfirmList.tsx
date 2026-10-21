@@ -5,10 +5,10 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import Svg, { Path } from "react-native-svg";
 
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
-import { ReceiptConfirmItem } from "@/services";
+import { INVENTORY_CATEGORIES, ReceiptConfirmItem } from "@/services";
 import { CategoryTone, categoryColors, colors, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { Button, Card, Text, TextField, UnitPicker } from "../primitives";
+import { BottomSheet, Button, Card, FilterChip, Text, TextField, UnitPicker } from "../primitives";
 
 type Props = {
   items: ReceiptConfirmItem[];
@@ -33,6 +33,9 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
     })),
   );
   const [expiryPickerRowId, setExpiryPickerRowId] = useState<string | null>(null);
+  // Row whose category is being corrected (C14).
+  const [categoryRowId, setCategoryRowId] = useState<string | null>(null);
+  const categoryRow = rows.find((row) => row.id === categoryRowId);
 
   const itemCount = rows.length;
   const activeExpiryRow = rows.find((row) => row.id === expiryPickerRowId);
@@ -77,9 +80,21 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
           return (
           <Card key={row.id} style={styles.row}>
             <View style={styles.header}>
-              <View style={[styles.iconBox, { backgroundColor: tone.background }]}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("scan.confirm.changeCategory", {
+                  category: t(`scan.categories.${row.category}` as any),
+                })}
+                onPress={() => setCategoryRowId(row.id)}
+                hitSlop={6}
+                style={({ pressed }) => [
+                  styles.iconBox,
+                  { backgroundColor: tone.background },
+                  pressed && styles.iconBoxPressed,
+                ]}
+              >
                 <FoodGlyph name={row.name} color={tone.mark} size={26} />
-              </View>
+              </Pressable>
               <View style={styles.scannedCol}>
                 <Text variant="micro" muted uppercase>
                   {rawLabel ?? t("scan.confirm.scannedAs")}
@@ -183,6 +198,26 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
         <Button title={t("common.continue")} variant="text" onPress={() => setExpiryPickerRowId(null)} />
       ) : null}
 
+      <BottomSheet visible={categoryRow != null} onDismiss={() => setCategoryRowId(null)}>
+        <View style={styles.categorySheet}>
+          <Text variant="h2">{t("scan.confirm.categoryTitle")}</Text>
+          <Text variant="small" muted>{categoryRow?.name}</Text>
+          <View style={styles.categoryChips}>
+            {INVENTORY_CATEGORIES.map((category) => (
+              <FilterChip
+                key={category}
+                label={t(`scan.categories.${category}` as any)}
+                active={categoryRow?.category === category}
+                onPress={() => {
+                  if (categoryRowId) patchRow(categoryRowId, { category });
+                  setCategoryRowId(null);
+                }}
+              />
+            ))}
+          </View>
+        </View>
+      </BottomSheet>
+
       <Pressable
         accessibilityRole="button"
         disabled={itemCount === 0 || confirming}
@@ -274,6 +309,17 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     alignItems: "center",
     justifyContent: "center",
+  },
+  iconBoxPressed: {
+    opacity: 0.7,
+  },
+  categorySheet: {
+    gap: spacing.sm,
+  },
+  categoryChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
   },
   scannedCol: {
     flex: 1,
