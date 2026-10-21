@@ -61,6 +61,25 @@ export async function updateLastActive(): Promise<void> {
   await supabase.from("profiles").update({ last_active_at: new Date().toISOString() }).eq("id", userResult.user.id);
 }
 
+/** Keeps the active household's send-window timezone in sync with this device
+ *  (B18: nothing wrote it, so every household ran in UTC). Last device wins. */
+export async function syncHouseholdTimezone(timezone: string): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { data: userResult } = await supabase.auth.getUser();
+  if (!userResult.user) return;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("active_household_id")
+    .eq("id", userResult.user.id)
+    .single<{ active_household_id: string | null }>();
+  if (!profile?.active_household_id) return;
+  await supabase
+    .from("household_notification_settings")
+    .update({ timezone })
+    .eq("household_id", profile.active_household_id)
+    .neq("timezone", timezone);
+}
+
 export async function getHouseholdNotificationSettings(
   householdId: string,
 ): Promise<HouseholdNotificationSettings> {
