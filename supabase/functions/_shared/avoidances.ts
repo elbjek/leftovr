@@ -11,8 +11,8 @@ type AvoidanceWords = { exact: string[]; prefix: string[] };
 
 const AVOIDANCE_WORDS: Record<string, AvoidanceWords> = {
   meat: {
-    exact: ["meat", "ham", "beef", "pork", "lamb", "veal", "duck", "meso", "mesa", "mesom", "mesu", "pile", "pileci", "pileca", "pilece", "sunka", "sunke", "sunkom", "prsut", "prsuta"],
-    prefix: ["chicken", "turkey", "bacon", "sausage", "salami", "mince", "prosciutto", "steak", "piletin", "svinjetin", "junetin", "teletin", "curetin", "jagnjetin", "slanin", "kobasic", "salam", "cevap", "pljeskavic"],
+    exact: ["meat", "ham", "beef", "pork", "lamb", "veal", "duck", "mince", "salama", "salame", "salamu", "meso", "mesa", "mesom", "mesu", "pile", "pileci", "pileca", "pilece", "sunka", "sunke", "sunkom", "prsut", "prsuta"],
+    prefix: ["chicken", "turkey", "bacon", "sausage", "salami", "prosciutto", "steak", "piletin", "svinjetin", "junetin", "teletin", "curetin", "jagnjetin", "slanin", "kobasic", "cevap", "pljeskavic"],
   },
   fish: {
     exact: ["fish", "cod", "tuna", "riba", "ribe", "ribom", "ribu", "losos", "oslic", "skampi", "skusa", "incuni"],
@@ -32,13 +32,27 @@ const AVOIDANCE_WORDS: Record<string, AvoidanceWords> = {
   },
 };
 
-function words(text: string): string[] {
+// Phrases that contain an avoidance word but aren't that food ("peanut
+// butter" isn't dairy). Removed before matching.
+const NOT_THE_FOOD: Record<string, string[]> = {
+  dairy: [
+    "peanut butter", "almond butter", "cashew butter", "nut butter", "cocoa butter",
+    "coconut cream", "coconut milk", "almond milk", "oat milk", "soy milk", "rice milk",
+    "cream of tartar", "kokosovo mleko", "bademovo mleko", "ovseno mleko", "sojino mleko",
+  ],
+};
+
+// Lowercase first, so an uppercase "Đ" folds to "dj" too.
+function fold(text: string): string {
   return text
+    .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/g, "dj")
-    .toLowerCase()
-    .match(/\p{L}+/gu) ?? [];
+    .replace(/đ/g, "dj");
+}
+
+function words(text: string): string[] {
+  return text.match(/\p{L}+/gu) ?? [];
 }
 
 /** True when `text` mentions food covered by the avoidance key. Unknown keys
@@ -47,7 +61,9 @@ export function mentionsAvoidance(text: string, avoidance: string): boolean {
   const key = avoidance.toLowerCase().trim();
   const list = AVOIDANCE_WORDS[key];
   if (!list) return text.toLowerCase().includes(key);
-  return words(text).some(
+  let folded = fold(text);
+  for (const phrase of NOT_THE_FOOD[key] ?? []) folded = folded.split(phrase).join(" ");
+  return words(folded).some(
     (word) => list.exact.includes(word) || list.prefix.some((stem) => word.startsWith(stem)),
   );
 }

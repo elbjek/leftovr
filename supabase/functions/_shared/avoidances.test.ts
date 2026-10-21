@@ -11,6 +11,9 @@ describe("mentionsAvoidance", () => {
     ["piletinom", "meat"],
     ["Pileća prsa", "meat"],
     ["dimljena slanina", "meat"],
+    ["200 g mince", "meat"],
+    ["Đuveč sa svinjetinom", "meat"],
+    ["unsalted butter", "dairy"],
     ["2 chicken thighs", "meat"],
     ["losos", "fish"],
     ["tunjevina iz konzerve", "fish"],
@@ -29,6 +32,11 @@ describe("mentionsAvoidance", () => {
     ["nutmeg", "nuts"],
     ["2 tomatoes", "meat"],
     ["ripe banana", "gluten"],
+    ["2 cloves minced garlic", "meat"],
+    ["salamura", "meat"],
+    ["2 tbsp peanut butter", "dairy"],
+    ["coconut cream", "dairy"],
+    ["kokosovo mleko", "dairy"],
   ])("%j is not %s", (text, avoidance) => {
     expect(mentionsAvoidance(text, avoidance)).toBe(false);
   });
