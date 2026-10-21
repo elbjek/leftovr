@@ -49,6 +49,10 @@ export type ReceiptConfirmItem = {
   expiresAt?: string | null;
   // Per-line price (read or AI-estimated), in the receipt's currency.
   price?: number | null;
+  // Metric size per pack as printed on the line/packaging (B7); the catalog
+  // default is only the fallback.
+  netAmount?: number | null;
+  netUnit?: string | null;
 };
 
 export type ReceiptInventoryRowInput = {
@@ -103,6 +107,8 @@ export function buildReceiptConfirmItemsFromLines(
     rawText: line.rawText,
     scannedName: line.item.name,
     price: line.item.price ?? null,
+    netAmount: line.item.netAmount,
+    netUnit: line.item.netUnit,
   }));
 }
 
@@ -116,8 +122,12 @@ export function buildConfirmedReceiptInventoryRows(
       const name = item.name.trim();
       const unit = item.unit.trim() || "item";
       const quantity = item.quantity > 0 ? item.quantity : 1;
-      const catalogNet = getCatalogNet(name);
-      const netAmount = catalogNet ? catalogNet.netAmount * quantity : null;
+      const printedNet =
+        item.netAmount != null && item.netAmount > 0 && (item.netUnit === "ml" || item.netUnit === "g")
+          ? { netAmount: item.netAmount, netUnit: item.netUnit as "ml" | "g" }
+          : null;
+      const packNet = printedNet ?? getCatalogNet(name);
+      const netAmount = packNet ? packNet.netAmount * quantity : null;
       // Basis for proportional attribution: the amount the price covers.
       const purchaseAmount = netAmount ?? quantity;
 
@@ -137,7 +147,7 @@ export function buildConfirmedReceiptInventoryRows(
         quantity,
         unit,
         net_amount: netAmount,
-        net_unit: catalogNet?.netUnit ?? null,
+        net_unit: packNet?.netUnit ?? null,
         partial_state: "full" as const,
         shelf_life_range: getShelfLifeRange(name, item.category),
         expires_at: item.expiresAt ?? null,

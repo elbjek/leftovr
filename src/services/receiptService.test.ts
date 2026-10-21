@@ -166,6 +166,11 @@ describe("confirmed rows from scanned lines", () => {
     expect(row.normalized_name).toBe("tomatoes");
   });
 
+  it("uses the printed pack size over the catalog default (B7)", () => {
+    const [row] = buildConfirmedReceiptInventoryRows(buildReceiptConfirmItemsFromLines([scanned()]), input);
+    expect(row).toMatchObject({ net_amount: 360, net_unit: "g", purchase_amount: null });
+  });
+
   it("falls back to the catalog size when nothing is printed", () => {
     const [row] = buildConfirmedReceiptInventoryRows(
       buildReceiptConfirmItemsFromLines([scanned({ name: "Greek yogurt", normalizedName: "greek yogurt", netAmount: null, netUnit: null })]),
