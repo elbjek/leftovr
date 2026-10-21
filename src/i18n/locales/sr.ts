@@ -617,6 +617,7 @@ export const sr = {
       howToCook: "Kako kuvati",
       jumpToRecipe: "Skoci na recept",
       preparingSteps: "Pripremam korake…",
+      stepsFailed: "Nismo uspeli da učitamo korake. Proveri vezu i pokušaj ponovo.",
       cookCta: "Skuvao sam ovo",
       cookAgainCta: "Kuvaj ponovo",
       niceToHave: "dobro bi doslo",

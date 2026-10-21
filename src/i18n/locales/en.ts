@@ -616,6 +616,7 @@ export const en = {
       howToCook: "How to cook",
       jumpToRecipe: "Jump to recipe",
       preparingSteps: "Preparing the steps…",
+      stepsFailed: "Couldn't load the steps. Check your connection and try again.",
       cookCta: "I cooked this",
       cookAgainCta: "Cook again",
       niceToHave: "nice to have",

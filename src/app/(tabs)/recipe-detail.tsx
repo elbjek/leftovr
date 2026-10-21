@@ -80,6 +80,9 @@ export default function RecipeDetailRoute() {
     complexity: params.complexity ?? "simple",
   });
   const [expanding, setExpanding] = useState(false);
+  // Expand returned nothing (offline, server error): offer a retry (C6).
+  const [expandFailed, setExpandFailed] = useState(false);
+  const [expandAttempt, setExpandAttempt] = useState(0);
 
   const ingredients = detail.ingredients;
   const steps = detail.steps;
@@ -103,6 +106,7 @@ export default function RecipeDetailRoute() {
       complexity: params.complexity ?? "simple",
     });
     // Already expanded (or opened from a persisted, expanded row): nothing to do.
+    setExpandFailed(false);
     pendingExpandRef.current =
       baseSteps.length > 0 || baseIngredients.length === 0 ? null : recipeId;
     // Re-seed only when the recipe changes; params are read at call time.
@@ -121,6 +125,7 @@ export default function RecipeDetailRoute() {
     const baseTime = Number(params.timeMinutes ?? 20);
     let cancelled = false;
     setExpanding(true);
+    setExpandFailed(false);
     (async () => {
       const result = await expandRecipe({
         title,
@@ -132,6 +137,7 @@ export default function RecipeDetailRoute() {
         servings,
       });
       if (cancelled) return;
+      if (!result) setExpandFailed(true);
       if (result) {
         setDetail({
           ingredients: result.ingredients,
@@ -158,7 +164,12 @@ export default function RecipeDetailRoute() {
     };
     // Expand once per opened recipe; lots/profile are read at call time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipeId, inventoryLoading]);
+  }, [recipeId, inventoryLoading, expandAttempt]);
+
+  function retryExpand() {
+    pendingExpandRef.current = recipeId;
+    setExpandAttempt((n) => n + 1);
+  }
 
   // Urgent ingredients are derived from LIVE inventory, not a generation-time
   // snapshot — the urgency band can change as items age (CODE_REVIEW #14/#2).
@@ -525,6 +536,11 @@ export default function RecipeDetailRoute() {
               {[0, 1, 2].map((i) => (
                 <View key={i} style={styles.stepSkeleton} />
               ))}
+            </>
+          ) : expandFailed && steps.length === 0 ? (
+            <>
+              <Text variant="body" muted>{t("recipes.detail.stepsFailed")}</Text>
+              <Button title={t("scan.tryAgain")} variant="ghost" fit onPress={retryExpand} />
             </>
           ) : (
             steps.map((step, i) => (
