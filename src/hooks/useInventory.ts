@@ -83,10 +83,25 @@ export function useInventory(householdId?: string | null) {
         await advanceInventoryPartialState(lot.id);
         await reloadAndBroadcast();
       },
+      // The edit sheet shows the first lot's quantity/size; name, unit and
+      // expiry describe the whole group, so they go to every lot — otherwise a
+      // rename split the group in two (C2).
       updateFirstLot: async (group: InventoryGroup, input: UpdateInventoryItemInput) => {
-        const lot = group.lots[0];
-        if (!lot) return;
-        await updateInventoryItem(lot.id, { category: group.category, ...input });
+        const [first, ...rest] = group.lots;
+        if (!first) return;
+        await updateInventoryItem(first.id, { category: group.category, ...input });
+        // Only fields the user actually changed, so other lots keep their own
+        // dates when the form was saved untouched.
+        const shared: UpdateInventoryItemInput = {};
+        if (input.name !== undefined && input.name.trim() !== first.name) {
+          shared.name = input.name;
+          shared.category = group.category;
+        }
+        if (input.unit !== undefined && input.unit !== first.unit) shared.unit = input.unit;
+        if (input.expiresAt !== undefined && input.expiresAt !== first.expires_at) shared.expiresAt = input.expiresAt;
+        if (Object.keys(shared).length > 0) {
+          for (const lot of rest) await updateInventoryItem(lot.id, shared);
+        }
         await reloadAndBroadcast();
       },
       markGroupStillGood: async (group: InventoryGroup) => {

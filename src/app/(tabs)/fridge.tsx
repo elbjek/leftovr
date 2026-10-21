@@ -797,7 +797,7 @@ function ItemActionSheet({
         <View style={styles.netRow}>
           <TextField
             label={labels.quantityLabel}
-            keyboardType="number-pad"
+            keyboardType="decimal-pad"
             value={quantity}
             onChangeText={setQuantity}
             containerStyle={styles.netField}
@@ -808,7 +808,7 @@ function ItemActionSheet({
         {isPrecise ? (
           <TextField
             label={`${labels.netLabel} (${group?.netUnit})`}
-            keyboardType="number-pad"
+            keyboardType="decimal-pad"
             value={netInput}
             onChangeText={setNetInput}
           />
@@ -890,11 +890,19 @@ function ItemActionSheet({
             variant="accent"
             onPress={() => {
               if (!group) return;
+              const lot = group.lots[0];
               const qty = Number(quantity.replace(",", "."));
-              const net = Number(netInput.replace(",", "."));
+              const nextQuantity = Number.isFinite(qty) && qty > 0 ? qty : lot?.quantity ?? 1;
+              let net = Number(netInput.replace(",", "."));
+              // Quantity changed but the size wasn't touched: scale the size
+              // with it (2 cartons = 2000 ml → 3 cartons = 3000 ml) (C2).
+              const netUntouched = lot?.net_amount != null && net === lot.net_amount;
+              if (netUntouched && lot && lot.quantity > 0 && nextQuantity !== lot.quantity) {
+                net = Number(((lot.net_amount as number) * (nextQuantity / lot.quantity)).toFixed(2));
+              }
               void onSave(group, {
                 name,
-                quantity: Number.isFinite(qty) && qty > 0 ? qty : group.lots[0]?.quantity ?? 1,
+                quantity: nextQuantity,
                 unit: normalizeUnit(unit),
                 expiresAt: expiry ? toLocalDateString(expiry) : null,
                 netAmount: isPrecise && net > 0 ? net : undefined,
