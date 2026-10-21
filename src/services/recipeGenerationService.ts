@@ -1,5 +1,6 @@
 import { CookingMode } from "@/repositories/recipeRepository";
 import { env } from "@/lib/env";
+import { newClientId } from "@/lib/ids";
 import { MockRecipe } from "@/mocks/recipeLibrary";
 import { InventoryLot, resolveUrgency } from "./inventoryRules";
 import { matchRecipes, RecipeMatch, RecipeMatcherInput, selectMakeableRecipes } from "./recipeService";
@@ -241,8 +242,10 @@ async function generateAiMatches(input: RecipeGenerationInput): Promise<RecipeMa
     }
     const requestHash = buildRecipeGenerationRequestHash({ ...input, language });
     // Namespace the cache key by mode so card-shaped cache entries never collide
-    // with legacy full-recipe entries from app builds still in the field.
-    const cardsKey = `${requestHash}-cards`;
+    // with legacy full-recipe entries from app builds still in the field. Each
+    // tap gets its own key: a fridge-only key made "Show me others" replay the
+    // same cards (B13). Double taps are blocked by the in-flight guard.
+    const cardsKey = `${requestHash}-cards-${newClientId()}`;
     const { data, error } = await getSupabaseClient().functions.invoke("generate-recipes", {
       body: {
         // Phase 1: ask for lightweight cards (no steps/amounts). Full detail is
