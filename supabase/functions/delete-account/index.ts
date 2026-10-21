@@ -124,6 +124,31 @@ Deno.serve(async (req) => {
     const { error: profileError } = await supabase.from("profiles").delete().eq("id", userId);
     if (profileError) throw profileError;
 
+    // B23: the user may have been a household's payer. Recompute each remaining
+    // household's plan from its remaining members (same rule as the RevenueCat
+    // webhook), or the household stays premium forever. Non-fatal.
+    for (const householdId of snapHouseholdIds) {
+      const { data: members } = await supabase
+        .from("household_members")
+        .select("user_id")
+        .eq("household_id", householdId)
+        .eq("status", "active");
+      if (!members?.length) continue; // household was deleted with its sole member
+      const { count, error: payersError } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .in("id", members.map((m) => m.user_id))
+        .eq("tier", "household_premium");
+      if (payersError) {
+        console.error("[delete-account] plan recompute failed", payersError);
+        continue;
+      }
+      await supabase
+        .from("households")
+        .update({ plan_tier: (count ?? 0) > 0 ? "household_premium" : "free" })
+        .eq("id", householdId);
+    }
+
     // Finally remove the auth user.
     const { error: authError } = await supabase.auth.admin.deleteUser(userId);
     if (authError) throw authError;
