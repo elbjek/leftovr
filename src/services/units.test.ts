@@ -114,3 +114,20 @@ describe("addAmounts (C18)", () => {
     expect(addAmounts({ amount: 200, unit: "g" }, { amount: 1, unit: "cup" })).toEqual({ amount: 200, unit: "g" });
   });
 });
+
+describe("parseIngredientAmount review cases", () => {
+  it("takes the earliest number, not a later fraction", () => {
+    expect(parseIngredientAmount("2 cups (1/2 lb)")).toMatchObject({ value: 2, unit: "cup", kind: "measure" });
+    expect(parseIngredientAmount("1 can (14 1/2 oz)")).toMatchObject({ value: 1, kind: "other", unit: "can" });
+  });
+  it("keeps the unit for ranges", () => {
+    expect(parseIngredientAmount("2-3 tbsp")).toMatchObject({ value: 2, unit: "tbsp", kind: "measure" });
+    expect(parseIngredientAmount("1–2 cups flour")).toMatchObject({ value: 1, unit: "cup", kind: "measure" });
+    expect(parseIngredientAmount("2-3 carrots")).toMatchObject({ value: 2, unit: null, kind: "count" });
+  });
+  it("treats text without a number as one use", () => {
+    expect(parseIngredientAmount("a pinch of salt")).toMatchObject({ value: 1, kind: "other" });
+    expect(parseIngredientAmount("salt to taste")).toMatchObject({ value: 1, kind: "other" });
+    expect(ingredientUse("pola kašike")).toEqual({ quantity: 1, unit: "pola" });
+  });
+});

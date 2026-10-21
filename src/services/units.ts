@@ -111,13 +111,17 @@ function parseNumber(text: string): { value: number; rest: string } | null {
     [/(\d+(?:[.,]\d+)?)\s*([½⅓⅔¼¾⅛])?/, (m) => Number(m[1].replace(",", ".")) + (m[2] ? FRACTIONS[m[2]] : 0)],
     [/([½⅓⅔¼¾⅛])/, (m) => FRACTIONS[m[1]]],
   ];
+  // The amount is the earliest number in the text, so "2 cups (1/2 lb)" is
+  // 2 cups; at the same position the longest form wins ("1 1/2" over "1").
+  let best: { index: number; length: number; value: number } | null = null;
   for (const [pattern, toValue] of patterns) {
     const match = text.match(pattern);
-    if (match?.index !== undefined) {
-      return { value: toValue(match), rest: text.slice(match.index + match[0].length) };
+    if (match?.index === undefined) continue;
+    if (!best || match.index < best.index || (match.index === best.index && match[0].length > best.length)) {
+      best = { index: match.index, length: match[0].length, value: toValue(match) };
     }
   }
-  return null;
+  return best ? { value: best.value, rest: text.slice(best.index + best.length) } : null;
 }
 
 export function parseIngredientAmount(amount: string): ParsedAmount {
@@ -125,10 +129,16 @@ export function parseIngredientAmount(amount: string): ParsedAmount {
   const number = parseNumber(text);
   const raw = number?.value ?? 1;
   const value = Number.isFinite(raw) && raw > 0 ? raw : 1;
-  // Ranges ("2-3 carrots") keep the first number; a dash before the word
-  // means no unit word follows.
-  const word = (number ? number.rest : text).match(/^\s*(\p{L}+)/u)?.[1] ?? null;
+  // Ranges ("2-3 tbsp", "2-3 carrots") keep the first number and the unit.
+  const rest = number ? number.rest.replace(/^\s*[-–]\s*\d+(?:[.,]\d+)?/, "") : text;
+  const word = rest.match(/^\s*(\p{L}+)/u)?.[1] ?? null;
   if (!word) return { value, unit: null, kind: "count" };
+  // No number at all ("a pinch of salt", "salt to taste"): one use, not one
+  // whole item.
+  if (!number) {
+    const key = foldDiacritics(word);
+    return { value: 1, unit: word, kind: SINGLE_USE_WORDS.has(key) || !MEASURE_ALIASES[key] ? "other" : "measure" };
+  }
 
   const key = foldDiacritics(word);
   const measured = MEASURE_ALIASES[key];
