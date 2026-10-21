@@ -27,13 +27,13 @@ export async function insertValueEvent(input: {
   if (error) throw error;
 }
 
-type PricedLot = { category: string; purchase_price: number | null; purchase_amount: number | null };
+type PricedLot = { category: string; purchase_price: number | null; purchase_amount: number | null; net_unit: string | null };
 
 /** Household's priced lots (active or historical) for cold-start approximation. */
 export async function fetchPricedLots(householdId: string): Promise<PricedLot[]> {
   const { data, error } = await getSupabaseClient()
     .from("inventory_items")
-    .select("category, purchase_price, purchase_amount")
+    .select("category, purchase_price, purchase_amount, net_unit")
     .eq("household_id", householdId)
     .not("purchase_price", "is", null);
   if (error) throw error;

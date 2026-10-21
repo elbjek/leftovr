@@ -92,7 +92,8 @@ type AiRecipeCard = {
   category: string;
   tags: string[];
   avoidanceTags: string[];
-  ingredients: { name: string; amount: string; required: boolean; countable: boolean }[];
+  // matchKey: household item's canonical (untranslated) name; set by expand only.
+  ingredients: { name: string; amount: string; required: boolean; countable: boolean; matchKey?: string | null }[];
   steps: string[];
 };
 
@@ -199,8 +200,9 @@ const EXPAND_SCHEMA = {
           name: { type: "string" },
           amount: { type: "string" },
           required: { type: "boolean" },
+          matchKey: { type: ["string", "null"] },
         },
-        required: ["name", "amount", "required"],
+        required: ["name", "amount", "required", "matchKey"],
         additionalProperties: false,
       },
     },
@@ -989,13 +991,18 @@ async function handleExpand(
     });
     const text = response.choices[0]?.message?.content ?? "";
     const detail = JSON.parse(text) as {
-      ingredients: { name: string; amount: string; required: boolean }[];
+      ingredients: { name: string; amount: string; required: boolean; matchKey: string | null }[];
       steps: string[];
     };
 
     const servings = input.servings ?? 2;
+    // Drop keys the model invented; the client then falls back to name matching.
+    const householdKeys = new Set(
+      (input.inventory ?? []).map((item) => item.normalized_name ?? item.name?.toLowerCase()),
+    );
     const ingredients = detail.ingredients.map((ing) => ({
       ...ing,
+      matchKey: ing.matchKey && householdKeys.has(ing.matchKey) ? ing.matchKey : null,
       countable: deriveCountable(ing.amount),
     }));
     const recipe: AiRecipeCard = {
@@ -1032,6 +1039,7 @@ async function handleExpand(
 const EXPAND_SYSTEM_PROMPT = [
   "You write the full ingredient list and steps for a dish that has ALREADY been chosen. Keep the dish as given; do not change it.",
   "Ingredient names should match household item names where used. required=true only for items taken from the fridge; required=false for pantry staples (oil, salt, garlic, spices).",
+  "matchKey: for an ingredient taken from the household, copy that item's canonical name EXACTLY as written in parentheses in the household list (never translated or reworded); null for anything not from the household list.",
   "Ingredient amounts: counts for whole/countable produce (e.g. '2 tomatoes', '3 eggs'); weight or volume otherwise (e.g. '400g rice', '100ml milk').",
   "Write steps for a beginner cook: cooking steps (stove/oven) name the heat level, pan or pot size where relevant, a time estimate, and a doneness cue. Prep and assembly steps just state the action — never write \"no heat\" or a heat level for them.",
   "One action per step. At most 8 steps and at most 12 ingredients. Do not pad.",

@@ -63,11 +63,13 @@ export async function getInsightsData(
   if (until) cookedRecipesQuery = cookedRecipesQuery.lt("created_at", until);
   if (userId) cookedRecipesQuery = cookedRecipesQuery.eq("cooked_by", userId);
 
+  // "Used up" only: tossed items must not count as eat-first hits.
   let removedQuery = supabase
     .from("inventory_items")
     .select("id", { count: "exact", head: true })
     .eq("household_id", householdId)
     .not("removed_at", "is", null)
+    .or("removal_reason.is.null,removal_reason.neq.discarded")
     .gte("removed_at", since);
   if (until) removedQuery = removedQuery.lt("removed_at", until);
   if (userId) removedQuery = removedQuery.eq("added_by", userId);

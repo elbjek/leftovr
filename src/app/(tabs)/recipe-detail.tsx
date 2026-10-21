@@ -22,7 +22,14 @@ type IngredientItem = {
   amount: string;
   required: boolean;
   countable: boolean;
+  /** Household item's canonical name; `name` may be translated. */
+  matchKey?: string | null;
 };
+
+// Inventory key for an ingredient. Names are localized (e.g. "paradajz"), so
+// the untranslated matchKey wins; older recipes without one fall back to name.
+const ingredientKey = (ing: { name: string; matchKey?: string | null }) =>
+  ing.matchKey ?? normalizeFoodName(ing.name);
 
 export default function RecipeDetailRoute() {
   const { t } = useTranslation();
@@ -142,7 +149,7 @@ export default function RecipeDetailRoute() {
       .map((group) => group.normalizedName),
   );
   const matchedUrgentItems = ingredients
-    .filter((ing) => urgentFridgeNames.has(normalizeFoodName(ing.name)))
+    .filter((ing) => urgentFridgeNames.has(ingredientKey(ing)))
     .map((ing) => ing.name);
 
   const [showCooked, setShowCooked] = useState(false);
@@ -153,6 +160,7 @@ export default function RecipeDetailRoute() {
     unit: string;
     used: boolean;
     inFridge: boolean;
+    matchKey?: string | null;
     /** Fridge item used instead of the recipe ingredient (normalized + display). */
     swapNormalized: string | null;
     swapDisplay: string | null;
@@ -191,7 +199,7 @@ export default function RecipeDetailRoute() {
   const isOwned = (ing: IngredientItem) =>
     ing.required ||
     isPantryStaple(ing.name) ||
-    liveFridgeNames.has(normalizeFoodName(ing.name));
+    liveFridgeNames.has(ingredientKey(ing));
   const fridgeCount = ingredients.filter(isOwned).length;
 
   function handleCookPress() {
@@ -207,6 +215,7 @@ export default function RecipeDetailRoute() {
         unit: ing.countable ? "item" : (parsed.unit ?? "item"),
         used: inFridge,
         inFridge,
+        matchKey: ing.matchKey ?? null,
         swapNormalized: null,
         swapDisplay: null,
       };
@@ -304,7 +313,7 @@ export default function RecipeDetailRoute() {
         if (!item.used) continue;
         // A swapped row depletes the chosen fridge item instead of the
         // recipe's original ingredient.
-        const key = item.swapNormalized ?? normalizeFoodName(item.name);
+        const key = item.swapNormalized ?? ingredientKey(item);
         const existing = byName.get(key);
         byName.set(key, {
           amount: (existing?.amount ?? 0) + item.quantityToUse,

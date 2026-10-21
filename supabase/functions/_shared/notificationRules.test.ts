@@ -5,6 +5,7 @@ import {
   buildDailySuggestion,
   sentToday,
   coalesceOpen,
+  urgencyFromExpiry,
 } from "./notificationRules.ts";
 
 Deno.test("isWithinSendWindow true when now inside window in tz", () => {
@@ -49,4 +50,16 @@ Deno.test("coalesceOpen false when sent within window minutes", () => {
   assertEquals(coalesceOpen("2026-06-19T11:55:00Z", now, 10), false); // 5 min ago
   assertEquals(coalesceOpen("2026-06-19T11:40:00Z", now, 10), true);  // 20 min ago
   assertEquals(coalesceOpen(null, now, 10), true);
+});
+
+Deno.test("urgencyFromExpiry matches client thresholds and grace window", () => {
+  const now = new Date("2026-10-21T12:00:00Z");
+  assertEquals(urgencyFromExpiry(null, now), "fresh");
+  assertEquals(urgencyFromExpiry("2026-10-21", now), "urgent");   // today
+  assertEquals(urgencyFromExpiry("2026-10-22", now), "urgent");   // ~1.5d left
+  assertEquals(urgencyFromExpiry("2026-10-24", now), "use_soon"); // ~3.5d left
+  assertEquals(urgencyFromExpiry("2026-10-25", now), "use_soon"); // ~4.5d left
+  assertEquals(urgencyFromExpiry("2026-10-26", now), "fresh");    // ~5.5d left
+  assertEquals(urgencyFromExpiry("2026-10-19", now), "urgent");   // in grace window
+  assertEquals(urgencyFromExpiry("2026-10-17", now), "expired");
 });

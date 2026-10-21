@@ -7,12 +7,25 @@ export function deriveUnitPrice(
   return total / basisAmount;
 }
 
-export type PricedLot = { category: string; purchase_price: number | null; purchase_amount: number | null };
+export type PricedLot = {
+  category: string;
+  purchase_price: number | null;
+  purchase_amount: number | null;
+  /** Basis of purchase_amount: "g"/"ml" when net-priced, null when a count. */
+  net_unit: string | null;
+};
 
-/** Average derived unit price across a category's priced lots. Null if none. */
-export function categoryAverageUnitPrice(lots: PricedLot[], category: string): number | null {
+/**
+ * Average derived unit price across a category's priced lots sharing the same
+ * basis (per g, per ml, or per item — never mixed). Null if none.
+ */
+export function categoryAverageUnitPrice(
+  lots: PricedLot[],
+  category: string,
+  basisUnit: string | null,
+): number | null {
   const unitPrices = lots
-    .filter((l) => l.category === category)
+    .filter((l) => l.category === category && (l.net_unit ?? null) === basisUnit)
     .map((l) => deriveUnitPrice(l.purchase_price, l.purchase_amount))
     .filter((p): p is number => p != null);
   if (unitPrices.length === 0) return null;
