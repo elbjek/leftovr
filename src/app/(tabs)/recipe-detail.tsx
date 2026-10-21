@@ -8,7 +8,7 @@ import { BottomSheet, Button, Card, RecipeGlyph, Text, TextField } from "@/compo
 import { useAuth } from "@/features";
 import { notifyInventoryChanged, useInventory } from "@/hooks";
 import { newClientId } from "@/lib";
-import { canonicalFoodName, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple } from "@/services";
+import { canonicalFoodName, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, resolveUrgency } from "@/services";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
@@ -48,7 +48,10 @@ export default function RecipeDetailRoute() {
   }>();
 
   const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
-  const { groups: inventoryGroups, lots } = useInventory(activeHousehold?.id);
+  const { groups: inventoryGroups, lots, loading: inventoryLoading } = useInventory(activeHousehold?.id);
+  // Recipe id still waiting for its phase-2 expand (set by the seeding effect,
+  // consumed once inventory has loaded).
+  const pendingExpandRef = useRef<string | null>(null);
 
   const title = params.title ?? "";
   const description = params.description ?? "";
@@ -100,7 +103,22 @@ export default function RecipeDetailRoute() {
       complexity: params.complexity ?? "simple",
     });
     // Already expanded (or opened from a persisted, expanded row): nothing to do.
-    if (baseSteps.length > 0 || baseIngredients.length === 0) return;
+    pendingExpandRef.current =
+      baseSteps.length > 0 || baseIngredients.length === 0 ? null : recipeId;
+    // Re-seed only when the recipe changes; params are read at call time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipeId]);
+
+  // Expand once inventory has loaded: on a cold open `lots` starts empty, and
+  // an empty inventory makes the server null every matchKey (C17). Expired
+  // lots are left out — cooking skips them anyway.
+  useEffect(() => {
+    if (inventoryLoading || pendingExpandRef.current !== recipeId) return;
+    pendingExpandRef.current = null;
+    const baseIngredients: IngredientItem[] = params.ingredients
+      ? JSON.parse(params.ingredients)
+      : [];
+    const baseTime = Number(params.timeMinutes ?? 20);
     let cancelled = false;
     setExpanding(true);
     (async () => {
@@ -109,7 +127,7 @@ export default function RecipeDetailRoute() {
         description,
         timeMinutes: baseTime,
         usedIngredientNames: baseIngredients.map((ing) => ing.name),
-        inventory: lots,
+        inventory: lots.filter((lot) => resolveUrgency(lot) !== "expired"),
         avoidances: profile?.avoidances ?? [],
         servings,
       });
@@ -140,7 +158,7 @@ export default function RecipeDetailRoute() {
     };
     // Expand once per opened recipe; lots/profile are read at call time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipeId]);
+  }, [recipeId, inventoryLoading]);
 
   // Urgent ingredients are derived from LIVE inventory, not a generation-time
   // snapshot — the urgency band can change as items age (CODE_REVIEW #14/#2).

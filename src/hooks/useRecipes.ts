@@ -314,7 +314,8 @@ export function useRecipes(
               timeMinutes: match.timeMinutes,
               tags: match.tags,
               usedIngredientNames: match.ingredients.map((ing) => ing.name),
-              inventory,
+              // Same non-expired set the cards were generated from (C17).
+              inventory: usableInventory,
               avoidances,
               servings,
             }).then((result) => {
