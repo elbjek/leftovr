@@ -287,6 +287,7 @@ export type UpdateInventoryItemInput = {
   unit?: string;
   expiresAt?: string | null;
   netAmount?: number | null;
+  partialState?: PartialState;
 };
 
 // Edits one lot. When the name changes we also recompute normalized_name (so
@@ -311,6 +312,7 @@ export async function updateInventoryItem(itemId: string, input: UpdateInventory
   }
   if (input.unit !== undefined) patch.unit = input.unit;
   if (input.expiresAt !== undefined) patch.expires_at = input.expiresAt;
+  if (input.partialState !== undefined) patch.partial_state = input.partialState;
   if (input.netAmount !== undefined) {
     if (input.netAmount != null && !(input.netAmount > 0)) throw new Error("net amount must be positive");
     patch.net_amount = input.netAmount;

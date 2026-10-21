@@ -4,12 +4,13 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, ScanIcon, Screen, ScreenHeader, ShelfRow, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, ScanIcon, Screen, ScreenHeader, SegmentedControl, ShelfRow, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
 import {
   daysLeft,
+  PartialState,
   getCatalogFood,
   hasExplicitExpiredLot,
   InventoryGroup,
@@ -725,11 +726,15 @@ function ItemActionSheet({
     expiryLabel: string;
     expiryNone: string;
     expiryDone: string;
+    partialLabel: string;
+    partialFull: string;
+    partialSomeUsed: string;
+    partialLow: string;
   };
   onDismiss: () => void;
   onSave: (
     group: InventoryGroup,
-    input: { name: string; quantity: number; unit: string; expiresAt: string | null; netAmount?: number },
+    input: { name: string; quantity: number; unit: string; expiresAt: string | null; netAmount?: number; partialState?: PartialState },
   ) => Promise<void>;
   onRemove: (group: InventoryGroup, reason: "used" | "discarded") => void;
 }) {
@@ -737,6 +742,7 @@ function ItemActionSheet({
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("item");
   const [netInput, setNetInput] = useState("");
+  const [partialState, setPartialState] = useState<PartialState>("full");
   const [expiry, setExpiry] = useState<Date | null>(null);
   const [showExpiryPicker, setShowExpiryPicker] = useState(false);
   const [confirmingRemove, setConfirmingRemove] = useState(false);
@@ -750,6 +756,7 @@ function ItemActionSheet({
     setQuantity(lot ? String(lot.quantity) : "");
     setUnit(group?.unit ?? "item");
     setNetInput(lot?.net_amount != null ? String(lot.net_amount) : "");
+    setPartialState(lot?.partial_state ?? "full");
     setExpiry(lot?.expires_at ? parseLocalDate(lot.expires_at) : null);
     setShowExpiryPicker(false);
     setConfirmingRemove(false);
@@ -813,6 +820,22 @@ function ItemActionSheet({
             onChangeText={setNetInput}
           />
         ) : null}
+
+        {/* Set by hand how much of an opened item is left (C4). */}
+        <View style={styles.partialField}>
+          <Text variant="micro" muted uppercase>
+            {labels.partialLabel}
+          </Text>
+          <SegmentedControl<PartialState>
+            options={[
+              { label: labels.partialFull, value: "full" },
+              { label: labels.partialSomeUsed, value: "some_used" },
+              { label: labels.partialLow, value: "low" },
+            ]}
+            value={partialState}
+            onChange={setPartialState}
+          />
+        </View>
 
         <Pressable
           accessibilityRole="button"
@@ -906,6 +929,7 @@ function ItemActionSheet({
                 unit: normalizeUnit(unit),
                 expiresAt: expiry ? toLocalDateString(expiry) : null,
                 netAmount: isPrecise && net > 0 ? net : undefined,
+                partialState,
               });
             }}
           />
@@ -1045,10 +1069,17 @@ function getActionLabels(t: ReturnType<typeof useTranslation>["t"]) {
     expiryLabel: t("fridge.actions.expiryLabel"),
     expiryNone: t("fridge.actions.expiryNone"),
     expiryDone: t("fridge.actions.expiryDone"),
+    partialLabel: t("fridge.actions.partialLabel"),
+    partialFull: t("fridge.meta.full"),
+    partialSomeUsed: t("fridge.meta.someUsed"),
+    partialLow: t("fridge.meta.low"),
   };
 }
 
 const styles = StyleSheet.create({
+  partialField: {
+    gap: spacing.xs,
+  },
   content: {
     paddingTop: spacing.screenTop,
     paddingBottom: spacing.tabBarClearance,

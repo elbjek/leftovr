@@ -329,6 +329,7 @@ export const en = {
       expiryLabel: "Expiry date",
       expiryNone: "No date",
       expiryDone: "Done",
+      partialLabel: "How much is left",
     },
     removeSheet: {
       title: "Remove this item?",

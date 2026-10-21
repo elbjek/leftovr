@@ -329,6 +329,7 @@ export const sr = {
       expiryLabel: "Rok trajanja",
       expiryNone: "Bez datuma",
       expiryDone: "Gotovo",
+      partialLabel: "Koliko je ostalo",
     },
     removeSheet: {
       title: "Ukloniti stavku?",
