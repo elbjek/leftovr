@@ -180,20 +180,33 @@ Deno.serve(async (req) => {
   if (profile.active_household_id !== input.householdId) {
     return Response.json({ error: "household_mismatch" }, { status: 403 });
   }
+
+  // Past this point the caller is a verified member of the household whose
+  // folder the path(s) are in, so a rejected scan may delete the upload. We
+  // never retain these files — not on gate rejections (402/429) or early
+  // failures either. Clients can't delete (no storage DELETE policy), so this
+  // has to happen here. Non-fatal; removing an already-removed path is a no-op.
+  const discardUploads = async () => {
+    const { error } = await supabase.storage.from("receipt-images").remove([input.imagePath!]);
+    if (error) console.error("[normalize-receipt] upload cleanup failed", error);
+  };
   const premium =
     profile.tier === "premium" ||
     profile.tier === "household_premium" ||
     household?.plan_tier === "household_premium";
   if (!premium && profile.free_receipt_scan_used_at) {
+    await discardUploads();
     return Response.json({ error: "receipt_scan_quota_exceeded" }, { status: 402 });
   }
 
   if ((dailyCount ?? 0) >= 30) {
+    await discardUploads();
     return Response.json({ error: "receipt_scan_rate_limited" }, { status: 429 });
   }
 
   const SCAN_MONTHLY_CAP = 100;
   if (premium && (monthlyCount ?? 0) >= SCAN_MONTHLY_CAP) {
+    await discardUploads();
     return Response.json({ error: "receipt_scan_monthly_limit" }, { status: 429 });
   }
 
@@ -211,6 +224,7 @@ Deno.serve(async (req) => {
     .single();
   if (scanError || !scan) {
     console.error("[normalize-receipt] scan insert failed", scanError);
+    await discardUploads();
     return Response.json({ error: "scan_create_failed" }, { status: 500 });
   }
 
@@ -349,6 +363,8 @@ Deno.serve(async (req) => {
         processed_at: new Date().toISOString(),
       })
       .eq("id", scan.id);
+    // A download failure throws before the in-try cleanup; make sure nothing stays.
+    await discardUploads();
     return Response.json({ error: "normalization_failed" }, { status: 500 });
   }
 });
