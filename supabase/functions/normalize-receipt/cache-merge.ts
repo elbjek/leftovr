@@ -44,16 +44,24 @@ export type CacheMergeResult = {
   hits: string[];
 };
 
+// Lines from receipts whose store couldn't be read all share this chain, so
+// across households one key would mean unrelated products (B8).
+export const UNKNOWN_STORE = "unknown";
+
 /**
- * Cached entries override the model's per-line output so the same receipt line
- * always normalizes to the same item. Misses qualify for write-back only when
- * the model was confident, to avoid poisoning the cache with guesses.
+ * Cached entries override the model's item identity (name, match key,
+ * category, printed pack size) so the same receipt line always normalizes to
+ * the same item. Quantity, unit and price are per purchase and always come
+ * from the live scan (B8). Misses qualify for write-back only when the model
+ * was confident, to avoid poisoning the cache with guesses. The "unknown"
+ * store is never read or written.
  */
 export function mergeWithCache(
   storeChain: string,
   lines: NormalizedLine[],
   cacheRows: ReceiptLineCacheRow[],
 ): CacheMergeResult {
+  if (storeChain === UNKNOWN_STORE) return { lines, writes: [], hits: [] };
   const cacheByLine = new Map(cacheRows.map((row) => [row.raw_line_text, row]));
   const merged: NormalizedLine[] = [];
   const writes: ReceiptLineCacheRow[] = [];
@@ -71,8 +79,9 @@ export function mergeWithCache(
           name: cached.name,
           normalizedName: cached.normalized_name,
           category: cached.category,
-          quantity: cached.quantity,
-          unit: cached.unit,
+          // Per purchase: "2 x" this time doesn't mean 2 next time.
+          quantity: line.item.quantity,
+          unit: line.item.unit,
           netAmount: cached.net_amount,
           netUnit: cached.net_unit,
           // Price comes from the current scan, not the cache.

@@ -1,7 +1,7 @@
 import OpenAI from "npm:openai@^4.77.0";
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@^2.46.1";
 
-import { mergeWithCache, NormalizedLine, ReceiptLineCacheRow } from "./cache-merge.ts";
+import { mergeWithCache, NormalizedLine, ReceiptLineCacheRow, UNKNOWN_STORE } from "./cache-merge.ts";
 
 type NormalizeReceiptRequest = {
   householdId?: string;
@@ -370,6 +370,9 @@ Deno.serve(async (req) => {
 });
 
 async function applyCache(supabase: SupabaseClient, extraction: ReceiptExtraction) {
+  if (extraction.storeChain === UNKNOWN_STORE) {
+    return mergeWithCache(extraction.storeChain, extraction.lines, []);
+  }
   const rawLines = extraction.lines.map((line) => line.rawText);
   const { data: cacheRows } = await supabase
     .from("receipt_line_cache")

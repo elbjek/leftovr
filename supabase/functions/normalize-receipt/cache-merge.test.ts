@@ -108,4 +108,24 @@ describe("mergeWithCache", () => {
     expect(result.writes).toHaveLength(1);
     expect(result.lines).toHaveLength(2);
   });
+
+  it("keeps the live scan's quantity and unit on a hit (B8)", () => {
+    const result = mergeWithCache(
+      "rema-1000",
+      [line({ rawText: "JOGURT 180G", item: { ...line({ rawText: "x" }).item, quantity: 3, unit: "cup" } })],
+      [cacheRow({ raw_line_text: "JOGURT 180G", quantity: 1, unit: "tub" })],
+    );
+    expect(result.lines[0].item).toMatchObject({ name: "Whole milk", quantity: 3, unit: "cup" });
+  });
+
+  it("never reads or writes the shared 'unknown' store bucket (B8)", () => {
+    const result = mergeWithCache(
+      "unknown",
+      [line({ rawText: "MLEKO 1L", confidence: 0.95 })],
+      [cacheRow({ raw_line_text: "MLEKO 1L", store_chain: "unknown", name: "Someone else's milk" })],
+    );
+    expect(result.lines[0].item.name).toBe("Milk");
+    expect(result.hits).toHaveLength(0);
+    expect(result.writes).toHaveLength(0);
+  });
 });
