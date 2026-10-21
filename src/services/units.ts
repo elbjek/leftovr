@@ -144,3 +144,26 @@ export function ingredientUse(amount: string): { quantity: number; unit: string 
   const parsed = parseIngredientAmount(amount);
   return { quantity: parsed.value, unit: parsed.kind === "count" ? "item" : (parsed.unit as string) };
 }
+
+/**
+ * Sum two ingredient amounts for one food (duplicate recipe rows). Same
+ * dimension → added in g/ml; same unit → added as is; otherwise the first is
+ * kept rather than adding a cup to grams (C18).
+ * ponytail: mixed dimensions drop the second amount; convert via a per-food
+ * density table if that ever matters.
+ */
+export function addAmounts(
+  a: { amount: number; unit: string },
+  b: { amount: number; unit: string },
+): { amount: number; unit: string } {
+  const ma = toMetric(a.amount, a.unit);
+  const mb = toMetric(b.amount, b.unit);
+  if (ma.dimension && ma.dimension === mb.dimension) {
+    if (ma.dimension === "count") return { amount: a.amount + b.amount, unit: a.unit };
+    return { amount: ma.value + mb.value, unit: ma.dimension === "mass" ? "g" : "ml" };
+  }
+  if (a.unit.trim().toLowerCase() === b.unit.trim().toLowerCase()) {
+    return { amount: a.amount + b.amount, unit: a.unit };
+  }
+  return a;
+}

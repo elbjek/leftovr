@@ -8,7 +8,7 @@ import { BottomSheet, Button, Card, RecipeGlyph, Text, TextField } from "@/compo
 import { useAuth } from "@/features";
 import { notifyInventoryChanged, useInventory } from "@/hooks";
 import { newClientId } from "@/lib";
-import { canonicalFoodName, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, resolveUrgency } from "@/services";
+import { addAmounts, canonicalFoodName, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, resolveUrgency } from "@/services";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
@@ -351,10 +351,8 @@ export default function RecipeDetailRoute() {
         // recipe's original ingredient.
         const key = item.swapNormalized ?? ingredientKey(item);
         const existing = byName.get(key);
-        byName.set(key, {
-          amount: (existing?.amount ?? 0) + item.quantityToUse,
-          unit: existing?.unit ?? item.unit,
-        });
+        const amount = { amount: item.quantityToUse, unit: item.unit };
+        byName.set(key, existing ? addAmounts(existing, amount) : amount);
       }
       const usedItems = [...byName.entries()].map(([normalizedName, v]) => ({
         normalizedName,

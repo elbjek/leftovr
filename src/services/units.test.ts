@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dimensionOf, formatAmount, ingredientUse, parseIngredientAmount, toMetric } from "./units";
+import { addAmounts, dimensionOf, formatAmount, ingredientUse, parseIngredientAmount, toMetric } from "./units";
 
 describe("toMetric", () => {
   it("converts volume units to ml", () => {
@@ -99,5 +99,18 @@ describe("ingredientUse", () => {
   it("passes single-use units through (depletion takes one use)", () => {
     expect(ingredientUse("2 cloves garlic")).toEqual({ quantity: 2, unit: "cloves" });
     expect(toMetric(2, ingredientUse("2 cloves garlic").unit).dimension).toBeNull();
+  });
+});
+
+describe("addAmounts (C18)", () => {
+  it("adds same-dimension amounts in metric", () => {
+    expect(addAmounts({ amount: 200, unit: "g" }, { amount: 1, unit: "kg" })).toEqual({ amount: 1200, unit: "g" });
+    expect(addAmounts({ amount: 1, unit: "cup" }, { amount: 100, unit: "ml" })).toEqual({ amount: 340, unit: "ml" });
+  });
+  it("adds counts", () => {
+    expect(addAmounts({ amount: 2, unit: "item" }, { amount: 1, unit: "item" })).toEqual({ amount: 3, unit: "item" });
+  });
+  it("never adds across dimensions (200 g + 1 cup is not 201 g)", () => {
+    expect(addAmounts({ amount: 200, unit: "g" }, { amount: 1, unit: "cup" })).toEqual({ amount: 200, unit: "g" });
   });
 });
