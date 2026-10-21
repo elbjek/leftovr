@@ -43,15 +43,17 @@ export function coalesceOpen(lastSentAt: string | null, now: Date, windowMinutes
   return diffMin >= windowMinutes;
 }
 
-// Mirrors client `urgencyFromExpiry` (src/services/inventoryRules.ts): ≤2 days
-// left urgent, ≤5 use_soon, expired after a 3-day grace window. Expired items
-// are excluded from pushes ("needs using today" would be wrong for them).
+// Mirrors client `urgencyFromExpiry` (src/services/inventoryRules.ts) bands:
+// ≤2 days left urgent, ≤5 use_soon. Stricter than the client past the date:
+// the client keeps a 3-day "past date — check" grace (none for meat/fish),
+// but anything past its date is excluded from pushes here — "needs using
+// today" would be wrong for it (B3).
 // ponytail: end of day is UTC, not household tz (≤ a few hours off); items
 // without expires_at stay "fresh" until estimated expiry is stored server-side.
 export function urgencyFromExpiry(expiresAt: string | null, now: Date): string {
   if (!expiresAt) return "fresh";
   const daysLeft = (new Date(`${expiresAt}T23:59:59Z`).getTime() - now.getTime()) / 86_400_000;
-  if (daysLeft <= -3) return "expired";
+  if (daysLeft < 0) return "expired";
   if (daysLeft <= 2) return "urgent";
   if (daysLeft <= 5) return "use_soon";
   return "fresh";

@@ -291,6 +291,7 @@ export const sr = {
     bestBy: {
       today: "Najbolje danas",
       tomorrow: "Najbolje sutra",
+      pastDate: "Prošao rok — proveri",
       inDays: "Za {{count}} dana",
     },
     statsStrip: {

@@ -52,7 +52,7 @@ Deno.test("coalesceOpen false when sent within window minutes", () => {
   assertEquals(coalesceOpen(null, now, 10), true);
 });
 
-Deno.test("urgencyFromExpiry matches client thresholds and grace window", () => {
+Deno.test("urgencyFromExpiry matches client thresholds; past-date items are never pushed", () => {
   const now = new Date("2026-10-21T12:00:00Z");
   assertEquals(urgencyFromExpiry(null, now), "fresh");
   assertEquals(urgencyFromExpiry("2026-10-21", now), "urgent");   // today
@@ -60,6 +60,6 @@ Deno.test("urgencyFromExpiry matches client thresholds and grace window", () => 
   assertEquals(urgencyFromExpiry("2026-10-24", now), "use_soon"); // ~3.5d left
   assertEquals(urgencyFromExpiry("2026-10-25", now), "use_soon"); // ~4.5d left
   assertEquals(urgencyFromExpiry("2026-10-26", now), "fresh");    // ~5.5d left
-  assertEquals(urgencyFromExpiry("2026-10-19", now), "urgent");   // in grace window
+  assertEquals(urgencyFromExpiry("2026-10-20", now), "expired");  // past date: client grace, no push
   assertEquals(urgencyFromExpiry("2026-10-17", now), "expired");
 });

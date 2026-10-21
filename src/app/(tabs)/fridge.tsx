@@ -952,6 +952,8 @@ function shelfLifeStart(range: string) {
 }
 
 function computeBestByLabel(group: InventoryGroup, t: ReturnType<typeof useTranslation>["t"]): string {
+  // In the grace window after a real date: don't call it "best today" (B3).
+  if (hasExplicitExpiredLot(group.lots)) return t("fridge.bestBy.pastDate");
   const oldestLot = group.lots.reduce((oldest, lot) =>
     new Date(lot.added_at) < new Date(oldest.added_at) ? lot : oldest,
   );

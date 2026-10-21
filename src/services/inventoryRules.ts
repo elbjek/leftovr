@@ -256,10 +256,17 @@ function computeUrgency(input: {
   return "safe";
 }
 
-export function urgencyFromExpiry(expiresAt: string, now: Date = new Date()): UrgencyBand {
+export function urgencyFromExpiry(
+  expiresAt: string,
+  now: Date = new Date(),
+  category?: InventoryCategory,
+): UrgencyBand {
   const expiry = new Date(`${expiresAt}T23:59:59`);
   const daysLeft = (expiry.getTime() - now.getTime()) / 86_400_000;
-  // Grace window: still "best today" up to 3 days past the date, then expired.
+  // Meat and fish get no grace: past the date is a safety call (B3).
+  if (daysLeft < 0 && (category === "meat" || category === "fish")) return "expired";
+  // Grace window for everything else: stays in Eat-first up to 3 days past the
+  // date, labeled "past date — check" in the UI, then expired.
   if (daysLeft <= -3) return "expired";
   if (daysLeft <= 2) return "urgent";
   if (daysLeft <= 5) return "use_soon";
@@ -275,7 +282,7 @@ export function resolveUrgency(
   now: Date = new Date(),
 ): UrgencyBand {
   return lot.expires_at
-    ? urgencyFromExpiry(lot.expires_at, now)
+    ? urgencyFromExpiry(lot.expires_at, now, lot.category)
     : computeUrgency({ name: lot.name, category: lot.category, addedAt: lot.added_at, now });
 }
 

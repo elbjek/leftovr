@@ -291,6 +291,7 @@ export const en = {
     bestBy: {
       today: "Best today",
       tomorrow: "Best tomorrow",
+      pastDate: "Past date — check",
       inDays: "In {{count}} days",
     },
     statsStrip: {

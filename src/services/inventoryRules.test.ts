@@ -66,6 +66,13 @@ describe("urgencyFromExpiry", () => {
     expect(urgencyFromExpiry("2026-06-08", now)).toBe("urgent");
     expect(urgencyFromExpiry("2026-06-01", now)).toBe("expired");
   });
+
+  it("gives meat and fish no grace once the date has passed (B3)", () => {
+    expect(urgencyFromExpiry("2026-06-09", now, "meat")).toBe("expired");
+    expect(urgencyFromExpiry("2026-06-09", now, "fish")).toBe("expired");
+    expect(urgencyFromExpiry("2026-06-10", now, "meat")).toBe("urgent"); // today is still fine
+    expect(urgencyFromExpiry("2026-06-09", now, "dairy_eggs")).toBe("urgent");
+  });
 });
 
 describe("resolveUrgency", () => {
