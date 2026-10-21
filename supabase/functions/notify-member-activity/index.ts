@@ -4,7 +4,8 @@ import { coalesceOpen } from "../_shared/notificationRules.ts";
 
 const COALESCE_MIN = 10;
 
-// Invoked by the inventory_items AFTER INSERT trigger via pg_net.
+// Invoked by the inventory_items AFTER INSERT statement trigger via pg_net —
+// once per insert statement per household + actor (B19).
 // Body: { household_id, actor_id, count }
 Deno.serve(async (req) => {
   // Invoked by the inventory trigger via pg_net with the Vault `cron_secret`.
@@ -58,16 +59,18 @@ Deno.serve(async (req) => {
   }
   if (tokens.length === 0) return Response.json({ ok: true, skipped: "no_targets" });
 
+  // Record before sending: a near-simultaneous call (separate inserts seconds
+  // apart) then sees this row in its coalesce check instead of also pushing.
+  await supabase.from("notification_sends").insert(
+    userIds.map((user_id) => ({ user_id, household_id, type: "member_activity", sent_at: now.toISOString() })),
+  );
+
   const n = Number(count) || 1;
   const dead = await sendPush(tokens, {
     title: "Kitchen updated",
     body: `${name} added ${n} item${n === 1 ? "" : "s"} to your kitchen.`,
     data: { type: "member_activity", household_id },
   });
-
-  await supabase.from("notification_sends").insert(
-    userIds.map((user_id) => ({ user_id, household_id, type: "member_activity", sent_at: now.toISOString() })),
-  );
   for (const token of dead) {
     await supabase.from("notification_preferences").update({ push_token: null }).eq("push_token", token);
   }
