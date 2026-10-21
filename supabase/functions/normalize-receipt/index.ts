@@ -210,6 +210,33 @@ Deno.serve(async (req) => {
     return Response.json({ error: "receipt_scan_monthly_limit" }, { status: 429 });
   }
 
+  // C15: a free user claims the one free scan atomically before the paid AI
+  // call, so parallel requests can't both use it. Released again on every
+  // failure exit below — the free scan is still consumed only by a success.
+  let freeClaim: string | null = null;
+  if (!premium) {
+    const claimAt = new Date().toISOString();
+    const { data: claimed } = await supabase
+      .from("profiles")
+      .update({ free_receipt_scan_used_at: claimAt })
+      .eq("id", userId)
+      .is("free_receipt_scan_used_at", null)
+      .select("id");
+    if (!claimed?.length) {
+      await discardUploads();
+      return Response.json({ error: "receipt_scan_quota_exceeded" }, { status: 402 });
+    }
+    freeClaim = claimAt;
+  }
+  const releaseFreeClaim = async () => {
+    if (!freeClaim) return;
+    await supabase
+      .from("profiles")
+      .update({ free_receipt_scan_used_at: null })
+      .eq("id", userId)
+      .eq("free_receipt_scan_used_at", freeClaim);
+  };
+
   // The scan row is the attempt record: created when the (paid) AI call is
   // about to happen. The free-taste trigger fires here, not at confirm time.
   const { data: scan, error: scanError } = await supabase
@@ -225,6 +252,7 @@ Deno.serve(async (req) => {
   if (scanError || !scan) {
     console.error("[normalize-receipt] scan insert failed", scanError);
     await discardUploads();
+    await releaseFreeClaim();
     return Response.json({ error: "scan_create_failed" }, { status: 500 });
   }
 
@@ -293,6 +321,7 @@ Deno.serve(async (req) => {
     // Keep the row for rate-limit accounting but strip every receipt-derived
     // field, and never touch the line cache.
     if (extraction.lines.length === 0) {
+      await releaseFreeClaim();
       await supabase
         .from("receipt_scans")
         .update({
@@ -365,6 +394,7 @@ Deno.serve(async (req) => {
       .eq("id", scan.id);
     // A download failure throws before the in-try cleanup; make sure nothing stays.
     await discardUploads();
+    await releaseFreeClaim();
     return Response.json({ error: "normalization_failed" }, { status: 500 });
   }
 });
