@@ -91,8 +91,14 @@ export async function lookupOpenFoodFactsBarcode(barcode: string): Promise<Barco
   }
 }
 
+// Umbrella tags Open Food Facts puts on huge swaths of products. The first
+// contains "beverages", which filed pasta and chips under drinks (C5).
+const UMBRELLA_TAGS = ["plant-based-foods-and-beverages", "plant-based-foods"];
+
 export function inferOpenFoodFactsCategory(tags: string[]): InventoryCategory {
-  const normalizedTags = tags.map((tag) => tag.toLowerCase());
+  const normalizedTags = tags
+    .map((tag) => tag.toLowerCase())
+    .filter((tag) => !UMBRELLA_TAGS.some((umbrella) => tag.endsWith(umbrella)));
   const includes = (needles: string[]) =>
     normalizedTags.some((tag) => needles.some((needle) => tag.includes(needle)));
 

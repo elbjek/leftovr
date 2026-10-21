@@ -54,6 +54,14 @@ describe("barcodeService", () => {
     expect(inferOpenFoodFactsCategory(["en:unknown"])).toBe("other");
   });
 
+  it("ignores Open Food Facts umbrella tags (C5)", () => {
+    const pasta = ["en:plant-based-foods-and-beverages", "en:plant-based-foods", "en:cereals-and-potatoes", "en:pastas"];
+    const chips = ["en:plant-based-foods-and-beverages", "en:plant-based-foods", "en:snacks", "en:salty-snacks", "en:chips"];
+    expect(inferOpenFoodFactsCategory(pasta)).toBe("pantry");
+    expect(inferOpenFoodFactsCategory(chips)).toBe("snacks");
+    expect(inferOpenFoodFactsCategory(["en:plant-based-foods-and-beverages", "en:beverages", "en:plant-based-milks"])).not.toBe("pantry");
+  });
+
   it("parses Open Food Facts package quantities", () => {
     expect(parseOpenFoodFactsQuantity("1 L")).toEqual({ netAmount: 1000, netUnit: "ml" });
     expect(parseOpenFoodFactsQuantity("52 fl oz")).toEqual({ netAmount: 1537.82, netUnit: "ml" });
