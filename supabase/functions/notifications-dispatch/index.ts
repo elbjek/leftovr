@@ -31,8 +31,7 @@ Deno.serve(async (req) => {
     .or("daily_suggestion_enabled.eq.true,recap_enabled.eq.true");
 
   for (const h of households ?? []) {
-    const tier = (h as any).households?.plan_tier;
-    if (tier !== "premium" && tier !== "household_premium") continue;
+    const householdPremium = (h as any).households?.plan_tier === "household_premium";
     if (!isWithinSendWindow(now, h.send_window_start, h.send_window_end, h.timezone)) continue;
 
     const recap = isRecapDay(now, h.timezone);
@@ -43,9 +42,15 @@ Deno.serve(async (req) => {
 
     const { data: members } = await supabase
       .from("household_members")
-      .select("user_id, profiles!inner(primary_goal), notification_preferences!inner(push_token, notifications_enabled)")
+      .select("user_id, profiles!inner(primary_goal, tier), notification_preferences!inner(push_token, notifications_enabled)")
       .eq("household_id", h.household_id)
       .eq("status", "active");
+    // Premium feature: a member qualifies through the household plan or their
+    // own individual Premium (households.plan_tier is never 'premium').
+    const eligible = (members ?? []).filter(
+      (m) => householdPremium || isPremiumTier((m as any).profiles?.tier),
+    );
+    if (eligible.length === 0) continue;
 
     // One suggestion per household, not per person.
     const { data: inv } = await supabase
@@ -54,7 +59,7 @@ Deno.serve(async (req) => {
       .eq("household_id", h.household_id)
       .is("removed_at", null);
     const groups = toUrgencyGroups(inv ?? [], now);
-    const goal = (members?.[0] as any)?.profiles?.primary_goal ?? null;
+    const goal = (eligible[0] as any)?.profiles?.primary_goal ?? null;
     const payload = recap
       ? { title: "Your week with leftovr", body: "See what you used and saved this week.", data: { type } }
       : buildDailyPayload(groups, goal);
@@ -62,7 +67,7 @@ Deno.serve(async (req) => {
 
     const tokens: string[] = [];
     const sendUserIds: string[] = [];
-    for (const m of members ?? []) {
+    for (const m of eligible) {
       const prefs = (m as any).notification_preferences;
       if (!prefs?.push_token || !prefs?.notifications_enabled) continue;
       const { data: rows } = await supabase
@@ -91,6 +96,10 @@ Deno.serve(async (req) => {
 
   return Response.json({ ok: true, results });
 });
+
+function isPremiumTier(tier: string | null | undefined) {
+  return tier === "premium" || tier === "household_premium";
+}
 
 function buildDailyPayload(groups: { name: string; urgency: string }[], goal: string | null) {
   const s = buildDailySuggestion(groups, goal);
@@ -124,7 +133,7 @@ async function nullDeadTokens(supabase: any, dead: string[]) {
 async function runEatFirst(supabase: any, now: Date): Promise<number> {
   const { data: prefs } = await supabase
     .from("notification_preferences")
-    .select("user_id, push_token, profiles!inner(active_household_id)")
+    .select("user_id, push_token, profiles!inner(active_household_id, tier)")
     .eq("smart_suggestions_enabled", true)
     .eq("notifications_enabled", true)
     .not("push_token", "is", null);
@@ -140,8 +149,8 @@ async function runEatFirst(supabase: any, now: Date): Promise<number> {
       .eq("household_id", householdId)
       .maybeSingle();
     if (!hs) continue;
-    const tier = (hs as any).households?.plan_tier;
-    if (tier !== "premium" && tier !== "household_premium") continue;
+    const householdPremium = (hs as any).households?.plan_tier === "household_premium";
+    if (!householdPremium && !isPremiumTier((p as any).profiles?.tier)) continue;
     if (!isWithinSendWindow(now, hs.send_window_start, hs.send_window_end, hs.timezone)) continue;
 
     // Global 1/user/day cap (no type filter) — daily suggestion shares it.
