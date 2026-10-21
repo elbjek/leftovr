@@ -159,7 +159,9 @@ export function HouseholdSection({
       setJoinError(
         message.includes("Household Premium")
           ? t("settings.household.ownerBlocked")
-          : t("settings.household.invalidCode"),
+          : message.includes("member limit")
+            ? t("settings.household.householdFull")
+            : t("settings.household.invalidCode"),
       );
     } finally {
       setJoinLoading(false);
