@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  canonicalFoodName,
   daysLeft,
+  getCatalogFood,
   getShelfLifeDays,
   hasExplicitExpiredLot,
   inferCategory,
@@ -167,5 +169,14 @@ describe("daysLeft (FIXES B2)", () => {
     const dated = daysLeft({ name: "Rice", category: "pantry", expires_at: "2026-10-22", added_at: "2026-01-01T00:00:00Z" }, now);
     const estimated = daysLeft({ name: "Spinach", category: "vegetables", expires_at: null, added_at: "2026-10-20T12:00:00" }, now);
     expect(dated).toBeLessThan(estimated);
+  });
+});
+
+describe("Serbian aliases resolve to catalog foods", () => {
+  it.each(["Šargarepa", "šargarepe", "Paradajz", "Mleko", "Jaja", "Kačkavalj", "Spanać"])("%s", (name) => {
+    expect(getCatalogFood(name)).toBeDefined();
+  });
+  it("folds šargarepa to the carrots key", () => {
+    expect(canonicalFoodName("Šargarepa")).toBe("carrots");
   });
 });
