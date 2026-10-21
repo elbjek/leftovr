@@ -35,24 +35,37 @@ Deno.serve(async (req) => {
     return Response.json({ error: "invalid_authorization" }, { status: 401 });
   }
 
-  const [profile, memberships, notificationPrefs, favorites] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-    supabase.from("household_members").select("*").eq("user_id", userId),
-    supabase.from("notification_preferences").select("*").eq("user_id", userId),
-    supabase.from("recipe_favorites").select("*").eq("user_id", userId),
-  ]);
+  const [profile, memberships, notificationPrefs, favorites, notificationSends, generationAttempts, expandEvents] =
+    await Promise.all([
+      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+      supabase.from("household_members").select("*").eq("user_id", userId),
+      supabase.from("notification_preferences").select("*").eq("user_id", userId),
+      supabase.from("recipe_favorites").select("*").eq("user_id", userId),
+      supabase.from("notification_sends").select("*").eq("user_id", userId),
+      supabase.from("recipe_generation_attempts").select("*").eq("user_id", userId),
+      supabase.from("recipe_expand_events").select("*").eq("user_id", userId),
+    ]);
 
   const householdIds = (memberships.data ?? []).map((m) => m.household_id);
-  const [households, inventory, recipes] = await Promise.all([
+  // Every household-scoped table the app keeps (C10: export used to stop at
+  // inventory + recipes).
+  const byHousehold = (table: string, column = "household_id") =>
     householdIds.length
-      ? supabase.from("households").select("*").in("id", householdIds)
-      : Promise.resolve({ data: [] }),
-    householdIds.length
-      ? supabase.from("inventory_items").select("*").in("household_id", householdIds)
-      : Promise.resolve({ data: [] }),
-    householdIds.length
-      ? supabase.from("recipes").select("*").in("household_id", householdIds)
-      : Promise.resolve({ data: [] }),
+      ? supabase.from(table).select("*").in(column, householdIds)
+      : Promise.resolve({ data: [] });
+  const [
+    households, inventory, recipes, recipeSessions, cookedEvents, usageEvents,
+    valueEvents, receiptScans, householdNotificationSettings,
+  ] = await Promise.all([
+    byHousehold("households", "id"),
+    byHousehold("inventory_items"),
+    byHousehold("recipes"),
+    byHousehold("recipe_sessions"),
+    byHousehold("cooked_events"),
+    byHousehold("item_usage_events"),
+    byHousehold("value_events"),
+    byHousehold("receipt_scans"),
+    byHousehold("household_notification_settings"),
   ]);
 
   return Response.json({
@@ -61,9 +74,19 @@ Deno.serve(async (req) => {
     email: userResult.user?.email ?? null,
     profile: profile.data ?? null,
     notification_preferences: notificationPrefs.data ?? [],
+    notification_sends: notificationSends.data ?? [],
     recipe_favorites: favorites.data ?? [],
+    recipe_generation_attempts: generationAttempts.data ?? [],
+    recipe_expand_events: expandEvents.data ?? [],
+    household_members: memberships.data ?? [],
     households: households.data ?? [],
+    household_notification_settings: householdNotificationSettings.data ?? [],
     inventory_items: inventory.data ?? [],
+    item_usage_events: usageEvents.data ?? [],
+    value_events: valueEvents.data ?? [],
+    receipt_scans: receiptScans.data ?? [],
+    recipe_sessions: recipeSessions.data ?? [],
     recipes: recipes.data ?? [],
+    cooked_events: cookedEvents.data ?? [],
   });
 });
