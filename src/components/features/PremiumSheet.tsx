@@ -65,8 +65,9 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
       try {
         const result = await getCurrentOffering();
         if (active) setOffering(result);
-      } catch {
-        if (active) setError(t("premium.unavailable"));
+      } catch (e) {
+        console.warn("[purchase] offerings failed", describePurchaseError(e));
+        if (active) setError(withDevCode(t("premium.unavailable"), e));
       } finally {
         if (active) setLoadingOffering(false);
       }
@@ -109,8 +110,8 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
         handleDismiss();
       }
     } catch (e) {
-      console.warn("[purchase] failed", e);
-      setError(t("premium.purchaseError"));
+      console.warn("[purchase] failed", describePurchaseError(e));
+      setError(withDevCode(t("premium.purchaseError"), e));
     } finally {
       setBusy(false);
     }
@@ -123,8 +124,9 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
       await restorePurchases();
       await syncTier();
       handleDismiss();
-    } catch {
-      setError(t("premium.purchaseError"));
+    } catch (e) {
+      console.warn("[purchase] restore failed", describePurchaseError(e));
+      setError(withDevCode(t("premium.purchaseError"), e));
     } finally {
       setBusy(false);
     }
@@ -411,3 +413,27 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
 });
+
+// RevenueCat errors carry a readable code (STORE_PROBLEM, CONFIGURATION_ERROR,
+// PRODUCT_NOT_AVAILABLE_FOR_PURCHASE…) that the friendly message hides. Log it,
+// and in dev builds show it under the message so a failed sandbox purchase
+// says why.
+function describePurchaseError(error: unknown) {
+  const e = error as {
+    code?: string;
+    readableErrorCode?: string;
+    message?: string;
+    underlyingErrorMessage?: string;
+  } | null;
+  return {
+    code: e?.readableErrorCode ?? e?.code ?? null,
+    message: e?.message ?? String(error),
+    underlying: e?.underlyingErrorMessage ?? null,
+  };
+}
+
+function withDevCode(message: string, error: unknown) {
+  if (!__DEV__) return message;
+  const { code, underlying } = describePurchaseError(error);
+  return [message, code, underlying].filter(Boolean).join("\n");
+}
