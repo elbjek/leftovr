@@ -72,11 +72,12 @@ async function resolveTierFromRevenueCat(appUserId: string, apiKey: string): Pro
   return household ? "household_premium" : "premium";
 }
 
-// Write the tier to the profile and mirror it onto the active household
-// (one payer covers members). Returns false if no profile matches the id.
+// Write the tier to the profile, then recompute the active household's
+// plan_tier from its members (one payer covers members). The household stays
+// household_premium while ANY active member pays for it, so a member's
+// individual sub renewing/expiring never downgrades a shared household.
+// Returns false if no profile matches the id.
 async function applyTier(supabase: SupabaseClient, appUserId: string, tier: Tier): Promise<boolean> {
-  const householdPlanTier: Tier = tier === "household_premium" ? "household_premium" : "free";
-
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .update({ tier })
@@ -88,6 +89,21 @@ async function applyTier(supabase: SupabaseClient, appUserId: string, tier: Tier
   if (!profile) return false;
 
   if (profile.active_household_id) {
+    const { data: members, error: membersError } = await supabase
+      .from("household_members")
+      .select("user_id")
+      .eq("household_id", profile.active_household_id)
+      .eq("status", "active");
+    if (membersError) throw new Error("household_members_failed");
+
+    const { count, error: payersError } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .in("id", (members ?? []).map((m) => m.user_id))
+      .eq("tier", "household_premium");
+    if (payersError) throw new Error("household_payers_failed");
+
+    const householdPlanTier: Tier = (count ?? 0) > 0 ? "household_premium" : "free";
     const { error: householdError } = await supabase
       .from("households")
       .update({ plan_tier: householdPlanTier })
