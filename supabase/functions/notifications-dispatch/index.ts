@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
         .from("notification_sends")
         .select("sent_at")
         .eq("user_id", m.user_id)
+        .in("type", CAPPED_TYPES)
         .gte("sent_at", startOfDayUtcFloor(now));
       if (sentToday(rows ?? [], now, h.timezone)) continue; // 1/user/day cap
       tokens.push(prefs.push_token);
@@ -96,6 +97,11 @@ Deno.serve(async (req) => {
 
   return Response.json({ ok: true, results });
 });
+
+// The 1-notification/user/day cap covers the suggestion pushes only. Member
+// activity, top-up and re-engagement have their own dedup and must not block
+// the daily suggestion (B20).
+const CAPPED_TYPES = ["daily", "eatfirst", "recap"];
 
 function isPremiumTier(tier: string | null | undefined) {
   return tier === "premium" || tier === "household_premium";
@@ -153,11 +159,12 @@ async function runEatFirst(supabase: any, now: Date): Promise<number> {
     if (!householdPremium && !isPremiumTier((p as any).profiles?.tier)) continue;
     if (!isWithinSendWindow(now, hs.send_window_start, hs.send_window_end, hs.timezone)) continue;
 
-    // Global 1/user/day cap (no type filter) — daily suggestion shares it.
+    // 1/user/day cap across daily + eat-first + recap (CAPPED_TYPES).
     const { data: rows } = await supabase
       .from("notification_sends")
       .select("sent_at")
       .eq("user_id", p.user_id)
+      .in("type", CAPPED_TYPES)
       .gte("sent_at", startOfDayUtcFloor(now));
     if (sentToday(rows ?? [], now, hs.timezone)) continue;
 
