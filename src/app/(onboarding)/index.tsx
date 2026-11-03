@@ -14,15 +14,17 @@ import {
 } from "@/repositories";
 import { colors, spacing } from "@/theme";
 
-type StepKey = "name" | "currency" | "invite";
+type StepKey = "name" | "people" | "currency" | "invite";
 type Choice = {
   label: string;
   subtitle?: string;
   value: string;
 };
 
-const steps: StepKey[] = ["name", "currency", "invite"];
-const requiredStepCount = 2;
+const steps: StepKey[] = ["name", "people", "currency", "invite"];
+const requiredStepCount = 3;
+// Matches the Settings servings picker; 6 stands for "6 or more".
+const PEOPLE_OPTIONS = [1, 2, 3, 4, 5, 6];
 
 const CURRENCY_CHOICES: Choice[] = [
   { label: "USD", subtitle: "$ · US dollar", value: "USD" },
@@ -52,6 +54,7 @@ export default function OnboardingRoute() {
   const hasSavedDisplayName = hasUsableProfileName(profile?.display_name, user?.email);
   const [stepIndex, setStepIndex] = useState(hasSavedDisplayName ? 1 : 0);
   const [displayName, setDisplayName] = useState(hasSavedDisplayName ? profile?.display_name ?? "" : "");
+  const [people, setPeople] = useState(profile?.default_servings ?? 2);
   const [currency, setCurrency] = useState<string>(activeHousehold?.currency_code ?? guessCurrency());
   const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -99,11 +102,12 @@ export default function OnboardingRoute() {
     setError(null);
 
     try {
-      // Servings, shopping style, goal and avoidances are no longer asked up
-      // front; keep anything already saved, else seed defaults (editable in Settings).
+      // How many people sets the household's servings (the cook prompt's
+      // Household default). Shopping style, goal and avoidances aren't asked
+      // up front; keep anything already saved, else seed defaults (editable in Settings).
       const personalization: OnboardingPersonalization = {
-        cookingForSeed: profile?.cooking_for_seed ?? "partner",
-        defaultServings: profile?.default_servings ?? 2,
+        cookingForSeed: people === 1 ? "solo" : people === 2 ? "partner" : "family",
+        defaultServings: people,
         shoppingStyle: profile?.shopping_style ?? "weekly",
         primaryGoal: profile?.primary_goal ?? "waste",
         avoidances: profile?.avoidances ?? [],
@@ -182,6 +186,22 @@ export default function OnboardingRoute() {
             autoCapitalize="words"
             textContentType="name"
             autoFocus
+          />
+        ) : null}
+
+        {step === "people" ? (
+          <ChoiceList
+            choices={PEOPLE_OPTIONS.map((count) => ({
+              value: String(count),
+              label:
+                count === 1
+                  ? t("onboarding.personalization.people.justMe")
+                  : count === PEOPLE_OPTIONS[PEOPLE_OPTIONS.length - 1]
+                    ? t("onboarding.personalization.people.orMore", { count })
+                    : t("onboarding.personalization.people.count", { count }),
+            }))}
+            selected={String(people)}
+            onSelect={(choice) => setPeople(Number(choice.value))}
           />
         ) : null}
 
