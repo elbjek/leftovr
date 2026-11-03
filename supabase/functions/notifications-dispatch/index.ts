@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 import { sendPush } from "../_shared/sendPush.ts";
 import {
   isWithinSendWindow, isRecapDay, sentToday, buildDailySuggestion, toUrgencyGroups,
+  isStreakReminderHour, buildStreakReminder,
 } from "../_shared/notificationRules.ts";
 
 // Hourly cron entrypoint. Guarded by CRON_SECRET (shared with the Vault
@@ -22,7 +23,7 @@ Deno.serve(async (req) => {
     { auth: { persistSession: false } },
   );
   const now = new Date();
-  const results: Record<string, number> = { daily: 0, recap: 0, eatfirst: 0, topup: 0, reengagement: 0 };
+  const results: Record<string, number> = { daily: 0, recap: 0, eatfirst: 0, topup: 0, reengagement: 0, streak: 0 };
 
   // --- Household premium rules: daily + recap ---
   const { data: households } = await supabase
@@ -94,6 +95,9 @@ Deno.serve(async (req) => {
   // --- Free rules: top-up + re-engagement ---
   results.topup = await runTopUp(supabase, now);
   results.reengagement = await runReengagement(supabase, now);
+
+  // --- Evening streak reminder (free, own opt-out) ---
+  results.streak = await runStreak(supabase, now);
 
   return Response.json({ ok: true, results });
 });
@@ -183,6 +187,63 @@ async function runEatFirst(supabase: any, now: Date): Promise<number> {
       data: { type: "eatfirst", items: names },
     });
     await recordSends(supabase, [p.user_id], householdId, "eatfirst", now);
+    await nullDeadTokens(supabase, dead);
+    count += 1;
+  }
+  return count;
+}
+
+// Evening "streak at risk" push: the 19:00 hour of the household's day, only
+// when nothing has been used up today and the streak is ≥2. Free for
+// everyone, its own opt-out, one per user per day, outside the suggestion cap.
+async function runStreak(supabase: any, now: Date): Promise<number> {
+  const { data: prefs } = await supabase
+    .from("notification_preferences")
+    .select("user_id, push_token, profiles!inner(active_household_id)")
+    .eq("streak_reminders_enabled", true)
+    .eq("notifications_enabled", true)
+    .not("push_token", "is", null);
+
+  let count = 0;
+  for (const p of prefs ?? []) {
+    const householdId = (p as any).profiles?.active_household_id;
+    if (!householdId) continue;
+
+    const { data: hs } = await supabase
+      .from("household_notification_settings")
+      .select("timezone")
+      .eq("household_id", householdId)
+      .maybeSingle();
+    const tz = hs?.timezone ?? "UTC";
+    if (!isStreakReminderHour(now, tz)) continue;
+
+    const { data: rows } = await supabase
+      .from("notification_sends")
+      .select("sent_at")
+      .eq("user_id", p.user_id)
+      .eq("type", "streak")
+      .gte("sent_at", startOfDayUtcFloor(now));
+    if (sentToday(rows ?? [], now, tz)) continue;
+
+    // Read-only: spending and earning freezes happen when the app syncs.
+    const { data: state, error } = await supabase.rpc("streak_state", {
+      p_user: p.user_id, p_household: householdId, p_tz: tz, p_apply: false,
+    });
+    if (error) {
+      console.error("streak_state failed:", error.message);
+      continue;
+    }
+    if (!state || state.today > 0 || state.streak < 2) continue;
+
+    const { data: inv } = await supabase
+      .from("inventory_items")
+      .select("name, expires_at")
+      .eq("household_id", householdId)
+      .is("removed_at", null);
+    const urgent = toUrgencyGroups(inv ?? [], now).find((g) => g.urgency === "urgent");
+
+    const dead = await sendPush([p.push_token], buildStreakReminder(state.streak, state.freezes, urgent?.name ?? null));
+    await recordSends(supabase, [p.user_id], householdId, "streak", now);
     await nullDeadTokens(supabase, dead);
     count += 1;
   }

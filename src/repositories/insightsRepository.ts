@@ -157,18 +157,39 @@ export async function getInsightsData(
   };
 }
 
-/** When things were used up or cooked since `since` — feeds the usage streak. */
-export async function getUsageTimestamps(householdId: string, since: string, userId?: string): Promise<string[]> {
+export type StreakDayState = "used" | "frozen" | "none";
+
+export type StreakState = {
+  /** Days in a row with something used up; frozen days keep it alive without adding. */
+  streak: number;
+  /** Banked streak freezes (0–2). */
+  freezes: number;
+  /** Items used up today — the daily goal's progress. */
+  today: number;
+  /** The last seven local days, oldest first, today last. */
+  days: { date: Date; state: StreakDayState }[];
+};
+
+/**
+ * The signed-in member's streak in this kitchen. Server-side (`sync_streak`):
+ * it also spends banked freezes on missed days and pays out new ones, so it
+ * is the only place a streak is computed.
+ */
+export async function syncStreak(householdId: string, timeZone: string): Promise<StreakState> {
   const supabase = getSupabaseClient();
-  let query = supabase
-    .from("item_usage_events")
-    .select("used_at")
-    .eq("household_id", householdId)
-    .gte("used_at", since);
-  if (userId) query = query.eq("used_by", userId);
-  const { data, error } = await query;
+  const { data, error } = await supabase.rpc("sync_streak", { p_household_id: householdId, p_tz: timeZone });
   if (error) throw error;
-  return (data ?? []).map((row: { used_at: string }) => row.used_at);
+  const raw = data as { streak: number; freezes: number; today: number; days: { date: string; state: StreakDayState }[] };
+  return {
+    streak: raw.streak,
+    freezes: raw.freezes,
+    today: raw.today,
+    days: raw.days.map(({ date, state }) => {
+      // "YYYY-MM-DD" is a local day, not a UTC instant.
+      const [y, m, d] = date.split("-").map(Number);
+      return { date: new Date(y, m - 1, d), state };
+    }),
+  };
 }
 
 export type DayActivity = {

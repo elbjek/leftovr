@@ -63,6 +63,11 @@ export function useNotifications(householdId: string | undefined) {
     setPreferences((prev) => prev ? { ...prev, reengagement_enabled: enabled } : prev);
   }, []);
 
+  const toggleStreakReminders = useCallback(async (enabled: boolean) => {
+    await updateNotificationPreferences({ streak_reminders_enabled: enabled });
+    setPreferences((prev) => prev ? { ...prev, streak_reminders_enabled: enabled } : prev);
+  }, []);
+
   const toggleDailySuggestion = useCallback(async (enabled: boolean) => {
     if (!householdId) return;
     await updateHouseholdNotificationSettings(householdId, { daily_suggestion_enabled: enabled });
@@ -93,6 +98,7 @@ export function useNotifications(householdId: string | undefined) {
     toggleMemberActivity,
     toggleTips,
     toggleReengagement,
+    toggleStreakReminders,
     toggleDailySuggestion,
     toggleRecap,
     updateSendWindow,

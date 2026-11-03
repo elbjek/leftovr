@@ -38,6 +38,22 @@ export function isRecapDay(now: Date, tz: string): boolean {
   return tzParts(now, tz).weekday === "Sun";
 }
 
+// The streak reminder goes out in the 19:00 hour of the household's day.
+export function isStreakReminderHour(now: Date, tz: string): boolean {
+  return Math.floor(tzParts(now, tz).minutes / 60) === 19;
+}
+
+// Honest copy: with a freeze banked the streak survives tonight anyway.
+export function buildStreakReminder(streak: number, freezes: number, urgentName: string | null) {
+  const title = freezes > 0 ? `Keep your ${streak}-day streak going` : `Your ${streak}-day streak ends at midnight`;
+  const body = urgentName
+    ? `${urgentName} needs using today. Use it tonight to keep your streak growing.`
+    : freezes > 0
+      ? "A freeze will cover today, but using up one thing tonight keeps it growing."
+      : "Use up one thing from your kitchen tonight to keep it.";
+  return { title, body, data: { type: "streak" } };
+}
+
 export function localDateKey(date: Date, tz: string): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(date); // YYYY-MM-DD
 }

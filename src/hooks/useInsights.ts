@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { getInsightsData, getUsageTimestamps } from "@/repositories/insightsRepository";
-import { computeInsightsSummary, InsightsSummary, lastSevenDays, usageStreak } from "@/services/insightsService";
+import { getInsightsData } from "@/repositories/insightsRepository";
+import { computeInsightsSummary, InsightsSummary } from "@/services/insightsService";
 
 function startOfCurrentWeek(): string {
   const now = new Date();
@@ -32,8 +32,6 @@ export function useInsights(
   const [lastWeekSummary, setLastWeekSummary] = useState<InsightsSummary | null>(null);
   const [monthlySummary, setMonthlySummary] = useState<InsightsSummary | null>(null);
   const [householdWeeklySummary, setHouseholdWeeklySummary] = useState<InsightsSummary | null>(null);
-  const [streak, setStreak] = useState(0);
-  const [week, setWeek] = useState<{ date: Date; used: boolean }[]>(() => lastSevenDays([]));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,19 +39,15 @@ export function useInsights(
     if (!householdId) return;
 
     try {
-      const [weeklyRaw, lastWeekRaw, monthlyRaw, householdWeeklyRaw, usageTimes] = await Promise.all([
+      const [weeklyRaw, lastWeekRaw, monthlyRaw, householdWeeklyRaw] = await Promise.all([
         getInsightsData(householdId, startOfCurrentWeek(), userId),
         // Real previous-week window for the trend copy.
         getInsightsData(householdId, startOfPreviousWeek(), userId, startOfCurrentWeek()),
         getInsightsData(householdId, startOfCurrentMonth(), userId),
         includeHousehold ? getInsightsData(householdId, startOfCurrentWeek()) : null,
-        // Enough history for any realistic streak.
-        getUsageTimestamps(householdId, new Date(Date.now() - 60 * 86_400_000).toISOString(), userId),
       ]);
 
       setWeeklySummary(computeInsightsSummary(weeklyRaw));
-      setStreak(usageStreak(usageTimes));
-      setWeek(lastSevenDays(usageTimes));
       setLastWeekSummary(computeInsightsSummary(lastWeekRaw));
       setMonthlySummary(computeInsightsSummary(monthlyRaw));
       setHouseholdWeeklySummary(
@@ -79,10 +73,6 @@ export function useInsights(
     lastWeekSummary,
     monthlySummary,
     householdWeeklySummary,
-    /** Consecutive days (ending today) with something used up or cooked. */
-    streak,
-    /** The last seven days, today last, marked when food got used. */
-    week,
     loading,
     error,
     // Call on tab focus so cooking on another tab shows up without an app restart.

@@ -5,10 +5,16 @@ import { colors, fonts, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
-  /** The last seven days, oldest first, today last. */
-  days: { date: Date; used: boolean }[];
+  /** The last seven days, oldest first, today last. Frozen = covered by a streak freeze. */
+  days: { date: Date; state: "used" | "frozen" | "none" }[];
+  /** Today's goal: items used up so far against the target, and what to do next. */
+  goal: { done: number; total: number; eyebrow: string; title: string };
   /** e.g. "4-day streak" — shown beside the month when there is one. */
   streak?: string;
+  /** Banked streak freezes, with a spoken label ("2 streak freezes"). */
+  freezes?: { count: number; label: string };
+  /** One quiet line under the days, e.g. which day a freeze covered. */
+  note?: string;
   lastLabel: string;
   lastValue: string;
   onLastPress?: () => void;
@@ -18,29 +24,50 @@ type Props = {
   onDayPress: (date: Date) => void;
 };
 
-// The week at a glance: a dot under every day food got used, the streak it
-// adds up to, and the last thing cooked.
-export function WeekStrip({ days, streak, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onDayPress }: Props) {
+// The week at a glance: today's goal, a dot under every day food got used (a
+// snowflake where a freeze covered it), the streak it adds up to, and the last
+// thing cooked.
+export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onDayPress }: Props) {
   const today = days[days.length - 1].date;
   const month = today.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   return (
     <View style={styles.card}>
+      <View style={styles.goal}>
+        <GoalRing done={goal.done} total={goal.total} />
+        <View style={styles.goalText}>
+          <Text variant="micro" muted uppercase>
+            {goal.eyebrow}
+          </Text>
+          <Text variant="h3">{goal.title}</Text>
+        </View>
+      </View>
+
       <View style={styles.head}>
         <Text variant="label" style={styles.month}>
           {month}
         </Text>
-        {streak ? (
-          <View style={styles.streak}>
-            <FlameIcon />
-            <Text variant="micro" color={colors.accentInk} style={styles.bold}>
-              {streak}
-            </Text>
-          </View>
-        ) : null}
+        <View style={styles.badges}>
+          {streak ? (
+            <View style={styles.streak}>
+              <FlameIcon />
+              <Text variant="micro" color={colors.accentInk} style={styles.bold}>
+                {streak}
+              </Text>
+            </View>
+          ) : null}
+          {freezes && freezes.count > 0 ? (
+            <View style={styles.streak} accessible accessibilityLabel={freezes.label}>
+              <SnowflakeIcon size={13} color={colors.primary} />
+              <Text variant="micro" color={colors.primary} style={styles.bold}>
+                {freezes.count}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </View>
 
       <View style={styles.days}>
-        {days.map(({ date, used }, index) => {
+        {days.map(({ date, state }, index) => {
           const isToday = index === days.length - 1;
           return (
             <Pressable
@@ -57,20 +84,35 @@ export function WeekStrip({ days, streak, lastLabel, lastValue, onLastPress, his
               <Text variant="label" color={isToday ? colors.surface : colors.text} style={styles.bold}>
                 {date.getDate()}
               </Text>
-              <View
-                style={[
-                  styles.dot,
-                  {
-                    backgroundColor: isToday
-                      ? used ? colors.surface : colors.inverseHairlineStrong
-                      : used ? colors.green : colors.surface3,
-                  },
-                ]}
-              />
+              {state === "frozen" ? (
+                <View style={styles.dotSlot}>
+                  <SnowflakeIcon size={9} color={colors.primary} />
+                </View>
+              ) : (
+                <View
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor: isToday
+                        ? state === "used" ? colors.surface : colors.inverseHairlineStrong
+                        : state === "used" ? colors.green : colors.surface3,
+                    },
+                  ]}
+                />
+              )}
             </Pressable>
           );
         })}
       </View>
+
+      {note ? (
+        <View style={styles.note}>
+          <SnowflakeIcon size={12} color={colors.muted} />
+          <Text variant="small" muted style={styles.noteText}>
+            {note}
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.foot}>
         <Pressable
@@ -101,6 +143,46 @@ export function WeekStrip({ days, streak, lastLabel, lastValue, onLastPress, his
         </Pressable>
       </View>
     </View>
+  );
+}
+
+// Progress toward today's goal; full once the target is met.
+function GoalRing({ done, total }: { done: number; total: number }) {
+  const size = 48;
+  const stroke = 5;
+  const r = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * r;
+  const progress = Math.min(done, total) / total;
+  return (
+    <View style={styles.ring} accessible accessibilityLabel={`${Math.min(done, total)} / ${total}`}>
+      <Svg width={size} height={size}>
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surface3} strokeWidth={stroke} fill="none" />
+        {progress > 0 ? (
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            stroke={colors.primary}
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            fill="none"
+            strokeDasharray={`${circumference * progress} ${circumference}`}
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        ) : null}
+      </Svg>
+      <Text variant="label" style={[styles.ringLabel, styles.bold]}>
+        {`${Math.min(done, total)}/${total}`}
+      </Text>
+    </View>
+  );
+}
+
+function SnowflakeIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
+    </Svg>
   );
 }
 
@@ -135,6 +217,35 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
     paddingHorizontal: spacing.md,
+  },
+  goal: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.md,
+    marginBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.cardLine,
+  },
+  goalText: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  ring: {
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ringLabel: {
+    position: "absolute",
+  },
+  badges: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
   },
   head: {
     flexDirection: "row",
@@ -175,6 +286,21 @@ const styles = StyleSheet.create({
     height: 5,
     borderRadius: 2.5,
     marginTop: 2,
+  },
+  // Same box as the dot so a frozen day's pill stays the same height.
+  dotSlot: {
+    height: 5,
+    marginTop: 2,
+    justifyContent: "center",
+  },
+  note: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: spacing.sm,
+  },
+  noteText: {
+    flexShrink: 1,
   },
   foot: {
     flexDirection: "row",

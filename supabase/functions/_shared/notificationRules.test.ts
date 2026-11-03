@@ -6,6 +6,7 @@ import {
   sentToday,
   coalesceOpen,
   urgencyFromExpiry,
+  isStreakReminderHour,
 } from "./notificationRules.ts";
 
 Deno.test("isWithinSendWindow true when now inside window in tz", () => {
@@ -77,4 +78,10 @@ Deno.test("isWithinSendWindow: windows may cross midnight (C11)", () => {
   assertEquals(isWithinSendWindow(new Date("2026-06-19T05:00:00Z"), "22:00", "07:00", tz), false); // 07:00
   assertEquals(isWithinSendWindow(new Date("2026-06-19T10:00:00Z"), "22:00", "07:00", tz), false); // 12:00
   assertEquals(isWithinSendWindow(new Date("2026-06-19T19:00:00Z"), "21:30", "22:00", tz), true);  // 21:00 run
+});
+
+Deno.test("isStreakReminderHour only in the 19:00 local hour", () => {
+  assertEquals(isStreakReminderHour(new Date("2026-11-03T18:00:00Z"), "Europe/Belgrade"), true); // 19:00 +01:00
+  assertEquals(isStreakReminderHour(new Date("2026-11-03T19:00:00Z"), "Europe/Belgrade"), false); // 20:00
+  assertEquals(isStreakReminderHour(new Date("2026-06-19T17:00:00Z"), "Europe/Belgrade"), true); // 19:00 +02:00 (DST)
 });

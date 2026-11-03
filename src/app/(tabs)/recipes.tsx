@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, GeneratingOverlay, Logo, PremiumSheet, RecipeCard, RecipeGlyph, SavedRecipeRow, ScanIcon, Screen, Text, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
-import { useHousehold, useInsights, useInventory, useRecipes } from "@/hooks";
+import { useHousehold, useInventory, useRecipes, useStreak } from "@/hooks";
 import { formatMoney } from "@/lib";
 import { DayActivity, getDayActivity } from "@/repositories/insightsRepository";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
@@ -17,7 +17,7 @@ import {
   parseRecipeIngredients,
   RecipeMatch,
 } from "@/services/recipeService";
-import { availableBaseOptions, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory } from "@/services";
+import { availableBaseOptions, DAILY_GOAL, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory } from "@/services";
 import { colors, fonts, radii, spacing } from "@/theme";
 
 export default function RecipesRoute() {
@@ -94,13 +94,13 @@ export default function RecipesRoute() {
     setOpenDay((current) => (current?.date === date ? { date, activity } : current));
   };
 
-  const { streak, week, refresh: refreshInsights } = useInsights(activeHousehold?.id, { userId: profile?.id });
+  const { streak, freezes, today: usedToday, days: week, refresh: refreshStreak } = useStreak(activeHousehold?.id);
 
   useFocusEffect(
     useCallback(() => {
       void refreshRecipes();
-      void refreshInsights();
-    }, [refreshRecipes, refreshInsights]),
+      void refreshStreak();
+    }, [refreshRecipes, refreshStreak]),
   );
 
   const onRefresh = useCallback(async () => {
@@ -265,6 +265,16 @@ export default function RecipesRoute() {
         new Date(lastCookedAt) >= week[0].date ? { weekday: "short" } : { day: "numeric", month: "short" },
       )
     : "";
+  // Today's goal line: what the next item used up does for you.
+  const goalTitle =
+    usedToday >= DAILY_GOAL
+      ? t("recipes.week.goalDone")
+      : usedToday > 0
+        ? t("recipes.week.goalMore", { count: DAILY_GOAL - usedToday })
+        : streak > 0
+          ? t("recipes.week.goalKeep", { count: streak })
+          : t("recipes.week.goalStart");
+  const lastFrozen = [...week].reverse().find((day) => day.state === "frozen");
   // "Cook again" hero: the recipe you've returned to most (favorites break ties).
   const cookAgainPick = [...listedMyRecipes]
     .filter((r) => (cookedSummaries[r.id]?.count ?? 0) > 0)
@@ -351,7 +361,14 @@ export default function RecipesRoute() {
         <View style={styles.weekWrap}>
           <WeekStrip
             days={week}
+            goal={{ done: usedToday, total: DAILY_GOAL, eyebrow: t("recipes.week.goalEyebrow"), title: goalTitle }}
             streak={streak >= 2 ? t("recipes.week.streak", { count: streak }) : undefined}
+            freezes={{ count: freezes, label: t("recipes.week.freezes", { count: freezes }) }}
+            note={
+              lastFrozen
+                ? t("recipes.week.frozenNote", { day: lastFrozen.date.toLocaleDateString(undefined, { weekday: "long" }) })
+                : undefined
+            }
             lastLabel={t("recipes.week.lastCooked")}
             lastValue={lastCooked ? `${lastCooked.title} · ${lastCookedDay}` : t("recipes.week.nothingCooked")}
             onLastPress={lastCooked ? () => openSavedRecipe(lastCooked) : undefined}

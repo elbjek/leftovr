@@ -64,30 +64,5 @@ export function formatCategoryLabel(category: string): string {
   return labels[category] ?? category;
 }
 
-const dayKey = (date: Date) => `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-
-/**
- * Consecutive local days, ending today, on which something was used up or
- * cooked. A day with nothing yet today doesn't break the streak until it
- * ends: if today is empty, the count runs back from yesterday.
- */
-export function usageStreak(usedAt: string[], now: Date = new Date()): number {
-  const days = new Set(usedAt.map((iso) => dayKey(new Date(iso))));
-  const cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (!days.has(dayKey(cursor))) cursor.setDate(cursor.getDate() - 1);
-  let streak = 0;
-  while (days.has(dayKey(cursor))) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return streak;
-}
-
-/** The last seven local days, oldest first (today last), each marked when something was used up or cooked. */
-export function lastSevenDays(usedAt: string[], now: Date = new Date()): { date: Date; used: boolean }[] {
-  const days = new Set(usedAt.map((iso) => dayKey(new Date(iso))));
-  return Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6 + i);
-    return { date, used: days.has(dayKey(date)) };
-  });
-}
+/** Items to use up per day for the home's daily goal; 1 already keeps the streak. */
+export const DAILY_GOAL = 3;
