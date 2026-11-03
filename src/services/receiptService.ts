@@ -53,6 +53,15 @@ export type ReceiptConfirmItem = {
   // default is only the fallback.
   netAmount?: number | null;
   netUnit?: string | null;
+  // What an unsure line most likely is, best first (2-3 real foods from the
+  // model). Present only on low-confidence rows; picking one resolves the row.
+  suggestions?: ScanSuggestion[];
+};
+
+export type ScanSuggestion = {
+  name: string;
+  normalizedName: string;
+  category: InventoryCategory;
 };
 
 export type ReceiptInventoryRowInput = {
@@ -79,6 +88,7 @@ export type NormalizedReceiptLine = {
     price?: number | null;
     priceApproximate?: boolean;
   };
+  alternatives?: { name: string; normalizedName: string; category: string }[];
 };
 
 const VALID_CATEGORIES = new Set<string>([
@@ -86,30 +96,70 @@ const VALID_CATEGORIES = new Set<string>([
   "pantry", "frozen", "drinks", "snacks", "other",
 ]);
 
+// Only worth a quick look when there's a real choice: at least two distinct
+// foods. One option is just the model's guess, which the row already shows.
+function toSuggestions(line: NormalizedReceiptLine): ScanSuggestion[] | undefined {
+  const seen = new Set<string>();
+  const suggestions: ScanSuggestion[] = [];
+  for (const alt of line.alternatives ?? []) {
+    const key = alt.normalizedName.trim().toLowerCase();
+    if (!alt.name.trim() || !key || seen.has(key)) continue;
+    seen.add(key);
+    suggestions.push({
+      name: alt.name.trim(),
+      normalizedName: key,
+      category: (VALID_CATEGORIES.has(alt.category) ? alt.category : "other") as InventoryCategory,
+    });
+  }
+  return suggestions.length >= 2 ? suggestions.slice(0, 3) : undefined;
+}
+
 export function buildReceiptConfirmItemsFromLines(
   lines: NormalizedReceiptLine[],
 ): ReceiptConfirmItem[] {
-  return lines.map((line, index) => ({
-    id: `line-${index}`,
-    name: line.item.name,
-    normalizedName: line.item.normalizedName,
-    category: (VALID_CATEGORIES.has(line.item.category)
-      ? line.item.category
-      : "other") as ReceiptConfirmItem["category"],
-    quantity: line.item.quantity != null && line.item.quantity > 0 ? line.item.quantity : 1,
-    unit: line.item.unit ?? "item",
-    confidence: line.confidence,
-    lowConfidence:
+  return lines.map((line, index) => {
+    const lowConfidence =
       line.confidence < HIGH_CONFIDENCE_THRESHOLD ||
       looksUnnamed(line.item.normalizedName) ||
-      looksUnnamed(line.item.name),
-    included: true,
-    rawText: line.rawText,
-    scannedName: line.item.name,
-    price: line.item.price ?? null,
-    netAmount: line.item.netAmount,
-    netUnit: line.item.netUnit,
-  }));
+      looksUnnamed(line.item.name);
+    return {
+      id: `line-${index}`,
+      name: line.item.name,
+      normalizedName: line.item.normalizedName,
+      category: (VALID_CATEGORIES.has(line.item.category)
+        ? line.item.category
+        : "other") as ReceiptConfirmItem["category"],
+      quantity: line.item.quantity != null && line.item.quantity > 0 ? line.item.quantity : 1,
+      unit: line.item.unit ?? "item",
+      confidence: line.confidence,
+      lowConfidence,
+      included: true,
+      rawText: line.rawText,
+      scannedName: line.item.name,
+      price: line.item.price ?? null,
+      netAmount: line.item.netAmount,
+      netUnit: line.item.netUnit,
+      suggestions: lowConfidence ? toSuggestions(line) : undefined,
+    };
+  });
+}
+
+/**
+ * The user picked one of an unsure row's suggestions. It becomes the row's
+ * identity, recorded as the scanned reading (`scannedName`) so the model's
+ * English `normalizedName` is kept instead of being treated as a manual edit
+ * (B6). The row is settled: no longer flagged, no more choices.
+ */
+export function applySuggestion<T extends ReceiptConfirmItem>(item: T, suggestion: ScanSuggestion): T {
+  return {
+    ...item,
+    name: suggestion.name,
+    normalizedName: suggestion.normalizedName,
+    category: suggestion.category,
+    scannedName: suggestion.name,
+    lowConfidence: false,
+    suggestions: undefined,
+  };
 }
 
 export function buildConfirmedReceiptInventoryRows(

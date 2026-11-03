@@ -1309,6 +1309,8 @@ export default function ScanRoute() {
           onConfirm={handleConfirmScan}
           onCancel={returnToChoice}
           rawLabel={choice === "pantry" ? t("scan.pantry.spotted") : undefined}
+          sourceLabel={choice === "pantry" ? t("scan.pantry.photoShows") : undefined}
+          showPrice={choice !== "pantry"}
         />
       </Screen>
     );
@@ -1418,7 +1420,7 @@ export default function ScanRoute() {
       <View style={styles.header}>
         {!activeHousehold?.first_fill_completed_at ? (
           <BackButton
-            onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/fridge"))}
+            onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/recipes"))}
             style={styles.backButton}
           />
         ) : null}

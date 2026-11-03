@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applySuggestion,
   buildConfirmedReceiptInventoryRows,
   buildReceiptConfirmItemsFromLines,
   looksUnnamed,
@@ -177,5 +178,34 @@ describe("confirmed rows from scanned lines", () => {
       input,
     );
     expect(row).toMatchObject({ net_amount: 1000, net_unit: "g" });
+  });
+
+  describe("quick-look suggestions", () => {
+    const alt = (name: string, normalizedName: string, category = "pantry") => ({ name, normalizedName, category });
+    const input = { householdId: "h", scanId: "s", userId: "u", addedAt: "2026-10-28T10:00:00.000Z" };
+
+    it("offers 2-3 distinct suggestions only on unsure rows", () => {
+      const unsure = { ...line("Red jar", "red pepper relish", 0.4), alternatives: [
+        alt("Ajvar", "ajvar"), alt("ajvar ", "Ajvar"), alt("Tomato passata", "tomato passata"), alt("Pesto", "pesto"), alt("Salsa", "salsa"),
+      ] };
+      const single = { ...line("Leafy bag", "lettuce", 0.4), alternatives: [alt("Lettuce", "lettuce", "vegetables")] };
+      const sure = { ...line("Milk", "milk", 0.95), alternatives: [alt("Milk", "milk"), alt("Cream", "cream")] };
+
+      const [a, b, c] = buildReceiptConfirmItemsFromLines([unsure, single, sure]);
+      expect(a.suggestions?.map((x) => x.normalizedName)).toEqual(["ajvar", "tomato passata", "pesto"]);
+      expect(b.suggestions).toBeUndefined();
+      expect(c.suggestions).toBeUndefined();
+    });
+
+    it("saves a picked suggestion under the model's English key, not as a manual edit", () => {
+      const [row] = buildReceiptConfirmItemsFromLines([
+        { ...line("Crvena tegla", "red jar", 0.4), alternatives: [alt("Ajvar", "ajvar"), alt("Pasirani paradajz", "tomato passata")] },
+      ]);
+      const picked = applySuggestion(row, row.suggestions![1]);
+      expect(picked).toMatchObject({ lowConfidence: false, suggestions: undefined, category: "pantry" });
+
+      const [saved] = buildConfirmedReceiptInventoryRows([picked], input);
+      expect(saved).toMatchObject({ name: "Pasirani paradajz", normalized_name: "tomato passata" });
+    });
   });
 });

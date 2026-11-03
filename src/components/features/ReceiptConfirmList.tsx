@@ -5,8 +5,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import Svg, { Path } from "react-native-svg";
 
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
-import { INVENTORY_CATEGORIES, ReceiptConfirmItem } from "@/services";
-import { CategoryTone, categoryColors, colors, radii, spacing } from "../../theme";
+import { applySuggestion, INVENTORY_CATEGORIES, ReceiptConfirmItem, ScanSuggestion } from "@/services";
+import { CategoryTone, categoryColors, colors, fonts, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
 import { BottomSheet, Button, Card, FilterChip, Text, TextField, UnitPicker } from "../primitives";
 
@@ -18,11 +18,16 @@ type Props = {
   // Label above each item's raw text. Defaults to the receipt "Scanned as";
   // pantry passes its own ("Spotted") so shelf descriptions don't read as OCR.
   rawLabel?: string;
+  // Lead-in before the raw text on a quick-look card. Defaults to "Receipt
+  // says"; pantry passes "Photo shows".
+  sourceLabel?: string;
+  // Receipts show an editable line price; pantry photos have none to check.
+  showPrice?: boolean;
 };
 
-type EditableRow = ReceiptConfirmItem & { quantityText: string };
+type EditableRow = ReceiptConfirmItem & { quantityText: string; priceText: string };
 
-export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, rawLabel }: Props) {
+export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, rawLabel, sourceLabel, showPrice }: Props) {
   const { t } = useTranslation();
   const [rows, setRows] = useState<EditableRow[]>(() =>
     items.map((item) => ({
@@ -30,6 +35,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
       unit: normalizeUnit(item.unit),
       expiresAt: item.expiresAt ?? null,
       quantityText: String(item.quantity),
+      priceText: item.price != null ? String(item.price) : "",
     })),
   );
   const [expiryPickerRowId, setExpiryPickerRowId] = useState<string | null>(null);
@@ -47,14 +53,24 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...patch } : row)));
   }
 
+  // Unsure rows with real choices wait at the top until the user picks one;
+  // picking settles the row into the regular list below, already filled in.
+  const quickLookRows = rows.filter((row) => row.suggestions?.length);
+  const settledRows = rows.filter((row) => !row.suggestions?.length);
+
+  function pickSuggestion(id: string, suggestion: ScanSuggestion) {
+    setRows((current) => current.map((row) => (row.id === id ? applySuggestion(row, suggestion) : row)));
+  }
+
   function removeRow(id: string) {
     setRows((current) => current.filter((row) => row.id !== id));
   }
 
   function handleConfirm() {
     const finalItems: ReceiptConfirmItem[] = rows.map((row) => {
-      const { quantityText, ...item } = row;
+      const { quantityText, priceText, ...item } = row;
       const parsed = Number(quantityText.replace(",", "."));
+      const parsedPrice = Number(priceText.replace(",", "."));
       const name = item.name.trim();
       return {
         ...item,
@@ -64,6 +80,14 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
         name: name.length > 0 ? name : items.find((i) => i.id === item.id)?.name ?? item.name,
         quantity: Number.isFinite(parsed) && parsed > 0 ? parsed : item.quantity,
         unit: item.unit || DEFAULT_UNIT,
+        // A cleared price means "unknown"; an invalid one keeps the scanned price.
+        price: !showPrice
+          ? item.price
+          : priceText.trim() === ""
+            ? null
+            : Number.isFinite(parsedPrice) && parsedPrice > 0
+              ? parsedPrice
+              : item.price,
       };
     });
     onConfirm(finalItems);
@@ -75,7 +99,21 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
         <Button title={t("common.cancel")} variant="text" onPress={onCancel} />
       </View>
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-        {rows.map((row) => {
+        {quickLookRows.length > 0 ? (
+          <Text style={styles.quickLookTitle}>
+            {t("scan.confirm.quickLookTitle", { count: quickLookRows.length })}
+          </Text>
+        ) : null}
+        {quickLookRows.map((row) => (
+          <QuickLookCard
+            key={row.id}
+            row={row}
+            sourceLabel={sourceLabel ?? t("scan.confirm.receiptSays")}
+            onPick={(suggestion) => pickSuggestion(row.id, suggestion)}
+            onRemove={() => removeRow(row.id)}
+          />
+        ))}
+        {settledRows.map((row) => {
           const tone = categoryColors[row.category as CategoryTone] ?? categoryColors.other;
           return (
           <Card key={row.id} style={styles.row}>
@@ -144,6 +182,15 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
                   />
                 </View>
               </View>
+
+              {showPrice ? (
+                <TextField
+                  label={t("scan.confirm.priceLabel")}
+                  value={row.priceText}
+                  keyboardType="decimal-pad"
+                  onChangeText={(text) => patchRow(row.id, { priceText: text })}
+                />
+              ) : null}
 
               <Pressable
                 accessibilityRole="button"
@@ -240,6 +287,73 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
   );
 }
 
+// An unsure scan line with 2-3 candidate foods: pick the right one, or drop it.
+function QuickLookCard({
+  row,
+  sourceLabel,
+  onPick,
+  onRemove,
+}: {
+  row: EditableRow;
+  sourceLabel: string;
+  onPick: (suggestion: ScanSuggestion) => void;
+  onRemove: () => void;
+}) {
+  const { t } = useTranslation();
+  const lead = row.suggestions?.[0];
+  const tone = categoryColors[(lead?.category ?? row.category) as CategoryTone] ?? categoryColors.other;
+  return (
+    <View style={styles.quickLook}>
+      <View style={styles.header}>
+        <View style={styles.quickLookIcon}>
+          <FoodGlyph name={lead?.name ?? row.name} color={tone.mark} size={24} />
+        </View>
+        <View style={styles.scannedCol}>
+          <View style={styles.quickLookHeadRow}>
+            <View style={styles.checkBadge}>
+              <Text variant="micro" color={colors.accent} uppercase style={styles.checkBadgeText}>
+                {t("scan.confirm.quickLookBadge")}
+              </Text>
+            </View>
+            <Text style={styles.quickLookQuestion} numberOfLines={1}>
+              {t("scan.confirm.quickLookQuestion")}
+            </Text>
+          </View>
+          <Text variant="small" muted numberOfLines={2}>
+            {sourceLabel}{" "}
+            <Text style={styles.scannedText} color={colors.text}>
+              {row.rawText ?? row.name}
+            </Text>
+          </Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("scan.confirm.removeItem")}
+          onPress={onRemove}
+          hitSlop={8}
+          style={styles.quickLookRemove}
+        >
+          <CloseIcon color={colors.text} />
+        </Pressable>
+      </View>
+      <View style={styles.suggestionChips}>
+        {row.suggestions?.map((suggestion) => (
+          <Pressable
+            key={suggestion.normalizedName}
+            accessibilityRole="button"
+            onPress={() => onPick(suggestion)}
+            style={({ pressed }) => [styles.suggestionChip, pressed && styles.iconBoxPressed]}
+          >
+            <Text variant="label" style={styles.suggestionLabel}>
+              {suggestion.name}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 function CloseIcon({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14">
@@ -312,6 +426,77 @@ const styles = StyleSheet.create({
   },
   iconBoxPressed: {
     opacity: 0.7,
+  },
+  quickLookTitle: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 27,
+    lineHeight: 33,
+    marginBottom: spacing.xs,
+  },
+  quickLook: {
+    backgroundColor: colors.accentSoft,
+    borderRadius: radii.xl,
+    padding: spacing.lg,
+    gap: spacing.xs,
+  },
+  quickLookIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
+    backgroundColor: colors.paper,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quickLookHeadRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  checkBadge: {
+    backgroundColor: colors.text,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  checkBadgeText: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+  },
+  quickLookQuestion: {
+    flexShrink: 1,
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  quickLookRemove: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  suggestionChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  suggestionChip: {
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.pill,
+    backgroundColor: colors.paper,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+  },
+  suggestionLabel: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 15,
   },
   categorySheet: {
     gap: spacing.sm,
