@@ -4,13 +4,13 @@ import { getInsightsData } from "@/repositories/insightsRepository";
 import { computeInsightsSummary, InsightsSummary, recapWindow } from "@/services/insightsService";
 
 /**
- * The Insights monthly recap: your figures for the recap month and, in a
- * shared kitchen, what the whole household saved. Not premium-gated.
+ * The Insights month: your figures for the recap month and, in a shared
+ * kitchen, the whole household's. Not premium-gated.
  */
 export function useMonthlyRecap(householdId: string | undefined, userId: string | undefined, includeHousehold: boolean) {
   const [period, setPeriod] = useState(() => recapWindow());
   const [summary, setSummary] = useState<InsightsSummary | null>(null);
-  const [householdSaved, setHouseholdSaved] = useState<number | null>(null);
+  const [householdSummary, setHouseholdSummary] = useState<InsightsSummary | null>(null);
 
   const load = useCallback(async () => {
     if (!householdId || !userId) return;
@@ -24,7 +24,7 @@ export function useMonthlyRecap(householdId: string | undefined, userId: string 
       ]);
       setPeriod(next);
       setSummary(computeInsightsSummary(mine));
-      setHouseholdSaved(household ? household.moneySaved : null);
+      setHouseholdSummary(household ? computeInsightsSummary(household) : null);
     } catch {
       // Keep the last recap; the next focus refresh retries.
     }
@@ -36,5 +36,5 @@ export function useMonthlyRecap(householdId: string | undefined, userId: string 
     load();
   }, [load]);
 
-  return { period, summary, householdSaved, refresh: load };
+  return { period, summary, householdSummary, refresh: load };
 }

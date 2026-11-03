@@ -171,25 +171,24 @@ export type WinsRaw = {
   saved: { at: string; value: number }[];
 };
 
-/** Everything used up, cooked and saved since `since` — the Insights wins list. */
-export async function getWinsRaw(householdId: string, since: string, userId: string): Promise<WinsRaw> {
+/**
+ * Everything used up, cooked and saved since `since` — the Insights wins
+ * list. With userId: yours; without: the whole household's.
+ */
+export async function getWinsRaw(householdId: string, since: string, userId?: string): Promise<WinsRaw> {
   const supabase = getSupabaseClient();
-  const [used, cooked, value] = await Promise.all([
-    supabase.from("item_usage_events").select("used_at").eq("household_id", householdId).eq("used_by", userId).gte("used_at", since),
-    supabase
-      .from("cooked_events")
-      .select("created_at, recipes(title)")
-      .eq("household_id", householdId)
-      .eq("cooked_by", userId)
-      .gte("created_at", since),
-    supabase
-      .from("value_events")
-      .select("occurred_at, value, currency, households!inner(currency_code)")
-      .eq("household_id", householdId)
-      .eq("created_by", userId)
-      .eq("kind", "saved")
-      .gte("occurred_at", since),
-  ]);
+  let usedQuery = supabase.from("item_usage_events").select("used_at").eq("household_id", householdId).gte("used_at", since);
+  if (userId) usedQuery = usedQuery.eq("used_by", userId);
+  let cookedQuery = supabase.from("cooked_events").select("created_at, recipes(title)").eq("household_id", householdId).gte("created_at", since);
+  if (userId) cookedQuery = cookedQuery.eq("cooked_by", userId);
+  let valueQuery = supabase
+    .from("value_events")
+    .select("occurred_at, value, currency, households!inner(currency_code)")
+    .eq("household_id", householdId)
+    .eq("kind", "saved")
+    .gte("occurred_at", since);
+  if (userId) valueQuery = valueQuery.eq("created_by", userId);
+  const [used, cooked, value] = await Promise.all([usedQuery, cookedQuery, valueQuery]);
   if (used.error) throw used.error;
   if (cooked.error) throw cooked.error;
   if (value.error) throw value.error;
