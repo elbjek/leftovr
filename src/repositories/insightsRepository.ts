@@ -1,4 +1,6 @@
 import { getSupabaseClient } from "@/lib/supabase";
+import type { FoodHistoryRow, KitchenRaw } from "@/services/kitchenInsights";
+import type { InventoryCategory } from "@/services/inventoryRules";
 
 export type InsightsRawData = {
   receiptScans: number;
@@ -206,6 +208,69 @@ export async function getWinsRaw(householdId: string, since: string, userId?: st
       .filter((row) => row.currency == null || row.currency === row.households.currency_code)
       .map((row) => ({ at: row.occurred_at, value: row.value })),
   };
+}
+
+/**
+ * The kitchen side of Insights for a window: items added (and how each
+ * ended), when things were used up, when things were tossed. With userId:
+ * yours (items you added, uses you logged); without: the household's.
+ */
+export async function getKitchenRaw(householdId: string, since: string, until: string, userId?: string): Promise<KitchenRaw> {
+  const supabase = getSupabaseClient();
+  let addedQuery = supabase
+    .from("inventory_items")
+    .select("category, removed_at, removal_reason")
+    .eq("household_id", householdId)
+    .gte("added_at", since)
+    .lt("added_at", until);
+  if (userId) addedQuery = addedQuery.eq("added_by", userId);
+  let usedQuery = supabase.from("item_usage_events").select("used_at").eq("household_id", householdId).gte("used_at", since).lt("used_at", until);
+  if (userId) usedQuery = usedQuery.eq("used_by", userId);
+  let tossedQuery = supabase
+    .from("inventory_items")
+    .select("removed_at")
+    .eq("household_id", householdId)
+    .eq("removal_reason", "discarded")
+    .gte("removed_at", since)
+    .lt("removed_at", until);
+  if (userId) tossedQuery = tossedQuery.eq("added_by", userId);
+  const [added, used, tossed] = await Promise.all([addedQuery, usedQuery, tossedQuery]);
+  if (added.error) throw added.error;
+  if (used.error) throw used.error;
+  if (tossed.error) throw tossed.error;
+  type AddedRow = { category: InventoryCategory; removed_at: string | null; removal_reason: string | null };
+  return {
+    // Removed without a "discarded" reason counts as used, as in the weekly totals.
+    added: ((added.data ?? []) as AddedRow[]).map((row) => ({
+      category: row.category,
+      outcome: row.removed_at == null ? null : row.removal_reason === "discarded" ? "tossed" : "used",
+    })),
+    usedAt: (used.data ?? []).map((row: { used_at: string }) => row.used_at),
+    tossedAt: (tossed.data ?? []).map((row: { removed_at: string }) => row.removed_at),
+  };
+}
+
+/** Every item finished (used or tossed) in the last 120 days — for "keeps going off". */
+export async function getFoodHistory(householdId: string, userId?: string): Promise<FoodHistoryRow[]> {
+  const supabase = getSupabaseClient();
+  let query = supabase
+    .from("inventory_items")
+    .select("normalized_name, category, removed_at, removal_reason")
+    .eq("household_id", householdId)
+    .not("removed_at", "is", null)
+    .gte("removed_at", new Date(Date.now() - 120 * 86_400_000).toISOString())
+    .order("removed_at", { ascending: false })
+    .limit(1000);
+  if (userId) query = query.eq("added_by", userId);
+  const { data, error } = await query;
+  if (error) throw error;
+  type Row = { normalized_name: string; category: InventoryCategory; removed_at: string; removal_reason: string | null };
+  return ((data ?? []) as Row[]).map((row) => ({
+    name: row.normalized_name,
+    category: row.category,
+    outcome: row.removal_reason === "discarded" ? "tossed" : "used",
+    at: row.removed_at,
+  }));
 }
 
 export type StreakDayState = "used" | "frozen" | "none";

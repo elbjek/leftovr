@@ -4,20 +4,33 @@ import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { DaySheet, FactList, PeriodSummary, PremiumSheet, Screen, ScreenHeader, SegmentedControl, Text, WinsList } from "@/components";
+import {
+  DaySheet,
+  FoodGroups,
+  GoingOffList,
+  PremiumSheet,
+  Screen,
+  SectionTitle,
+  SegmentedControl,
+  StatTiles,
+  Text,
+  TopDinners,
+  UsedTossedChart,
+  WinsList,
+} from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import { useDaySheet, useHousehold, useInsights, useMonthlyRecap, useStreak, useWins } from "@/hooks";
-import { InventoryCategory, toUiCategory } from "@/services";
-import { InsightsSummary } from "@/services/insightsService";
+import { useDaySheet, useHousehold, usePeriodInsights, useWins } from "@/hooks";
+import { InventoryCategory, Period, toUiCategory } from "@/services";
 import { formatMoney } from "@/lib/money";
 import { colors, fonts, radii, spacing } from "@/theme";
 
-type Period = "week" | "month";
 type Scope = "you" | "household";
 
-// One period (Week / Month) and one scope (You / Household) drive everything
-// on the screen: the summary card, the highlights and your wins. The week is
-// Premium; the month is for everyone.
+// Insights tells a story about your kitchen, TinyMeals-style: a headline, how
+// the period moved, what got used vs tossed, which food groups you finish,
+// what keeps going off, your go-to dinners and your wins. One Week / Month
+// switch (week is Premium) and one You / Household chip drive it all; every
+// section is built from real data and only shows when there's some.
 export default function InsightsRoute() {
   const { t } = useTranslation();
   const { profile, activeHousehold, refresh } = useAuth();
@@ -31,195 +44,59 @@ export default function InsightsRoute() {
   const showHouseholdScope = members.length >= 2;
   const scope: Scope = showHouseholdScope ? chosenScope : "you";
   const currency = activeHousehold?.currency_code ?? "USD";
+  const money = (value: number) => formatMoney(value, currency);
 
-  const { weeklySummary, lastWeekSummary, householdWeeklySummary, refresh: refreshWeek } = useInsights(
-    isPremium ? activeHousehold?.id : undefined,
-    { userId: profile?.id, includeHousehold: showHouseholdScope },
-  );
-  const {
-    period: monthPeriod,
-    summary: monthSummary,
-    householdSummary: monthHouseholdSummary,
-    refresh: refreshMonth,
-  } = useMonthlyRecap(activeHousehold?.id, profile?.id, showHouseholdScope);
-  const { streak, refresh: refreshStreak } = useStreak(activeHousehold?.id);
+  const { data, refresh: refreshPeriod } = usePeriodInsights(activeHousehold?.id, profile?.id, period, scope);
   const { wins, refresh: refreshWins } = useWins(activeHousehold?.id, profile?.id, scope);
   const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, scope === "you" ? profile?.id : undefined);
 
   // Cooking happens on other tabs — refetch whenever this tab gains focus.
   useFocusEffect(
     useCallback(() => {
-      void refreshWeek();
-      void refreshMonth();
-      void refreshStreak();
+      void refreshPeriod();
       void refreshWins();
-    }, [refreshWeek, refreshMonth, refreshStreak, refreshWins]),
+    }, [refreshPeriod, refreshWins]),
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refreshWeek(), refreshMonth(), refreshWins(), refresh()]);
+      await Promise.all([refreshPeriod(), refreshWins(), refresh()]);
     } finally {
       setRefreshing(false);
     }
-  }, [refreshWeek, refreshMonth, refreshWins, refresh]);
+  }, [refreshPeriod, refreshWins, refresh]);
 
-  const summary: InsightsSummary | null =
-    period === "week"
-      ? scope === "household" ? householdWeeklySummary : weeklySummary
-      : scope === "household" ? monthHouseholdSummary : monthSummary;
-  const monthName = monthPeriod.start.toLocaleDateString(undefined, { month: "long" });
-  const eyebrow =
-    period === "week"
-      ? weekRangeLabel()
-      : monthPeriod.complete
-        ? monthName
-        : t("insights.recap.titleSoFar", { month: monthName });
-
-  const hasMoney = (summary?.moneySaved ?? 0) > 0;
-  // The trend is personal; in your month view the household total takes its place.
-  const weekGain = summary && lastWeekSummary ? summary.moneySaved - lastWeekSummary.moneySaved : 0;
-  const sub =
-    scope === "you" && period === "week" && hasMoney && weekGain > 0
-      ? t("insights.summary.moreThanLastWeek", { amount: formatMoney(weekGain, currency) })
-      : scope === "you" && period === "month" && (monthHouseholdSummary?.moneySaved ?? 0) > 0
-        ? t("insights.recap.household", { amount: formatMoney(monthHouseholdSummary!.moneySaved, currency) })
-        : undefined;
-  const stats = summary
-    ? [
-        // With no money to headline, the items used become the big number instead.
-        ...(hasMoney ? [{ value: String(summary.itemsSaved), label: t("insights.recap.itemsUsed") }] : []),
-        { value: String(summary.cookedEvents), label: t("insights.recap.cooked") },
-        ...(scope === "you" ? [{ value: String(streak), label: t("insights.recap.streak") }] : []),
-      ]
-    : [];
-
-  const share = () => {
-    if (!summary) return;
-    const counts = { month: monthName, items: summary.itemsSaved, dinners: summary.cookedEvents };
-    const amount = formatMoney(summary.moneySaved, currency);
-    const message =
-      period === "week"
-        ? hasMoney
-          ? t("insights.summary.shareWeekMoney", { ...counts, amount })
-          : t("insights.summary.shareWeek", counts)
-        : hasMoney
-          ? t("insights.recap.shareMessageMoney", { ...counts, amount })
-          : t("insights.recap.shareMessage", counts);
-    void Share.share({ message });
-  };
-
-  const topFood = summary?.topUsedFood;
-  const topDish = summary?.cookedRecipes[0];
-  const highlights = summary
-    ? [
-        ...(topFood
-          ? [{ label: t("insights.recap.topFood"), value: t("insights.recap.countValue", { name: capitalize(topFood.name), count: topFood.count }) }]
-          : []),
-        ...(topDish ? [{ label: t("insights.recap.topDish"), value: t("insights.recap.countValue", { name: topDish.title, count: topDish.count }) }] : []),
-        ...(isPremium && summary.itemsAdded > 0 ? [{ label: t("insights.highlights.usedRate"), value: usedRate(summary) }] : []),
-        ...(isPremium
-          ? [
-              { label: t("insights.highlights.spent"), value: formatMoney(summary.moneySpent, currency) },
-              {
-                label: t("insights.highlights.wasted"),
-                value: formatMoney(summary.moneyWasted, currency),
-                tone: summary.moneyWasted > 0 ? ("danger" as const) : undefined,
-              },
-            ]
-          : []),
-      ]
-    : [];
-
-  return (
-    <Screen
-      scroll
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
-      }
-    >
-      <View style={styles.header}>
-        <ScreenHeader eyebrow={eyebrow} title={t("insights.title")} />
-        <View style={styles.controls}>
-          <View style={styles.periodControl}>
-            <SegmentedControl
-              options={[
-                { label: isPremium ? t("insights.period.week") : t("insights.period.weekPremium"), value: "week" as const },
-                { label: t("insights.period.month"), value: "month" as const },
-              ]}
-              value={period}
-              onChange={(next) => (next === "week" && !isPremium ? setShowPremium(true) : setChosenPeriod(next))}
-            />
-          </View>
-          {showHouseholdScope ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t(scope === "you" ? "insights.scope.switchToHousehold" : "insights.scope.switchToYou")}
-              onPress={() => setChosenScope(scope === "you" ? "household" : "you")}
-              style={({ pressed }) => [styles.scopeChip, pressed && styles.pressed]}
-            >
-              <ScopeIcon household={scope === "household"} />
-              <Text variant="label" color={colors.primary} style={styles.bold}>
-                {t(scope === "you" ? "insights.scope.you" : "insights.scope.household")}
-              </Text>
-            </Pressable>
-          ) : null}
-        </View>
-      </View>
-
-      {summary ? (
-        <PeriodSummary
-          label={hasMoney ? t("insights.recap.saved") : t("insights.summary.usedUp")}
-          value={hasMoney ? formatMoney(summary.moneySaved, currency) : t("insights.summary.items", { count: summary.itemsSaved })}
-          sub={sub}
-          stats={stats}
-          emptyText={summary.isSparse && !hasMoney ? t("insights.recap.empty") : undefined}
-          shareLabel={t(period === "week" ? "insights.summary.shareWeekLabel" : "insights.summary.shareMonthLabel")}
-          onShare={share}
+  const header = (
+    <View style={styles.controls}>
+      <View style={styles.periodControl}>
+        <SegmentedControl
+          options={[
+            { label: isPremium ? t("insights.period.week") : t("insights.period.weekPremium"), value: "week" as const },
+            { label: t("insights.period.month"), value: "month" as const },
+          ]}
+          value={period}
+          onChange={(next) => (next === "week" && !isPremium ? setShowPremium(true) : setChosenPeriod(next))}
         />
-      ) : (
-        <View style={styles.loading}>
-          <ActivityIndicator color={colors.primary} />
-        </View>
-      )}
-
-      <FactList eyebrow={t("insights.highlights.title")} rows={highlights} />
-
-      {!isPremium ? (
+      </View>
+      {showHouseholdScope ? (
         <Pressable
           accessibilityRole="button"
-          onPress={() => setShowPremium(true)}
-          style={({ pressed }) => [styles.upsell, pressed && styles.pressed]}
+          accessibilityLabel={t(scope === "you" ? "insights.scope.switchToHousehold" : "insights.scope.switchToYou")}
+          onPress={() => setChosenScope(scope === "you" ? "household" : "you")}
+          style={({ pressed }) => [styles.scopeChip, pressed && styles.pressed]}
         >
-          <View style={styles.upsellCopy}>
-            <Text variant="label" style={styles.bold}>
-              {t("insights.upsell.title")}
-            </Text>
-            <Text variant="small" color={colors.accentInk}>
-              {t("insights.upsell.body")}
-            </Text>
-          </View>
-          <Text variant="label" color={colors.accentInk} style={styles.bold}>
-            {t("insights.upsell.action")}
+          <ScopeIcon household={scope === "household"} />
+          <Text variant="label" color={colors.primary} style={styles.bold}>
+            {t(scope === "you" ? "insights.scope.you" : "insights.scope.household")}
           </Text>
         </Pressable>
       ) : null}
+    </View>
+  );
 
-      <WinsList
-        eyebrow={t("insights.wins.eyebrow")}
-        showAllLabel={t("insights.wins.showAll", { count: wins.length })}
-        days={wins.map((day) => ({
-          key: day.date.toDateString(),
-          date: day.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }),
-          title: day.itemsUsed > 0 ? t("insights.wins.saved", { count: day.itemsUsed }) : t("insights.wins.cookedOnly"),
-          detail: day.cooked.length > 0 ? day.cooked.join(", ") : undefined,
-          money: day.moneySaved > 0 ? formatMoney(day.moneySaved, currency) : undefined,
-          onPress: () => void showDay(day.date),
-        }))}
-      />
-
+  const sheets = (
+    <>
       <DaySheet
         visible={openDay != null}
         onDismiss={closeDay}
@@ -232,15 +109,213 @@ export default function InsightsRoute() {
               }
             : null
         }
-        saved={
-          openDay?.activity && openDay.activity.moneySaved > 0
-            ? t("recipes.week.saved", { amount: formatMoney(openDay.activity.moneySaved, currency) })
-            : undefined
-        }
+        saved={openDay?.activity && openDay.activity.moneySaved > 0 ? t("recipes.week.saved", { amount: money(openDay.activity.moneySaved) }) : undefined}
         labels={{ cooked: t("recipes.week.dayCooked"), used: t("recipes.week.dayUsed"), empty: t("recipes.week.dayEmpty") }}
       />
-
       <PremiumSheet visible={showPremium} onPurchased={refresh} onDismiss={() => setShowPremium(false)} />
+    </>
+  );
+
+  const refreshControl = (
+    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+  );
+
+  if (!data) {
+    return (
+      <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
+        <Text variant="h1">{t("insights.title")}</Text>
+        {header}
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+        {sheets}
+      </Screen>
+    );
+  }
+
+  const { window: span, summary, prevSummary, kitchen, prevKitchen, goingOff } = data;
+  const monthName = span.start.toLocaleDateString(undefined, { month: "long" });
+  const prevMonthName = span.prevStart.toLocaleDateString(undefined, { month: "long" });
+  const prevShort = period === "week" ? t("insights.story.lastWeekShort") : span.prevStart.toLocaleDateString(undefined, { month: "short" });
+  const eyebrow =
+    period === "week" ? weekRangeLabel(span.start) : span.complete ? monthName : t("insights.story.monthSoFar", { month: monthName });
+  const categoryLabel = (category: string) => t(`scan.categories.${category}`);
+
+  // Headline + one sentence on how the period moved and where the waste is.
+  const headline =
+    kitchen.used > 0
+      ? summary.moneySaved > 0
+        ? t("insights.story.headlineMoney", { count: kitchen.used, amount: money(summary.moneySaved) })
+        : t("insights.story.headline", { count: kitchen.used })
+      : t(period === "week" ? "insights.story.emptyWeek" : "insights.story.emptyMonth");
+  const usedDiff = kitchen.used - prevKitchen.used;
+  const prevName = period === "week" ? t("insights.story.lastWeek") : prevMonthName;
+  const subParts = [
+    kitchen.used > 0 || prevKitchen.used > 0
+      ? usedDiff > 0
+        ? t("insights.story.more", { count: usedDiff, prev: prevName })
+        : usedDiff < 0
+          ? t("insights.story.fewer", { count: -usedDiff, prev: prevName })
+          : t("insights.story.same", { prev: prevName })
+      : null,
+    kitchen.strongest ? t("insights.story.strongest", { category: categoryLabel(kitchen.strongest.category) }) : null,
+    kitchen.weakest ? t("insights.story.weakest", { category: categoryLabel(kitchen.weakest.category) }) : null,
+  ].filter(Boolean);
+
+  // "+3 vs Oct": shown only when there's something to compare against.
+  const delta = (current: number, previous: number, format: (n: number) => string = String) =>
+    current === 0 && previous === 0
+      ? undefined
+      : `${current - previous >= 0 ? "+" : "−"}${format(Math.abs(current - previous))} ${t("insights.story.vs", { prev: prevShort })}`;
+  const tiles = [
+    {
+      value: money(summary.moneySaved),
+      label: t("insights.stats.saved"),
+      delta: delta(summary.moneySaved, prevSummary.moneySaved, money),
+      good: summary.moneySaved > prevSummary.moneySaved,
+    },
+    { value: String(kitchen.used), label: t("insights.stats.used"), delta: delta(kitchen.used, prevKitchen.used), good: kitchen.used > prevKitchen.used },
+    {
+      value: String(kitchen.tossed),
+      label: t("insights.stats.tossed"),
+      delta: delta(kitchen.tossed, prevKitchen.tossed),
+      good: kitchen.tossed < prevKitchen.tossed,
+      danger: kitchen.tossed > 0,
+    },
+  ];
+
+  // Chart: days of the week, or 7-day runs of the month. A running period's
+  // `until` is when it loaded, so the bucket holding it is the current one.
+  const loadedAt = span.until.getTime() - 1;
+  const bars = span.buckets.map((bucket, index) => ({
+    label: period === "week" ? bucket.start.toLocaleDateString(undefined, { weekday: "narrow" }) : String(bucket.start.getDate()),
+    used: kitchen.chart[index].used,
+    tossed: kitchen.chart[index].tossed,
+    current: !span.complete && loadedAt >= bucket.start.getTime() && loadedAt < bucket.end.getTime(),
+  }));
+  const bestIndex = kitchen.chart.reduce((best, bar, index) => (bar.used > kitchen.chart[best].used ? index : best), 0);
+  const best = kitchen.chart[bestIndex].used
+    ? period === "week"
+      ? span.buckets[bestIndex].start.toLocaleDateString(undefined, { weekday: "long" })
+      : t("insights.chart.weekOf", { date: span.buckets[bestIndex].start.toLocaleDateString(undefined, { day: "numeric", month: "short" }) })
+    : null;
+  const hasChart = kitchen.used + kitchen.tossed > 0;
+
+  const groupRows = kitchen.groups.map((group) => ({
+    category: group.category,
+    label: categoryLabel(group.category),
+    detail: group.tossed > 0 ? t("insights.groups.usedTossed", { used: group.used, tossed: group.tossed }) : t("insights.groups.used", { count: group.used }),
+    share: group.used / (group.used + group.tossed),
+    weak: group.category === kitchen.weakest?.category,
+  }));
+  const goingOffRows = goingOff.map((food) => {
+    const name = capitalize(food.name);
+    const detail = t("insights.goingOff.detail", { tossed: food.tossed, total: food.outcomes.length });
+    return { name, category: food.category, detail, outcomes: food.outcomes, label: `${name}: ${detail}` };
+  });
+  const dinners = summary.cookedRecipes.map((recipe) => ({ title: recipe.title, detail: t("insights.dinners.times", { count: recipe.count }) }));
+
+  const share = () => {
+    const counts = { month: monthName, items: kitchen.used, dinners: summary.cookedEvents };
+    const key = `insights.share.${period}${summary.moneySaved > 0 ? "Money" : ""}`;
+    void Share.share({ message: t(key, { ...counts, amount: money(summary.moneySaved) }) });
+  };
+
+  return (
+    <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
+      <View style={styles.story}>
+        <Text variant="micro" muted uppercase>
+          {eyebrow}
+        </Text>
+        <Text variant="h1" accessibilityRole="header">
+          {headline}
+        </Text>
+        {subParts.length > 0 ? (
+          <Text variant="body" muted>
+            {subParts.join(" ")}
+          </Text>
+        ) : null}
+      </View>
+
+      {header}
+
+      <StatTiles tiles={tiles} />
+
+      {isPremium ? (
+        <>
+          {hasChart ? (
+            <View style={styles.section}>
+              <SectionTitle title={t(period === "week" ? "insights.chart.titleWeek" : "insights.chart.titleMonth")} />
+              <UsedTossedChart
+                title={t("insights.chart.usedVsTossed")}
+                aside={best ? t("insights.chart.best", { label: best }) : undefined}
+                bars={bars}
+                legend={{ used: t("insights.stats.used"), tossed: t("insights.stats.tossed") }}
+                label={t("insights.chart.spoken", { used: kitchen.used, tossed: kitchen.tossed })}
+              />
+            </View>
+          ) : null}
+
+          {groupRows.length > 0 ? (
+            <View style={styles.section}>
+              <SectionTitle title={t("insights.groups.title")} aside={t("insights.groups.aside")} />
+              <FoodGroups rows={groupRows} tip={kitchen.weakest ? t(`insights.tips.${kitchen.weakest.category}`) : undefined} />
+            </View>
+          ) : null}
+
+          {goingOffRows.length > 0 ? (
+            <View style={styles.section}>
+              <SectionTitle title={t("insights.goingOff.title")} caption={t("insights.goingOff.caption")} />
+              <GoingOffList rows={goingOffRows} />
+            </View>
+          ) : null}
+        </>
+      ) : (
+        <Pressable accessibilityRole="button" onPress={() => setShowPremium(true)} style={({ pressed }) => [styles.lock, pressed && styles.pressed]}>
+          <View style={styles.lockCopy}>
+            <Text variant="label" style={styles.bold}>
+              {t("insights.lock.title")}
+            </Text>
+            <Text variant="small" color={colors.accentInk}>
+              {t("insights.lock.body")}
+            </Text>
+          </View>
+          <Text variant="label" color={colors.accentInk} style={styles.bold}>
+            {t("insights.lock.action")}
+          </Text>
+        </Pressable>
+      )}
+
+      {dinners.length > 0 ? (
+        <View style={styles.section}>
+          <SectionTitle title={t("insights.dinners.title")} />
+          <TopDinners dinners={dinners} />
+        </View>
+      ) : null}
+
+      <WinsList
+        eyebrow={t("insights.wins.eyebrow")}
+        showAllLabel={t("insights.wins.showAll", { count: wins.length })}
+        days={wins.map((day) => ({
+          key: day.date.toDateString(),
+          date: day.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }),
+          title: day.itemsUsed > 0 ? t("insights.wins.saved", { count: day.itemsUsed }) : t("insights.wins.cookedOnly"),
+          detail: day.cooked.length > 0 ? day.cooked.join(", ") : undefined,
+          money: day.moneySaved > 0 ? money(day.moneySaved) : undefined,
+          onPress: () => void showDay(day.date),
+        }))}
+      />
+
+      {kitchen.used > 0 ? (
+        <Pressable accessibilityRole="button" onPress={share} style={({ pressed }) => [styles.shareButton, pressed && styles.pressed]}>
+          <ShareIcon />
+          <Text variant="label" color={colors.primary} style={styles.bold}>
+            {t(period === "week" ? "insights.share.weekLabel" : "insights.share.monthLabel")}
+          </Text>
+        </Pressable>
+      ) : null}
+
+      {sheets}
     </Screen>
   );
 }
@@ -264,20 +339,20 @@ function ScopeIcon({ household }: { household: boolean }) {
   );
 }
 
-// "2 – 8 Nov": this week, Monday to Sunday.
-function weekRangeLabel() {
-  const now = new Date();
-  const weekday = now.getDay();
-  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - weekday + (weekday === 0 ? -6 : 1));
+function ShareIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5" stroke={colors.primary} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+// "2 – 8 Nov": the week starting on `monday`.
+function weekRangeLabel(monday: Date) {
   const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
   const sameMonth = monday.getMonth() === sunday.getMonth();
   const start = monday.toLocaleDateString(undefined, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" });
   return `${start} – ${sunday.toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
-}
-
-// Items used up out of items added in the period.
-function usedRate(summary: InsightsSummary) {
-  return `${Math.min(100, Math.round((summary.removedItems / summary.itemsAdded) * 100))}%`;
 }
 
 function capitalize(name: string) {
@@ -289,8 +364,8 @@ const styles = StyleSheet.create({
     gap: spacing.xxl,
     paddingBottom: spacing.tabBarClearance,
   },
-  header: {
-    gap: spacing.md,
+  story: {
+    gap: spacing.xs,
   },
   controls: {
     flexDirection: "row",
@@ -311,12 +386,15 @@ const styles = StyleSheet.create({
     borderColor: colors.cardLine,
     backgroundColor: colors.paper,
   },
+  section: {
+    gap: spacing.sm,
+  },
   loading: {
-    minHeight: 160,
+    minHeight: 200,
     alignItems: "center",
     justifyContent: "center",
   },
-  upsell: {
+  lock: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
@@ -328,9 +406,20 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
     backgroundColor: colors.accentSoft,
   },
-  upsellCopy: {
+  lockCopy: {
     flex: 1,
     minWidth: 0,
+  },
+  shareButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    minHeight: 52,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.paper,
   },
   bold: {
     fontFamily: fonts.bodyBold,

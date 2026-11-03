@@ -3,6 +3,7 @@ export * from "./authService";
 export * from "./edgeErrors";
 export * from "./barcodeService";
 export * from "./insightsService";
+export * from "./kitchenInsights";
 export * from "./inventoryRules";
 export * from "./notificationService";
 export * from "./pantryService";
