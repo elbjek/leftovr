@@ -39,7 +39,7 @@ const CATEGORY_ORDER = [
 type Category = (typeof CATEGORY_ORDER)[number];
 // TinyMeals-style browsing: null = the overview (today, running low, category
 // tiles); otherwise a results list for everything, running low or a category.
-type KitchenView = null | "all" | "low" | Category;
+type KitchenView = null | "all" | "low" | "soon" | Category;
 
 export default function FridgeRoute() {
   const { t } = useTranslation();
@@ -110,14 +110,23 @@ export default function FridgeRoute() {
     }
   };
   const inView = (group: InventoryGroup) =>
-    view === null || view === "all" ? true : view === "low" ? isMetricAmountRunningLow(group) : group.category === view;
-  const resultGroups = activeGroups.filter((group) => inView(group) && (!query || group.name.toLowerCase().includes(query)));
+    view === null || view === "all"
+      ? true
+      : view === "low"
+        ? isMetricAmountRunningLow(group)
+        : view === "soon"
+          ? isUseSoon(group)
+          : group.category === view;
+  const matches = activeGroups.filter((group) => inView(group) && (!query || group.name.toLowerCase().includes(query)));
+  const resultGroups = view === "soon" ? sortBySoonest(matches) : matches;
   // Searching or opening a list swaps the overview for results.
   const showResults = view !== null || Boolean(query);
   const isPremium = resolvePremium(profile, activeHousehold);
   const { refresh: refreshInsights } = useInsights(activeHousehold?.id);
   // Eat-first is global (urgency, not the active category/search filter).
   const eatFirstGroups = getEatFirstGroups(groups);
+  // Premium "Use soon" list (TinyMeals' Try next): today and soon, soonest first.
+  const useSoonGroups = sortBySoonest(groups.filter(isUseSoon));
   const runningLowGroups = activeGroups.filter(isMetricAmountRunningLow);
   // Category tiles: only categories with something in them.
   const categoryTiles = CATEGORY_ORDER.map((category) => {
@@ -158,7 +167,9 @@ export default function FridgeRoute() {
       ? t("fridge.allItems")
       : view === "low"
         ? t("fridge.shelves.runningLow")
-        : view
+        : view === "soon"
+          ? t("fridge.shelves.useSoon")
+          : view
           ? (t(`scan.categories.${view}` as never) as string)
           : t("fridge.results", { query: search.trim() });
   // One card for a single list; everything (or a plain search) by category.
@@ -172,7 +183,6 @@ export default function FridgeRoute() {
     setView(null);
     setSearch("");
   };
-  const showEatFirstHero = isPremium && eatFirstGroups.length > 0;
   const kitchenPulse = (
     <KitchenPulse
       fresh={pulse.fresh}
@@ -340,35 +350,51 @@ export default function FridgeRoute() {
         </>
       ) : (
         <>
-          {/* Today: the pulse rides inside the eat-first hero when there is one;
-              otherwise it stands alone above the free preview. */}
-          {groups.length > 0 && !showEatFirstHero ? <View style={styles.pulseWrap}><View style={styles.pulseCard}>{kitchenPulse}</View></View> : null}
+          {/* Today: the pulse, then (premium) what to use soon as a dated list
+              like TinyMeals' Try next, or (free) the eat-first upsell. */}
+          {groups.length > 0 ? <View style={styles.pulseWrap}><View style={styles.pulseCard}>{kitchenPulse}</View></View> : null}
 
-          {showEatFirstHero || (!isPremium && groups.length > 0) ? (
+          {isPremium && useSoonGroups.length > 0 ? (
+            <FoodListCard
+              title={t("fridge.shelves.useSoon")}
+              maxVisible={3}
+              seeAllLabel={t("fridge.shelves.seeAllCount", { count: useSoonGroups.length })}
+              onSeeAll={() => setView("soon")}
+              items={useSoonGroups.map((group) => {
+                const today = new Date();
+                const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + Math.max(0, groupDaysLeft(group)));
+                return {
+                  id: group.key,
+                  name: group.name,
+                  category: toUiCategory(group.category),
+                  meta: computeBestByLabel(group, t) || getCardMetaLines(group.meta).join(" · "),
+                  urgency: toUiUrgency(group.urgency),
+                  status: statusLabels[toUiUrgency(group.urgency)],
+                  date: {
+                    weekday: date.toLocaleDateString(undefined, { weekday: "short" }),
+                    day: String(date.getDate()),
+                  },
+                };
+              })}
+              onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
+              footer={{
+                label: t("fridge.eatFirstCook"),
+                onPress: () => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } }),
+              }}
+            />
+          ) : null}
+
+          {!isPremium && groups.length > 0 ? (
             <EatFirstShelf
-              premium={isPremium}
-              items={eatFirstGroups.map((group) => ({
-                id: group.key,
-                name: group.name,
-                category: toUiCategory(group.category),
-                bestBy: computeBestByLabel(group, t),
-              }))}
+              count={eatFirstGroups.length}
               labels={{
                 kicker: t("fridge.eatFirstTitle"),
-                subtitle: t("fridge.eatFirstSubtitle"),
-                heading: (count) => t("fridge.eatFirstHeading", { count }),
-                cookCta: t("fridge.eatFirstCook"),
                 previewTitle: t("fridge.eatFirstPreviewTitle"),
                 previewBody: t("fridge.eatFirstPreviewBody"),
                 unlockAction: t("fridge.eatFirstUnlock"),
-                more: (count) => t("fridge.eatFirstMoreItems", { count }),
               }}
-              onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
-              onCook={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
               onUpgradePress={() => router.push("/(tabs)/settings")}
-            >
-              {kitchenPulse}
-            </EatFirstShelf>
+            />
           ) : null}
 
           {expiredGroups.length > 0 ? (
@@ -1074,6 +1100,14 @@ function getEatFirstGroups(groups: InventoryGroup[]) {
   return groups
     .filter((group) => group.urgency === "urgent")
     .sort((a, b) => groupDaysLeft(a) - groupDaysLeft(b));
+}
+
+function isUseSoon(group: InventoryGroup) {
+  return group.urgency === "urgent" || group.urgency === "use_soon";
+}
+
+function sortBySoonest(groups: InventoryGroup[]) {
+  return [...groups].sort((a, b) => groupDaysLeft(a) - groupDaysLeft(b));
 }
 
 // Soonest-running-out lot in the group (explicit date or estimate).

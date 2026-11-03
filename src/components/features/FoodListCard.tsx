@@ -14,6 +14,8 @@ export type FoodListItem = {
   addedBy?: string | null;
   /** TinyMeals-style status pill ("Use now"); without it a freshness dot. */
   status?: string;
+  /** Shows a date column ("TUE" over "5") in place of the food tile, as in TinyMeals' Try next. */
+  date?: { weekday: string; day: string };
 };
 
 type Props = {
@@ -24,12 +26,14 @@ type Props = {
   seeAllLabel?: string;
   onSeeAll?: () => void;
   onItemPress: (item: FoodListItem) => void;
+  /** A last row inside the card (e.g. "Cook with these first"). */
+  footer?: { label: string; onPress: () => void };
 };
 
 // A shelf on the Kitchen home: small uppercase label, then a cream card of
 // hairline-divided food rows (round glyph tile, name, meta, status pill or
 // freshness dot).
-export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, onItemPress }: Props) {
+export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, onItemPress, footer }: Props) {
   const visible = maxVisible ? items.slice(0, maxVisible) : items;
   const showSeeAll = Boolean(seeAllLabel && onSeeAll && visible.length < items.length);
 
@@ -63,9 +67,18 @@ export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, 
               onPress={() => onItemPress(item)}
               style={({ pressed }) => [styles.row, index > 0 && styles.rowDivider, pressed && styles.pressed]}
             >
-              <View style={[styles.thumb, { backgroundColor: tone.background }]}>
-                <FoodGlyph name={item.name} color={tone.mark} size={24} />
-              </View>
+              {item.date ? (
+                <View style={styles.date}>
+                  <Text variant="micro" color={colors.muted2} uppercase style={styles.dateWeekday}>
+                    {item.date.weekday}
+                  </Text>
+                  <Text style={styles.dateDay}>{item.date.day}</Text>
+                </View>
+              ) : (
+                <View style={[styles.thumb, { backgroundColor: tone.background }]}>
+                  <FoodGlyph name={item.name} color={tone.mark} size={24} />
+                </View>
+              )}
               <View style={styles.copy}>
                 <Text variant="label" numberOfLines={1} style={styles.name}>
                   {item.name}
@@ -87,6 +100,18 @@ export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, 
             </Pressable>
           );
         })}
+        {footer ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={footer.onPress}
+            style={({ pressed }) => [styles.row, styles.footer, visible.length > 0 && styles.rowDivider, pressed && styles.pressed]}
+          >
+            <Text variant="label" color={colors.primary} style={[styles.name, styles.copy]}>
+              {footer.label}
+            </Text>
+            <ChevronIcon />
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
@@ -144,6 +169,26 @@ const styles = StyleSheet.create({
   rowDivider: {
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
+  },
+  date: {
+    width: 40,
+    alignItems: "center",
+  },
+  dateWeekday: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  dateDay: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 18,
+    lineHeight: 22,
+    color: colors.text,
+  },
+  footer: {
+    minHeight: 52,
   },
   thumb: {
     width: 40,

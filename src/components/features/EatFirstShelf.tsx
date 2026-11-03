@@ -1,129 +1,42 @@
-import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "../../theme";
-import { FoodGlyph } from "../illustrations";
+import { colors, fonts, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
 
-// The hero lists this many items; the rest are counted and live in the shelves.
-const PREVIEW_COUNT = 3;
-
-type EatFirstItem = {
-  id: string;
-  name: string;
-  category?: string;
-  bestBy?: string;
-};
-
 type Props = {
-  items: EatFirstItem[];
-  premium?: boolean;
+  /** How many items need eating first (shown on the tile). */
+  count: number;
   labels: {
     kicker: string;
-    subtitle?: string;
-    heading: (count: number) => string;
-    cookCta: string;
     previewTitle: string;
     previewBody: string;
     unlockAction: string;
-    more?: (count: number) => string;
   };
-  onItemPress?: (item: EatFirstItem) => void;
-  onCook?: () => void;
   onUpgradePress?: () => void;
-  /** Rendered under the heading on the premium card (the home puts Kitchen Pulse here). */
-  children?: React.ReactNode;
 };
 
-// The home hero: one white card that says what to eat today and offers the one
-// action the shelves can't — cook with it before it spoils. Free accounts get
-// the same shell as an upsell.
-export function EatFirstShelf({ items, premium = false, labels, onItemPress, onCook, onUpgradePress, children }: Props) {
-  const lead = items[0];
-  const leadTone = categoryColors[(lead?.category as CategoryTone)] ?? categoryColors.other;
-
-  if (!premium) {
-    return (
-      <View style={styles.wrap}>
-        <View style={styles.card}>
-          <View style={styles.top}>
-            <View style={styles.copy}>
-              <Eyebrow label={labels.kicker} />
-              <Text style={styles.title}>{labels.previewTitle}</Text>
-              <Text variant="small" muted style={styles.body}>
-                {labels.previewBody}
-              </Text>
-            </View>
-            <View style={[styles.media, { backgroundColor: colors.accentSoft }]}>
-              <Text style={styles.mediaCount} color={colors.accentInk}>
-                {items.length || 3}
-              </Text>
-            </View>
-          </View>
-          <HeroButton label={labels.unlockAction} onPress={onUpgradePress} />
-        </View>
-      </View>
-    );
-  }
-
-  const preview = items.slice(0, PREVIEW_COUNT);
-  const hidden = items.length - preview.length;
-
+// The free account's eat-first upsell on Kitchen. Premium sees the "Use soon"
+// list (FoodListCard) instead.
+export function EatFirstShelf({ count, labels, onUpgradePress }: Props) {
   return (
     <View style={styles.wrap}>
       <View style={styles.card}>
         <View style={styles.top}>
           <View style={styles.copy}>
             <Eyebrow label={labels.kicker} />
-            <Text style={styles.title}>{labels.heading(items.length)}</Text>
-            {labels.subtitle ? (
-              <Text variant="small" muted style={styles.body}>
-                {labels.subtitle}
-              </Text>
-            ) : null}
-          </View>
-          {lead ? (
-            <View style={[styles.media, { backgroundColor: leadTone.background }]}>
-              <FoodGlyph name={lead.name} color={leadTone.mark} size={40} />
-            </View>
-          ) : null}
-        </View>
-
-        {children ? <View style={styles.pulse}>{children}</View> : null}
-
-        <View style={styles.list}>
-          {preview.map((item) => {
-            const tone = categoryColors[(item.category as CategoryTone)] ?? categoryColors.other;
-            return (
-              <Pressable
-                key={item.id}
-                accessibilityRole="button"
-                onPress={() => onItemPress?.(item)}
-                style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-              >
-                <View style={[styles.thumb, { backgroundColor: tone.background }]}>
-                  <FoodGlyph name={item.name} color={tone.mark} size={22} />
-                </View>
-                <Text variant="label" numberOfLines={1} style={styles.rowName}>
-                  {item.name}
-                </Text>
-                {item.bestBy ? (
-                  <Text variant="small" color={colors.redInk} numberOfLines={1} style={styles.rowMeta}>
-                    {item.bestBy}
-                  </Text>
-                ) : null}
-              </Pressable>
-            );
-          })}
-          {hidden > 0 && labels.more ? (
-            <Text variant="small" muted style={styles.more}>
-              {labels.more(hidden)}
+            <Text style={styles.title}>{labels.previewTitle}</Text>
+            <Text variant="small" muted style={styles.body}>
+              {labels.previewBody}
             </Text>
-          ) : null}
+          </View>
+          <View style={[styles.media, { backgroundColor: colors.accentSoft }]}>
+            <Text style={styles.mediaCount} color={colors.accentInk}>
+              {count || 3}
+            </Text>
+          </View>
         </View>
-
-        <HeroButton label={labels.cookCta} onPress={onCook} />
+        <HeroButton label={labels.unlockAction} onPress={onUpgradePress} />
       </View>
     </View>
   );
@@ -221,42 +134,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 30,
     lineHeight: 34,
-  },
-  pulse: {
-    marginTop: spacing.lg,
-  },
-  list: {
-    marginTop: spacing.md,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
-  },
-  thumb: {
-    width: 36,
-    height: 36,
-    borderRadius: radii.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  rowName: {
-    flex: 1,
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-  },
-  rowMeta: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-    flexShrink: 0,
-  },
-  more: {
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
-    paddingVertical: spacing.sm,
   },
   cta: {
     marginTop: spacing.md,
