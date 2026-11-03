@@ -1,4 +1,4 @@
-import OpenAI from "npm:openai@^4.77.0";
+import { Anthropic, generateJson, HAIKU } from "../_shared/claude.ts";
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 
 type NormalizePantryRequest = {
@@ -18,6 +18,8 @@ type PantryLine = {
     netAmount: number | null;
     netUnit: "ml" | "g" | null;
   };
+  // Candidate foods for an unsure line, best first (empty when confident).
+  alternatives: { name: string; normalizedName: string; category: string }[];
 };
 
 type PantryExtraction = {
@@ -72,8 +74,21 @@ const PANTRY_SCHEMA = {
             ],
             additionalProperties: false,
           },
+          alternatives: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                normalizedName: { type: "string" },
+                category: { type: "string", enum: INVENTORY_CATEGORIES },
+              },
+              required: ["name", "normalizedName", "category"],
+              additionalProperties: false,
+            },
+          },
         },
-        required: ["rawText", "confidence", "item"],
+        required: ["rawText", "confidence", "item", "alternatives"],
         additionalProperties: false,
       },
     },
@@ -104,6 +119,7 @@ const PROMPT = [
   "Only return edible food and drink. Exclude non-food items on the same shelves (cleaning supplies, toiletries, paper goods, pet food, utensils, appliances, containers you cannot see into).",
   "`confidence` (0-1) is your certainty that `name`/`normalizedName` is the correct real food. Partially hidden items, unreadable labels, or shape-only guesses stay below 0.5. Only use confidence above 0.75 when the product is unmistakable — a clearly readable label or an unambiguous fresh item (bananas, eggs).",
   "`normalizedName` MUST be a real, standard food or drink an English speaker would recognize. If you cannot confidently identify the product, keep `name` descriptive, set confidence below 0.5, and give your best real-food guess as `normalizedName` — never a made-up word.",
+  "`alternatives`: leave it empty when confidence is 0.85 or higher. Below that, list the 2-3 real foods this item most likely is, best first — the first one is the same food as `item` — each a genuinely different product (\"ajvar\" vs \"tomato passata\", not two spellings of one food), with `name` written like `item.name`, a lowercase English `normalizedName`, and a `category` from the enum. If you cannot name two plausible real foods, leave it empty.",
 ].join("\n");
 
 Deno.serve(async (req) => {
@@ -111,7 +127,7 @@ Deno.serve(async (req) => {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!apiKey || !supabaseUrl || !serviceRoleKey) {
@@ -265,7 +281,7 @@ Deno.serve(async (req) => {
   try {
     // Independent downloads — fetch and encode all photos concurrently; map
     // preserves order so the model sees them in capture order.
-    const imageParts: OpenAI.Chat.Completions.ChatCompletionContentPart[] = await Promise.all(
+    const imageParts: Anthropic.Beta.BetaContentBlockParam[] = await Promise.all(
       imagePaths.map(async (path) => {
         const { data: file, error: downloadError } = await supabase.storage
           .from("receipt-images")
@@ -274,15 +290,13 @@ Deno.serve(async (req) => {
           throw new Error(`image_download_failed: ${downloadError?.message ?? "empty"}`);
         }
         return {
-          type: "image_url",
-          // detail:"low" = one 512px thumbnail per photo (~2.8k tokens vs ~25k
-          // tiled). Pantry scans identify objects, not fine print, so the
-          // downscale is acceptable; receipts must stay on high detail.
-          image_url: {
-            url: `data:image/jpeg;base64,${bytesToBase64(new Uint8Array(await file.arrayBuffer()))}`,
-            detail: "low",
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: "image/jpeg",
+            data: bytesToBase64(new Uint8Array(await file.arrayBuffer())),
           },
-        } satisfies OpenAI.Chat.Completions.ChatCompletionContentPart;
+        } satisfies Anthropic.Beta.BetaContentBlockParam;
       }),
     );
     // We don't retain pantry photos: delete as soon as they're decoded so
@@ -294,36 +308,28 @@ Deno.serve(async (req) => {
       console.error("[normalize-pantry] photo cleanup failed", removeError);
     }
 
-    const client = new OpenAI({ apiKey });
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      // 4000 comfortably fits a large 3-photo pantry (~40 tokens/item) while
-      // keeping worst-case generation time inside the 30s timeout.
-      max_tokens: 4000,
-      messages: [{
-        role: "user",
-        content: [{ type: "text", text: PROMPT }, ...imageParts],
-      }],
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "pantry", strict: true, schema: PANTRY_SCHEMA },
+    // Identifying food in photos is extraction: Haiku at low effort, photos
+    // before the instructions. 6000 fits a large 3-photo pantry (~40
+    // tokens/item) plus thinking, inside the 30s timeout; on timeout it throws
+    // and the catch below fails the scan cleanly.
+    const { data: extraction, inputTokens, outputTokens } = await generateJson<PantryExtraction>(
+      new Anthropic({ apiKey }),
+      {
+        model: HAIKU,
+        content: [...imageParts, { type: "text", text: PROMPT }],
+        schema: PANTRY_SCHEMA,
+        maxTokens: 6000,
+        effort: "low",
+        timeoutMs: PANTRY_AI_TIMEOUT_MS,
       },
-    }, {
-      // Bound the (paid) AI call so a hung request can't keep the user waiting
-      // forever; on timeout it throws and the catch below fails the scan cleanly.
-      timeout: PANTRY_AI_TIMEOUT_MS,
-      maxRetries: 0,
-    });
-
-    const text = response.choices[0]?.message?.content ?? "";
-    const extraction = JSON.parse(text) as PantryExtraction;
+    );
 
     console.info("[normalize-pantry] token usage", {
       scanId: scan.id,
       photos: imagePaths.length,
-      promptTokens: response.usage?.prompt_tokens ?? 0,
-      completionTokens: response.usage?.completion_tokens ?? 0,
-      totalTokens: response.usage?.total_tokens ?? 0,
+      promptTokens: inputTokens,
+      completionTokens: outputTokens,
+      totalTokens: inputTokens + outputTokens,
     });
 
     // Nothing recognizable (dark photos, not a pantry): keep the row for
@@ -336,7 +342,7 @@ Deno.serve(async (req) => {
           status: "failed",
           image_path: null,
           error_message: "no_pantry_items",
-          prompt_tokens: response.usage?.prompt_tokens ?? null,
+          prompt_tokens: inputTokens,
           processed_at: new Date().toISOString(),
         })
         .eq("id", scan.id);
@@ -346,7 +352,7 @@ Deno.serve(async (req) => {
     await supabase
       .from("receipt_scans")
       .update({
-        prompt_tokens: response.usage?.prompt_tokens ?? null,
+        prompt_tokens: inputTokens,
         // Photos are already deleted and image_path is a single-path column;
         // don't leave a comma-joined value pointing at removed objects.
         image_path: null,

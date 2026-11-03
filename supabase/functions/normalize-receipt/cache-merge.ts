@@ -21,6 +21,9 @@ export type NormalizedLine = {
   rawText: string;
   confidence: number;
   item: NormalizedItem;
+  // Candidate foods for an unsure line, best first (empty when confident).
+  // Cache hits carry none: the cached identity is already settled.
+  alternatives?: { name: string; normalizedName: string; category: string }[];
 };
 
 export type ReceiptLineCacheRow = {

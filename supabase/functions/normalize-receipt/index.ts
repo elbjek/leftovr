@@ -1,4 +1,4 @@
-import OpenAI from "npm:openai@^4.77.0";
+import { Anthropic, generateJson, HAIKU } from "../_shared/claude.ts";
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@^2.46.1";
 
 import { mergeWithCache, NormalizedLine, ReceiptLineCacheRow, UNKNOWN_STORE } from "./cache-merge.ts";
@@ -70,8 +70,21 @@ const RECEIPT_SCHEMA = {
             ],
             additionalProperties: false,
           },
+          alternatives: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                normalizedName: { type: "string" },
+                category: { type: "string", enum: INVENTORY_CATEGORIES },
+              },
+              required: ["name", "normalizedName", "category"],
+              additionalProperties: false,
+            },
+          },
         },
-        required: ["rawText", "confidence", "item"],
+        required: ["rawText", "confidence", "item", "alternatives"],
         additionalProperties: false,
       },
     },
@@ -93,13 +106,14 @@ const PROMPT = [
   "Pick `category` from the provided enum. Use `other` only when nothing else fits.",
   "Sweet/confectionery products — chocolate, candy, biscuits, wafers, chips, chocolate-filled or sweet pastries (e.g. \"kroasan coco milka\") — are `snacks`, not `bakery`. Sweet drinks, juice, and soda are `drinks`. Reserve `bakery` for plain bread and savory baked goods.",
   "`quantity`/`unit` reflect purchased count and unit when printed (e.g. 2 x). `netAmount`/`netUnit` only when a metric size is printed on the line (1L -> 1000 ml, 400g -> 400 g); otherwise null.",
-  "`price` is the printed line total for that item as a number in the receipt's currency (no currency symbol), or null. Never invent a printed price.",
+  "`price` is the printed line total for that item as a number in the receipt's currency (no currency symbol), or null. Never invent a printed price. When a discount line applies to one specific item (printed right under it, or naming it), subtract it from that item's `price` so it is what was actually paid.",
   "When a line has no printed price, estimate a typical retail price for that item and quantity and set `priceApproximate` true. When you read the printed price, set `priceApproximate` false. Always set `price` to a positive number when you can — only use null if you can neither read nor reasonably estimate it.",
-  "Skip non-food lines: totals, deposits/pant, bags, discounts, loyalty points, payment rows.",
+  "Skip non-food lines: totals, deposits/pant, bags, discount lines (after folding item discounts into that item's price), loyalty points, payment rows. Ignore receipt-wide discounts that don't name one item.",
   "Only return edible food and drink. Exclude every non-food / household product even when purchased on its own line (e.g. cleaning supplies, toiletries, cosmetics, paper goods, pet supplies, batteries, household goods, tobacco, medicine). Account for abbreviated non-food names in the receipt's language. If a line is not clearly food, do not return it.",
   "Correct obvious misspellings or OCR errors to the real food name, and set `name` to the corrected human-readable product.",
   "`confidence` (0-1) is your certainty that `name`/`normalizedName` is the correct real food. Set confidence below 0.5 whenever the source text is NOT a clearly recognizable food word — garbled OCR, codes, or an abbreviation you cannot confidently expand. In that case do NOT invent a plausible food: keep `name` close to the printed text and let the low confidence flag it for the user. Only use confidence above 0.75 when the product name is an unambiguous, real food word you are sure of. A name that still looks like a code or contains digits is never high confidence.",
   "`normalizedName` MUST be a real, standard food or drink that a native English speaker would recognize. If the best you can produce still contains a foreign, brand, store, or made-up token that is NOT itself an English food word (e.g. \"cdamer cheese\", \"fresca\", \"pijaca\"), that means you could NOT confidently identify the product — set confidence below 0.5 instead of guessing. Example: \"Sir Cdamer Biser\" is OCR-garbled Serbian; \"Cdamer\" is likely \"Edamer\" (edam) but you cannot be sure, so confidence stays below 0.5 and `normalizedName` is your best guess like \"edam cheese\". Store/market names that leak onto the line (e.g. \"Maxi pijaca\") are NOT part of the food — ignore them; if removing them leaves no clear food word, confidence is low.",
+  "`alternatives`: leave it empty when confidence is 0.85 or higher. Below that, list the 2-3 real foods this line most likely is, best first — the first one is the same food as `item` — each a genuinely different product (\"ajvar\" vs \"tomato passata\", not two spellings of one food), with `name` in the line's language like `item.name`, a lowercase English `normalizedName`, and a `category` from the enum. If you cannot name two plausible real foods, leave it empty.",
   "`storeChain` is a lowercase slug of the retail chain (e.g. \"rema-1000\", \"lidl\"); use \"unknown\" if unreadable.",
   "`purchaseDate` is the printed purchase date as YYYY-MM-DD, or null. `total` is the printed grand total as a number, or null.",
 ].join("\n");
@@ -109,7 +123,7 @@ Deno.serve(async (req) => {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!apiKey || !supabaseUrl || !serviceRoleKey) {
@@ -275,46 +289,32 @@ Deno.serve(async (req) => {
       console.error("[normalize-receipt] receipt file cleanup failed", removeError);
     }
     const isPdf = input.imagePath.toLowerCase().endsWith(".pdf");
-    // Digital e-receipts come as PDFs; OpenAI reads them via a `file` content
-    // part. Camera scans stay on the `image_url` (vision) path.
-    const receiptContent = isPdf
-      ? {
-        type: "file",
-        file: { filename: "receipt.pdf", file_data: `data:application/pdf;base64,${fileBase64}` },
-      }
-      : { type: "image_url", image_url: { url: `data:image/jpeg;base64,${fileBase64}` } };
+    // Digital e-receipts come as PDFs (a document block); camera scans are
+    // images. The receipt goes before the instructions.
+    const receiptContent: Anthropic.Beta.BetaContentBlockParam = isPdf
+      ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: fileBase64 } }
+      : { type: "image", source: { type: "base64", media_type: "image/jpeg", data: fileBase64 } };
 
-    const client = new OpenAI({ apiKey });
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      max_tokens: 6000,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "text", text: PROMPT },
-          receiptContent,
-        ] as OpenAI.Chat.Completions.ChatCompletionContentPart[],
-      }],
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "receipt", strict: true, schema: RECEIPT_SCHEMA },
+    // Reading a receipt is extraction, not judgment: Haiku at low effort.
+    // Bound the (paid) AI call so a hung request can't keep the user waiting
+    // forever; on timeout it throws and the catch below fails the scan cleanly.
+    const { data: extraction, inputTokens, outputTokens } = await generateJson<ReceiptExtraction>(
+      new Anthropic({ apiKey }),
+      {
+        model: HAIKU,
+        content: [receiptContent, { type: "text", text: PROMPT }],
+        schema: RECEIPT_SCHEMA,
+        maxTokens: 8000,
+        effort: "low",
+        timeoutMs: RECEIPT_AI_TIMEOUT_MS,
       },
-    }, {
-      // Bound the (paid) AI call so a hung request can't keep the user waiting
-      // forever; on timeout it throws and the catch below fails the scan cleanly.
-      // maxRetries 0 — fail fast instead of silently retrying past the timeout.
-      timeout: RECEIPT_AI_TIMEOUT_MS,
-      maxRetries: 0,
-    });
-
-    const text = response.choices[0]?.message?.content ?? "";
-    const extraction = JSON.parse(text) as ReceiptExtraction;
+    );
 
     console.info("[normalize-receipt] token usage", {
       scanId: scan.id,
-      promptTokens: response.usage?.prompt_tokens ?? 0,
-      completionTokens: response.usage?.completion_tokens ?? 0,
-      totalTokens: response.usage?.total_tokens ?? 0,
+      promptTokens: inputTokens,
+      completionTokens: outputTokens,
+      totalTokens: inputTokens + outputTokens,
     });
 
     // Not a usable receipt (empty or non-receipt): retain nothing about it.
@@ -329,7 +329,7 @@ Deno.serve(async (req) => {
           image_path: null,
           receipt_signature: null,
           error_message: "no_receipt_items",
-          prompt_tokens: response.usage?.prompt_tokens ?? null,
+          prompt_tokens: inputTokens,
           processed_at: new Date().toISOString(),
         })
         .eq("id", scan.id);
@@ -350,7 +350,7 @@ Deno.serve(async (req) => {
       .from("receipt_scans")
       .update({
         receipt_signature: signature,
-        prompt_tokens: response.usage?.prompt_tokens ?? null,
+        prompt_tokens: inputTokens,
       })
       .eq("id", scan.id);
 

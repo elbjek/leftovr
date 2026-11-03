@@ -1,4 +1,4 @@
-import OpenAI from "npm:openai@^4.77.0";
+import { Anthropic, generateJson, HAIKU, SONNET } from "../_shared/claude.ts";
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 import { mentionsAvoidance } from "../_shared/avoidances.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@^2.46.1";
@@ -202,7 +202,7 @@ const EXPAND_SCHEMA = {
           name: { type: "string" },
           amount: { type: "string" },
           required: { type: "boolean" },
-          matchKey: { type: ["string", "null"] },
+          matchKey: { anyOf: [{ type: "string" }, { type: "null" }] },
         },
         required: ["name", "amount", "required", "matchKey"],
         additionalProperties: false,
@@ -214,14 +214,23 @@ const EXPAND_SCHEMA = {
   additionalProperties: false,
 };
 
+// Picking the dish is the coherence judgment, so it runs on Sonnet; expanding
+// an already-chosen dish into steps and amounts is elaboration, so Haiku.
+const PICK_MODEL = SONNET;
+const EXPAND_MODEL = HAIKU;
+
+type PromptParts = { system: string; user: string };
+
+const asPrompt = ({ system, user }: PromptParts) => ({ system, content: user });
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) {
-    return Response.json({ error: "missing_openai_api_key" }, { status: 500 });
+    return Response.json({ error: "missing_anthropic_api_key" }, { status: 500 });
   }
 
   const raw = await req.text();
@@ -248,7 +257,7 @@ Deno.serve(async (req) => {
   const gate = await acquireGenerationAttempt(input, authHeader);
   if (gate.response) return gate.response;
 
-  const client = new OpenAI({ apiKey });
+  const client = new Anthropic({ apiKey });
 
   // Recipe generation is stateless, so a fridge dominated by a couple of items
   // (turkey, yogurt) keeps yielding the same obvious dishes across sessions.
@@ -262,26 +271,18 @@ Deno.serve(async (req) => {
     return await handleCards(input, gate, client, recentTitles);
   }
 
-  // One model call per recipe.
-  // gpt-5-mini is ~10x cheaper input / 5x cheaper output than gpt-4o yet makes
-  // the culinary-coherence judgment gpt-4o kept ignoring. Reasoning "low" gates
-  // out junk combos while keeping latency usable — "medium" roughly tripled
-  // reasoning tokens and pushed generation past 40s. Reasoning-series takes no
-  // custom temperature; max_completion_tokens leaves headroom for reasoning
-  // tokens on top of the recipe JSON.
+  // One model call per recipe; the culinary-coherence judgment runs in the
+  // model's thinking.
   const runVariant = (
     variant: "confident" | "alternative",
     exclude?: { title: string; ingredients: string[] },
   ) =>
-    client.chat.completions.create({
-      model: "gpt-5-mini",
-      max_completion_tokens: 6000,
-      reasoning_effort: "low",
-      messages: buildMessages(input, variant, exclude, recentTitles),
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "recipes", strict: true, schema: RECIPE_SCHEMA },
-      },
+    generateJson<{ recipes: AiRecipeCard[] }>(client, {
+      ...asPrompt(buildMessages(input, variant, exclude, recentTitles)),
+      model: PICK_MODEL,
+      schema: RECIPE_SCHEMA,
+      maxTokens: 16000,
+      effort: "medium",
     });
 
   try {
@@ -293,9 +294,7 @@ Deno.serve(async (req) => {
     const responses = [confident];
 
     if (gate.premium === true) {
-      const firstText = confident.choices[0]?.message?.content ?? "";
-      const firstRecipe =
-        (JSON.parse(firstText) as { recipes: AiRecipeCard[] }).recipes[0];
+      const firstRecipe = confident.data.recipes[0];
       const exclude = firstRecipe
         ? { title: firstRecipe.title, ingredients: firstRecipe.ingredients.map((i) => i.name) }
         : undefined;
@@ -307,10 +306,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const allRecipes = responses.flatMap((response) => {
-      const text = response.choices[0]?.message?.content ?? "";
-      return (JSON.parse(text) as { recipes: AiRecipeCard[] }).recipes;
-    });
+    const allRecipes = responses.flatMap((response) => response.data.recipes);
 
     const avoidances = input.avoidances ?? [];
     // Dedupe by ingredient set, not title: the premium variants often share the
@@ -355,14 +351,8 @@ Deno.serve(async (req) => {
       recipe.title = cleanTitle(recipe.title);
     }
 
-    const promptTokens = responses.reduce(
-      (sum, response) => sum + (response.usage?.prompt_tokens ?? 0),
-      0,
-    );
-    const completionTokens = responses.reduce(
-      (sum, response) => sum + (response.usage?.completion_tokens ?? 0),
-      0,
-    );
+    const promptTokens = responses.reduce((sum, response) => sum + response.inputTokens, 0);
+    const completionTokens = responses.reduce((sum, response) => sum + response.outputTokens, 0);
 
     console.info("[generate-recipes] token usage", {
       calls: responses.length,
@@ -671,7 +661,7 @@ function buildMessages(
   variant: "confident" | "alternative",
   exclude?: { title: string; ingredients: string[] },
   recentTitles: string[] = [],
-): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+): PromptParts {
   const lang = languageName(input.language);
   const user = [
     recentTitles.length
@@ -709,10 +699,7 @@ function buildMessages(
       : "Return 1 recipe card: your single most confident pick for what this household has. If the household cannot make any coherent real dish, return an empty recipes array instead of inventing one.",
   ].join("\n");
 
-  return [
-    { role: "system", content: SYSTEM_PROMPT },
-    { role: "user", content: user },
-  ];
+  return { system: SYSTEM_PROMPT, user };
 }
 
 // Last-line defence on the model's title: kill quotes/trailing punctuation, a
@@ -854,7 +841,7 @@ type InventoryItem = NonNullable<GenerateRecipesRequest["inventory"]>[number];
 async function handleCards(
   input: GenerateRecipesRequest,
   gate: { attemptId?: string; supabase?: ReturnType<typeof createClient>; premium?: boolean; userId?: string },
-  client: OpenAI,
+  client: Anthropic,
   recentTitles: string[],
 ): Promise<Response> {
   const wantCount = gate.premium === true ? 2 : 1;
@@ -864,15 +851,12 @@ async function handleCards(
   );
 
   const runCards = () =>
-    client.chat.completions.create({
-      model: "gpt-5-mini",
-      max_completion_tokens: 1500,
-      reasoning_effort: "low",
-      messages: buildCardMessages(input, recentTitles, wantCount),
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "recipe_cards", strict: true, schema: CARD_SCHEMA },
-      },
+    generateJson<{ recipes: AiRecipeCardLite[] }>(client, {
+      ...asPrompt(buildCardMessages(input, recentTitles, wantCount)),
+      model: PICK_MODEL,
+      schema: CARD_SCHEMA,
+      maxTokens: 8000,
+      effort: "medium",
     });
 
   let promptTokens = 0;
@@ -885,10 +869,9 @@ async function handleCards(
     // Bounded retry: one extra attempt if every card failed validation.
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const response = await runCards();
-      promptTokens += response.usage?.prompt_tokens ?? 0;
-      completionTokens += response.usage?.completion_tokens ?? 0;
-      const text = response.choices[0]?.message?.content ?? "";
-      raw = (JSON.parse(text) as { recipes: AiRecipeCardLite[] }).recipes ?? [];
+      promptTokens += response.inputTokens;
+      completionTokens += response.outputTokens;
+      raw = response.data.recipes ?? [];
       cards = validateCards(raw, input.avoidances ?? [], itemsById, dropReasons);
       if (cards.length > 0) break;
     }
@@ -993,7 +976,7 @@ function buildCardMessages(
   input: GenerateRecipesRequest,
   recentTitles: string[],
   wantCount: number,
-): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+): PromptParts {
   const lang = languageName(input.language);
   const user = [
     recentTitles.length
@@ -1023,10 +1006,7 @@ function buildCardMessages(
     "usedIngredientIds MUST be ids copied verbatim from the inventory list above, only for items the dish actually uses.",
   ].join("\n");
 
-  return [
-    { role: "system", content: SYSTEM_PROMPT },
-    { role: "user", content: user },
-  ];
+  return { system: SYSTEM_PROMPT, user };
 }
 
 // ---------------------------------------------------------------------------
@@ -1047,26 +1027,21 @@ async function handleExpand(
   const limited = await consumeExpandQuota(auth.supabase, auth.userId);
   if (limited) return limited;
 
-  const client = new OpenAI({ apiKey });
+  const client = new Anthropic({ apiKey });
   try {
-    const response = await client.chat.completions.create({
-      model: "gpt-5-mini",
-      max_completion_tokens: 2000,
-      // The dish is already chosen and validated at the card stage, so expansion
-      // is elaboration, not a coherence decision — "minimal" reasoning keeps it
-      // fast. (Selection quality lives in the card phase, which runs "low".)
-      reasoning_effort: "minimal",
-      messages: buildExpandMessages(input, card),
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "recipe_detail", strict: true, schema: EXPAND_SCHEMA },
-      },
-    });
-    const text = response.choices[0]?.message?.content ?? "";
-    const detail = JSON.parse(text) as {
+    // The dish is already chosen and validated at the card stage, so expansion
+    // is elaboration, not a coherence decision — the lowest effort keeps it
+    // fast. (Selection quality lives in the card phase.)
+    const { data: detail, inputTokens, outputTokens } = await generateJson<{
       ingredients: { name: string; amount: string; required: boolean; matchKey: string | null }[];
       steps: string[];
-    };
+    }>(client, {
+      ...asPrompt(buildExpandMessages(input, card)),
+      model: EXPAND_MODEL,
+      schema: EXPAND_SCHEMA,
+      maxTokens: 8000,
+      effort: "low",
+    });
 
     const servings = input.servings ?? 2;
     // Drop keys the model invented; the client then falls back to name matching.
@@ -1096,8 +1071,8 @@ async function handleExpand(
       title: recipe.title,
       ingredients: ingredients.length,
       steps: detail.steps.length,
-      promptTokens: response.usage?.prompt_tokens,
-      completionTokens: response.usage?.completion_tokens,
+      promptTokens: inputTokens,
+      completionTokens: outputTokens,
     });
     return Response.json({ source: "ai", recipe });
   } catch (error) {
@@ -1122,7 +1097,7 @@ const EXPAND_SYSTEM_PROMPT = [
 function buildExpandMessages(
   input: GenerateRecipesRequest,
   card: NonNullable<GenerateRecipesRequest["expandCard"]>,
-): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+): PromptParts {
   const lang = languageName(input.language);
   const servings = input.servings ?? 2;
   const inventory = input.inventory ?? [];
@@ -1142,10 +1117,7 @@ function buildExpandMessages(
     "Return ONLY ingredients and steps for THIS dish.",
   ].join("\n");
 
-  return [
-    { role: "system", content: EXPAND_SYSTEM_PROMPT },
-    { role: "user", content: user },
-  ];
+  return { system: EXPAND_SYSTEM_PROMPT, user };
 }
 
 // A full pantry (~200 lots) serializes to ~50k chars; anything far past that is
