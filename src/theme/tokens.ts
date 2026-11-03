@@ -14,6 +14,8 @@ export const colors = {
   accentSoft: "#FBE7B4",
   // Secondary text on accent (gold) surfaces.
   onAccentMuted: "#5C4A1E",
+  // Deeper gold for the logo's "r" on light surfaces, where #F2C14E is too faint.
+  accentDeep: "#B8861A",
   text: "#1F1F1F",
   // Green-gray tuned for 4.5:1+ contrast on cream surfaces at small sizes.
   muted: "#55655A",
@@ -46,6 +48,7 @@ export const fonts = {
   display: "Fraunces",
   displaySemiBold: "FrauncesSemiBold",
   displayItalic: "FrauncesItalic",
+  logo: "PlusJakartaSansExtraBold",
   body: "NunitoSans",
   bodyMedium: "NunitoSansMedium",
   bodySemiBold: "NunitoSansSemiBold",

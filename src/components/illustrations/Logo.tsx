@@ -10,38 +10,62 @@ type Props = {
   variant?: "primary" | "inverse" | "onAccent";
 };
 
+const inkByVariant = {
+  primary: { word: colors.primary, r: colors.accentDeep },
+  inverse: { word: colors.surface, r: colors.accent },
+  onAccent: { word: colors.primary, r: colors.primary },
+} as const;
+
 /**
- * Brand mark: "leftovr" wordmark in Fraunces SemiBold — "leftov" in the brand
- * color, trailing "r" in gold rotated 9° (the intentional "crooked r"), same
- * size as the other letters. Colors come from theme tokens so a colorscheme
- * change carries the logo with it. (Source: docs/Q _ Fridge magnet export.)
+ * Brand mark (logo direction 08, "Stacked badge"): "leftovr" in Plus Jakarta
+ * Sans ExtraBold, trailing "r" in gold rotated 9° (the intentional "crooked
+ * r"). The stacked version is the app icon (assets/images/icon.png). Colors
+ * come from theme tokens so a colorscheme change carries the logo with it.
  */
 export function Logo({ size = 48, variant = "primary" }: Props) {
-  const head = variant === "inverse" ? colors.surface : colors.primary;
+  const ink = inkByVariant[variant];
   return (
-    <View style={styles.row}>
-      <Text
-        style={[styles.word, { fontSize: size, color: head }]}
-        allowFontScaling={false}
-        accessibilityRole="image"
-        accessibilityLabel="leftovr"
-      >
+    <View style={styles.row} accessibilityRole="image" accessibilityLabel="leftovr">
+      <Word fontSize={size} color={ink.word}>
         leftov
-      </Text>
-      <Text
-        allowFontScaling={false}
-        style={[
-          styles.word,
-          {
-            fontSize: size,
-            color: variant === "onAccent" ? colors.primary : colors.accent,
-            transform: [{ rotate: "9deg" }, { translateY: size * 0.03 }],
-          },
-        ]}
-      >
-        r
-      </Text>
+      </Word>
+      <CrookedR fontSize={size} color={ink.r} />
     </View>
+  );
+}
+
+type GlyphProps = { fontSize: number; color: string };
+
+function Word({ fontSize, color, children }: GlyphProps & { children: string }) {
+  return (
+    <Text
+      allowFontScaling={false}
+      style={[
+        styles.word,
+        { fontSize, color, letterSpacing: fontSize * -0.04 },
+      ]}
+    >
+      {children}
+    </Text>
+  );
+}
+
+function CrookedR({ fontSize, color }: GlyphProps) {
+  return (
+    <Text
+      allowFontScaling={false}
+      style={[
+        styles.word,
+        {
+          fontSize,
+          color,
+          marginLeft: fontSize * 0.07,
+          transform: [{ rotate: "9deg" }, { translateY: fontSize * 0.03 }],
+        },
+      ]}
+    >
+      r
+    </Text>
   );
 }
 
@@ -51,8 +75,7 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
   },
   word: {
-    fontFamily: fonts.displaySemiBold,
-    letterSpacing: -0.5,
+    fontFamily: fonts.logo,
     includeFontPadding: false,
   },
 });
