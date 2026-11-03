@@ -253,6 +253,15 @@ export default function RecipeDetailRoute() {
     isPantryStaple(ing.name) ||
     liveFridgeNames.has(ingredientKey(ing));
   const fridgeCount = ingredients.filter(isOwned).length;
+  // How much of an ingredient the kitchen holds, e.g. "500 g" or
+  // "2 pcs + 300 g" (groups in different units are never summed).
+  const haveLabel = (ing: IngredientItem) => {
+    const matches = inventoryGroups.filter((group) => group.normalizedName === ingredientKey(ing));
+    if (matches.length === 0) return null;
+    return matches
+      .map((group) => (group.partialState === "full" ? group.amountLabel : `${group.amountLabel} (${group.partialLabel.toLowerCase()})`))
+      .join(" + ");
+  };
 
   function handleCookPress() {
     // Pre-tick every ingredient currently in the fridge (live by name),
@@ -567,17 +576,25 @@ export default function RecipeDetailRoute() {
                       ? t("recipes.detail.niceToHave")
                       : ing.amount;
                 const metaColor = isUrgent || missingRequired ? colors.red : colors.muted;
+                const have = haveLabel(ing);
                 return (
                   <View key={i} style={[styles.fridgeRow, i > 0 && styles.fridgeRowDivider]}>
                     <View style={styles.fridgeRowLeft}>
                       <View style={[styles.dot, { backgroundColor: dotColor }]} />
-                      <Text
-                        variant="body"
-                        color={missingRequired ? colors.red : colors.text}
-                        style={styles.ingredientName}
-                      >
-                        {ing.name}
-                      </Text>
+                      <View style={styles.ingredientText}>
+                        <Text
+                          variant="body"
+                          color={missingRequired ? colors.red : colors.text}
+                          style={styles.ingredientName}
+                        >
+                          {ing.name}
+                        </Text>
+                        {have ? (
+                          <Text variant="small" muted>
+                            {t("recipes.detail.have", { amount: have })}
+                          </Text>
+                        ) : null}
+                      </View>
                     </View>
                     <Text variant="small" color={metaColor} style={styles.fridgeMeta}>
                       {meta}
@@ -1022,6 +1039,10 @@ const styles = StyleSheet.create({
     width: 9,
     height: 9,
     borderRadius: 4.5,
+  },
+  ingredientText: {
+    flex: 1,
+    minWidth: 0,
   },
   ingredientName: {
     fontWeight: "600",

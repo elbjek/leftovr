@@ -713,6 +713,7 @@ export const sr = {
       saveCta: "Sacuvaj recept",
       savedCta: "Sacuvano ★",
       bestToday: "najbolje danas",
+      have: "Imaš {{amount}}",
       servings: "{{count}} porcija",
     },
     cooked: {

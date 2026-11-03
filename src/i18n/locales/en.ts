@@ -704,6 +704,7 @@ export const en = {
       saveCta: "Save recipe",
       savedCta: "Saved ★",
       bestToday: "best today",
+      have: "You have {{amount}}",
       servings: "{{count}} servings",
     },
     cooked: {

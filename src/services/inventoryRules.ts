@@ -73,6 +73,8 @@ export type InventoryGroup = {
   partialLabel: string;
   lotCount: number;
   lots: InventoryLot[];
+  /** How much there is, formatted ("500 g", "3 pcs") — the amount part of `meta`. */
+  amountLabel: string;
   meta: string;
 };
 
@@ -370,6 +372,7 @@ export function groupInventoryLots(
       if (!existing.brandName && lot.brand_name) existing.brandName = lot.brand_name;
       existing.partialState = mergePartialState(existing.partialState, lot.partial_state);
       existing.partialLabel = formatPartialState(existing.partialState);
+      existing.amountLabel = formatGroupAmount(existing, system);
       existing.meta = formatGroupMeta(existing, system);
       return;
     }
@@ -391,9 +394,11 @@ export function groupInventoryLots(
       partialLabel: formatPartialState(lot.partial_state),
       lotCount: 1,
       lots: [lot],
+      amountLabel: "",
       meta: "",
     };
 
+    group.amountLabel = formatGroupAmount(group, system);
     group.meta = formatGroupMeta(group, system);
     groups.set(key, group);
   });
@@ -436,15 +441,21 @@ export function toUiCategory(category: InventoryCategory) {
   return category.replace("_", "-");
 }
 
+function formatGroupAmount(
+  group: Pick<InventoryGroup, "quantity" | "unit" | "netAmount" | "netUnit">,
+  system: MeasurementSystem,
+) {
+  const quantity = Number.isInteger(group.quantity) ? group.quantity : Number(group.quantity.toFixed(1));
+  return group.netAmount != null && group.netUnit
+    ? formatAmount(group.netAmount, group.netUnit, system)
+    : `${quantity} ${group.unit}`;
+}
+
 function formatGroupMeta(
   group: Pick<InventoryGroup, "brandName" | "quantity" | "unit" | "lotCount" | "urgencyLabel" | "partialLabel" | "netAmount" | "netUnit">,
   system: MeasurementSystem = "metric",
 ) {
-  const quantity = Number.isInteger(group.quantity) ? group.quantity : Number(group.quantity.toFixed(1));
-  const amount =
-    group.netAmount != null && group.netUnit
-      ? formatAmount(group.netAmount, group.netUnit, system)
-      : `${quantity} ${group.unit}`;
+  const amount = formatGroupAmount(group, system);
   const lotCopy = group.lotCount > 1 ? `, ${i18n.t("fridge.meta.lots", { count: group.lotCount })}` : "";
   const brandCopy = group.brandName ? `${group.brandName} · ` : "";
   return `${brandCopy}${amount}${lotCopy} · ${group.urgencyLabel} · ${group.partialLabel}`;
