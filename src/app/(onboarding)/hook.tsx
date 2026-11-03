@@ -28,6 +28,7 @@ import {
 } from "@/components";
 import { useAuth } from "@/features";
 import { HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
+import { getCurrentProfile } from "@/repositories";
 import { colors, fonts, radii, spacing } from "@/theme";
 
 // Room the floating footer (56pt buttons) takes over each slide's copy.
@@ -77,7 +78,10 @@ export default function HookCarouselRoute() {
     await AsyncStorage.setItem(HAS_SEEN_HOOK_KEY, "true");
     try {
       await provider();
-      router.replace("/");
+      // Not "/": inside this group it resolves to (onboarding)/index, which
+      // would re-ask a returning user the profile questions.
+      const profile = await getCurrentProfile();
+      router.replace(profile.onboarding_completed_at ? "/(tabs)/recipes" : "/(onboarding)");
     } catch {
       setFormError(t("auth.genericError"));
     }

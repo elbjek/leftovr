@@ -148,7 +148,12 @@ export default function OnboardingRoute() {
       contentContainerStyle={styles.screenPad}
     >
       <View style={styles.wrap}>
-        <BackButton onPress={handleBack} style={styles.backButton} />
+        {/* Nothing to go back to on the first step: this screen replaces the
+            tour / sign-in, so hide it but keep its space so the layout holds. */}
+        <BackButton
+          onPress={handleBack}
+          style={[styles.backButton, stepIndex === 0 && !router.canGoBack() && styles.hidden]}
+        />
 
         <View style={styles.progressRow}>
           <View style={styles.progressTrack}>
@@ -311,6 +316,9 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginBottom: 12,
+  },
+  hidden: {
+    opacity: 0,
   },
   progressRow: {
     flexDirection: "row",

@@ -5,7 +5,7 @@ import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Button, ChoiceCard, Logo, Screen, Text } from "@/components";
-import { HAS_PICKED_LANGUAGE_KEY } from "@/features/onboardingGate";
+import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
 import { i18n } from "@/i18n";
 import { colors } from "@/theme";
 
@@ -28,8 +28,11 @@ export default function LanguageRoute() {
   async function handleContinue() {
     await i18n.changeLanguage(selectedLanguage);
     await AsyncStorage.setItem(HAS_PICKED_LANGUAGE_KEY, "true");
-    // Index routes on: hook only if not yet seen, else sign-in / profile onboarding / tabs.
-    router.replace("/");
+    // Route explicitly: inside this group "/" resolves to (onboarding)/index —
+    // the profile questions — skipping the tour and sign-in. Language is only
+    // asked signed out, so it's the tour unless already seen, else sign-in.
+    const seenHook = (await AsyncStorage.getItem(HAS_SEEN_HOOK_KEY)) === "true";
+    router.replace(seenHook ? "/(auth)/sign-in" : "/(onboarding)/hook");
   }
 
   return (
