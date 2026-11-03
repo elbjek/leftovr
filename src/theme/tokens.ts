@@ -12,6 +12,8 @@ export const colors = {
   cardLine: "#E6E4D8",
   accent: "#F2C14E",
   accentSoft: "#FBE7B4",
+  // Secondary text on accent (gold) surfaces.
+  onAccentMuted: "#5C4A1E",
   text: "#1F1F1F",
   // Green-gray tuned for 4.5:1+ contrast on cream surfaces at small sizes.
   muted: "#55655A",

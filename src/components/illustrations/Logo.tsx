@@ -5,8 +5,9 @@ import { colors, fonts } from "../../theme";
 type Props = {
   /** Font size of the wordmark text. */
   size?: number;
-  /** "primary" = green text for light surfaces; "inverse" = cream text for dark/green surfaces. */
-  variant?: "primary" | "inverse";
+  /** "primary" = green text for light surfaces; "inverse" = cream text for dark/green surfaces;
+   * "onAccent" = green with a green "r" for gold surfaces, where a gold "r" would vanish. */
+  variant?: "primary" | "inverse" | "onAccent";
 };
 
 /**
@@ -33,7 +34,7 @@ export function Logo({ size = 48, variant = "primary" }: Props) {
           styles.word,
           {
             fontSize: size,
-            color: colors.accent,
+            color: variant === "onAccent" ? colors.primary : colors.accent,
             transform: [{ rotate: "9deg" }, { translateY: size * 0.03 }],
           },
         ]}
