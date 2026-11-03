@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Animated, Pressable, ScrollView, ScrollViewInstance, StyleSheet, View } from "react-native";
+import { Alert, Animated, Pressable, ScrollView, ScrollViewInstance, Share, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, Card, RecipeGlyph, Text, TextField } from "@/components";
-import { useAuth } from "@/features";
-import { notifyInventoryChanged, useInventory } from "@/hooks";
-import { newClientId } from "@/lib";
-import { addAmounts, canonicalFoodName, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, resolveUrgency } from "@/services";
+import { BottomSheet, Button, Card, CookReward, RecipeGlyph, Text, TextField } from "@/components";
+import { isPremium, useAuth } from "@/features";
+import { deviceTimeZone, notifyInventoryChanged, useInventory } from "@/hooks";
+import { formatMoney, newClientId } from "@/lib";
+import { addAmounts, canonicalFoodName, DAILY_GOAL, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, resolveUrgency } from "@/services";
+import { getDayActivity, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
@@ -218,6 +219,13 @@ export default function RecipeDetailRoute() {
   const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
   const cookIdRef = useRef<string | null>(null);
+  // The after-cook reward: how many things this cook used up, plus the
+  // figures it moved (null when they couldn't be loaded).
+  const [reward, setReward] = useState<{
+    rescued: number;
+    streak: { streak: number; today: number } | null;
+    savedToday: number | null;
+  } | null>(null);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
 
   const showCookCoachMark =
@@ -389,7 +397,25 @@ export default function RecipeDetailRoute() {
       cookIdRef.current = null;
       notifyInventoryChanged();
       setShowCooked(false);
-      router.replace("/(tabs)/fridge");
+      if (usedItems.length === 0) {
+        router.replace("/(tabs)/fridge");
+        return;
+      }
+      // The cook already landed; these only feed the reward, so a failure
+      // just hides that figure.
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const [streakState, day] = await Promise.all([
+        syncStreak(activeHousehold.id, deviceTimeZone()).catch(() => null),
+        isPremium(profile, activeHousehold)
+          ? getDayActivity(activeHousehold.id, startOfToday.toISOString(), new Date(startOfToday.getTime() + 86_400_000).toISOString(), profile?.id).catch(() => null)
+          : null,
+      ]);
+      setReward({
+        rescued: usedItems.length,
+        streak: streakState ? { streak: streakState.streak, today: streakState.today } : null,
+        savedToday: day && day.moneySaved > 0 ? day.moneySaved : null,
+      });
     } catch (error) {
       Alert.alert(
         t("common.error"),
@@ -398,6 +424,31 @@ export default function RecipeDetailRoute() {
       setCooking(false);
     }
   }
+
+  function finishReward() {
+    setReward(null);
+    setCooking(false);
+    router.replace("/(tabs)/fridge");
+  }
+
+  function shareReward() {
+    if (!reward) return;
+    void Share.share({ message: t("recipes.reward.shareMessage", { count: reward.rescued, title }) });
+  }
+
+  const rewardStats = reward
+    ? [
+        ...(reward.streak
+          ? [
+              { value: `${Math.min(reward.streak.today, DAILY_GOAL)}/${DAILY_GOAL}`, label: t("recipes.reward.today") },
+              { value: String(reward.streak.streak), label: t("recipes.reward.streak", { count: reward.streak.streak }) },
+            ]
+          : []),
+        ...(reward.savedToday !== null
+          ? [{ value: formatMoney(reward.savedToday, activeHousehold?.currency_code ?? "USD"), label: t("recipes.reward.savedToday") }]
+          : []),
+      ]
+    : [];
 
   async function handleFavoriteToggle() {
     if (!recipeId) return;
@@ -830,6 +881,17 @@ export default function RecipeDetailRoute() {
           </>
         )}
       </BottomSheet>
+
+      <CookReward
+        visible={reward !== null}
+        eyebrow={t("recipes.reward.eyebrow", { title })}
+        title={t("recipes.reward.title", { count: reward?.rescued ?? 0 })}
+        stats={rewardStats}
+        doneLabel={t("recipes.reward.done")}
+        shareLabel={t("recipes.reward.share")}
+        onDone={finishReward}
+        onShare={shareReward}
+      />
     </View>
   );
 }

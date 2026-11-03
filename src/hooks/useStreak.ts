@@ -11,16 +11,20 @@ function emptyWeek(): StreakState["days"] {
   }));
 }
 
+/** The device's IANA time zone — the day a streak counts in. */
+export function deviceTimeZone(): string {
+  return getCalendars()[0]?.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
 /** The signed-in member's streak, freezes and daily-goal progress in this kitchen. */
 export function useStreak(householdId: string | undefined) {
   const [state, setState] = useState<StreakState>(() => ({ streak: 0, freezes: 0, today: 0, days: emptyWeek() }));
 
   const load = useCallback(async () => {
     if (!householdId) return;
-    // The device's day, so "today" matches the week strip the user sees.
-    const timeZone = getCalendars()[0]?.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
     try {
-      setState(await syncStreak(householdId, timeZone));
+      // The device's day, so "today" matches the week strip the user sees.
+      setState(await syncStreak(householdId, deviceTimeZone()));
     } catch {
       // Keep the last numbers; the next focus refresh retries.
     }
