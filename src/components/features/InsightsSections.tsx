@@ -7,7 +7,7 @@ import { Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // The Insights tab's sections, TinyMeals-style: each answers one question
-// about your kitchen and only renders when there's data behind it.
+// about your kitchen; with no data yet, the screen shows an EmptyNote instead.
 
 // A food group's icon: the category's tint and a food that stands for it.
 const CATEGORY_GLYPH: Record<string, string> = {
@@ -44,6 +44,24 @@ export function SectionTitle({ title, aside, caption }: { title: string; aside?:
           {caption}
         </Text>
       ) : null}
+    </View>
+  );
+}
+
+/** A section's line before there's data, or a green "all good" one. */
+export function EmptyNote({ text, good }: { text: string; good?: boolean }) {
+  return (
+    <View style={[styles.card, styles.note, good && styles.noteGood]}>
+      {good ? (
+        <View style={styles.noteCheck}>
+          <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+            <Path d="M5.5 12.5l4.2 4.2 8.8-9.4" stroke={colors.primary} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        </View>
+      ) : null}
+      <Text variant="small" color={good ? colors.primary : colors.muted} style={[styles.noteText, good && styles.bold]}>
+        {text}
+      </Text>
     </View>
   );
 }
@@ -257,6 +275,26 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     padding: spacing.lg,
     gap: spacing.md,
+  },
+  note: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  noteGood: {
+    backgroundColor: colors.sageTint,
+    borderColor: colors.sageTint,
+  },
+  noteCheck: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.paper,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  noteText: {
+    flex: 1,
   },
   listCard: {
     paddingVertical: spacing.xs,

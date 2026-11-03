@@ -7,8 +7,10 @@ import Svg, { Path } from "react-native-svg";
 import {
   Button,
   DaySheet,
+  EmptyNote,
   FoodGroups,
   GoingOffList,
+  Logo,
   PeriodSummary,
   PremiumSheet,
   Screen,
@@ -29,8 +31,10 @@ const PERIODS: Period[] = ["week", "month", "year"];
 // Insights tells a story about your kitchen, TinyMeals-style: what the period
 // saved, what got used vs tossed, which food groups you finish, what keeps
 // going off, your go-to dinners and your wins — always the whole kitchen.
-// The period is picked from the title ("This month ▾"). Premium only: free
-// accounts see their summary dimmed under an Unlock card.
+// Same top as the home (logo + pill, here the period "This month ▾"), then a
+// headline. Every section always shows, with a friendly line when it has no
+// data yet. Premium only: free accounts see their summary dimmed under an
+// Unlock card.
 export default function InsightsRoute() {
   const { t } = useTranslation();
   const { profile, activeHousehold, refresh } = useAuth();
@@ -66,14 +70,15 @@ export default function InsightsRoute() {
     }
   }, [refreshPeriod, refreshWins, refreshStreak, refresh]);
 
-  // Title row: "Insights" and a "This month ▾" pill; Week / Month / Year open
-  // right under it.
-  const titleRow = (label: string) => (
+  // Home-style header: logo on the left, the period pill on the right;
+  // Week / Month / Year open right under it.
+  const header = (label: string) => (
     <View style={styles.top}>
-      <View style={styles.titleRow}>
-        <Text variant="h1" accessibilityRole="header" style={styles.title}>
-          {t("insights.title")}
-        </Text>
+      <View style={styles.header}>
+        <View style={styles.brand}>
+          <Logo size={26} />
+          {isPremium ? <View style={styles.premiumDot} /> : null}
+        </View>
         {isPremium ? (
           <Pressable
             accessibilityRole="button"
@@ -81,13 +86,14 @@ export default function InsightsRoute() {
             accessibilityLabel={t("insights.period.change", { period: label })}
             onPress={() => setMenuOpen((open) => !open)}
             hitSlop={4}
-            style={({ pressed }) => [styles.pickerButton, menuOpen && styles.pickerOpen, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.pill, pressed && styles.pressed]}
           >
-            <Text variant="label" color={menuOpen ? colors.surface : colors.primary} style={styles.bold}>
+            <View style={styles.pillDot} />
+            <Text variant="small" style={styles.bold}>
               {label}
             </Text>
-            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" style={menuOpen ? styles.chevronOpen : undefined}>
-              <Path d="M6 9l6 6 6-6" stroke={menuOpen ? colors.surface : colors.primary} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+            <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" style={menuOpen ? styles.chevronOpen : undefined}>
+              <Path d="M6 9l6 6 6-6" stroke={colors.muted} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           </Pressable>
         ) : null}
@@ -148,7 +154,7 @@ export default function InsightsRoute() {
   if (!data) {
     return (
       <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-        {titleRow(t(`insights.period.this.${period}`))}
+        {header(t(`insights.period.this.${period}`))}
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} />
         </View>
@@ -157,7 +163,7 @@ export default function InsightsRoute() {
     );
   }
 
-  const { window: span, summary, prevSummary, kitchen, goingOff } = data;
+  const { window: span, summary, prevSummary, kitchen, prevKitchen, goingOff } = data;
   const monthName = span.start.toLocaleDateString(undefined, { month: "long" });
   const categoryLabel = (category: string) => t(`scan.categories.${category}`);
 
@@ -178,6 +184,24 @@ export default function InsightsRoute() {
           : t("insights.summary.same", { prev: prevName })
       : t("insights.summary.noPrice");
   const isEmpty = kitchen.used === 0 && summary.cookedEvents === 0;
+
+  // TinyMeals-style headline and one line on how it moved and where the waste is.
+  const headline =
+    kitchen.used > 0 ? t(`insights.story.headline.${period}`, { count: kitchen.used }) : t(`insights.story.empty.${period}`);
+  const usedDiff = kitchen.used - prevKitchen.used;
+  const storyLine = [
+    kitchen.used > 0 || prevKitchen.used > 0
+      ? usedDiff > 0
+        ? t("insights.story.more", { count: usedDiff, prev: prevName })
+        : usedDiff < 0
+          ? t("insights.story.fewer", { count: -usedDiff, prev: prevName })
+          : t("insights.story.same", { prev: prevName })
+      : t("insights.story.start"),
+    kitchen.strongest ? t("insights.story.strongest", { category: categoryLabel(kitchen.strongest.category) }) : null,
+    kitchen.weakest ? t("insights.story.weakest", { category: categoryLabel(kitchen.weakest.category) }) : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   // Chart: days of the week, or 7-day runs of the month. A running period's
   // `until` is when it loaded, so the bucket holding it is the current one.
@@ -201,7 +225,7 @@ export default function InsightsRoute() {
         ? span.buckets[bestIndex].start.toLocaleDateString(undefined, { month: "long" })
         : t("insights.chart.weekOf", { date: span.buckets[bestIndex].start.toLocaleDateString(undefined, { day: "numeric", month: "short" }) })
     : null;
-  const hasChart = kitchen.used + kitchen.tossed > 0;
+  const hasFinished = kitchen.used + kitchen.tossed > 0;
 
   const groupRows = kitchen.groups.map((group) => ({
     category: group.category,
@@ -242,9 +266,7 @@ export default function InsightsRoute() {
   if (!isPremium) {
     return (
       <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-        <Text variant="h1" accessibilityRole="header">
-          {t("insights.title")}
-        </Text>
+        {header(t(`insights.period.this.${period}`))}
         <View style={styles.preview} pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
           {summaryCard}
         </View>
@@ -262,45 +284,55 @@ export default function InsightsRoute() {
 
   return (
     <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-      {titleRow(t(`insights.period.this.${period}`))}
+      {header(t(`insights.period.this.${period}`))}
+
+      <View style={styles.story}>
+        <Text variant="h2" accessibilityRole="header" style={styles.headline}>
+          {headline}
+        </Text>
+        <Text variant="body" muted>
+          {storyLine}
+        </Text>
+      </View>
 
       {summaryCard}
 
-      <>
-          {hasChart ? (
-            <View style={styles.section}>
-              <SectionTitle title={t(`insights.chart.title.${period}`)} />
-              <UsedTossedChart
-                title={t("insights.chart.usedVsTossed")}
-                aside={best ? t("insights.chart.best", { label: best }) : undefined}
-                bars={bars}
-                legend={{ used: t("insights.stats.used"), tossed: t("insights.stats.tossed") }}
-                label={t("insights.chart.spoken", { used: kitchen.used, tossed: kitchen.tossed })}
-              />
-            </View>
-          ) : null}
+      <View style={styles.section}>
+        <SectionTitle title={t(`insights.chart.title.${period}`)} />
+        <UsedTossedChart
+          title={t("insights.chart.usedVsTossed")}
+          aside={best ? t("insights.chart.best", { label: best }) : undefined}
+          bars={bars}
+          legend={{
+            used: t("insights.chart.legendUsed", { count: kitchen.used }),
+            tossed: t("insights.chart.legendTossed", { count: kitchen.tossed }),
+          }}
+          label={t("insights.chart.spoken", { used: kitchen.used, tossed: kitchen.tossed })}
+        />
+      </View>
 
-          {groupRows.length > 0 ? (
-            <View style={styles.section}>
-              <SectionTitle title={t("insights.groups.title")} aside={t("insights.groups.aside")} />
-              <FoodGroups rows={groupRows} tip={kitchen.weakest ? t(`insights.tips.${kitchen.weakest.category}`) : undefined} />
-            </View>
-          ) : null}
+      <View style={styles.section}>
+        <SectionTitle title={t("insights.groups.title")} aside={groupRows.length > 0 ? t("insights.groups.aside") : undefined} />
+        {groupRows.length > 0 ? (
+          <FoodGroups rows={groupRows} tip={kitchen.weakest ? t(`insights.tips.${kitchen.weakest.category}`) : undefined} />
+        ) : (
+          <EmptyNote text={t("insights.groups.empty")} />
+        )}
+      </View>
 
-          {goingOffRows.length > 0 ? (
-            <View style={styles.section}>
-              <SectionTitle title={t("insights.goingOff.title")} caption={t("insights.goingOff.caption")} />
-              <GoingOffList rows={goingOffRows} />
-            </View>
-          ) : null}
-        </>
+      <View style={styles.section}>
+        <SectionTitle title={t("insights.goingOff.title")} caption={goingOffRows.length > 0 ? t("insights.goingOff.caption") : undefined} />
+        {goingOffRows.length > 0 ? (
+          <GoingOffList rows={goingOffRows} />
+        ) : (
+          <EmptyNote text={t(hasFinished ? "insights.goingOff.none" : "insights.goingOff.empty")} good={hasFinished} />
+        )}
+      </View>
 
-      {dinners.length > 0 ? (
-        <View style={styles.section}>
-          <SectionTitle title={t("insights.dinners.title")} />
-          <TopDinners dinners={dinners} />
-        </View>
-      ) : null}
+      <View style={styles.section}>
+        <SectionTitle title={t("insights.dinners.title")} />
+        {dinners.length > 0 ? <TopDinners dinners={dinners} /> : <EmptyNote text={t("insights.dinners.empty")} />}
+      </View>
 
       <WinsList
         eyebrow={t("insights.wins.eyebrow")}
@@ -332,27 +364,47 @@ const styles = StyleSheet.create({
   top: {
     gap: spacing.sm,
   },
-  titleRow: {
+  // Same header as the home (recipes.tsx): logo left, pill right.
+  header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     gap: spacing.md,
   },
-  title: {
-    flex: 1,
-  },
-  pickerButton: {
+  brand: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    minHeight: 44,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.paper,
+    gap: spacing.sm,
   },
-  pickerOpen: {
+  premiumDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: colors.accent,
+  },
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    minHeight: 36,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+  },
+  pillDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: colors.primary,
+  },
+  story: {
+    gap: spacing.xs,
+    marginTop: -spacing.md,
+  },
+  headline: {
+    fontFamily: fonts.bodyExtraBold,
   },
   chevronOpen: {
     transform: [{ rotate: "180deg" }],
