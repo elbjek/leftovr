@@ -85,7 +85,7 @@ export function AuthLanding({
   );
 }
 
-function AuthButton({
+export function AuthButton({
   label,
   icon,
   backgroundColor,
@@ -118,7 +118,7 @@ function AuthButton({
   );
 }
 
-function AppleIcon() {
+export function AppleIcon() {
   return (
     <Svg width={18} height={20} viewBox="0 0 18 20" fill={colors.white}>
       <Path d="M14.6 10.6c0-2 1.6-3 1.7-3-0.9-1.4-2.4-1.6-2.9-1.6-1.2-0.1-2.4 0.7-3 0.7-0.6 0-1.6-0.7-2.6-0.7-1.3 0-2.5 0.8-3.2 2-1.4 2.4-0.4 5.9 1 7.8 0.7 0.9 1.5 2 2.5 1.9 1 0 1.4-0.6 2.6-0.6 1.2 0 1.5 0.6 2.6 0.6 1.1 0 1.8-0.9 2.4-1.9 0.8-1.1 1.1-2.1 1.1-2.2-0.1-0.1-2.2-0.8-2.2-3zm-2-5.6c0.5-0.6 0.9-1.5 0.8-2.4-0.8 0-1.7 0.5-2.2 1.2-0.5 0.5-0.9 1.5-0.8 2.3 0.9 0.1 1.7-0.4 2.2-1.1z" />
@@ -126,7 +126,7 @@ function AppleIcon() {
   );
 }
 
-function GoogleIcon() {
+export function GoogleIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 18 18">
       <Path fill="#4285F4" d="M17.6 9.2c0-.6-.1-1.2-.2-1.8H9v3.4h4.8c-.2 1.1-.8 2.1-1.8 2.7v2.3h2.9c1.7-1.6 2.7-3.9 2.7-6.6z" />

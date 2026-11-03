@@ -16,15 +16,29 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { useTranslation } from "react-i18next";
 
-import { Button, ShowcaseSlide, ShowcaseStage, showcaseThemes, Text } from "@/components";
+import {
+  AppleIcon,
+  AuthButton,
+  Button,
+  GoogleIcon,
+  ShowcaseSlide,
+  ShowcaseStage,
+  showcaseThemes,
+  Text,
+} from "@/components";
+import { useAuth } from "@/features";
 import { HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
 import { colors, fonts, radii, spacing } from "@/theme";
 
 // Room the floating footer (56pt buttons) takes over each slide's copy.
 const FOOTER_SPACE = 56 + spacing.huge + spacing.xxl;
+// The last slide's sign-in block: two 56pt buttons, the email link and an error line.
+const AUTH_SPACE = 56 * 2 + 12 + 40 + 20 + spacing.xxl;
 
 export default function HookCarouselRoute() {
   const { t } = useTranslation();
+  const { error, signInWithApple, signInWithGoogle } = useAuth();
+  const [formError, setFormError] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const slideWidth = Platform.OS === "web" ? Math.min(width, 430) : width;
@@ -57,16 +71,22 @@ export default function HookCarouselRoute() {
     setCurrent(next);
   }
 
-  async function finish() {
+  // Sign-in happens on the tour's last slide; the profile questions follow.
+  async function signIn(provider: () => Promise<void>) {
+    setFormError(null);
     await AsyncStorage.setItem(HAS_SEEN_HOOK_KEY, "true");
-    router.replace("/(auth)/sign-up");
+    try {
+      await provider();
+      router.replace("/");
+    } catch {
+      setFormError(t("auth.genericError"));
+    }
   }
 
-  const nextLabel = last
-    ? t("onboarding.hook.cta")
-    : current === 0
-      ? t("onboarding.hook.start")
-      : t("onboarding.hook.next");
+  async function continueWithEmail() {
+    await AsyncStorage.setItem(HAS_SEEN_HOOK_KEY, "true");
+    router.push({ pathname: "/(auth)/otp", params: { mode: "sign-up" } });
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: theme.bg }]}>
@@ -95,7 +115,7 @@ export default function HookCarouselRoute() {
                   height: listHeight,
                   backgroundColor: slideTheme.bg,
                   paddingTop: insets.top + 56,
-                  paddingBottom: insets.bottom + FOOTER_SPACE,
+                  paddingBottom: insets.bottom + (index === lastIndex ? AUTH_SPACE : FOOTER_SPACE),
                 },
               ]}
             >
@@ -178,35 +198,64 @@ export default function HookCarouselRoute() {
         </Pressable>
       </View>
 
-      <View style={[styles.footer, { bottom: insets.bottom + spacing.xxl }]}>
-        {current > 0 ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("common.back")}
-            onPress={() => goTo(current - 1)}
-            style={[
-              styles.back,
-              {
-                backgroundColor: theme.dark
-                  ? colors.inverseHairline
-                  : onGold
-                    ? "rgba(31, 31, 31, 0.1)"
-                    : colors.primary50,
-              },
-            ]}
-          >
-            <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
-              <Path d="M9 3L5 7l4 4" stroke={theme.ink} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
+      {last ? (
+        <View style={[styles.auth, { bottom: insets.bottom + spacing.lg }]}>
+          <AuthButton
+            label={t("auth.apple")}
+            backgroundColor={colors.black}
+            color={colors.white}
+            icon={<AppleIcon />}
+            onPress={() => void signIn(signInWithApple)}
+          />
+          <AuthButton
+            label={t("auth.google")}
+            backgroundColor={colors.white}
+            color={colors.text}
+            icon={<GoogleIcon />}
+            onPress={() => void signIn(signInWithGoogle)}
+          />
+          <Pressable accessibilityRole="button" onPress={() => void continueWithEmail()} style={styles.emailLink}>
+            <Text variant="label" style={styles.skipLabel}>
+              {t("auth.emailContinue")}
+            </Text>
           </Pressable>
-        ) : null}
-        <Button
-          title={nextLabel}
-          variant={theme.dark ? "accent" : "primary"}
-          onPress={last ? () => void finish() : () => goTo(current + 1)}
-          style={styles.next}
-        />
-      </View>
+          {formError || error ? (
+            <Text variant="small" color={colors.redInk} center>
+              {formError ?? error}
+            </Text>
+          ) : null}
+        </View>
+      ) : (
+        <View style={[styles.footer, { bottom: insets.bottom + spacing.xxl }]}>
+          {current > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("common.back")}
+              onPress={() => goTo(current - 1)}
+              style={[
+                styles.back,
+                {
+                  backgroundColor: theme.dark
+                    ? colors.inverseHairline
+                    : onGold
+                      ? "rgba(31, 31, 31, 0.1)"
+                      : colors.primary50,
+                },
+              ]}
+            >
+              <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+                <Path d="M9 3L5 7l4 4" stroke={theme.ink} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            </Pressable>
+          ) : null}
+          <Button
+            title={current === 0 ? t("onboarding.hook.start") : t("onboarding.hook.next")}
+            variant={theme.dark ? "accent" : "primary"}
+            onPress={() => goTo(current + 1)}
+            style={styles.next}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -306,5 +355,15 @@ const styles = StyleSheet.create({
   },
   next: {
     flex: 1,
+  },
+  auth: {
+    position: "absolute",
+    left: spacing.xxxl,
+    right: spacing.xxxl,
+    gap: 12,
+  },
+  emailLink: {
+    alignItems: "center",
+    paddingVertical: 10,
   },
 });

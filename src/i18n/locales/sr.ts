@@ -79,7 +79,6 @@ export const sr = {
       ],
     },
     hook: {
-      cta: "Počni",
       start: "Pokaži mi",
       next: "Dalje",
       skip: "Preskoči",

@@ -79,7 +79,6 @@ export const en = {
       ],
     },
     hook: {
-      cta: "Get started",
       start: "Show me how",
       next: "Next",
       skip: "Skip",
