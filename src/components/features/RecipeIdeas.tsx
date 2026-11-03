@@ -106,6 +106,7 @@ export function TryNextCard({
 export function RecipeListCard({
   badge,
   badgeAccent,
+  highlight,
   title,
   meta,
   favorite,
@@ -116,6 +117,8 @@ export function RecipeListCard({
   badge: string;
   /** Yellow badge (something to use soon) instead of the muted one. */
   badgeAccent?: boolean;
+  /** Gold card for one of tonight's generated ideas. */
+  highlight?: boolean;
   title: string;
   meta: string;
   favorite?: boolean;
@@ -124,7 +127,7 @@ export function RecipeListCard({
   onPress: () => void;
 }) {
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.listCard, pressed && styles.pressed]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.listCard, highlight && styles.listCardHighlight, pressed && styles.pressed]}>
       <View style={styles.tileLarge}>
         <RecipeGlyph size={36} />
       </View>
@@ -431,6 +434,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     padding: spacing.md,
+  },
+  listCardHighlight: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.accent,
+    borderWidth: 1.5,
   },
   results: {
     paddingTop: spacing.lg,

@@ -632,6 +632,7 @@ export const sr = {
       count_few: "{{count}} recepta",
       count_other: "{{count}} recepata",
       uses: "Troši: {{food}}",
+      tonight: "Ideja za večeras",
       saved: "Sačuvano",
       cooked: "Kuvano {{count}}×",
       quick: "Brzo",

@@ -69,6 +69,7 @@ export default function RecipesRoute() {
     refresh: refreshRecipes,
     generateSession,
     toggleFavorite,
+    currentSessionId,
     cookedSummaries,
     lastCookedAt,
     quotaExceeded,
@@ -179,6 +180,7 @@ export default function RecipesRoute() {
   // today's last batch read back from the saved recipes (no new AI call).
   const restoredTonight = hasSuggestions ? [] : latestGeneratedBatch(savedRecipes, profile?.id);
   const hasTonight = hasSuggestions || restoredTonight.length > 0;
+  const tonightSessionId = hasSuggestions ? currentSessionId : restoredTonight[0]?.session_id ?? null;
   const fridgeEmpty = inventory.length === 0;
   // Soonest to go off first — the same foods Kitchen's Eat first shelf lists.
   const urgentGroups = inventoryGroups
@@ -285,9 +287,12 @@ export default function RecipesRoute() {
     : undefined;
 
   // The list under it, TinyMeals' "More for you": every recipe you have, with chips.
+  // Tonight's other ideas lead it, highlighted; the one in the card above stays out.
+  const isTonight = (recipe: RecipeRow) => Boolean(tonightSessionId) && recipe.session_id === tonightSessionId;
   const seen = new Set<string>();
   const listRecipes = [...savedRecipes, ...cookedRecipes].filter((recipe) => {
     if (seen.has(recipe.id) || recipe.id === dish?.row?.id) return false;
+    if (isTonight(recipe) && recipe.title === dish?.title) return false;
     seen.add(recipe.id);
     return true;
   });
@@ -310,11 +315,14 @@ export default function RecipesRoute() {
     .map((recipe) => ({ recipe, soon: soonOf(recipe.ingredients), coverage: fridgeCoverage(recipe.ingredients, inventoryNames) }))
     .sort(
       (a, b) =>
+        Number(isTonight(b.recipe)) - Number(isTonight(a.recipe)) ||
         b.soon.length - a.soon.length ||
         (b.coverage.total ? b.coverage.have / b.coverage.total : 0) - (a.coverage.total ? a.coverage.have / a.coverage.total : 0),
     );
   const badgeFor = ({ recipe, soon }: (typeof filteredList)[number]) =>
-    soon.length > 0
+    isTonight(recipe)
+      ? { label: t("recipes.list.tonight"), accent: true }
+      : soon.length > 0
       ? { label: t("recipes.list.uses", { food: soon[0].name }), accent: true }
       : recipe.is_favorite
         ? { label: t("recipes.list.saved"), accent: false }
@@ -564,6 +572,7 @@ export default function RecipesRoute() {
                     key={entry.recipe.id}
                     badge={badge.label}
                     badgeAccent={badge.accent}
+                    highlight={isTonight(entry.recipe)}
                     title={entry.recipe.title}
                     meta={[
                       formatTimeLabel(entry.recipe.time_minutes ?? 20),

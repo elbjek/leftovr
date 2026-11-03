@@ -619,6 +619,7 @@ export const en = {
       count_one: "{{count}} recipe",
       count_other: "{{count}} recipes",
       uses: "Uses: {{food}}",
+      tonight: "Tonight's idea",
       saved: "Saved",
       cooked: "Cooked {{count}}×",
       quick: "Quick",
