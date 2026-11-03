@@ -5,7 +5,7 @@ import { recapWindow } from "./insightsService";
 // food groups you finish, and which foods keep going off. Pure — the
 // repository fetches, this decides.
 
-export type Period = "week" | "month";
+export type Period = "week" | "month" | "year";
 export type Outcome = "used" | "tossed";
 
 export type PeriodWindow = {
@@ -17,7 +17,7 @@ export type PeriodWindow = {
   prevUntil: Date;
   /** The month view is showing a finished month (first 3 days of the next). */
   complete: boolean;
-  /** Chart buckets: days of the week, or 7-day runs of the month. */
+  /** Chart buckets: days of the week, 7-day runs of the month, or months of the year. */
   buckets: { start: Date; end: Date }[];
 };
 
@@ -35,6 +35,19 @@ export function periodWindow(period: Period, now: Date = new Date()): PeriodWind
       prevUntil: new Date(prevStart.getTime() + (now.getTime() - start.getTime())),
       complete: false,
       buckets: Array.from({ length: 7 }, (_, i) => ({ start: addDays(start, i), end: addDays(start, i + 1) })),
+    };
+  }
+  if (period === "year") {
+    const start = new Date(now.getFullYear(), 0, 1);
+    const prevStart = new Date(now.getFullYear() - 1, 0, 1);
+    return {
+      start,
+      until: now,
+      prevStart,
+      // Same stretch of last year, never past its end.
+      prevUntil: new Date(Math.min(prevStart.getTime() + (now.getTime() - start.getTime()), start.getTime())),
+      complete: false,
+      buckets: Array.from({ length: 12 }, (_, i) => ({ start: new Date(now.getFullYear(), i, 1), end: new Date(now.getFullYear(), i + 1, 1) })),
     };
   }
   const recap = recapWindow(now);

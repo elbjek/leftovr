@@ -24,6 +24,16 @@ describe("periodWindow", () => {
   });
 });
 
+describe("periodWindow year", () => {
+  it("runs from 1 January in month buckets, against the same stretch of last year", () => {
+    const now = new Date(2026, 10, 3, 12, 0);
+    const w = periodWindow("year", now);
+    expect([w.start.getFullYear(), w.start.getMonth(), w.prevStart.getFullYear(), w.buckets.length]).toEqual([2026, 0, 2025, 12]);
+    expect([w.prevUntil.getMonth(), w.prevUntil.getDate()]).toEqual([10, 3]);
+    expect(w.buckets[11].end.getFullYear()).toBe(2027);
+  });
+});
+
 describe("buildKitchenInsights", () => {
   const w = periodWindow("week", new Date(2026, 10, 8, 20, 0));
   const at = (day: number) => new Date(2026, 10, day, 12).toISOString();

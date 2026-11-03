@@ -9,6 +9,7 @@ export * from "./EmptyFridge";
 export * from "./FeatureShowcase";
 export * from "./HouseholdSection";
 export * from "./InsightsSections";
+export * from "./PeriodSummary";
 export * from "./FoodCard";
 export * from "./FoodListCard";
 export * from "./KitchenPulse";

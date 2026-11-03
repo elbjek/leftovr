@@ -48,27 +48,6 @@ export function SectionTitle({ title, aside, caption }: { title: string; aside?:
   );
 }
 
-/** Three figures with how they moved against the comparison period. */
-export function StatTiles({ tiles }: { tiles: { value: string; label: string; delta?: string; good?: boolean; danger?: boolean }[] }) {
-  return (
-    <View style={styles.tiles}>
-      {tiles.map((tile) => (
-        <View key={tile.label} style={styles.tile}>
-          <Text style={[styles.tileValue, tile.danger && styles.danger]}>{tile.value}</Text>
-          <Text variant="label" style={styles.bold}>
-            {tile.label}
-          </Text>
-          {tile.delta ? (
-            <Text variant="small" color={tile.good ? colors.green : colors.muted} numberOfLines={1}>
-              {tile.delta}
-            </Text>
-          ) : null}
-        </View>
-      ))}
-    </View>
-  );
-}
-
 /** Used (green) stacked on tossed (red) per day or per week; the current bucket is darker. */
 export function UsedTossedChart({
   title,
@@ -282,29 +261,6 @@ const styles = StyleSheet.create({
   listCard: {
     paddingVertical: spacing.xs,
     gap: 0,
-  },
-  tiles: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  tile: {
-    flex: 1,
-    minWidth: 0,
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    gap: 2,
-  },
-  tileValue: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 24,
-    lineHeight: 30,
-    color: colors.primary,
-  },
-  danger: {
-    color: colors.redInk,
   },
   bars: {
     flexDirection: "row",
