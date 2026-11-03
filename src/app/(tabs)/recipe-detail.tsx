@@ -396,19 +396,25 @@ export default function RecipeDetailRoute() {
       ]);
       cookIdRef.current = null;
       notifyInventoryChanged();
-      setShowCooked(false);
       if (usedItems.length === 0) {
+        setShowCooked(false);
         router.replace("/(tabs)/fridge");
         return;
       }
-      // The cook already landed; these only feed the reward, so a failure
-      // just hides that figure.
+      // The sheet stays open (its button still spinning) and the reward is
+      // presented on top of it. Closing the sheet first doesn't work on iOS:
+      // its Modal is still dismissing when the reward's Modal presents, and
+      // dismissing a Modal takes whatever was presented above it with it.
+      // The cook already landed; these only feed the reward, so a failure or
+      // a slow answer (4s) just hides that figure.
+      const settle = <T,>(promise: Promise<T>) =>
+        Promise.race([promise.catch(() => null), new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000))]);
       const startOfToday = new Date();
       startOfToday.setHours(0, 0, 0, 0);
       const [streakState, day] = await Promise.all([
-        syncStreak(activeHousehold.id, deviceTimeZone()).catch(() => null),
+        settle(syncStreak(activeHousehold.id, deviceTimeZone())),
         isPremium(profile, activeHousehold)
-          ? getDayActivity(activeHousehold.id, startOfToday.toISOString(), new Date(startOfToday.getTime() + 86_400_000).toISOString(), profile?.id).catch(() => null)
+          ? settle(getDayActivity(activeHousehold.id, startOfToday.toISOString(), new Date(startOfToday.getTime() + 86_400_000).toISOString(), profile?.id))
           : null,
       ]);
       setReward({
@@ -427,6 +433,7 @@ export default function RecipeDetailRoute() {
 
   function finishReward() {
     setReward(null);
+    setShowCooked(false);
     setCooking(false);
     router.replace("/(tabs)/fridge");
   }
