@@ -10,6 +10,8 @@ export type InsightsRawData = {
   /** Category counts of the USED items, not the added ones. */
   categoryBreakdown: Record<string, number>;
   cookedRecipes: { title: string; count: number }[];
+  /** The food used up most often in the window (its inventory key), if any. */
+  topUsedFood: { name: string; count: number } | null;
   /** Real money in the window, summed from value_events (household currency). */
   moneySpent: number;
   moneySaved: number;
@@ -78,7 +80,7 @@ export async function getInsightsData(
   // depletion included, which removal-based counting missed entirely.
   let usedQuery = supabase
     .from("item_usage_events")
-    .select("id, category", { count: "exact" })
+    .select("id, category, normalized_name", { count: "exact" })
     .eq("household_id", householdId)
     .gte("used_at", since);
   if (until) usedQuery = usedQuery.lt("used_at", until);
@@ -124,11 +126,14 @@ export async function getInsightsData(
   }
 
   const categoryBreakdown: Record<string, number> = {};
+  const foodCounts = new Map<string, number>();
   if (used.data) {
-    for (const row of used.data as { id: string; category: string }[]) {
+    for (const row of used.data as { id: string; category: string; normalized_name: string }[]) {
       categoryBreakdown[row.category] = (categoryBreakdown[row.category] ?? 0) + 1;
+      foodCounts.set(row.normalized_name, (foodCounts.get(row.normalized_name) ?? 0) + 1);
     }
   }
+  const [topFood] = [...foodCounts.entries()].sort((a, b) => b[1] - a[1]);
 
   const cookedRecipeCounts = new Map<string, number>();
   if (cookedRecipeRows.data) {
@@ -151,6 +156,7 @@ export async function getInsightsData(
     itemsUsed: used.count ?? 0,
     categoryBreakdown,
     cookedRecipes,
+    topUsedFood: topFood ? { name: topFood[0], count: topFood[1] } : null,
     moneySpent,
     moneySaved,
     moneyWasted,

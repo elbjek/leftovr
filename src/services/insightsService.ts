@@ -13,6 +13,7 @@ export type InsightsSummary = {
   mostUsedCategory: string | null;
   isSparse: boolean;
   cookedRecipes: { title: string; count: number }[];
+  topUsedFood: { name: string; count: number } | null;
 };
 
 export function computeInsightsSummary(raw: InsightsRawData): InsightsSummary {
@@ -44,6 +45,7 @@ export function computeInsightsSummary(raw: InsightsRawData): InsightsSummary {
     mostUsedCategory,
     isSparse,
     cookedRecipes: raw.cookedRecipes,
+    topUsedFood: raw.topUsedFood,
   };
 }
 
@@ -62,6 +64,16 @@ export function formatCategoryLabel(category: string): string {
     other: "Other",
   };
   return labels[category] ?? category;
+}
+
+/**
+ * The month the Insights recap covers. The first 3 days of a month still show
+ * the month that just ended (complete); after that, this month so far.
+ */
+export function recapWindow(now: Date = new Date()): { start: Date; until: Date | null; complete: boolean } {
+  const complete = now.getDate() <= 3;
+  const start = new Date(now.getFullYear(), now.getMonth() - (complete ? 1 : 0), 1);
+  return { start, until: complete ? new Date(now.getFullYear(), now.getMonth(), 1) : null, complete };
 }
 
 /** Items to use up per day for the home's daily goal; 1 already keeps the streak. */

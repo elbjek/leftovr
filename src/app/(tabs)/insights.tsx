@@ -1,12 +1,12 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, Share, StyleSheet, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 
-import { EmptyState, PremiumSheet, RecipeGlyph, Screen, ScreenHeader, SegmentedControl, Text } from "@/components";
+import { EmptyState, MonthlyRecap, PremiumSheet, RecipeGlyph, Screen, ScreenHeader, SegmentedControl, Text } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import { useHousehold, useInsights } from "@/hooks";
+import { useHousehold, useInsights, useMonthlyRecap, useStreak } from "@/hooks";
 import { formatCategoryLabel, InsightsSummary } from "@/services/insightsService";
 import { formatMoney } from "@/lib/money";
 import { colors, radii, spacing } from "@/theme";
@@ -31,25 +31,81 @@ export default function InsightsRoute() {
     includeHousehold: showHouseholdScope,
   });
 
+  // The monthly recap is for everyone, Premium or not — it's the shareable part.
+  const { period, summary: recapSummary, householdSaved, refresh: refreshRecap } = useMonthlyRecap(
+    activeHousehold?.id,
+    profile?.id,
+    showHouseholdScope,
+  );
+  const { streak, refresh: refreshStreak } = useStreak(activeHousehold?.id);
+
   // Cooking happens on other tabs — refetch whenever this tab gains focus.
   useFocusEffect(
     useCallback(() => {
       void refreshInsights();
-    }, [refreshInsights]),
+      void refreshRecap();
+      void refreshStreak();
+    }, [refreshInsights, refreshRecap, refreshStreak]),
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refreshInsights(), refresh()]);
+      await Promise.all([refreshInsights(), refreshRecap(), refresh()]);
     } finally {
       setRefreshing(false);
     }
-  }, [refreshInsights, refresh]);
+  }, [refreshInsights, refreshRecap, refresh]);
+
+  const currency = activeHousehold?.currency_code ?? "USD";
+  const month = period.start.toLocaleDateString(undefined, { month: "long" });
+  const recapEmpty = !recapSummary || (recapSummary.isSparse && recapSummary.moneySaved === 0);
+  const topFood = recapSummary?.topUsedFood;
+  const topDish = recapSummary?.cookedRecipes[0];
+  const recapCard = (
+    <MonthlyRecap
+      eyebrow={t("insights.recap.eyebrow")}
+      title={period.complete ? t("insights.recap.titleComplete", { month }) : t("insights.recap.titleSoFar", { month })}
+      hero={
+        recapSummary && recapSummary.moneySaved > 0
+          ? { value: formatMoney(recapSummary.moneySaved, currency), label: t("insights.recap.saved") }
+          : undefined
+      }
+      stats={[
+        { value: String(recapSummary?.itemsSaved ?? 0), label: t("insights.recap.itemsUsed") },
+        { value: String(recapSummary?.cookedEvents ?? 0), label: t("insights.recap.cooked") },
+        { value: String(streak), label: t("insights.recap.streak") },
+      ]}
+      rows={[
+        ...(topFood
+          ? [{ label: t("insights.recap.topFood"), value: t("insights.recap.countValue", { name: capitalize(topFood.name), count: topFood.count }) }]
+          : []),
+        ...(topDish ? [{ label: t("insights.recap.topDish"), value: t("insights.recap.countValue", { name: topDish.title, count: topDish.count }) }] : []),
+      ]}
+      footnote={
+        householdSaved && householdSaved > 0
+          ? t("insights.recap.household", { amount: formatMoney(householdSaved, currency) })
+          : undefined
+      }
+      emptyText={recapEmpty ? t("insights.recap.empty") : undefined}
+      shareLabel={t("insights.recap.share")}
+      onShare={() => {
+        if (!recapSummary) return;
+        const counts = { month, items: recapSummary.itemsSaved, dinners: recapSummary.cookedEvents };
+        void Share.share({
+          message:
+            recapSummary.moneySaved > 0
+              ? t("insights.recap.shareMessageMoney", { ...counts, amount: formatMoney(recapSummary.moneySaved, currency) })
+              : t("insights.recap.shareMessage", counts),
+        });
+      }}
+    />
+  );
 
   if (!isPremium) {
     return (
-      <Screen>
+      <Screen scroll contentContainerStyle={styles.freeContent}>
+        {recapCard}
         <View style={styles.gateWrap}>
           <EmptyState
             title={t("insights.title")}
@@ -79,7 +135,6 @@ export default function InsightsRoute() {
 
   const summary =
     (scope === "household" ? householdWeeklySummary : weeklySummary) ?? getEmptySummary();
-  const currency = activeHousehold?.currency_code ?? "USD";
   // Real week-over-week deltas (personal scope only; household scope shows no trend).
   const lastWeek = scope === "you" ? lastWeekSummary : null;
   const savedDelta = lastWeek ? summary.estimatedItemsSaved - lastWeek.estimatedItemsSaved : 0;
@@ -118,6 +173,8 @@ export default function InsightsRoute() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
+        {recapCard}
+
         <View style={styles.miniGrid}>
           <MiniStat
             label={t("insights.moneySpent")}
@@ -261,6 +318,10 @@ function getEatFirstHitRate(summary: InsightsSummary) {
   return `${Math.min(100, Math.round((summary.removedItems / summary.itemsAdded) * 100))}%`;
 }
 
+function capitalize(name: string) {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 function getEmptySummary(): InsightsSummary {
   return {
     receiptScans: 0,
@@ -275,10 +336,14 @@ function getEmptySummary(): InsightsSummary {
     mostUsedCategory: null,
     isSparse: true,
     cookedRecipes: [],
+    topUsedFood: null,
   };
 }
 
 const styles = StyleSheet.create({
+  freeContent: {
+    gap: spacing.xxl,
+  },
   gateWrap: {
     flex: 1,
     justifyContent: "center",

@@ -11,6 +11,7 @@ export * from "./HouseholdSection";
 export * from "./FoodCard";
 export * from "./FoodListCard";
 export * from "./KitchenPulse";
+export * from "./MonthlyRecap";
 export * from "./PremiumSheet";
 export * from "./ReceiptConfirmList";
 export * from "./RecipeCard";
