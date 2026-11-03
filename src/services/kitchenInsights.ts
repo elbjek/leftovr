@@ -1,5 +1,4 @@
 import type { InventoryCategory } from "./inventoryRules";
-import { recapWindow } from "./insightsService";
 
 // Rule-based Insights observations (no AI): what got used vs tossed, which
 // food groups you finish, and which foods keep going off. Pure — the
@@ -15,8 +14,6 @@ export type PeriodWindow = {
   /** The comparison window, cut to the same length so "vs last week" is fair. */
   prevStart: Date;
   prevUntil: Date;
-  /** The month view is showing a finished month (first 3 days of the next). */
-  complete: boolean;
   /** Chart buckets: days of the week, 7-day runs of the month, or months of the year. */
   buckets: { start: Date; end: Date }[];
 };
@@ -33,7 +30,6 @@ export function periodWindow(period: Period, now: Date = new Date()): PeriodWind
       until: now,
       prevStart,
       prevUntil: new Date(prevStart.getTime() + (now.getTime() - start.getTime())),
-      complete: false,
       buckets: Array.from({ length: 7 }, (_, i) => ({ start: addDays(start, i), end: addDays(start, i + 1) })),
     };
   }
@@ -46,24 +42,20 @@ export function periodWindow(period: Period, now: Date = new Date()): PeriodWind
       prevStart,
       // Same stretch of last year, never past its end.
       prevUntil: new Date(Math.min(prevStart.getTime() + (now.getTime() - start.getTime()), start.getTime())),
-      complete: false,
       buckets: Array.from({ length: 12 }, (_, i) => ({ start: new Date(now.getFullYear(), i, 1), end: new Date(now.getFullYear(), i + 1, 1) })),
     };
   }
-  const recap = recapWindow(now);
-  const start = recap.start;
-  const until = recap.until ?? now;
+  // This month so far, against the same days of last month (never more than all of it).
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const until = now;
   const prevStart = new Date(start.getFullYear(), start.getMonth() - 1, 1);
-  // A month so far compares with the same days of last month, never more than all of it.
-  const prevUntil = recap.complete
-    ? start
-    : new Date(Math.min(prevStart.getTime() + (until.getTime() - start.getTime()), start.getTime()));
+  const prevUntil = new Date(Math.min(prevStart.getTime() + (until.getTime() - start.getTime()), start.getTime()));
   const monthEnd = new Date(start.getFullYear(), start.getMonth() + 1, 1);
   const buckets: { start: Date; end: Date }[] = [];
   for (let day = start; day < monthEnd; day = addDays(day, 7)) {
     buckets.push({ start: day, end: new Date(Math.min(addDays(day, 7).getTime(), monthEnd.getTime())) });
   }
-  return { start, until, prevStart, prevUntil, complete: recap.complete, buckets };
+  return { start, until, prevStart, prevUntil, buckets };
 }
 
 export type KitchenRaw = {

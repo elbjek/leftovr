@@ -888,6 +888,7 @@ export const en = {
       more: "{{amount}} more than {{prev}}",
       less: "{{amount}} less than {{prev}}",
       same: "Same as {{prev}}",
+      noPrice: "Add prices when you add food (or scan a receipt) to see what you save.",
       used_one: "item used",
       used_other: "items used",
       cooked_one: "dinner cooked",

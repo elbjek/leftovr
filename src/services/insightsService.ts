@@ -66,16 +66,6 @@ export function formatCategoryLabel(category: string): string {
   return labels[category] ?? category;
 }
 
-/**
- * The month the Insights recap covers. The first 3 days of a month still show
- * the month that just ended (complete); after that, this month so far.
- */
-export function recapWindow(now: Date = new Date()): { start: Date; until: Date | null; complete: boolean } {
-  const complete = now.getDate() <= 3;
-  const start = new Date(now.getFullYear(), now.getMonth() - (complete ? 1 : 0), 1);
-  return { start, until: complete ? new Date(now.getFullYear(), now.getMonth(), 1) : null, complete };
-}
-
 export type WinDay = {
   /** Local midnight of the day. */
   date: Date;

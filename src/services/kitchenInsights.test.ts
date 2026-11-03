@@ -12,15 +12,15 @@ describe("periodWindow", () => {
   it("compares a month so far with the same days of last month, in 7-day buckets", () => {
     const now = new Date(2026, 10, 10, 12, 0);
     const w = periodWindow("month", now);
-    expect([w.start.getMonth(), w.prevStart.getMonth(), w.complete]).toEqual([10, 9, false]);
+    expect([w.start.getMonth(), w.prevStart.getMonth()]).toEqual([10, 9]);
     expect(w.prevUntil.getDate()).toBe(10);
     expect(w.buckets.map((b) => b.start.getDate())).toEqual([1, 8, 15, 22, 29]);
     expect(w.buckets[4].end.getDate()).toBe(1); // the 30th ends at 1 Dec
   });
 
-  it("shows the finished month in its first 3 days, against the whole month before", () => {
-    const w = periodWindow("month", new Date(2026, 10, 2));
-    expect([w.start.getMonth(), w.until.getMonth(), w.prevStart.getMonth(), w.prevUntil.getMonth(), w.complete]).toEqual([9, 10, 8, 9, true]);
+  it("stays on this month in its first days, so a week never holds more than its month", () => {
+    const w = periodWindow("month", new Date(2026, 10, 2, 9, 0));
+    expect([w.start.getMonth(), w.start.getDate(), w.prevStart.getMonth(), w.prevUntil.getDate()]).toEqual([10, 1, 9, 2]);
   });
 });
 

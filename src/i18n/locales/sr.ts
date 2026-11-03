@@ -901,6 +901,7 @@ export const sr = {
       more: "{{amount}} više nego {{prev}}",
       less: "{{amount}} manje nego {{prev}}",
       same: "Isto kao {{prev}}",
+      noPrice: "Dodaj cene kad unosiš namirnice (ili skeniraj račun) da vidiš koliko štediš.",
       used_one: "namirnica potrošena",
       used_few: "namirnice potrošene",
       used_other: "namirnica potrošeno",

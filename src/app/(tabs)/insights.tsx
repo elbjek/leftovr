@@ -66,24 +66,32 @@ export default function InsightsRoute() {
     }
   }, [refreshPeriod, refreshWins, refreshStreak, refresh]);
 
-  // "This month ▾": tapping opens Week / Month / Year right under it.
-  const periodPicker = (label: string) => (
-    <View style={styles.picker}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ expanded: menuOpen }}
-        accessibilityLabel={t("insights.period.change", { period: label })}
-        onPress={() => setMenuOpen((open) => !open)}
-        hitSlop={8}
-        style={({ pressed }) => [styles.pickerButton, pressed && styles.pressed]}
-      >
-        <Text variant="micro" color={colors.primary} uppercase style={styles.bold}>
-          {label}
+  // Title row: "Insights" and a "This month ▾" pill; Week / Month / Year open
+  // right under it.
+  const titleRow = (label: string) => (
+    <View style={styles.top}>
+      <View style={styles.titleRow}>
+        <Text variant="h1" accessibilityRole="header" style={styles.title}>
+          {t("insights.title")}
         </Text>
-        <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" style={menuOpen ? styles.chevronOpen : undefined}>
-          <Path d="M6 9l6 6 6-6" stroke={colors.primary} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
-        </Svg>
-      </Pressable>
+        {isPremium ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: menuOpen }}
+            accessibilityLabel={t("insights.period.change", { period: label })}
+            onPress={() => setMenuOpen((open) => !open)}
+            hitSlop={4}
+            style={({ pressed }) => [styles.pickerButton, menuOpen && styles.pickerOpen, pressed && styles.pressed]}
+          >
+            <Text variant="label" color={menuOpen ? colors.surface : colors.primary} style={styles.bold}>
+              {label}
+            </Text>
+            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" style={menuOpen ? styles.chevronOpen : undefined}>
+              <Path d="M6 9l6 6 6-6" stroke={menuOpen ? colors.surface : colors.primary} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </Pressable>
+        ) : null}
+      </View>
       {menuOpen ? (
         <View style={styles.menu}>
           {PERIODS.map((option, index) => (
@@ -140,8 +148,7 @@ export default function InsightsRoute() {
   if (!data) {
     return (
       <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-        <Text variant="h1">{t("insights.title")}</Text>
-        {isPremium ? periodPicker(t(`insights.period.this.${period}`)) : null}
+        {titleRow(t(`insights.period.this.${period}`))}
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} />
         </View>
@@ -152,10 +159,9 @@ export default function InsightsRoute() {
 
   const { window: span, summary, prevSummary, kitchen, goingOff } = data;
   const monthName = span.start.toLocaleDateString(undefined, { month: "long" });
-  const periodLabel = span.complete ? monthName : t(`insights.period.this.${period}`);
   const categoryLabel = (category: string) => t(`scan.categories.${category}`);
 
-  // "€2.10 more than last week": only when either period saved something.
+  // "€2.10 more than last week"; with no prices at all, how to get one.
   const savedDiff = summary.moneySaved - prevSummary.moneySaved;
   const prevName =
     period === "week"
@@ -170,7 +176,7 @@ export default function InsightsRoute() {
         : savedDiff < 0
           ? t("insights.summary.less", { amount: money(-savedDiff), prev: prevName })
           : t("insights.summary.same", { prev: prevName })
-      : undefined;
+      : t("insights.summary.noPrice");
   const isEmpty = kitchen.used === 0 && summary.cookedEvents === 0;
 
   // Chart: days of the week, or 7-day runs of the month. A running period's
@@ -185,7 +191,7 @@ export default function InsightsRoute() {
           : String(bucket.start.getDate()),
     used: kitchen.chart[index].used,
     tossed: kitchen.chart[index].tossed,
-    current: !span.complete && loadedAt >= bucket.start.getTime() && loadedAt < bucket.end.getTime(),
+    current: loadedAt >= bucket.start.getTime() && loadedAt < bucket.end.getTime(),
   }));
   const bestIndex = kitchen.chart.reduce((best, bar, index) => (bar.used > kitchen.chart[best].used ? index : best), 0);
   const best = kitchen.chart[bestIndex].used
@@ -220,7 +226,7 @@ export default function InsightsRoute() {
   const summaryCard = (
     <PeriodSummary
       label={t("insights.stats.saved")}
-      value={summary.moneySaved > 0 ? money(summary.moneySaved) : undefined}
+      value={money(summary.moneySaved)}
       sub={savedSub}
       stats={[
         { value: String(kitchen.used), label: t("insights.summary.used", { count: kitchen.used }) },
@@ -256,12 +262,7 @@ export default function InsightsRoute() {
 
   return (
     <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-      <View style={styles.top}>
-        <Text variant="h1" accessibilityRole="header">
-          {t("insights.title")}
-        </Text>
-        {periodPicker(periodLabel)}
-      </View>
+      {titleRow(t(`insights.period.this.${period}`))}
 
       {summaryCard}
 
@@ -329,17 +330,29 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.tabBarClearance,
   },
   top: {
-    gap: spacing.xs,
-  },
-  picker: {
-    alignItems: "flex-start",
     gap: spacing.sm,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  title: {
+    flex: 1,
   },
   pickerButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    minHeight: 32,
+    gap: 6,
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: colors.paper,
+  },
+  pickerOpen: {
+    backgroundColor: colors.primary,
   },
   chevronOpen: {
     transform: [{ rotate: "180deg" }],
