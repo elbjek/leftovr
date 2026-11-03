@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, Modal, Pressable, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
@@ -22,6 +22,8 @@ type Props = {
 
 // The payoff right after a cook: what was rescued and what it did for the
 // streak. Same cream, bordered look as the home; the check pops in once.
+// A full-screen layer, not a Modal: it rides in the cook sheet's Modal
+// (BottomSheet `overlay`) so iOS never has to stack two.
 export function CookReward({ visible, eyebrow, title, stats, doneLabel, shareLabel, onDone, onShare }: Props) {
   const insets = useSafeAreaInsets();
   const [pop] = useState(() => new Animated.Value(0));
@@ -50,61 +52,63 @@ export function CookReward({ visible, eyebrow, title, stats, doneLabel, shareLab
 
   const scale = pop.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
 
+  if (!visible) return null;
+
   return (
-    <Modal animationType="fade" visible={visible} onRequestClose={onDone}>
-      <View style={[styles.screen, { paddingTop: insets.top + spacing.huge * 2, paddingBottom: insets.bottom + spacing.xxl }]}>
-        <View style={styles.head}>
-          <Animated.View style={[styles.check, { opacity: pop, transform: [{ scale }] }]}>
-            <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-              <Path d="M5 12l5 5 9-10" stroke={colors.primary} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </Animated.View>
-          <Text variant="micro" muted uppercase center>
-            {eyebrow}
-          </Text>
-          <Text variant="h1" center accessibilityRole="header">
-            {title}
-          </Text>
-        </View>
-
-        {stats.length > 0 ? (
-          <View style={styles.stats}>
-            {stats.map((stat, index) => (
-              <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
-                <Text variant="h2" color={colors.primary} style={styles.statValue}>
-                  {stat.value}
-                </Text>
-                <Text variant="small" muted center>
-                  {stat.label}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
-
-        <View style={styles.spacer} />
-
-        <View style={styles.actions}>
-          <Button title={doneLabel} onPress={onDone} />
-          <Pressable
-            accessibilityRole="button"
-            onPress={onShare}
-            hitSlop={8}
-            style={({ pressed }) => [styles.share, pressed && styles.pressed]}
-          >
-            <Text variant="label" color={colors.primary} style={styles.bold}>
-              {shareLabel}
-            </Text>
-          </Pressable>
-        </View>
+    <Animated.View
+      style={[styles.screen, { opacity: pop, paddingTop: insets.top + spacing.huge * 2, paddingBottom: insets.bottom + spacing.xxl }]}
+    >
+      <View style={styles.head}>
+        <Animated.View style={[styles.check, { opacity: pop, transform: [{ scale }] }]}>
+          <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
+            <Path d="M5 12l5 5 9-10" stroke={colors.primary} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        </Animated.View>
+        <Text variant="micro" muted uppercase center>
+          {eyebrow}
+        </Text>
+        <Text variant="h1" center accessibilityRole="header">
+          {title}
+        </Text>
       </View>
-    </Modal>
+
+      {stats.length > 0 ? (
+        <View style={styles.stats}>
+          {stats.map((stat, index) => (
+            <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
+              <Text variant="h2" color={colors.primary} style={styles.statValue}>
+                {stat.value}
+              </Text>
+              <Text variant="small" muted center>
+                {stat.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      <View style={styles.spacer} />
+
+      <View style={styles.actions}>
+        <Button title={doneLabel} onPress={onDone} />
+        <Pressable
+          accessibilityRole="button"
+          onPress={onShare}
+          hitSlop={8}
+          style={({ pressed }) => [styles.share, pressed && styles.pressed]}
+        >
+          <Text variant="label" color={colors.primary} style={styles.bold}>
+            {shareLabel}
+          </Text>
+        </Pressable>
+      </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    flex: 1,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.appBackground,
     paddingHorizontal: spacing.screenX,
     gap: spacing.xxl,

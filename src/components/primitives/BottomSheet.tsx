@@ -7,12 +7,18 @@ type Props = {
   onDismiss: () => void;
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  /**
+   * Full-screen content drawn above the sheet inside the same Modal. Use it
+   * to go from a sheet to a full screen: a second Modal opened while this one
+   * closes is dismissed along with it on iOS.
+   */
+  overlay?: React.ReactNode;
 };
 
 // The dim backdrop fades in place while only the sheet slides up; the Modal
 // itself doesn't animate (its "slide" moved the backdrop with the sheet).
 // It stays mounted until the closing animation ends.
-export function BottomSheet({ visible, onDismiss, children, style }: Props) {
+export function BottomSheet({ visible, onDismiss, children, style, overlay }: Props) {
   const { height } = useWindowDimensions();
   const [progress] = useState(() => new Animated.Value(0));
   const [mounted, setMounted] = useState(visible);
@@ -47,6 +53,7 @@ export function BottomSheet({ visible, onDismiss, children, style }: Props) {
           {children}
         </Animated.View>
       </View>
+      {overlay}
     </Modal>
   );
 }

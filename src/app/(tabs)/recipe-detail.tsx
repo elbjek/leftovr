@@ -411,9 +411,8 @@ export default function RecipeDetailRoute() {
         return;
       }
       // The sheet stays open (its button still spinning) and the reward is
-      // presented on top of it. Closing the sheet first doesn't work on iOS:
-      // its Modal is still dismissing when the reward's Modal presents, and
-      // dismissing a Modal takes whatever was presented above it with it.
+      // drawn over it, inside the sheet's own Modal (see BottomSheet
+      // `overlay`): iOS drops a second Modal opened over a closing one.
       // The cook already landed; these only feed the reward, so a failure or
       // a slow answer (4s) just hides that figure.
       const settle = <T,>(promise: Promise<T>) =>
@@ -703,11 +702,30 @@ export default function RecipeDetailRoute() {
       <BottomSheet
         visible={showCooked}
         onDismiss={() => {
+          // Back/escape on the reward finishes the cook like Done.
+          if (reward) {
+            finishReward();
+            return;
+          }
           setShowCooked(false);
           // Closing the sheet abandons the save; don't leave the CTA spinning
           // for the next open.
           setCooking(false);
         }}
+        // The reward is drawn inside this sheet's Modal: a second Modal
+        // stacked on it didn't reliably show on iOS.
+        overlay={
+          <CookReward
+            visible={reward !== null}
+            eyebrow={t("recipes.reward.eyebrow", { title })}
+            title={t("recipes.reward.title", { count: reward?.rescued ?? 0 })}
+            stats={rewardStats}
+            doneLabel={t("recipes.reward.done")}
+            shareLabel={t("recipes.reward.share")}
+            onDone={finishReward}
+            onShare={shareReward}
+          />
+        }
       >
         {swapIndex === null ? (
           <>
@@ -905,17 +923,6 @@ export default function RecipeDetailRoute() {
           </>
         )}
       </BottomSheet>
-
-      <CookReward
-        visible={reward !== null}
-        eyebrow={t("recipes.reward.eyebrow", { title })}
-        title={t("recipes.reward.title", { count: reward?.rescued ?? 0 })}
-        stats={rewardStats}
-        doneLabel={t("recipes.reward.done")}
-        shareLabel={t("recipes.reward.share")}
-        onDone={finishReward}
-        onShare={shareReward}
-      />
     </View>
   );
 }
