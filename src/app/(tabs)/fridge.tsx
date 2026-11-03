@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, FoodListCard, GeneratingLoader, KitchenPulse, PlusIcon, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, KitchenPulse, PlusIcon, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -18,9 +18,9 @@ import {
   toUiCategory,
   toUiUrgency,
 } from "@/services";
-import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "@/theme";
+import { categoryColors, CategoryTone, colors, fonts, radii, spacing, Urgency } from "@/theme";
 import { router, useFocusEffect } from "expo-router";
-import { FoodGlyph, Logo } from "@/components/illustrations";
+import { CATEGORY_GLYPH, FoodGlyph, Logo } from "@/components/illustrations";
 
 const CATEGORY_ORDER = [
   "dairy_eggs",
@@ -36,7 +36,10 @@ const CATEGORY_ORDER = [
   "other",
 ] as const;
 
-type CategoryFilter = "all" | (typeof CATEGORY_ORDER)[number];
+type Category = (typeof CATEGORY_ORDER)[number];
+// TinyMeals-style browsing: null = the overview (today, running low, category
+// tiles); otherwise a results list for everything, running low or a category.
+type KitchenView = null | "all" | "low" | Category;
 
 export default function FridgeRoute() {
   const { t } = useTranslation();
@@ -59,8 +62,7 @@ export default function FridgeRoute() {
     profile?.primary_goal ?? null,
   );
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
-  const [expandedShelf, setExpandedShelf] = useState<{ name: string; groups: InventoryGroup[] } | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [view, setView] = useState<KitchenView>(null);
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const query = search.trim().toLowerCase();
@@ -107,29 +109,29 @@ export default function FridgeRoute() {
       return false;
     }
   };
-  const filteredGroups = activeGroups.filter(
-    (group) =>
-      (categoryFilter === "all" || group.category === categoryFilter) &&
-      (!query || group.name.toLowerCase().includes(query)),
-  );
+  const inView = (group: InventoryGroup) =>
+    view === null || view === "all" ? true : view === "low" ? isMetricAmountRunningLow(group) : group.category === view;
+  const resultGroups = activeGroups.filter((group) => inView(group) && (!query || group.name.toLowerCase().includes(query)));
+  // Searching or opening a list swaps the overview for results.
+  const showResults = view !== null || Boolean(query);
   const isPremium = resolvePremium(profile, activeHousehold);
   const { refresh: refreshInsights } = useInsights(activeHousehold?.id);
   // Eat-first is global (urgency, not the active category/search filter).
   const eatFirstGroups = getEatFirstGroups(groups);
-  const runningLowGroups = filteredGroups.filter(isMetricAmountRunningLow);
-  // Category chips: counts per category, only those present.
-  const categoryCounts = new Map<CategoryFilter, number>();
-  for (const group of activeGroups) {
-    categoryCounts.set(group.category as CategoryFilter, (categoryCounts.get(group.category as CategoryFilter) ?? 0) + 1);
-  }
-  const categoryChips: { key: CategoryFilter; label: string; count: number }[] = [
-    { key: "all", label: t("fridge.filter.all"), count: activeGroups.length },
-    ...CATEGORY_ORDER.map((category) => ({
-      key: category as CategoryFilter,
-      label: t(`scan.categories.${category}` as never),
-      count: categoryCounts.get(category as CategoryFilter) ?? 0,
-    })).filter((option) => option.count > 0),
-  ];
+  const runningLowGroups = activeGroups.filter(isMetricAmountRunningLow);
+  // Category tiles: only categories with something in them.
+  const categoryTiles = CATEGORY_ORDER.map((category) => {
+    const inCategory = activeGroups.filter((group) => group.category === category);
+    const soon = inCategory.filter((group) => group.urgency === "urgent" || group.urgency === "use_soon").length;
+    return {
+      category,
+      label: t(`scan.categories.${category}` as never) as string,
+      count: inCategory.length,
+      detail: soon > 0
+        ? t("fridge.tiles.itemsSoon", { count: inCategory.length, soon })
+        : t("fridge.kitchenPulse.total", { count: inCategory.length }),
+    };
+  }).filter((tile) => tile.count > 0);
   // Whole-kitchen freshness composition for the Kitchen Pulse bar.
   const pulse = groups.reduce(
     (acc, group) => {
@@ -141,15 +143,35 @@ export default function FridgeRoute() {
     },
     { fresh: 0, soon: 0, urgent: 0 },
   );
-  const weekday = new Date().toLocaleDateString(undefined, { weekday: "long" });
-  // Greet by first name when the profile has a usable one (not blank, not an
-  // email placeholder); otherwise fall back to the plain greeting.
+  // Household pill initial: first name when usable (not blank, not an email).
   const rawName = profile?.display_name?.trim() ?? "";
   const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
-  const greetingText = firstName
-    ? t("fridge.greetingWithName", { name: firstName })
-    : t("fridge.greeting");
-  const categoryShelves = buildCategoryShelves(filteredGroups, t);
+  const soonCount = pulse.urgent + pulse.soon;
+  const summary = [
+    t("fridge.summary", { count: activeGroups.length }),
+    soonCount > 0 ? t("fridge.summarySoon", { count: soonCount }) : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const resultsTitle =
+    view === "all"
+      ? t("fridge.allItems")
+      : view === "low"
+        ? t("fridge.shelves.runningLow")
+        : view
+          ? (t(`scan.categories.${view}` as never) as string)
+          : t("fridge.results", { query: search.trim() });
+  // One card for a single list; everything (or a plain search) by category.
+  const resultShelves =
+    view && view !== "all"
+      ? resultGroups.length > 0
+        ? [{ category: view, name: resultsTitle, groups: resultGroups }]
+        : []
+      : buildCategoryShelves(resultGroups, t);
+  const closeResults = () => {
+    setView(null);
+    setSearch("");
+  };
   const showEatFirstHero = isPremium && eatFirstGroups.length > 0;
   const kitchenPulse = (
     <KitchenPulse
@@ -166,6 +188,12 @@ export default function FridgeRoute() {
   );
   const { members } = useHousehold(activeHousehold?.id);
   const showAddedBy = members.length > 1;
+  const statusLabels: Record<Urgency, string> = {
+    urgent: t("fridge.status.urgent"),
+    useSoon: t("fridge.status.soon"),
+    safe: t("fridge.status.fresh"),
+    expired: t("fridge.status.expired"),
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -193,108 +221,49 @@ export default function FridgeRoute() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
       }
     >
+      {/* Same top as the home: logo, household pill, and here the "+". */}
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Logo size={26} />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("fridge.addItem")}
-            onPress={() => router.push("/(tabs)/scan")}
-            style={({ pressed }) => [styles.addButton, pressed && styles.savedRowPressed]}
-          >
-            <PlusIcon />
-          </Pressable>
+          <View style={styles.brand}>
+            <Logo size={26} />
+            {isPremium ? <View style={styles.premiumDot} /> : null}
+          </View>
+          <View style={styles.headerActions}>
+            {activeHousehold ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push("/(tabs)/settings")}
+                style={({ pressed }) => [styles.householdPill, pressed && styles.savedRowPressed]}
+              >
+                <View style={styles.householdAvatar}>
+                  <Text variant="micro" color={colors.primary} style={styles.strong}>
+                    {(firstName || activeHousehold.name).charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <Text variant="small" numberOfLines={1} style={styles.strong}>
+                  {activeHousehold.name}
+                </Text>
+              </Pressable>
+            ) : null}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("fridge.addItem")}
+              onPress={() => router.push("/(tabs)/scan")}
+              style={({ pressed }) => [styles.addButton, pressed && styles.savedRowPressed]}
+            >
+              <PlusIcon />
+            </Pressable>
+          </View>
         </View>
-        <Text variant="micro" uppercase muted style={styles.eyebrow}>
-          {weekday}
-        </Text>
-        <Text style={styles.greeting}>{greetingText}</Text>
+        {groups.length > 0 ? (
+          <Text variant="small" muted style={styles.summary}>
+            {summary}
+          </Text>
+        ) : null}
       </View>
 
-      {/* Today: the pulse rides inside the eat-first hero when there is one;
-          otherwise it stands alone above the free preview. */}
-      {groups.length > 0 && !showEatFirstHero ? <View style={styles.pulseWrap}><View style={styles.pulseCard}>{kitchenPulse}</View></View> : null}
-
-      {showEatFirstHero || (!isPremium && groups.length > 0) ? (
-        <EatFirstShelf
-          premium={isPremium}
-          items={eatFirstGroups.map((group) => ({
-            id: group.key,
-            name: group.name,
-            category: toUiCategory(group.category),
-            bestBy: computeBestByLabel(group, t),
-          }))}
-          labels={{
-            kicker: t("fridge.eatFirstTitle"),
-            subtitle: t("fridge.eatFirstSubtitle"),
-            heading: (count) => t("fridge.eatFirstHeading", { count }),
-            cookCta: t("fridge.eatFirstCook"),
-            previewTitle: t("fridge.eatFirstPreviewTitle"),
-            previewBody: t("fridge.eatFirstPreviewBody"),
-            unlockAction: t("fridge.eatFirstUnlock"),
-            more: (count) => t("fridge.eatFirstMoreItems", { count }),
-          }}
-          onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
-          onCook={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
-          onUpgradePress={() => router.push("/(tabs)/settings")}
-        >
-          {kitchenPulse}
-        </EatFirstShelf>
-      ) : null}
-
-      {expiredGroups.length > 0 ? (
-        <CheckTheseShelf
-          count={expiredGroups.length}
-          labels={{
-            kicker: t("fridge.checkThese.title"),
-            subtitle: t("fridge.checkThese.subtitle"),
-          }}
-          onPress={() => setCheckSheetVisible(true)}
-        />
-      ) : null}
-
-      {showDay5Nudge && !day7Recap ? (
-        <View style={styles.retentionWrap}>
-          <RetentionCard
-            title={t("retention.day5Title")}
-            body={t("retention.day5Body")}
-            actionLabel={t("retention.day5Action")}
-            actionIcon={<ScanIcon color={colors.primary} size={18} />}
-            onAction={() => router.push({ pathname: "/(tabs)/scan", params: { mode: "receipt" } })}
-          />
-        </View>
-      ) : null}
-
-      {loading ? (
-        <View style={styles.centerState}>
-          <GeneratingLoader size={110} />
-          <Text variant="small" muted>
-            {t("common.loading")}
-          </Text>
-        </View>
-      ) : null}
-
-      {!loading && error ? (
-        <View style={styles.centerState}>
-          <Text variant="small" color={colors.red} center>
-            {error}
-          </Text>
-        </View>
-      ) : null}
-
-      {!loading && !error && groups.length === 0 ? <EmptyFridge /> : null}
-
-      {/* Everything: browse and search the whole kitchen. */}
       {groups.length > 0 ? (
-        <View style={styles.kitchenSection}>
-          <View style={styles.sectionHead}>
-            <Text variant="micro" uppercase muted style={styles.eyebrow}>
-              {t("fridge.allItems")}
-            </Text>
-            <Text variant="small" muted>
-              {t("fridge.kitchenPulse.total", { count: activeGroups.length })}
-            </Text>
-          </View>
+        <View style={styles.searchWrap}>
           <View style={[styles.searchField, searchFocused && styles.searchFieldFocused]}>
             <SearchIcon />
             <TextInput
@@ -308,59 +277,198 @@ export default function FridgeRoute() {
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setSearchFocused(false)}
             />
+            {search ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("fridge.clearSearch")}
+                onPress={() => setSearch("")}
+                hitSlop={10}
+                style={styles.clearButton}
+              >
+                <Svg width={9} height={9} viewBox="0 0 24 24" fill="none">
+                  <Path d="M5 5l14 14M19 5 5 19" stroke={colors.primary} strokeWidth={2.6} strokeLinecap="round" />
+                </Svg>
+              </Pressable>
+            ) : null}
           </View>
         </View>
       ) : null}
 
-      {groups.length > 0 ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsRow}
-        >
-          {categoryChips.map((chip) => {
-            const active = chip.key === categoryFilter;
-            return (
-              <Pressable
-                key={chip.key}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                onPress={() => setCategoryFilter(chip.key)}
-                style={[styles.chip, active && styles.chipActive]}
-              >
-                <Text variant="label" color={active ? colors.surface : colors.text} style={styles.chipLabel}>
-                  {chip.label}
+      {showResults ? (
+        <>
+          <View style={styles.resultsHead}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t("common.back")}
+              onPress={closeResults}
+              hitSlop={6}
+              style={({ pressed }) => [styles.backButton, pressed && styles.savedRowPressed]}
+            >
+              <Svg width={8} height={14} viewBox="0 0 9 16" fill="none">
+                <Path d="M8 1 2 8l6 7" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            </Pressable>
+            <View style={styles.resultsCopy}>
+              <Text variant="h2" numberOfLines={1} style={styles.strong}>
+                {resultsTitle}
+              </Text>
+              <Text variant="small" muted>
+                {t("fridge.kitchenPulse.total", { count: resultGroups.length })}
+              </Text>
+            </View>
+          </View>
+          {resultShelves.length === 0 ? (
+            <View style={styles.centerState}>
+              <Text variant="label" style={styles.strong}>
+                {t("fridge.noMatchTitle")}
+              </Text>
+              <Text variant="small" muted center>
+                {t("fridge.noMatchBody")}
+              </Text>
+            </View>
+          ) : null}
+          {resultShelves.map((shelf) => (
+            <CategoryShelf
+              key={shelf.category}
+              name={shelf.name}
+              groups={shelf.groups}
+              showAddedBy={showAddedBy}
+              statusLabels={statusLabels}
+              onItemPress={(group) => setActionGroup(group)}
+            />
+          ))}
+        </>
+      ) : (
+        <>
+          {/* Today: the pulse rides inside the eat-first hero when there is one;
+              otherwise it stands alone above the free preview. */}
+          {groups.length > 0 && !showEatFirstHero ? <View style={styles.pulseWrap}><View style={styles.pulseCard}>{kitchenPulse}</View></View> : null}
+
+          {showEatFirstHero || (!isPremium && groups.length > 0) ? (
+            <EatFirstShelf
+              premium={isPremium}
+              items={eatFirstGroups.map((group) => ({
+                id: group.key,
+                name: group.name,
+                category: toUiCategory(group.category),
+                bestBy: computeBestByLabel(group, t),
+              }))}
+              labels={{
+                kicker: t("fridge.eatFirstTitle"),
+                subtitle: t("fridge.eatFirstSubtitle"),
+                heading: (count) => t("fridge.eatFirstHeading", { count }),
+                cookCta: t("fridge.eatFirstCook"),
+                previewTitle: t("fridge.eatFirstPreviewTitle"),
+                previewBody: t("fridge.eatFirstPreviewBody"),
+                unlockAction: t("fridge.eatFirstUnlock"),
+                more: (count) => t("fridge.eatFirstMoreItems", { count }),
+              }}
+              onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
+              onCook={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
+              onUpgradePress={() => router.push("/(tabs)/settings")}
+            >
+              {kitchenPulse}
+            </EatFirstShelf>
+          ) : null}
+
+          {expiredGroups.length > 0 ? (
+            <CheckTheseShelf
+              count={expiredGroups.length}
+              labels={{
+                kicker: t("fridge.checkThese.title"),
+                subtitle: t("fridge.checkThese.subtitle"),
+              }}
+              onPress={() => setCheckSheetVisible(true)}
+            />
+          ) : null}
+
+          {showDay5Nudge && !day7Recap ? (
+            <View style={styles.retentionWrap}>
+              <RetentionCard
+                title={t("retention.day5Title")}
+                body={t("retention.day5Body")}
+                actionLabel={t("retention.day5Action")}
+                actionIcon={<ScanIcon color={colors.primary} size={18} />}
+                onAction={() => router.push({ pathname: "/(tabs)/scan", params: { mode: "receipt" } })}
+              />
+            </View>
+          ) : null}
+
+          {loading ? (
+            <View style={styles.centerState}>
+              <GeneratingLoader size={110} />
+              <Text variant="small" muted>
+                {t("common.loading")}
+              </Text>
+            </View>
+          ) : null}
+
+          {!loading && error ? (
+            <View style={styles.centerState}>
+              <Text variant="small" color={colors.red} center>
+                {error}
+              </Text>
+            </View>
+          ) : null}
+
+          {!loading && !error && groups.length === 0 ? <EmptyFridge /> : null}
+
+          {runningLowGroups.length > 0 ? (
+            <CategoryShelf
+              name={t("fridge.shelves.runningLow")}
+              groups={runningLowGroups}
+              maxVisible={4}
+              seeAllLabel={t("fridge.shelves.seeAllCount", { count: runningLowGroups.length })}
+              showAddedBy={showAddedBy}
+              statusLabels={statusLabels}
+              onItemPress={(group) => setActionGroup(group)}
+              onMorePress={() => setView("low")}
+            />
+          ) : null}
+
+          {/* TinyMeals' food library: one tile per category, opening its list. */}
+          {categoryTiles.length > 0 ? (
+            <View style={styles.tilesSection}>
+              <View style={styles.sectionHead}>
+                <Text variant="micro" uppercase muted style={styles.eyebrow}>
+                  {t("fridge.homeTitle")}
                 </Text>
-                <Text variant="small" color={active ? colors.sage : colors.muted2}>{chip.count}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      ) : null}
-
-      {runningLowGroups.length > 0 ? (
-        <CategoryShelf
-          name={t("fridge.shelves.runningLow")}
-          groups={runningLowGroups}
-          seeAllLabel={t("fridge.shelves.seeAllCount", { count: runningLowGroups.length })}
-          showAddedBy={showAddedBy}
-          onItemPress={(group) => setActionGroup(group)}
-          onMorePress={() => setExpandedShelf({ name: t("fridge.shelves.runningLow"), groups: runningLowGroups })}
-        />
-      ) : null}
-
-      {categoryShelves.map((shelf) => (
-        <CategoryShelf
-          key={shelf.category}
-          name={shelf.name}
-          groups={shelf.groups}
-          seeAllLabel={t("fridge.shelves.seeAllCount", { count: shelf.groups.length })}
-          expanded={categoryFilter !== "all"}
-          showAddedBy={showAddedBy}
-          onItemPress={(group) => setActionGroup(group)}
-          onMorePress={() => setExpandedShelf({ name: shelf.name, groups: shelf.groups })}
-        />
-      ))}
+                <Pressable accessibilityRole="link" onPress={() => setView("all")} hitSlop={8}>
+                  <Text variant="small" color={colors.primary} style={styles.strong}>
+                    {t("fridge.shelves.seeAllCount", { count: activeGroups.length })}
+                  </Text>
+                </Pressable>
+              </View>
+              <View style={styles.tiles}>
+                {categoryTiles.map((tile) => {
+                  const tone = categoryColors[toUiCategory(tile.category) as CategoryTone] ?? categoryColors.other;
+                  return (
+                    <Pressable
+                      key={tile.category}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${tile.label}, ${tile.detail}`}
+                      onPress={() => setView(tile.category)}
+                      style={({ pressed }) => [styles.tile, pressed && styles.savedRowPressed]}
+                    >
+                      <View style={[styles.tileIcon, { backgroundColor: tone.background }]}>
+                        <FoodGlyph name={CATEGORY_GLYPH[tile.category] ?? "egg"} color={tone.mark} size={22} />
+                      </View>
+                      <View style={styles.tileCopy}>
+                        <Text variant="label" numberOfLines={1} style={styles.strong}>
+                          {tile.label}
+                        </Text>
+                        <Text variant="small" muted numberOfLines={1}>
+                          {tile.detail}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+        </>
+      )}
 
       <ItemActionSheet
         group={actionGroup}
@@ -371,16 +479,6 @@ export default function FridgeRoute() {
         }}
         onRemove={async (group, reason) => {
           if (await runFridgeAction(() => removeGroup(group, reason))) setActionGroup(null);
-        }}
-      />
-
-      <FullShelfSheet
-        shelf={expandedShelf}
-        showAddedBy={showAddedBy}
-        onDismiss={() => setExpandedShelf(null)}
-        onItemPress={(group) => {
-          setExpandedShelf(null);
-          setActionGroup(group);
         }}
       />
 
@@ -420,24 +518,27 @@ export default function FridgeRoute() {
 function CategoryShelf({
   name,
   groups,
+  maxVisible,
   seeAllLabel,
-  expanded,
   showAddedBy,
+  statusLabels,
   onItemPress,
   onMorePress,
 }: {
   name: string;
   groups: InventoryGroup[];
-  seeAllLabel: string;
-  expanded?: boolean;
+  /** Rows before "See all"; omit to show every row. */
+  maxVisible?: number;
+  seeAllLabel?: string;
   showAddedBy: boolean;
+  statusLabels: Record<Urgency, string>;
   onItemPress: (group: InventoryGroup) => void;
-  onMorePress: () => void;
+  onMorePress?: () => void;
 }) {
   return (
     <FoodListCard
       title={name}
-      maxVisible={expanded ? undefined : 4}
+      maxVisible={maxVisible}
       seeAllLabel={seeAllLabel}
       items={groups.map((group) => ({
         id: group.key,
@@ -445,6 +546,7 @@ function CategoryShelf({
         category: toUiCategory(group.category),
         meta: getCardMetaLines(group.meta).join(" · "),
         urgency: toUiUrgency(group.urgency),
+        status: statusLabels[toUiUrgency(group.urgency)],
         addedBy: showAddedBy ? group.lots[0]?.added_by_name ?? null : null,
       }))}
       onItemPress={(item) => {
@@ -453,41 +555,6 @@ function CategoryShelf({
       }}
       onSeeAll={onMorePress}
     />
-  );
-}
-
-function FullShelfSheet({
-  shelf,
-  showAddedBy,
-  onDismiss,
-  onItemPress,
-}: {
-  shelf: { name: string; groups: InventoryGroup[] } | null;
-  showAddedBy: boolean;
-  onDismiss: () => void;
-  onItemPress: (group: InventoryGroup) => void;
-}) {
-  return (
-    <BottomSheet visible={Boolean(shelf)} onDismiss={onDismiss}>
-      <View style={styles.sheetContent}>
-        <Text variant="h2">{shelf?.name}</Text>
-        <ScrollView style={styles.fullShelfScroll} contentContainerStyle={styles.fullShelfGrid}>
-          {shelf?.groups.map((group) => (
-            <FoodCard
-              key={group.key}
-              name={group.name}
-              category={toUiCategory(group.category)}
-              meta={group.meta}
-              metaLines={getCardMetaLines(group.meta)}
-              urgency={toUiUrgency(group.urgency)}
-              addedBy={showAddedBy ? group.lots[0]?.added_by_name ?? null : null}
-              onPress={() => onItemPress(group)}
-              style={styles.fullShelfCard}
-            />
-          ))}
-        </ScrollView>
-      </View>
-    </BottomSheet>
   );
 }
 
@@ -1103,11 +1170,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.cardLine,
   },
-  kitchenSection: {
-    paddingHorizontal: spacing.screenX,
-    paddingTop: spacing.md,
-    gap: spacing.md,
-  },
   sectionHead: {
     flexDirection: "row",
     alignItems: "baseline",
@@ -1146,31 +1208,6 @@ const styles = StyleSheet.create({
   savedRowPressed: {
     opacity: 0.85,
   },
-  chipsRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.screenX,
-    paddingVertical: spacing.xs,
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    minHeight: 38,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.pill,
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-  },
-  chipLabel: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-  },
-  chipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
   header: {
     paddingHorizontal: spacing.screenX,
   },
@@ -1178,19 +1215,121 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: spacing.lg,
+    gap: spacing.md,
+  },
+  brand: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  premiumDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: colors.accent,
+  },
+  headerActions: {
+    flexShrink: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  // Same pill as the home's (recipes.tsx).
+  householdPill: {
+    flexShrink: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 5,
+    paddingLeft: 6,
+    paddingRight: spacing.md,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+  },
+  householdAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.sageTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  strong: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+  },
+  summary: {
+    marginTop: spacing.md,
+  },
+  searchWrap: {
+    paddingHorizontal: spacing.screenX,
+  },
+  clearButton: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.surface3,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  resultsHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingHorizontal: spacing.screenX,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  resultsCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  tilesSection: {
+    paddingHorizontal: spacing.screenX,
+    gap: spacing.sm,
+  },
+  tiles: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  tile: {
+    // Two per row: half the row minus half the gap.
+    width: "48.5%",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radii.xl,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+  },
+  tileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tileCopy: {
+    flex: 1,
+    minWidth: 0,
   },
   eyebrow: {
     fontFamily: fonts.bodyExtraBold,
     fontWeight: "800",
     letterSpacing: 0.66,
-  },
-  greeting: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 27,
-    lineHeight: 33,
-    marginTop: spacing.xxs,
   },
   refreshButton: {
     minHeight: 38,
@@ -1282,15 +1421,6 @@ const styles = StyleSheet.create({
   },
   fullShelfScroll: {
     maxHeight: 520,
-  },
-  fullShelfGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    paddingBottom: spacing.lg,
-  },
-  fullShelfCard: {
-    width: "31.5%",
   },
   checkSection: {
     gap: spacing.sm,

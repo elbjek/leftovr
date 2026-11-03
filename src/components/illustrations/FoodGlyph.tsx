@@ -8,6 +8,21 @@ type Props = {
   size?: number;
 };
 
+/** A food that stands for each inventory category, for category tiles. */
+export const CATEGORY_GLYPH: Record<string, string> = {
+  dairy_eggs: "milk",
+  meat: "meat",
+  fish: "fish",
+  vegetables: "carrot",
+  fruit: "apple",
+  bakery: "bread",
+  pantry: "rice",
+  frozen: "peas",
+  drinks: "milk",
+  snacks: "cheese",
+  other: "egg",
+};
+
 export function FoodGlyph({ name, color = colors.primary, size = 36 }: Props) {
   const n = name.toLowerCase();
   const common = {

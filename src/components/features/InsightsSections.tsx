@@ -2,27 +2,12 @@ import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "../../theme";
-import { FoodGlyph } from "../illustrations";
+import { CATEGORY_GLYPH, FoodGlyph } from "../illustrations";
 import { Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // The Insights tab's sections, TinyMeals-style: each answers one question
 // about your kitchen; with no data yet, the screen shows an EmptyNote instead.
-
-// A food group's icon: the category's tint and a food that stands for it.
-const CATEGORY_GLYPH: Record<string, string> = {
-  dairy_eggs: "milk",
-  meat: "meat",
-  fish: "fish",
-  vegetables: "carrot",
-  fruit: "apple",
-  bakery: "bread",
-  pantry: "rice",
-  frozen: "peas",
-  drinks: "milk",
-  snacks: "cheese",
-  other: "egg",
-};
 
 const tone = (category: string) => categoryColors[category.replace("_", "-") as CategoryTone] ?? categoryColors.other;
 

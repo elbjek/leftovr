@@ -12,6 +12,8 @@ export type FoodListItem = {
   meta: string;
   urgency?: Urgency;
   addedBy?: string | null;
+  /** TinyMeals-style status pill ("Use now"); without it a freshness dot. */
+  status?: string;
 };
 
 type Props = {
@@ -24,8 +26,9 @@ type Props = {
   onItemPress: (item: FoodListItem) => void;
 };
 
-// A shelf on the Kitchen home: small uppercase label, then a white card of
-// hairline-divided food rows (glyph tile, name, meta, freshness dot).
+// A shelf on the Kitchen home: small uppercase label, then a cream card of
+// hairline-divided food rows (round glyph tile, name, meta, status pill or
+// freshness dot).
 export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, onItemPress }: Props) {
   const visible = maxVisible ? items.slice(0, maxVisible) : items;
   const showSeeAll = Boolean(seeAllLabel && onSeeAll && visible.length < items.length);
@@ -71,7 +74,15 @@ export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, 
                   {item.addedBy ? `${item.meta} · ${item.addedBy}` : item.meta}
                 </Text>
               </View>
-              <View style={[styles.dot, { backgroundColor: urgencyColors[item.urgency ?? "safe"] }]} />
+              {item.status ? (
+                <View style={[styles.pill, { backgroundColor: PILL[item.urgency ?? "safe"].background }]}>
+                  <Text variant="micro" color={PILL[item.urgency ?? "safe"].ink} style={styles.pillLabel}>
+                    {item.status}
+                  </Text>
+                </View>
+              ) : (
+                <View style={[styles.dot, { backgroundColor: urgencyColors[item.urgency ?? "safe"] }]} />
+              )}
               <ChevronIcon />
             </Pressable>
           );
@@ -80,6 +91,13 @@ export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, 
     </View>
   );
 }
+
+const PILL: Record<Urgency, { background: string; ink: string }> = {
+  urgent: { background: colors.redSoft, ink: colors.redInk },
+  useSoon: { background: colors.accentSoft, ink: colors.accentInk },
+  safe: { background: colors.sageTint, ink: colors.primary },
+  expired: { background: colors.surface3, ink: colors.muted },
+};
 
 function ChevronIcon() {
   return (
@@ -130,7 +148,7 @@ const styles = StyleSheet.create({
   thumb: {
     width: 40,
     height: 40,
-    borderRadius: radii.md,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -143,6 +161,16 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyBold,
     fontWeight: "700",
     fontSize: 15,
+  },
+  pill: {
+    height: 24,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    justifyContent: "center",
+  },
+  pillLabel: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
   },
   dot: {
     width: 8,
