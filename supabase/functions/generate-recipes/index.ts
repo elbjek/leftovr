@@ -622,8 +622,8 @@ const SYSTEM_PROMPT = [
   "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
   "Expiring-first is a strong PREFERENCE, not a hard gate: the inventory is sorted most-urgent first, so prefer building each dish around the soonest-expiring items and include at least one whenever it fits a coherent dish. But never return empty or skip a good recipe just because the urgent items are awkward together — if they don't fit, cook a coherent dish from the rest of the inventory. A coherent dish that ignores the urgent items beats no dish at all.",
   "Do NOT force multiple expiring items into one dish. Combine two or more expiring items only when they genuinely belong together in the same dish; if they don't make sense together, build a coherent dish around just one and leave the rest for another suggestion. Coherence always wins over cramming — one expiring item used well beats several jammed into a dish that no one would actually cook.",
-  "Missing-ingredient cap: beyond common pantry staples (oil, salt, pepper, common dried spices, basic condiments), a dish may rely on AT MOST 3 key ingredients the household does NOT have. If a dish would need more than 3 missing key ingredients, do not propose it — choose something the household can mostly make from what it has.",
-  "Ingredient names must match household item names where used; mark required=true only for ingredients taken from what the household has. Pantry staples (oil, salt, garlic, spices) are required=false.",
+  "MAKEABLE (hard rule): only propose dishes the household can make right now. Every essential ingredient — one the dish cannot be made without (flour in pancakes, pasta in a pasta dish, rice in fried rice) — must be in the household list, except these basic staples, which you may assume: water, salt, pepper, cooking oil, common dried herbs and spices. Optional extras (garnish, toppings, a squeeze of lemon) may be missing. If a dish needs an essential the household lacks, do not propose it; pick one it can make.",
+  "Ingredient names must match household item names where used. required=true for every essential ingredient, whether or not the household has it; required=false only for optional extras (garnish, toppings, finishing touches) and the basic staples (water, salt, pepper, cooking oil, common dried herbs and spices). Never mark an essential false because it is missing: flour in pancakes is always required=true.",
   "Ingredient amounts: for whole produce and naturally-countable items, use counts and set countable=true — e.g. '1 large onion', '2 tomatoes', '3 eggs', '1 bell pepper', '2 slices bread'. For ingredients genuinely sold and measured by weight or volume, use g/ml/kg/L and set countable=false — e.g. '400g minced meat', '200g rice', '150g cheddar', '100ml milk'. Never express a whole vegetable or fruit in grams, and never express meat, grains, or liquids as a bare count.",
   "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",
   "Respect the prompt filters: matching mealType, timeMinutes within max time, and include the vibe/tag in tags when one is set.",
@@ -844,7 +844,7 @@ async function handleCards(
   client: Anthropic,
   recentTitles: string[],
 ): Promise<Response> {
-  const wantCount = gate.premium === true ? 2 : 1;
+  const wantCount = gate.premium === true ? 3 : 1;
   const inventory = input.inventory ?? [];
   const itemsById = new Map<string, InventoryItem>(
     inventory.filter((item) => item.id).map((item) => [item.id as string, item]),
@@ -999,8 +999,8 @@ function buildCardMessages(
     input.filters?.basePreference && input.filters.basePreference !== "anything"
       ? `- build around: ${input.filters.basePreference} — a guide, not a hard constraint. Fall back to the best coherent recipe if the base does not fit. Never sacrifice coherence for the base.`
       : "- build around: anything",
-    wantCount === 2
-      ? "Return EXACTLY 2 recipe cards that are genuinely different dishes (different main technique or cuisine; neither a variant of the other). If only one coherent dish exists, return 1. If none, return an empty array."
+    wantCount > 1
+      ? `Return EXACTLY ${wantCount} recipe cards that are genuinely different dishes (different main technique or cuisine; none a variant of another). If fewer coherent dishes exist, return only those. If none, return an empty array.`
       : "Return EXACTLY 1 recipe card: your most confident coherent pick. If none is coherent, return an empty array.",
     "These are lightweight cards: title, one-sentence description, usedIngredientIds, tags (max 3), mealType, category (course type e.g. main/salad/breakfast), and timeMinutes. Do NOT write steps or ingredient amounts.",
     "usedIngredientIds MUST be ids copied verbatim from the inventory list above, only for items the dish actually uses.",
@@ -1086,7 +1086,8 @@ async function handleExpand(
 // chosen, and including them costs reasoning + latency for no benefit.
 const EXPAND_SYSTEM_PROMPT = [
   "You write the full ingredient list and steps for a dish that has ALREADY been chosen. Keep the dish as given; do not change it.",
-  "Ingredient names should match household item names where used. required=true only for items taken from the fridge; required=false for pantry staples (oil, salt, garlic, spices).",
+  "Ingredient names should match household item names where used. required=true for every essential ingredient (the dish fails without it), whether or not the household has it; required=false only for optional extras (garnish, toppings, finishing touches) and basic staples (water, salt, pepper, cooking oil, common dried herbs and spices). Never mark an essential false because it is missing: flour in pancakes is always required=true.",
+  "Build the recipe from what the household has: every essential ingredient should come from the household list or the basic staples. Leave optional extras out rather than adding things the household would have to buy.",
   "matchKey: for an ingredient taken from the household, copy that item's canonical name EXACTLY as written in parentheses in the household list (never translated or reworded); null for anything not from the household list.",
   "Ingredient amounts: counts for whole/countable produce (e.g. '2 tomatoes', '3 eggs'); weight or volume otherwise (e.g. '400g rice', '100ml milk').",
   "Write steps for a beginner cook: cooking steps (stove/oven) name the heat level, pan or pot size where relevant, a time estimate, and a doneness cue. Prep and assembly steps just state the action — never write \"no heat\" or a heat level for them.",

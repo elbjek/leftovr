@@ -221,9 +221,8 @@ export function useRecipes(
             setState((s) => ({ ...s, generating: false, error: t("recipes.generationFailed") }));
             return null;
           }
-          // Premium sees two distinct options; free gets the single best pick
-          // (fewer cards also keeps complex generations fast).
-          const candidates = matches.slice(0, isPremium ? 2 : 1);
+          // Premium sees three distinct options; free gets the single best pick.
+          const candidates = matches.slice(0, isPremium ? 3 : 1);
 
           // Drop recipes that use the same fridge lots as one saved in a past
           // generation, or duplicated across this run's premium variants — so

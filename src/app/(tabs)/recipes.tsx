@@ -69,7 +69,6 @@ export default function RecipesRoute() {
     refresh: refreshRecipes,
     generateSession,
     toggleFavorite,
-    currentSessionId,
     cookedSummaries,
     lastCookedAt,
     quotaExceeded,
@@ -180,7 +179,6 @@ export default function RecipesRoute() {
   // today's last batch read back from the saved recipes (no new AI call).
   const restoredTonight = hasSuggestions ? [] : latestGeneratedBatch(savedRecipes, profile?.id);
   const hasTonight = hasSuggestions || restoredTonight.length > 0;
-  const tonightSessionId = hasSuggestions ? currentSessionId : restoredTonight[0]?.session_id ?? null;
   const fridgeEmpty = inventory.length === 0;
   // Soonest to go off first — the same foods Kitchen's Eat first shelf lists.
   const urgentGroups = inventoryGroups
@@ -290,7 +288,6 @@ export default function RecipesRoute() {
   const seen = new Set<string>();
   const listRecipes = [...savedRecipes, ...cookedRecipes].filter((recipe) => {
     if (seen.has(recipe.id) || recipe.id === dish?.row?.id) return false;
-    if (hasTonight && tonightSessionId && recipe.session_id === tonightSessionId) return false;
     seen.add(recipe.id);
     return true;
   });
