@@ -28,12 +28,14 @@ type Props = {
   onItemPress: (item: FoodListItem) => void;
   /** A last row inside the card (e.g. "Cook with these first"). */
   footer?: { label: string; onPress: () => void };
+  /** Shown as the card's only row when there are no items (a green "all good"). */
+  emptyText?: string;
 };
 
 // A shelf on the Kitchen home: small uppercase label, then a cream card of
 // hairline-divided food rows (round glyph tile, name, meta, status pill or
 // freshness dot).
-export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, onItemPress, footer }: Props) {
+export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, onItemPress, footer, emptyText }: Props) {
   const visible = maxVisible ? items.slice(0, maxVisible) : items;
   const showSeeAll = Boolean(seeAllLabel && onSeeAll && visible.length < items.length);
 
@@ -57,6 +59,18 @@ export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, 
       </View>
 
       <View style={styles.card}>
+        {items.length === 0 && emptyText ? (
+          <View style={[styles.row, styles.empty]}>
+            <View style={styles.emptyCheck}>
+              <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                <Path d="M5.5 12.5l4.2 4.2 8.8-9.4" stroke={colors.primary} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            </View>
+            <Text variant="small" color={colors.primary} style={[styles.copy, styles.seeAll]}>
+              {emptyText}
+            </Text>
+          </View>
+        ) : null}
         {visible.map((item, index) => {
           const tone = categoryColors[(item.category as CategoryTone)] ?? categoryColors.other;
           return (
@@ -100,7 +114,7 @@ export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, 
             </Pressable>
           );
         })}
-        {footer ? (
+        {footer && items.length > 0 ? (
           <Pressable
             accessibilityRole="button"
             onPress={footer.onPress}
@@ -186,6 +200,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 22,
     color: colors.text,
+  },
+  empty: {
+    minHeight: 56,
+  },
+  emptyCheck: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.sageTint,
+    alignItems: "center",
+    justifyContent: "center",
   },
   footer: {
     minHeight: 52,

@@ -300,6 +300,7 @@ export const en = {
     eatFirstCount: "{{count}} items",
     eatFirstMore: "+{{count}}",
     eatFirstCook: "Cook with these first",
+    useSoonEmpty: "Nothing needs using soon. Everything's fresh.",
     eatFirstPreviewTitle: "Eat First preview",
     eatFirstPreviewBody: "Unlock a ranked shelf of what is best eaten soon.",
     eatFirstUnlock: "Unlock",

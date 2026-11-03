@@ -354,12 +354,13 @@ export default function FridgeRoute() {
               like TinyMeals' Try next, or (free) the eat-first upsell. */}
           {groups.length > 0 ? <View style={styles.pulseWrap}><View style={styles.pulseCard}>{kitchenPulse}</View></View> : null}
 
-          {isPremium && useSoonGroups.length > 0 ? (
+          {isPremium && groups.length > 0 ? (
             <FoodListCard
               title={t("fridge.shelves.useSoon")}
               maxVisible={3}
               seeAllLabel={t("fridge.shelves.seeAllCount", { count: useSoonGroups.length })}
               onSeeAll={() => setView("soon")}
+              emptyText={t("fridge.useSoonEmpty")}
               items={useSoonGroups.map((group) => {
                 const today = new Date();
                 const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + Math.max(0, groupDaysLeft(group)));

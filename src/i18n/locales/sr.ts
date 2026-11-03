@@ -304,6 +304,7 @@ export const sr = {
     eatFirstCount: "{{count}} stavke",
     eatFirstMore: "+{{count}}",
     eatFirstCook: "Skuvaj od ovoga",
+    useSoonEmpty: "Ništa ne treba uskoro iskoristiti. Sve je sveže.",
     eatFirstPreviewTitle: "Pregled za prvo pojesti",
     eatFirstPreviewBody: "Otkljucaj rangiranu policu stvari koje su najbolje uskoro.",
     eatFirstUnlock: "Otkljucaj",
