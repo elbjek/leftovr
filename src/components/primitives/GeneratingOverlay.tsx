@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, Animated, Easing, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, spacing } from "../../theme";
+import { colors, fonts, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations/FoodGlyph";
 import { Text } from "./Text";
 
@@ -99,7 +100,11 @@ export function GeneratingLoader({ size = 150 }: GeneratingLoaderProps) {
 }
 
 type GeneratingOverlayProps = {
+  /** Small label over the title ("New ideas"). */
+  eyebrow: string;
   title: string;
+  /** Label over the placeholder cards ("Ideas for tonight"). */
+  listLabel: string;
   /** Ordered pipeline steps; each lights up then completes as work proceeds. */
   steps: string[];
 };
@@ -107,12 +112,14 @@ type GeneratingOverlayProps = {
 type StepState = "pending" | "active" | "done";
 
 /**
- * Full-screen loading state for AI recipe generation: the brand hero loader
- * over an animated step checklist. Steps advance pending → active → done on a
+ * Full-screen loading state for AI recipe generation, TinyMeals-style: an
+ * eyebrow and title, the step checklist in one card, then placeholder cards
+ * where the ideas will land. Steps advance pending → active → done on a
  * timer (perceived progress), holding the last step until the overlay
  * unmounts. Honors the system reduce-motion setting.
  */
-export function GeneratingOverlay({ title, steps }: GeneratingOverlayProps) {
+export function GeneratingOverlay({ eyebrow, title, listLabel, steps }: GeneratingOverlayProps) {
+  const insets = useSafeAreaInsets();
   const [reduceMotion, setReduceMotion] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [screenOpacity] = useState(() => new Animated.Value(0));
@@ -152,21 +159,31 @@ export function GeneratingOverlay({ title, steps }: GeneratingOverlayProps) {
       accessibilityLabel={`${title}. ${steps[activeStep] ?? ""}`}
       accessibilityLiveRegion="polite"
     >
-      <GeneratingLoader size={112} />
-      <Text variant="h2" center style={styles.title}>
-        {title}
-      </Text>
-      <View style={styles.steps}>
-        {steps.map((label, i) => (
-          <StepRow
-            key={i}
-            label={label}
-            index={i}
-            state={i < activeStep ? "done" : i === activeStep ? "active" : "pending"}
-            reduceMotion={reduceMotion}
-          />
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]} scrollEnabled={false}>
+        <Text variant="micro" uppercase muted style={styles.eyebrow}>
+          {eyebrow}
+        </Text>
+        <Text variant="h1" style={styles.title}>
+          {title}
+        </Text>
+        <View style={styles.steps}>
+          {steps.map((label, i) => (
+            <StepRow
+              key={i}
+              label={label}
+              index={i}
+              state={i < activeStep ? "done" : i === activeStep ? "active" : "pending"}
+              reduceMotion={reduceMotion}
+            />
+          ))}
+        </View>
+        <Text variant="micro" uppercase muted style={[styles.eyebrow, styles.listLabel]}>
+          {listLabel}
+        </Text>
+        {[0, 1, 2].map((i) => (
+          <SkeletonCard key={i} index={i} reduceMotion={reduceMotion} />
         ))}
-      </View>
+      </ScrollView>
     </Animated.View>
   );
 }
@@ -219,7 +236,7 @@ function StepRow({
   const ringOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.45, 0] });
 
   return (
-    <Animated.View style={[styles.stepRow, !reduceMotion && enterStyle]}>
+    <Animated.View style={[styles.stepRow, index === 0 && styles.stepFirst, !reduceMotion && enterStyle]}>
       <View style={styles.indicator}>
         {state === "done" ? (
           <View style={styles.dotDone}>
@@ -245,6 +262,36 @@ function StepRow({
   );
 }
 
+// A grey stand-in for a recipe card, breathing while the ideas are written.
+function SkeletonCard({ index, reduceMotion }: { index: number; reduceMotion: boolean }) {
+  const [pulse] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (reduceMotion) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 900, delay: index * 150, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [index, pulse, reduceMotion]);
+  const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [1 - index * 0.2, 0.55 - index * 0.12] });
+  return (
+    <Animated.View style={[styles.skeleton, { opacity }]}>
+      <View style={styles.skeletonTile} />
+      <View style={styles.skeletonCopy}>
+        <View style={[styles.skeletonLine, { width: "70%" }]} />
+        <View style={[styles.skeletonLine, styles.skeletonShort]} />
+        <View style={styles.skeletonPills}>
+          <View style={styles.skeletonPill} />
+          <View style={[styles.skeletonPill, { width: 46 }]} />
+        </View>
+      </View>
+    </Animated.View>
+  );
+}
+
 function CheckMark() {
   return (
     <Svg width={13} height={13} viewBox="0 0 16 16" fill="none">
@@ -260,11 +307,60 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
     backgroundColor: colors.appBackground,
-    paddingHorizontal: spacing.screenX,
     zIndex: 50,
+  },
+  content: {
+    paddingHorizontal: spacing.screenX,
+    paddingBottom: spacing.xxl,
+  },
+  eyebrow: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    letterSpacing: 0.66,
+  },
+  listLabel: {
+    marginTop: spacing.xxl,
+    marginBottom: spacing.sm,
+  },
+  skeleton: {
+    flexDirection: "row",
+    gap: spacing.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.paper,
+  },
+  skeletonTile: {
+    width: 64,
+    height: 64,
+    borderRadius: radii.lg,
+    backgroundColor: colors.surface2,
+  },
+  skeletonCopy: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 8,
+  },
+  skeletonLine: {
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.surface2,
+  },
+  skeletonShort: {
+    width: "45%",
+  },
+  skeletonPills: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  skeletonPill: {
+    width: 58,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.sageSoft,
   },
   hero: {
     alignItems: "center",
@@ -280,17 +376,26 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   title: {
-    marginTop: spacing.xl,
-    marginBottom: spacing.xl,
+    marginTop: spacing.xs,
+    marginBottom: spacing.lg,
   },
   steps: {
-    alignSelf: "center",
-    gap: spacing.lg,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.paper,
+    paddingHorizontal: spacing.lg,
   },
   stepRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+    minHeight: 56,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
+  },
+  stepFirst: {
+    borderTopWidth: 0,
   },
   indicator: {
     width: 26,

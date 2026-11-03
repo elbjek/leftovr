@@ -1,9 +1,9 @@
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, GeneratingOverlay, Logo, PremiumSheet, RecipeCard, RecipeGlyph, SavedRecipeRow, ScanIcon, Screen, Text, WeekStrip } from "@/components";
+import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, Text, TryNextCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -18,6 +18,15 @@ import {
 } from "@/services/recipeService";
 import { availableBaseOptions, DAILY_GOAL, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory } from "@/services";
 import { colors, fonts, radii, spacing } from "@/theme";
+
+type ListFilter = "all" | "soon" | "quick" | "saved" | "cooked";
+const LIST_FILTERS: ListFilter[] = ["all", "soon", "quick", "saved", "cooked"];
+// Cards on the home before "Browse all recipes".
+const LIST_LIMIT = 6;
+
+function capitalize(name: string) {
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
 
 export default function RecipesRoute() {
   const { t } = useTranslation();
@@ -35,6 +44,9 @@ export default function RecipesRoute() {
   const [generateNotice, setGenerateNotice] = useState<string | null>(null);
   const [lastFilters, setLastFilters] = useState<CookFilters | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
+  // A finished generation opens the "N ideas" view (TinyMeals-style); Back returns home.
+  const [ideasOpen, setIdeasOpen] = useState(false);
+  const [listFilter, setListFilter] = useState<ListFilter>("all");
 
   const showCookingMode = members.length >= 2;
   const activeAvoidances = cookingMode === "household" ? combinedAvoidances : userAvoidances;
@@ -118,6 +130,7 @@ export default function RecipesRoute() {
     setLastFilters(filters);
     const result = await generateSession(cookingMode, filters);
     setGenerateNotice(result && result.recipes.length === 0 ? t("recipes.noMakeable") : null);
+    if (result && result.recipes.length > 0) setIdeasOpen(true);
   }, [canGenerate, cookingMode, generateSession, t]);
 
   // "Show me others": regenerate with the last-used filters, skipping the
@@ -162,29 +175,12 @@ export default function RecipesRoute() {
     [savedRecipes],
   );
 
-  const memberName = useCallback(
-    (id: string | null) =>
-      id === profile?.id
-        ? t("settings.household.you")
-        : members.find((m) => m.user_id === id)?.display_name ?? "?",
-    [members, profile?.id, t],
-  );
-
-  const myRecipes = savedRecipes.filter((r) => r.generated_by === profile?.id);
-  // is_favorite is overlaid per current user in useRecipes, so this is "my favorites".
-  const favoriteRecipes = savedRecipes.filter((r) => r.is_favorite);
-  const hasOwnRecipes = myRecipes.length > 0 || cookedRecipes.length > 0;
   const hasSuggestions = suggestions.length > 0;
   // Tonight's picks: this session's fresh generation, or — after a restart —
   // today's last batch read back from the saved recipes (no new AI call).
   const restoredTonight = hasSuggestions ? [] : latestGeneratedBatch(savedRecipes, profile?.id);
   const hasTonight = hasSuggestions || restoredTonight.length > 0;
   const tonightSessionId = hasSuggestions ? currentSessionId : restoredTonight[0]?.session_id ?? null;
-  // Rows backing tonight's picks are skipped in the shelves so they don't
-  // appear twice on screen.
-  const listedMyRecipes = hasTonight && tonightSessionId
-    ? myRecipes.filter((r) => r.session_id !== tonightSessionId)
-    : myRecipes;
   const fridgeEmpty = inventory.length === 0;
   // Soonest to go off first — the same foods Kitchen's Eat first shelf lists.
   const urgentGroups = inventoryGroups
@@ -227,6 +223,8 @@ export default function RecipesRoute() {
         minutes: suggestions[0].timeMinutes,
         complexity: suggestions[0].complexity,
         ingredients: suggestions[0].ingredients as unknown,
+        steps: suggestions[0].steps as unknown,
+        row: savedForMatch(suggestions[0]),
         open: () => navigateToDetail(suggestions[0], savedForMatch(suggestions[0])?.id),
       }
     : (() => {
@@ -238,6 +236,8 @@ export default function RecipesRoute() {
               minutes: row.time_minutes ?? 20,
               complexity: row.complexity ?? "simple",
               ingredients: row.ingredients,
+              steps: row.steps,
+              row,
               open: () => openSavedRecipe(row),
             }
           : null;
@@ -261,31 +261,97 @@ export default function RecipesRoute() {
           ? t("recipes.week.goalKeep", { count: streak })
           : t("recipes.week.goalStart");
   const lastFrozen = [...week].reverse().find((day) => day.state === "frozen");
-  // "Cook again" hero: the recipe you've returned to most (favorites break ties).
-  const cookAgainPick = [...listedMyRecipes]
-    .filter((r) => (cookedSummaries[r.id]?.count ?? 0) > 0)
+  // Foods worth using now (today or soon), by normalized name — they lead the
+  // hero's chips and the list's "Uses: …" badges.
+  const soonNames = new Set(
+    inventoryGroups.filter((group) => group.urgency === "urgent" || group.urgency === "use_soon").map((group) => normalizeFoodName(group.name)),
+  );
+  const haveOf = (ingredients: unknown) =>
+    parseRecipeIngredients(ingredients).filter((ing) => inventoryNames.has(normalizeFoodName(ing.name)));
+  const soonOf = (ingredients: unknown) => haveOf(ingredients).filter((ing) => soonNames.has(normalizeFoodName(ing.name)));
+
+  // Try next: tonight's dish, the foods you have for it (soon ones first) and why it fits.
+  const dishHave = dish ? haveOf(dish.ingredients) : [];
+  const dishSoon = dish ? soonOf(dish.ingredients) : [];
+  const dishChips = [...dishSoon, ...dishHave.filter((ing) => !dishSoon.includes(ing))].slice(0, 6).map((ing) => ({
+    label: capitalize(ing.name),
+    tag: dishSoon.includes(ing) ? t("recipes.tryNext.soonTag") : undefined,
+  }));
+  const dishSteps = dish && Array.isArray(dish.steps) ? dish.steps.length : 0;
+  const dishWhy = dish
+    ? dishSoon.length > 0
+      ? t("recipes.tryNext.whySoon", { foods: dishSoon.slice(0, 2).map((ing) => ing.name).join(" & ") })
+      : dishCoverage && dishCoverage.total > 0
+        ? t("recipes.tryNext.whyHave", { have: dishCoverage.have, total: dishCoverage.total })
+        : undefined
+    : undefined;
+
+  // The list under it, TinyMeals' "More for you": every recipe you have, with chips.
+  const seen = new Set<string>();
+  const listRecipes = [...savedRecipes, ...cookedRecipes].filter((recipe) => {
+    if (seen.has(recipe.id) || recipe.id === dish?.row?.id) return false;
+    if (hasTonight && tonightSessionId && recipe.session_id === tonightSessionId) return false;
+    seen.add(recipe.id);
+    return true;
+  });
+  const cookedCount = (recipe: RecipeRow) => cookedSummaries[recipe.id]?.count ?? recipe.cooked_count ?? 0;
+  const matchesFilter = (recipe: RecipeRow, filter: ListFilter) =>
+    filter === "all"
+      ? true
+      : filter === "soon"
+        ? soonOf(recipe.ingredients).length > 0
+        : filter === "quick"
+          ? (recipe.time_minutes ?? 99) <= 20
+          : filter === "saved"
+            ? recipe.is_favorite
+            : cookedCount(recipe) > 0;
+  const filters = LIST_FILTERS.filter((filter) => filter === "all" || listRecipes.some((recipe) => matchesFilter(recipe, filter)));
+  const activeFilter = filters.includes(listFilter) ? listFilter : "all";
+  const filteredList = listRecipes
+    .filter((recipe) => matchesFilter(recipe, activeFilter))
+    // Recipes using what's going off lead, then the ones you have most of.
+    .map((recipe) => ({ recipe, soon: soonOf(recipe.ingredients), coverage: fridgeCoverage(recipe.ingredients, inventoryNames) }))
     .sort(
       (a, b) =>
-        (cookedSummaries[b.id]?.count ?? 0) - (cookedSummaries[a.id]?.count ?? 0) ||
-        Number(b.is_favorite) - Number(a.is_favorite),
-    )[0];
-  const cookAgainCoverage = cookAgainPick
-    ? fridgeCoverage(cookAgainPick.ingredients, inventoryNames)
-    : null;
+        b.soon.length - a.soon.length ||
+        (b.coverage.total ? b.coverage.have / b.coverage.total : 0) - (a.coverage.total ? a.coverage.have / a.coverage.total : 0),
+    );
+  const badgeFor = ({ recipe, soon }: (typeof filteredList)[number]) =>
+    soon.length > 0
+      ? { label: t("recipes.list.uses", { food: soon[0].name }), accent: true }
+      : recipe.is_favorite
+        ? { label: t("recipes.list.saved"), accent: false }
+        : cookedCount(recipe) > 0
+          ? { label: t("recipes.list.cooked", { count: cookedCount(recipe) }), accent: false }
+          : (recipe.time_minutes ?? 99) <= 20
+            ? { label: t("recipes.list.quick"), accent: false }
+            : { label: t("recipes.list.recipe"), accent: false };
 
-  const memberCount = members.length;
-  const renderSavedRow = (recipe: RecipeRow) => (
-    <SavedRecipeRow
-      key={recipe.id}
-      recipe={recipe}
-      onPress={() => openSavedRecipe(recipe)}
-      onFavorite={() => toggleFavorite(recipe.id, recipe.is_favorite)}
-      cookedSummary={cookedSummaries[recipe.id]}
-      memberCount={memberCount}
-      memberName={memberName}
-      inventoryNames={inventoryNames}
-    />
-  );
+  // The "N ideas" view: this generation's picks (or today's, read back after a restart).
+  const coveragePill = (ingredients: unknown) => {
+    const coverage = fridgeCoverage(ingredients, inventoryNames);
+    if (coverage.total === 0) return undefined;
+    return coverage.have === coverage.total
+      ? t("recipes.home.haveAll")
+      : t("recipes.home.haveSome", { have: coverage.have, total: coverage.total });
+  };
+  const ideas = hasSuggestions
+    ? suggestions.map((match) => ({
+        key: match.key,
+        title: match.title,
+        meta: [formatTimeLabel(match.timeMinutes), formatComplexity(match.complexity)].join(" · "),
+        description: match.description,
+        pill: coveragePill(match.ingredients),
+        onPress: () => navigateToDetail(match, savedForMatch(match)?.id),
+      }))
+    : restoredTonight.map((recipe) => ({
+        key: recipe.id,
+        title: recipe.title,
+        meta: [formatTimeLabel(recipe.time_minutes ?? 20), formatComplexity(recipe.complexity ?? "simple")].join(" · "),
+        description: recipe.description ?? undefined,
+        pill: coveragePill(recipe.ingredients),
+        onPress: () => openSavedRecipe(recipe),
+      }));
 
   if (loading) {
     return (
@@ -297,6 +363,20 @@ export default function RecipesRoute() {
 
   return (
     <Screen padded={false} bottomInset={false}>
+      {ideasOpen && hasTonight ? (
+        <IdeasResults
+          title={t("recipes.ideas.title", { count: ideas.length })}
+          subtitle={t("recipes.ideas.subtitle")}
+          backLabel={t("recipes.ideas.back")}
+          onBack={() => setIdeasOpen(false)}
+          bestLabel={t("recipes.ideas.best")}
+          viewLabel={t("recipes.ideas.view")}
+          othersLabel={t("recipes.ideas.others")}
+          ideas={ideas}
+          moreLabel={t("recipes.ideas.more")}
+          onMore={handleShowOthers}
+        />
+      ) : (
       <ScrollView
         style={styles.listScroll}
         contentContainerStyle={styles.listContent}
@@ -364,30 +444,41 @@ export default function RecipesRoute() {
           />
         </View>
 
-        {/* Recipes are the home: tonight's dish when there is one, the question when there isn't. */}
+        {/* Recipes are the home: tonight's dish as TinyMeals' "Try next" when
+            there is one, the question when there isn't. */}
         <View style={styles.heroWrap}>
           {dish && dishCoverage ? (
-            <DinnerHero
-              eyebrow={t("recipes.home.tonightEyebrow")}
-              title={dish.title}
-              body={generateNotice ?? dish.description ?? undefined}
-              meta={[
-                formatTimeLabel(dish.minutes),
-                formatComplexity(dish.complexity),
-                dishCoverage.have === dishCoverage.total
-                  ? t("recipes.home.haveAll")
-                  : t("recipes.home.haveSome", { have: dishCoverage.have, total: dishCoverage.total }),
-              ].join(" • ")}
-              media={<RecipeGlyph size={48} />}
-              ctaLabel={t("recipes.home.cookThis")}
-              loading={generating}
-              onPress={dish.open}
-              secondary={{
-                prefix: t("recipes.home.notFeelingIt"),
-                label: hasTonight ? t("recipes.showOthers") : t("recipes.home.moreIdeas"),
-                onPress: hasTonight ? handleShowOthers : openCookPrompt,
-              }}
-            />
+            <>
+              <Text variant="micro" muted uppercase style={[styles.eyebrow, styles.cookAgainLabel]}>
+                {t("recipes.tryNext.title")}
+              </Text>
+              <TryNextCard
+                eyebrow={hasTonight ? t("recipes.tryNext.tonight") : t("recipes.tryNext.fromYours")}
+                title={dish.title}
+                meta={[formatTimeLabel(dish.minutes), formatComplexity(dish.complexity)].join(" · ")}
+                description={generateNotice ?? dish.description}
+                ingredientsLabel={t("recipes.tryNext.youHave")}
+                stepsLabel={dishSteps > 0 ? t("recipes.tryNext.steps", { count: dishSteps }) : undefined}
+                ingredients={dishChips}
+                why={dishWhy}
+                favorite={dish.row?.is_favorite}
+                favoriteLabel={t("recipes.list.favorite")}
+                onFavorite={dish.row ? () => toggleFavorite(dish.row!.id, dish.row!.is_favorite) : undefined}
+                onPress={dish.open}
+              />
+              <Pressable
+                accessibilityRole="button"
+                onPress={hasTonight ? () => setIdeasOpen(true) : openCookPrompt}
+                style={({ pressed }) => [styles.moreIdeas, pressed && styles.savedRowPressed]}
+              >
+                <Text variant="small" muted>
+                  {t("recipes.home.notFeelingIt")}{" "}
+                  <Text variant="small" color={colors.primary} style={styles.metaStrong}>
+                    {hasTonight ? t("recipes.tryNext.seeIdeas") : t("recipes.home.moreIdeas")}
+                  </Text>
+                </Text>
+              </Pressable>
+            </>
           ) : (
             <DinnerHero
               eyebrow={t("recipes.home.eyebrow")}
@@ -407,54 +498,6 @@ export default function RecipesRoute() {
             />
           )}
         </View>
-
-        {hasTonight && (hasSuggestions ? suggestions.length : restoredTonight.length) > 1 ? (
-          <View style={styles.sectionBlock}>
-            <Text variant="micro" muted uppercase style={[styles.eyebrow, styles.cookAgainLabel]}>
-              {t("recipes.home.alsoTonight")}
-            </Text>
-            <View style={styles.alsoTonight}>
-              {hasSuggestions
-                ? suggestions.slice(1).map((match) => {
-                    const savedRecipe = savedForMatch(match);
-                    return (
-                      <RecipeCard
-                        key={match.key}
-                        title={match.title}
-                        timeLabel={formatTimeLabel(match.timeMinutes)}
-                        complexityLabel={formatComplexity(match.complexity)}
-                        usedItems={match.matchedItems.filter((m) => m.inFridge).map((m) => m.ingredientName)}
-                        usesLabel={t("recipes.uses")}
-                        favorite={savedRecipe?.is_favorite}
-                        favoriteLabel="★"
-                        cookedLabel={savedRecipe?.cooked_count ? t("recipes.cooked.count", { count: savedRecipe.cooked_count }) : undefined}
-                        newLabel={t("recipes.newBadge")}
-                        onPress={() => navigateToDetail(match, savedRecipe?.id)}
-                      />
-                    );
-                  })
-                : restoredTonight.slice(1).map((recipe) => (
-                    <RecipeCard
-                      key={recipe.id}
-                      title={recipe.title}
-                      timeLabel={formatTimeLabel(recipe.time_minutes ?? 20)}
-                      complexityLabel={formatComplexity(recipe.complexity ?? "simple")}
-                      usedItems={parseRecipeIngredients(recipe.ingredients)
-                        .map((ing) => ing.name)
-                        .filter((name) => inventoryNames.has(normalizeFoodName(name)))}
-                      usesLabel={t("recipes.uses")}
-                      favorite={recipe.is_favorite}
-                      favoriteLabel="★"
-                      cookedLabel={recipe.cooked_count ? t("recipes.cooked.count", { count: recipe.cooked_count }) : undefined}
-                      onPress={() => openSavedRecipe(recipe)}
-                    />
-                  ))}
-            </View>
-          </View>
-        ) : null}
-
-
-
 
         {recipeError ? (
           <View style={styles.errorBanner}>
@@ -484,82 +527,64 @@ export default function RecipesRoute() {
           </View>
         ) : null}
 
-        {cookAgainPick && cookAgainCoverage ? (
+        {listRecipes.length > 0 ? (
           <View style={styles.sectionBlock}>
-            <Text variant="micro" muted uppercase style={[styles.eyebrow, styles.cookAgainLabel]}>
-              {t("recipes.cookAgain.title")}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => openSavedRecipe(cookAgainPick)}
-              style={({ pressed }) => [styles.cookAgainCard, pressed && styles.savedRowPressed]}
-            >
-              <View style={styles.cookAgainThumb}>
-                <RecipeGlyph size={48} />
-                <View style={styles.cookAgainCountBadge}>
-                  <Text variant="micro" color={colors.accentInk} style={styles.cookAgainCountText}>
-                    {cookedSummaries[cookAgainPick.id]?.count ?? 0}×
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.cookAgainCopy}>
-                <View>
-                  <Text variant="micro" color={colors.accentInk} uppercase style={styles.eyebrow}>
-                    {t("recipes.cookAgain.eyebrow")}
-                  </Text>
-                  <Text style={styles.cookAgainTitle} numberOfLines={2}>
-                    {cookAgainPick.title}
-                  </Text>
-                </View>
-                <View style={styles.inlineMeta}>
-                  <View style={styles.metaDot} />
-                  <Text variant="small" color={colors.primary} style={styles.metaStrong}>
-                    {cookAgainPick.time_minutes ?? 20} min · {t("recipes.cookAgain.items", {
-                      have: cookAgainCoverage.have,
-                      total: cookAgainCoverage.total,
-                    })}
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
+            <View style={styles.listHead}>
+              <Text variant="micro" muted uppercase style={styles.eyebrow}>
+                {t("recipes.list.title")}
+              </Text>
+              <Text variant="small" muted>
+                {t("recipes.list.count", { count: filteredList.length })}
+              </Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+              {filters.map((filter) => (
+                <FilterChip
+                  key={filter}
+                  label={t(`recipes.list.filters.${filter}`)}
+                  active={filter === activeFilter}
+                  onPress={() => setListFilter(filter)}
+                />
+              ))}
+            </ScrollView>
+            <View style={styles.listCards}>
+              {filteredList.slice(0, LIST_LIMIT).map((entry) => {
+                const badge = badgeFor(entry);
+                return (
+                  <RecipeListCard
+                    key={entry.recipe.id}
+                    badge={badge.label}
+                    badgeAccent={badge.accent}
+                    title={entry.recipe.title}
+                    meta={[
+                      formatTimeLabel(entry.recipe.time_minutes ?? 20),
+                      entry.coverage.total > 0 ? t("recipes.list.have", { have: entry.coverage.have, total: entry.coverage.total }) : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                    favorite={entry.recipe.is_favorite}
+                    favoriteLabel={t("recipes.list.favorite")}
+                    onFavorite={() => toggleFavorite(entry.recipe.id, entry.recipe.is_favorite)}
+                    onPress={() => openSavedRecipe(entry.recipe)}
+                  />
+                );
+              })}
+            </View>
+            {filteredList.length > LIST_LIMIT ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push("/(tabs)/all-recipes")}
+                style={({ pressed }) => [styles.browseAll, styles.listMore, pressed && styles.savedRowPressed]}
+              >
+                <Text variant="label" color={colors.primary} style={styles.browseAllLabel}>
+                  {t("recipes.shelves.browseAll")}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         ) : null}
-
-        {/* Short shelves keep the home a home; the long tail lives on All recipes. */}
-        <RecipeShelf
-          title={t("recipes.shelves.saved")}
-          recipes={favoriteRecipes}
-          limit={3}
-          seeAllTab="saved"
-          renderRow={renderSavedRow}
-        />
-        <RecipeShelf
-          title={t("recipes.shelves.recentlyMade")}
-          recipes={cookedRecipes}
-          limit={3}
-          seeAllTab="cooked"
-          renderRow={renderSavedRow}
-        />
-        <RecipeShelf
-          title={t("recipes.shelves.yours")}
-          recipes={listedMyRecipes}
-          limit={4}
-          seeAllTab="all"
-          renderRow={renderSavedRow}
-        />
-
-        {hasOwnRecipes ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push("/(tabs)/all-recipes")}
-            style={({ pressed }) => [styles.browseAll, pressed && styles.savedRowPressed]}
-          >
-            <Text variant="label" color={colors.primary} style={styles.browseAllLabel}>
-              {t("recipes.shelves.browseAll")}
-            </Text>
-          </Pressable>
-        ) : null}
       </ScrollView>
+      )}
 
       <DaySheet
         visible={openDay != null}
@@ -679,7 +704,9 @@ export default function RecipesRoute() {
 
       {generating ? (
         <GeneratingOverlay
+          eyebrow={t("recipes.generatingOverlay.eyebrow")}
           title={t("recipes.generatingOverlay.title")}
+          listLabel={t("recipes.generatingOverlay.listLabel")}
           steps={[
             t("recipes.generatingOverlay.phrase1"),
             t("recipes.generatingOverlay.phrase2"),
@@ -692,59 +719,7 @@ export default function RecipesRoute() {
   );
 }
 
-function RecipeShelf({
-  title,
-  recipes,
-  limit,
-  seeAllTab,
-  renderRow,
-}: {
-  title: string;
-  recipes: RecipeRow[];
-  limit: number;
-  seeAllTab: "all" | "saved" | "cooked";
-  renderRow: (recipe: RecipeRow) => ReactNode;
-}) {
-  const { t } = useTranslation();
-  if (recipes.length === 0) return null;
-  return (
-    <View style={styles.shelf}>
-      <View style={styles.shelfHead}>
-        <Text variant="micro" uppercase muted style={styles.eyebrow}>
-          {title} · {recipes.length}
-        </Text>
-        {recipes.length > limit ? (
-          <Pressable
-            accessibilityRole="link"
-            hitSlop={8}
-            onPress={() => router.push({ pathname: "/(tabs)/all-recipes", params: { tab: seeAllTab } })}
-          >
-            <Text variant="small" color={colors.primary} style={styles.metaStrong}>
-              {t("recipes.shelves.seeAll", { count: recipes.length })}
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
-      <View style={styles.shelfRows}>{recipes.slice(0, limit).map(renderRow)}</View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  shelf: {
-    paddingHorizontal: spacing.screenX,
-    marginBottom: spacing.xxl,
-    gap: spacing.sm,
-  },
-  shelfRows: {
-    gap: 10,
-  },
-  shelfHead: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.xxs,
-  },
   browseAll: {
     marginHorizontal: spacing.screenX,
     minHeight: 48,
@@ -772,10 +747,6 @@ const styles = StyleSheet.create({
   heroWrap: {
     paddingHorizontal: spacing.screenX,
     marginBottom: spacing.xl,
-  },
-  alsoTonight: {
-    paddingHorizontal: spacing.screenX,
-    gap: spacing.sm,
   },
   listScroll: {
     flex: 1,
@@ -832,11 +803,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     backgroundColor: colors.accentSoft,
   },
-  inlineMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
   limitBanner: {
     marginHorizontal: spacing.screenX,
     marginBottom: spacing.lg,
@@ -873,6 +839,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
     marginBottom: spacing.xxl,
   },
+  moreIdeas: {
+    alignSelf: "center",
+    paddingVertical: spacing.md,
+  },
+  listHead: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    marginBottom: spacing.sm,
+  },
+  filterRow: {
+    gap: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  listCards: {
+    gap: spacing.sm,
+  },
+  listMore: {
+    marginHorizontal: 0,
+    marginTop: spacing.md,
+  },
   savedRowPressed: {
     transform: [{ scale: 0.98 }],
   },
@@ -881,63 +868,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0.66,
   },
-  metaDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: colors.accent,
-  },
   metaStrong: {
     fontFamily: fonts.bodyBold,
     fontWeight: "700",
   },
   cookAgainLabel: {
     marginBottom: spacing.sm,
-  },
-  cookAgainCard: {
-    backgroundColor: colors.paper,
-    borderRadius: radii.xxl,
-    padding: spacing.lg + 2,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md + 2,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-  },
-  cookAgainThumb: {
-    width: 76,
-    height: 76,
-    borderRadius: radii.xl,
-    backgroundColor: colors.sageTint,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cookAgainCountBadge: {
-    position: "absolute",
-    top: -5,
-    right: -5,
-    minWidth: 24,
-    height: 24,
-    borderRadius: 12,
-    paddingHorizontal: 4,
-    backgroundColor: colors.accentSoft,
-    borderWidth: 2,
-    borderColor: colors.cardLine,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cookAgainCountText: {
-    fontWeight: "700",
-  },
-  cookAgainCopy: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  cookAgainTitle: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 18,
-    lineHeight: 22,
-    marginTop: 3,
   },
 });
