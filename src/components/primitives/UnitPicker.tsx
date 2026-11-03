@@ -13,9 +13,11 @@ type Props = {
   value: string;
   onChange: (unit: UnitOption) => void;
   containerStyle?: StyleProp<ViewStyle>;
+  /** Overrides the field box (e.g. white card fields in the item sheet). */
+  boxStyle?: StyleProp<ViewStyle>;
 };
 
-export function UnitPicker({ label, value, onChange, containerStyle }: Props) {
+export function UnitPicker({ label, value, onChange, containerStyle, boxStyle }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const selected = normalizeUnit(value);
@@ -30,7 +32,7 @@ export function UnitPicker({ label, value, onChange, containerStyle }: Props) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${t(`units.${selected}`)}`}
-        style={[styles.box, open && styles.boxActive]}
+        style={[styles.box, boxStyle, open && styles.boxActive]}
         onPress={() => setOpen(true)}
       >
         <Text variant="micro" muted uppercase>

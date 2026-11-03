@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, GeneratingLoader, IconButton, KitchenPulse, RetentionCard, ScanIcon, Screen, ScreenHeader, SegmentedControl, ShelfRow, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, FoodListCard, GeneratingLoader, KitchenPulse, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -18,8 +18,9 @@ import {
   toUiCategory,
   toUiUrgency,
 } from "@/services";
-import { colors, fonts, radii, spacing } from "@/theme";
+import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "@/theme";
 import { router, useFocusEffect } from "expo-router";
+import { FoodGlyph, Logo } from "@/components/illustrations";
 
 const CATEGORY_ORDER = [
   "dairy_eggs",
@@ -45,7 +46,6 @@ export default function FridgeRoute() {
     groups,
     error,
     updateFirstLot,
-    markGroupStillGood,
     markGroupsStillGood,
     removeGroup,
     removeGroups,
@@ -84,7 +84,6 @@ export default function FridgeRoute() {
       shortLabel: hasDate ? formatExpiryDate(expiry as string) : t("fridge.checkThese.noDate"),
     };
   };
-  const checkItems: CheckItem[] = expiredGroups.map(toCheckItem);
   // The see-all sheet groups the pile by category so 70+ rows stay scannable.
   const checkSections = CATEGORY_ORDER
     .map((category) => ({
@@ -107,14 +106,6 @@ export default function FridgeRoute() {
       Alert.alert(t("common.error"), t("common.fridgeUpdateError"));
       return false;
     }
-  };
-  const onCheckStillGood = (item: CheckItem) => {
-    const group = expiredGroups.find((candidate) => candidate.key === item.id);
-    if (group) void runFridgeAction(() => markGroupStillGood(group));
-  };
-  const onCheckToss = (item: CheckItem) => {
-    const group = expiredGroups.find((candidate) => candidate.key === item.id);
-    if (group) void runFridgeAction(() => removeGroup(group, "discarded"));
   };
   const filteredGroups = activeGroups.filter(
     (group) =>
@@ -159,6 +150,20 @@ export default function FridgeRoute() {
     ? t("fridge.greetingWithName", { name: firstName })
     : t("fridge.greeting");
   const categoryShelves = buildCategoryShelves(filteredGroups, t);
+  const showEatFirstHero = isPremium && eatFirstGroups.length > 0;
+  const kitchenPulse = (
+    <KitchenPulse
+      fresh={pulse.fresh}
+      soon={pulse.soon}
+      urgent={pulse.urgent}
+      labels={{
+        today: t("fridge.kitchenPulse.today"),
+        soon: t("fridge.kitchenPulse.soon"),
+        fresh: t("fridge.kitchenPulse.fresh"),
+        total: (count) => t("fridge.kitchenPulse.total", { count }),
+      }}
+    />
+  );
   const { members } = useHousehold(activeHousehold?.id);
   const showAddedBy = members.length > 1;
 
@@ -188,29 +193,9 @@ export default function FridgeRoute() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
       }
     >
-      <ScreenHeader
-        style={styles.header}
-        eyebrow={`${greetingText} · ${weekday}`}
-        title={t("fridge.homeTitle")}
-        actions={<IconButton label={t("fridge.refresh")} onPress={refresh}><RefreshIcon /></IconButton>}
-      />
-
-      {groups.length > 0 ? (
-        <View style={styles.searchRow}>
-          <View style={[styles.searchField, searchFocused && styles.searchFieldFocused]}>
-            <SearchIcon />
-            <TextInput
-              value={search}
-              onChangeText={setSearch}
-              placeholder={t("fridge.searchPlaceholder")}
-              placeholderTextColor={colors.muted}
-              style={styles.searchInput}
-              autoCorrect={false}
-              returnKeyType="search"
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-            />
-          </View>
+      <View style={styles.header}>
+        <View style={styles.headerRow}>
+          <Logo size={26} />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("fridge.addItem")}
@@ -220,25 +205,17 @@ export default function FridgeRoute() {
             <PlusIcon />
           </Pressable>
         </View>
-      ) : null}
+        <Text variant="micro" uppercase muted style={styles.eyebrow}>
+          {weekday}
+        </Text>
+        <Text style={styles.greeting}>{greetingText}</Text>
+      </View>
 
-      {groups.length > 0 ? (
-        <View style={styles.pulseWrap}>
-          <KitchenPulse
-            fresh={pulse.fresh}
-            soon={pulse.soon}
-            urgent={pulse.urgent}
-            labels={{
-              today: t("fridge.kitchenPulse.today"),
-              soon: t("fridge.kitchenPulse.soon"),
-              fresh: t("fridge.kitchenPulse.fresh"),
-              total: (count) => t("fridge.kitchenPulse.total", { count }),
-            }}
-          />
-        </View>
-      ) : null}
+      {/* Today: the pulse rides inside the eat-first hero when there is one;
+          otherwise it stands alone above the free preview. */}
+      {groups.length > 0 && !showEatFirstHero ? <View style={styles.pulseWrap}><View style={styles.pulseCard}>{kitchenPulse}</View></View> : null}
 
-      {(isPremium ? eatFirstGroups.length > 0 : groups.length > 0) ? (
+      {showEatFirstHero || (!isPremium && groups.length > 0) ? (
         <EatFirstShelf
           premium={isPremium}
           items={eatFirstGroups.map((group) => ({
@@ -255,27 +232,24 @@ export default function FridgeRoute() {
             previewTitle: t("fridge.eatFirstPreviewTitle"),
             previewBody: t("fridge.eatFirstPreviewBody"),
             unlockAction: t("fridge.eatFirstUnlock"),
+            more: (count) => t("fridge.eatFirstMoreItems", { count }),
           }}
           onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
           onCook={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
           onUpgradePress={() => router.push("/(tabs)/settings")}
-        />
+        >
+          {kitchenPulse}
+        </EatFirstShelf>
       ) : null}
 
       {expiredGroups.length > 0 ? (
         <CheckTheseShelf
-          items={checkItems}
+          count={expiredGroups.length}
           labels={{
             kicker: t("fridge.checkThese.title"),
             subtitle: t("fridge.checkThese.subtitle"),
-            stillGood: t("fridge.checkThese.stillGood"),
-            toss: t("fridge.checkThese.toss"),
-            seeAll: t("fridge.checkThese.seeAll", { count: expiredGroups.length }),
           }}
-          onItemPress={onCheckItemPress}
-          onStillGood={onCheckStillGood}
-          onToss={onCheckToss}
-          onSeeAll={() => setCheckSheetVisible(true)}
+          onPress={() => setCheckSheetVisible(true)}
         />
       ) : null}
 
@@ -310,6 +284,34 @@ export default function FridgeRoute() {
 
       {!loading && !error && groups.length === 0 ? <EmptyFridge /> : null}
 
+      {/* Everything: browse and search the whole kitchen. */}
+      {groups.length > 0 ? (
+        <View style={styles.kitchenSection}>
+          <View style={styles.sectionHead}>
+            <Text variant="micro" uppercase muted style={styles.eyebrow}>
+              {t("fridge.allItems")}
+            </Text>
+            <Text variant="small" muted>
+              {t("fridge.kitchenPulse.total", { count: activeGroups.length })}
+            </Text>
+          </View>
+          <View style={[styles.searchField, searchFocused && styles.searchFieldFocused]}>
+            <SearchIcon />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder={t("fridge.searchPlaceholder")}
+              placeholderTextColor={colors.muted}
+              style={styles.searchInput}
+              autoCorrect={false}
+              returnKeyType="search"
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
+            />
+          </View>
+        </View>
+      ) : null}
+
       {groups.length > 0 ? (
         <ScrollView
           horizontal
@@ -326,10 +328,10 @@ export default function FridgeRoute() {
                 onPress={() => setCategoryFilter(chip.key)}
                 style={[styles.chip, active && styles.chipActive]}
               >
-                <Text variant="label" color={active ? colors.surface : colors.text}>{chip.label}</Text>
-                <View style={[styles.chipBadge, active && styles.chipBadgeActive]}>
-                  <Text variant="micro" color={active ? colors.surface : colors.muted}>{chip.count}</Text>
-                </View>
+                <Text variant="label" color={active ? colors.surface : colors.text} style={styles.chipLabel}>
+                  {chip.label}
+                </Text>
+                <Text variant="small" color={active ? colors.sage : colors.muted2}>{chip.count}</Text>
               </Pressable>
             );
           })}
@@ -340,7 +342,7 @@ export default function FridgeRoute() {
         <CategoryShelf
           name={t("fridge.shelves.runningLow")}
           groups={runningLowGroups}
-          moreLabel={t("fridge.shelves.more")}
+          seeAllLabel={t("fridge.shelves.seeAllCount", { count: runningLowGroups.length })}
           showAddedBy={showAddedBy}
           onItemPress={(group) => setActionGroup(group)}
           onMorePress={() => setExpandedShelf({ name: t("fridge.shelves.runningLow"), groups: runningLowGroups })}
@@ -352,7 +354,7 @@ export default function FridgeRoute() {
           key={shelf.category}
           name={shelf.name}
           groups={shelf.groups}
-          moreLabel={t("fridge.shelves.more")}
+          seeAllLabel={t("fridge.shelves.seeAllCount", { count: shelf.groups.length })}
           expanded={categoryFilter !== "all"}
           showAddedBy={showAddedBy}
           onItemPress={(group) => setActionGroup(group)}
@@ -418,7 +420,7 @@ export default function FridgeRoute() {
 function CategoryShelf({
   name,
   groups,
-  moreLabel,
+  seeAllLabel,
   expanded,
   showAddedBy,
   onItemPress,
@@ -426,26 +428,22 @@ function CategoryShelf({
 }: {
   name: string;
   groups: InventoryGroup[];
-  moreLabel: string;
+  seeAllLabel: string;
   expanded?: boolean;
   showAddedBy: boolean;
   onItemPress: (group: InventoryGroup) => void;
   onMorePress: () => void;
 }) {
   return (
-    <ShelfRow
-      name={name}
-      count={groups.length}
-      layout="grid"
-      maxVisibleItems={expanded ? undefined : 6}
-      moreLabel={moreLabel}
-      showTitle={false}
+    <FoodListCard
+      title={name}
+      maxVisible={expanded ? undefined : 4}
+      seeAllLabel={seeAllLabel}
       items={groups.map((group) => ({
         id: group.key,
         name: group.name,
         category: toUiCategory(group.category),
-        meta: group.meta,
-        metaLines: getCardMetaLines(group.meta),
+        meta: getCardMetaLines(group.meta).join(" · "),
         urgency: toUiUrgency(group.urgency),
         addedBy: showAddedBy ? group.lots[0]?.added_by_name ?? null : null,
       }))}
@@ -453,7 +451,7 @@ function CategoryShelf({
         const group = groups.find((candidate) => candidate.key === item.id);
         if (group) onItemPress(group);
       }}
-      onMorePress={onMorePress}
+      onSeeAll={onMorePress}
     />
   );
 }
@@ -763,6 +761,10 @@ function ItemActionSheet({
   }
 
   const isPrecise = group?.netAmount != null && group.netUnit != null;
+  // "How much is left" only means something for a single item with no size:
+  // that's the one case cooking can't subtract from, so it walks full → some
+  // used → low instead. More than one, or a known size, is tracked exactly.
+  const showPartial = !isPrecise && Number(quantity.replace(",", ".")) === 1;
 
   if (confirmingRemove) {
     return (
@@ -784,22 +786,28 @@ function ItemActionSheet({
     );
   }
 
+  const tone = categoryColors[toUiCategory(group?.category ?? "other") as CategoryTone] ?? categoryColors.other;
+
   return (
     <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
       <View style={styles.sheetContent}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={labels.remove}
-          onPress={() => setConfirmingRemove(true)}
-          style={({ pressed }) => [styles.removeRow, pressed && styles.expiryPressed]}
-        >
-          <TrashIcon />
-          <Text variant="label" color={colors.red}>
-            {labels.remove}
-          </Text>
-        </Pressable>
+        <View style={styles.itemHead}>
+          <View style={[styles.itemTile, { backgroundColor: tone.background }]}>
+            <FoodGlyph name={group?.name ?? ""} color={tone.mark} size={34} />
+          </View>
+          <View style={styles.itemHeadCopy}>
+            <Text style={styles.itemTitle} numberOfLines={2}>
+              {group?.name}
+            </Text>
+            {group?.meta ? (
+              <Text variant="small" muted numberOfLines={1}>
+                {group.meta}
+              </Text>
+            ) : null}
+          </View>
+        </View>
 
-        <TextField label={labels.nameLabel} value={name} onChangeText={setName} />
+        <TextField label={labels.nameLabel} value={name} onChangeText={setName} boxStyle={styles.whiteField} />
 
         <View style={styles.netRow}>
           <TextField
@@ -808,8 +816,9 @@ function ItemActionSheet({
             value={quantity}
             onChangeText={setQuantity}
             containerStyle={styles.netField}
+            boxStyle={styles.whiteField}
           />
-          <UnitPicker label={labels.unitLabel} value={unit} onChange={setUnit} containerStyle={styles.netField} />
+          <UnitPicker label={labels.unitLabel} value={unit} onChange={setUnit} containerStyle={styles.netField} boxStyle={styles.whiteField} />
         </View>
 
         {isPrecise ? (
@@ -818,24 +827,27 @@ function ItemActionSheet({
             keyboardType="decimal-pad"
             value={netInput}
             onChangeText={setNetInput}
+            boxStyle={styles.whiteField}
           />
         ) : null}
 
         {/* Set by hand how much of an opened item is left (C4). */}
-        <View style={styles.partialField}>
-          <Text variant="micro" muted uppercase>
-            {labels.partialLabel}
-          </Text>
-          <SegmentedControl<PartialState>
-            options={[
-              { label: labels.partialFull, value: "full" },
-              { label: labels.partialSomeUsed, value: "some_used" },
-              { label: labels.partialLow, value: "low" },
-            ]}
-            value={partialState}
-            onChange={setPartialState}
-          />
-        </View>
+        {showPartial ? (
+          <View style={styles.partialField}>
+            <Text variant="micro" muted uppercase>
+              {labels.partialLabel}
+            </Text>
+            <SegmentedControl<PartialState>
+              options={[
+                { label: labels.partialFull, value: "full" },
+                { label: labels.partialSomeUsed, value: "some_used" },
+                { label: labels.partialLow, value: "low" },
+              ]}
+              value={partialState}
+              onChange={setPartialState}
+            />
+          </View>
+        ) : null}
 
         <Pressable
           accessibilityRole="button"
@@ -843,7 +855,7 @@ function ItemActionSheet({
             if (!expiry) setExpiry(new Date());
             setShowExpiryPicker(true);
           }}
-          style={({ pressed }) => [styles.fieldBox, pressed && styles.expiryPressed]}
+          style={({ pressed }) => [styles.fieldBox, styles.whiteField, pressed && styles.expiryPressed]}
         >
           <Text variant="micro" muted uppercase>
             {labels.expiryLabel}
@@ -910,7 +922,6 @@ function ItemActionSheet({
         <View style={styles.sheetButtons}>
           <Button
             title={labels.save}
-            variant="accent"
             onPress={() => {
               if (!group) return;
               const lot = group.lots[0];
@@ -929,12 +940,24 @@ function ItemActionSheet({
                 unit: normalizeUnit(unit),
                 expiresAt: expiry ? toLocalDateString(expiry) : null,
                 netAmount: isPrecise && net > 0 ? net : undefined,
-                partialState,
+                partialState: showPartial ? partialState : undefined,
               });
             }}
           />
           <Button title={labels.cancel} variant="text" onPress={onDismiss} />
         </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={labels.remove}
+          onPress={() => setConfirmingRemove(true)}
+          style={({ pressed }) => [styles.removeRow, pressed && styles.expiryPressed]}
+        >
+          <TrashIcon />
+          <Text variant="label" color={colors.redInk} style={styles.removeLabel}>
+            {labels.remove}
+          </Text>
+        </Pressable>
       </View>
     </BottomSheet>
   );
@@ -1019,16 +1042,6 @@ function computeBestByLabel(group: InventoryGroup, t: ReturnType<typeof useTrans
   return t("fridge.bestBy.inDays", { count: remaining });
 }
 
-function RefreshIcon() {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Path d="M14.5 8A5.5 5.5 0 0 0 4.9 4.4L3 6.2" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M3.5 10A5.5 5.5 0 0 0 13.1 13.6L15 11.8" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M3 2.8V6.2H6.4M15 15.2V11.8H11.6" stroke={colors.primary} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
 function SearchIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
@@ -1091,14 +1104,25 @@ const styles = StyleSheet.create({
   pulseWrap: {
     paddingHorizontal: spacing.screenX,
   },
-  searchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
+  pulseCard: {
+    backgroundColor: colors.paper,
+    borderRadius: radii.xl,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+  },
+  kitchenSection: {
     paddingHorizontal: spacing.screenX,
+    paddingTop: spacing.md,
+    gap: spacing.md,
+  },
+  sectionHead: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.xxs,
   },
   searchField: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
@@ -1106,8 +1130,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.paper,
     borderWidth: 1,
     borderColor: colors.cardLine,
-    borderRadius: radii.lg,
-    minHeight: 48,
+    borderRadius: radii.xl,
+    minHeight: 50,
   },
   searchFieldFocused: {
     borderColor: colors.sage,
@@ -1120,9 +1144,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: radii.lg,
+    width: 44,
+    height: 44,
+    borderRadius: radii.pill,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -1134,35 +1158,47 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
     paddingHorizontal: spacing.screenX,
+    paddingVertical: spacing.xs,
   },
   chip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    minHeight: 46,
-    paddingHorizontal: spacing.xl,
+    gap: spacing.xs,
+    minHeight: 38,
+    paddingHorizontal: spacing.lg,
     borderRadius: radii.pill,
+    backgroundColor: colors.paper,
     borderWidth: 1,
     borderColor: colors.cardLine,
-    backgroundColor: colors.paper,
+  },
+  chipLabel: {
+    fontFamily: fonts.bodyBold,
+    fontWeight: "700",
   },
   chipActive: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
-  chipBadge: {
-    minWidth: 22,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
-    alignItems: "center",
-  },
-  chipBadgeActive: {
-    backgroundColor: colors.primary700,
-  },
   header: {
     paddingHorizontal: spacing.screenX,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.lg,
+  },
+  eyebrow: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    letterSpacing: 0.66,
+  },
+  greeting: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 27,
+    lineHeight: 33,
+    marginTop: spacing.xxs,
   },
   refreshButton: {
     minHeight: 38,
@@ -1178,7 +1214,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   sheetContent: {
-    gap: spacing.xl,
+    gap: spacing.lg,
   },
   sheetCopy: {
     gap: spacing.sm,
@@ -1186,9 +1222,42 @@ const styles = StyleSheet.create({
   removeRow: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-end",
+    justifyContent: "center",
     gap: spacing.xs,
-    paddingVertical: spacing.xs,
+    minHeight: 50,
+    borderRadius: radii.xl,
+  },
+  removeLabel: {
+    fontFamily: fonts.bodyBold,
+    fontWeight: "700",
+  },
+  itemHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md + 2,
+  },
+  itemTile: {
+    width: 64,
+    height: 64,
+    borderRadius: radii.xl,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  itemHeadCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  itemTitle: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 22,
+    lineHeight: 26,
+  },
+  whiteField: {
+    backgroundColor: colors.paper,
+    borderColor: colors.cardLine,
+    borderRadius: radii.xl,
   },
   sheetButtons: {
     gap: spacing.sm,

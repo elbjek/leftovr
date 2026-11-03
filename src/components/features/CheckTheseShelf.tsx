@@ -1,8 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "../../theme";
-import { FoodGlyph } from "../illustrations";
+import { colors, fonts, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 export type CheckItem = {
@@ -15,170 +14,62 @@ export type CheckItem = {
   shortLabel?: string;
 };
 
-// The card previews this many rows; the rest live in the "see all" sheet.
-const PREVIEW_COUNT = 3;
-
-type RowLabels = {
-  stillGood: string;
-  toss: string;
-};
-
 type Props = {
-  items: CheckItem[];
-  labels: RowLabels & {
+  count: number;
+  labels: {
     kicker: string;
     subtitle: string;
-    seeAll: string;
   };
-  onItemPress?: (item: CheckItem) => void;
-  onStillGood: (item: CheckItem) => void;
-  onToss: (item: CheckItem) => void;
-  onSeeAll: () => void;
+  onPress: () => void;
 };
 
 // Items past their (known or estimated) date. They left the category shelves
-// and everything that cooks — this block exists to be emptied: vouch for the
-// food ("still good") or toss it. Long tails collapse behind "see all" so a
-// neglected fridge doesn't bury the rest of the screen.
-export function CheckTheseShelf({ items, labels, onItemPress, onStillGood, onToss, onSeeAll }: Props) {
-  const preview = items.slice(0, PREVIEW_COUNT);
-  const hiddenCount = items.length - preview.length;
-
+// and everything that cooks — this warm note exists to be emptied: it opens
+// the triage sheet where food gets vouched for ("still good") or tossed.
+export function CheckTheseShelf({ count, labels, onPress }: Props) {
   return (
     <View style={styles.wrap}>
-      <View style={styles.card}>
-        <View style={styles.kickerRow}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      >
+        <View style={styles.icon}>
           <AlertIcon />
+        </View>
+        <View style={styles.copy}>
           <Text variant="label" color={colors.text} style={styles.kicker}>
-            {labels.kicker}
+            {labels.kicker} · {count}
           </Text>
-          <View style={styles.countBadge}>
-            <Text variant="micro" color={colors.text}>{items.length}</Text>
-          </View>
-        </View>
-        <Text variant="small" muted>
-          {labels.subtitle}
-        </Text>
-
-        {preview.map((item) => (
-          <CheckTheseRow
-            key={item.id}
-            item={item}
-            labels={labels}
-            onPress={onItemPress}
-            onStillGood={onStillGood}
-            onToss={onToss}
-          />
-        ))}
-
-        {hiddenCount > 0 ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={onSeeAll}
-            style={({ pressed }) => [styles.seeAll, pressed && styles.pressed]}
-          >
-            <Text variant="label" color={colors.primary}>{labels.seeAll}</Text>
-          </Pressable>
-        ) : null}
-      </View>
-    </View>
-  );
-}
-
-// One expired item with its vouch/toss actions. Shared between the card
-// preview and the full-list sheet.
-export function CheckTheseRow({
-  item,
-  labels,
-  onPress,
-  onStillGood,
-  onToss,
-}: {
-  item: CheckItem;
-  labels: RowLabels;
-  onPress?: (item: CheckItem) => void;
-  onStillGood: (item: CheckItem) => void;
-  onToss: (item: CheckItem) => void;
-}) {
-  const tone = categoryColors[(item.category as CategoryTone)] ?? categoryColors.other;
-  return (
-    <View style={styles.row}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => onPress?.(item)}
-        style={({ pressed }) => [styles.rowMain, pressed && styles.pressed]}
-      >
-        <View style={[styles.thumb, { backgroundColor: tone.background }]}>
-          <FoodGlyph name={item.name} color={tone.mark} size={22} />
-        </View>
-        <View style={styles.rowText}>
-          <Text variant="label" color={colors.text} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <Text variant="small" muted numberOfLines={1}>
-            {item.label}
+          <Text variant="small" muted numberOfLines={2} style={styles.subtitle}>
+            {labels.subtitle}
           </Text>
         </View>
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${labels.stillGood}: ${item.name}`}
-        onPress={() => onStillGood(item)}
-        style={({ pressed }) => [styles.actionPill, styles.stillGoodPill, pressed && styles.pressed]}
-      >
-        <ThumbsUpIcon />
-      </Pressable>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${labels.toss}: ${item.name}`}
-        onPress={() => onToss(item)}
-        style={({ pressed }) => [styles.actionPill, styles.tossPill, pressed && styles.pressed]}
-      >
-        <BinIcon />
+        <ChevronIcon />
       </Pressable>
     </View>
-  );
-}
-
-function ThumbsUpIcon() {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M7 10.5v9M7 10.5H4.5A1 1 0 0 0 3.5 11.5v7a1 1 0 0 0 1 1H7M7 10.5l3.5-6.7a1.8 1.8 0 0 1 3.4 0.8v3.9h4.6a2 2 0 0 1 2 2.4l-1.2 6a2 2 0 0 1-2 1.6H7"
-        stroke={colors.primary}
-        strokeWidth={1.7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function BinIcon() {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Path
-        d="M3.5 5H14.5M7 2.5H11M7.5 8V12.5M10.5 8V12.5M4.5 5L5.2 14.2A1.3 1.3 0 0 0 6.5 15.4H11.5A1.3 1.3 0 0 0 12.8 14.2L13.5 5"
-        stroke={colors.red}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
   );
 }
 
 function AlertIcon() {
   return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
       <Path
         d="M12 3.5 21 20H3L12 3.5Z"
         stroke={colors.text}
-        strokeWidth={1.7}
+        strokeWidth={1.9}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <Path d="M12 10v4.5M12 17.2v.3" stroke={colors.text} strokeWidth={1.7} strokeLinecap="round" />
+      <Path d="M12 10v4.5M12 17.2v.3" stroke={colors.text} strokeWidth={1.9} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path d="M5 2.5 9.5 7 5 11.5" stroke={colors.muted2} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -188,83 +79,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
   },
   card: {
-    backgroundColor: colors.accentSoft,
-    borderRadius: radii.xxl,
-    borderWidth: 1,
-    borderColor: colors.yellow,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  kickerRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.xs,
+    gap: spacing.md,
+    backgroundColor: colors.accentSoft,
+    borderWidth: 1,
+    borderColor: colors.yellow,
+    borderRadius: radii.xl,
+    paddingVertical: spacing.md + 2,
+    paddingHorizontal: spacing.lg,
+  },
+  icon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.paper,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  copy: {
+    flex: 1,
+    gap: 2,
   },
   kicker: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "700",
+    fontWeight: "800",
   },
-  countBadge: {
-    minWidth: 22,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: radii.pill,
-    backgroundColor: colors.paper,
-    alignItems: "center",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.paper,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    padding: spacing.sm,
-  },
-  rowMain: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  rowText: {
-    flex: 1,
-    gap: 1,
-  },
-  thumb: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  actionPill: {
-    minHeight: 36,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  stillGoodPill: {
-    backgroundColor: colors.sageSoft,
-    borderColor: colors.sageBorder,
-  },
-  tossPill: {
-    backgroundColor: colors.paper,
-    borderColor: colors.red,
-  },
-  seeAll: {
-    minHeight: 44,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    backgroundColor: colors.paper,
-    alignItems: "center",
-    justifyContent: "center",
+  subtitle: {
+    opacity: 0.85,
   },
   pressed: {
-    opacity: 0.8,
+    opacity: 0.75,
   },
 });

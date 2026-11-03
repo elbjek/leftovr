@@ -30,6 +30,11 @@ export const colors = {
   // Hairlines on primary (dark green) surfaces.
   inverseHairline: "rgba(249, 246, 241, 0.12)",
   inverseHairlineStrong: "rgba(249, 246, 241, 0.24)",
+  // Kitchen home (TinyMeals-style): white cards on cream, warm tints.
+  card: "#FFFFFF",
+  accentInk: "#8A5A0B",
+  redSoft: "#F9E4DC",
+  redInk: "#9A3F27",
   black: "#1F1F1F",
   white: "#FFFFFF",
   overlay: "rgba(31, 31, 31, 0.55)",
@@ -92,19 +97,19 @@ export const typography = {
     fontWeight: fontWeights.regular,
   },
   small: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodyMedium,
     fontSize: 13,
     lineHeight: 18,
     fontWeight: fontWeights.medium,
   },
   label: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodySemiBold,
     fontSize: 14,
     lineHeight: 18,
     fontWeight: fontWeights.semibold,
   },
   micro: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodySemiBold,
     fontSize: 11,
     lineHeight: 13,
     fontWeight: fontWeights.semibold,
@@ -146,6 +151,10 @@ export const shadows = {
   },
   card: {
     boxShadow: "0px 6px 14px rgba(31, 31, 31, 0.04)",
+  },
+  // Soft warm lift for white cards on cream (Kitchen home).
+  soft: {
+    boxShadow: "0px 8px 22px rgba(120, 80, 40, 0.07)",
   },
   elevated: {
     boxShadow: "0px 14px 34px rgba(31, 31, 31, 0.10)",

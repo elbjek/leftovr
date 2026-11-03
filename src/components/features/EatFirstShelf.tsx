@@ -1,15 +1,13 @@
 import React from "react";
-import { Dimensions, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { categoryColors, CategoryTone, colors, fonts, radii, spacing, urgencyColors } from "../../theme";
+import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { Button, Card, Text } from "../primitives";
+import { Text } from "../primitives";
 
-// Two pills fill the card row exactly: page padding (screenX) + card padding (lg)
-// on both sides, minus the gap between the two pills.
-const ITEM_WIDTH =
-  (Dimensions.get("window").width - spacing.screenX * 2 - spacing.lg * 2 - spacing.sm) / 2;
+// The hero lists this many items; the rest are counted and live in the shelves.
+const PREVIEW_COUNT = 3;
 
 type EatFirstItem = {
   id: string;
@@ -29,115 +27,144 @@ type Props = {
     previewTitle: string;
     previewBody: string;
     unlockAction: string;
+    more?: (count: number) => string;
   };
   onItemPress?: (item: EatFirstItem) => void;
   onCook?: () => void;
   onUpgradePress?: () => void;
+  /** Rendered under the heading on the premium card (the home puts Kitchen Pulse here). */
+  children?: React.ReactNode;
 };
 
+// The home hero: one white card that says what to eat today and offers the one
+// action the shelves can't — cook with it before it spoils. Free accounts get
+// the same shell as an upsell.
+export function EatFirstShelf({ items, premium = false, labels, onItemPress, onCook, onUpgradePress, children }: Props) {
+  const lead = items[0];
+  const leadTone = categoryColors[(lead?.category as CategoryTone)] ?? categoryColors.other;
 
-// The hero block: items that need using today + the one action the plain shelves
-// can't offer — cook with them before they spoil.
-export function EatFirstShelf({ items, premium = false, labels, onItemPress, onCook, onUpgradePress }: Props) {
   if (!premium) {
     return (
-      <View style={styles.previewWrap}>
-        <Card dashed style={styles.preview}>
-          <View style={styles.previewIcon}>
-            <Text variant="h2" color={colors.primary} italic>
-              {items.length || 3}
-            </Text>
+      <View style={styles.wrap}>
+        <View style={styles.card}>
+          <View style={styles.top}>
+            <View style={styles.copy}>
+              <Eyebrow label={labels.kicker} />
+              <Text style={styles.title}>{labels.previewTitle}</Text>
+              <Text variant="small" muted style={styles.body}>
+                {labels.previewBody}
+              </Text>
+            </View>
+            <View style={[styles.media, { backgroundColor: colors.accentSoft }]}>
+              <Text style={styles.mediaCount} color={colors.accentInk}>
+                {items.length || 3}
+              </Text>
+            </View>
           </View>
-          <View style={styles.previewCopy}>
-            <Text variant="label">{labels.previewTitle}</Text>
-            <Text variant="small" muted style={styles.previewText}>
-              {labels.previewBody}
-            </Text>
-          </View>
-          <Button title={labels.unlockAction} variant="text" onPress={onUpgradePress} />
-        </Card>
+          <HeroButton label={labels.unlockAction} onPress={onUpgradePress} />
+        </View>
       </View>
     );
   }
 
+  const preview = items.slice(0, PREVIEW_COUNT);
+  const hidden = items.length - preview.length;
+
   return (
     <View style={styles.wrap}>
       <View style={styles.card}>
-        <View style={styles.kickerRow}>
-          <LeafIcon />
-          <Text variant="label" color={colors.primary} style={styles.kicker}>
-            {labels.kicker}
-          </Text>
+        <View style={styles.top}>
+          <View style={styles.copy}>
+            <Eyebrow label={labels.kicker} />
+            <Text style={styles.title}>{labels.heading(items.length)}</Text>
+            {labels.subtitle ? (
+              <Text variant="small" muted style={styles.body}>
+                {labels.subtitle}
+              </Text>
+            ) : null}
+          </View>
+          {lead ? (
+            <View style={[styles.media, { backgroundColor: leadTone.background }]}>
+              <FoodGlyph name={lead.name} color={leadTone.mark} size={40} />
+            </View>
+          ) : null}
         </View>
-        <Text variant="h2" color={colors.text} style={styles.heading}>
-          {labels.heading(items.length)}
-        </Text>
-        {labels.subtitle ? (
-          <Text variant="small" muted style={styles.subtitle}>
-            {labels.subtitle}
-          </Text>
-        ) : null}
 
-        <ScrollView
-          horizontal
-          scrollEnabled={items.length > 2}
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          snapToInterval={ITEM_WIDTH + spacing.sm}
-          snapToAlignment="start"
-          contentContainerStyle={styles.carousel}
-        >
-          {items.map((item) => {
+        {children ? <View style={styles.pulse}>{children}</View> : null}
+
+        <View style={styles.list}>
+          {preview.map((item) => {
             const tone = categoryColors[(item.category as CategoryTone)] ?? categoryColors.other;
             return (
               <Pressable
                 key={item.id}
                 accessibilityRole="button"
                 onPress={() => onItemPress?.(item)}
-                style={({ pressed }) => [styles.itemCard, pressed && styles.itemPressed]}
+                style={({ pressed }) => [styles.row, pressed && styles.pressed]}
               >
                 <View style={[styles.thumb, { backgroundColor: tone.background }]}>
-                  <FoodGlyph name={item.name} color={tone.mark} size={26} />
+                  <FoodGlyph name={item.name} color={tone.mark} size={22} />
                 </View>
-                <View style={styles.itemText}>
-                  <Text variant="label" color={colors.text} numberOfLines={2} style={styles.itemName}>
-                    {item.name}
+                <Text variant="label" numberOfLines={1} style={styles.rowName}>
+                  {item.name}
+                </Text>
+                {item.bestBy ? (
+                  <Text variant="small" color={colors.redInk} numberOfLines={1} style={styles.rowMeta}>
+                    {item.bestBy}
                   </Text>
-                  {item.bestBy ? (
-                    <Text variant="small" color={urgencyColors.urgent} numberOfLines={1}>
-                      {item.bestBy}
-                    </Text>
-                  ) : null}
-                </View>
+                ) : null}
               </Pressable>
             );
           })}
-        </ScrollView>
+          {hidden > 0 && labels.more ? (
+            <Text variant="small" muted style={styles.more}>
+              {labels.more(hidden)}
+            </Text>
+          ) : null}
+        </View>
 
-        <Pressable
-          accessibilityRole="button"
-          onPress={onCook}
-          style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-        >
-          <Text variant="label" color={colors.surface}>{labels.cookCta}</Text>
-          <Text variant="label" color={colors.surface}>›</Text>
-        </Pressable>
+        <HeroButton label={labels.cookCta} onPress={onCook} />
       </View>
     </View>
   );
 }
 
+function Eyebrow({ label }: { label: string }) {
+  return (
+    <View style={styles.eyebrowRow}>
+      <LeafIcon />
+      <Text variant="micro" uppercase color={colors.accentInk} style={styles.eyebrow}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function HeroButton({ label, onPress }: { label: string; onPress?: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+    >
+      <Text variant="label" color={colors.surface} style={styles.ctaLabel}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
 function LeafIcon() {
   return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
       <Path
         d="M4 20c0-8 6-14 16-14 0 10-6 15-13 15-1 0-3 0-3-1Z"
-        stroke={colors.primary}
-        strokeWidth={1.7}
+        stroke={colors.accentInk}
+        strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <Path d="M4 20c2-5 6-8 11-9" stroke={colors.primary} strokeWidth={1.7} strokeLinecap="round" />
+      <Path d="M4 20c2-5 6-8 11-9" stroke={colors.accentInk} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -145,98 +172,106 @@ function LeafIcon() {
 const styles = StyleSheet.create({
   wrap: {
     paddingHorizontal: spacing.screenX,
-    paddingBottom: spacing.xxl,
   },
   card: {
-    backgroundColor: colors.surface2,
-    borderRadius: radii.xxl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  kickerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  kicker: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "700",
-  },
-  heading: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "700",
-    marginTop: spacing.xxs,
-  },
-  subtitle: {
-    marginTop: -spacing.xxs,
-  },
-  carousel: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  itemCard: {
-    width: ITEM_WIDTH,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
     backgroundColor: colors.paper,
-    borderRadius: radii.lg,
+    borderRadius: radii.xxl,
+    padding: spacing.lg + 2,
     borderWidth: 1,
     borderColor: colors.cardLine,
-    padding: spacing.sm,
   },
-  itemPressed: {
-    opacity: 0.9,
+  top: {
+    flexDirection: "row",
+    gap: spacing.md + 2,
+  },
+  copy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  eyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  eyebrow: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    letterSpacing: 0.66,
+  },
+  title: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 22,
+    lineHeight: 26,
+    marginTop: 7,
+  },
+  body: {
+    marginTop: 5,
+    lineHeight: 20,
+  },
+  media: {
+    width: 76,
+    height: 76,
+    borderRadius: radii.xl,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  mediaCount: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 30,
+    lineHeight: 34,
+  },
+  pulse: {
+    marginTop: spacing.lg,
+  },
+  list: {
+    marginTop: spacing.md,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderTopWidth: 1,
+    borderTopColor: colors.hairline,
   },
   thumb: {
-    width: 44,
-    height: 44,
+    width: 36,
+    height: 36,
     borderRadius: radii.md,
     alignItems: "center",
     justifyContent: "center",
   },
-  itemText: {
+  rowName: {
     flex: 1,
-    gap: 1,
-  },
-  itemName: {
     fontFamily: fonts.bodyBold,
+    fontWeight: "700",
+  },
+  rowMeta: {
+    fontFamily: fonts.bodyBold,
+    fontWeight: "700",
+    flexShrink: 0,
+  },
+  more: {
+    borderTopWidth: 1,
+    borderTopColor: colors.hairline,
+    paddingVertical: spacing.sm,
   },
   cta: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    minHeight: 52,
-    borderRadius: radii.lg,
+    marginTop: spacing.md,
+    minHeight: 50,
+    borderRadius: radii.xl,
     backgroundColor: colors.primary,
-  },
-  ctaPressed: {
-    opacity: 0.9,
-  },
-  previewWrap: {
-    paddingHorizontal: spacing.screenX,
-    paddingBottom: spacing.xxxl,
-  },
-  preview: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  previewIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: colors.sageSoft,
     alignItems: "center",
     justifyContent: "center",
   },
-  previewCopy: {
-    flex: 1,
+  ctaLabel: {
+    fontFamily: fonts.bodyBold,
+    fontWeight: "700",
+    fontSize: 16,
   },
-  previewText: {
-    marginTop: 2,
+  pressed: {
+    opacity: 0.7,
   },
 });

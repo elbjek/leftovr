@@ -17,12 +17,15 @@ type Props = TextInputProps & {
   label: string;
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
+  /** Overrides the field box (e.g. white card fields in the item sheet). */
+  boxStyle?: StyleProp<ViewStyle>;
 };
 
 export function TextField({
   label,
   error,
   containerStyle,
+  boxStyle,
   style,
   onFocus,
   onBlur,
@@ -35,7 +38,7 @@ export function TextField({
     <View style={[styles.wrap, containerStyle]}>
       <Pressable
         accessible={false}
-        style={[styles.box, focused && styles.boxFocused, error ? styles.boxError : null]}
+        style={[styles.box, boxStyle, focused && styles.boxFocused, error ? styles.boxError : null]}
         onPress={() => inputRef.current?.focus()}
       >
         <Text variant="micro" muted uppercase>
