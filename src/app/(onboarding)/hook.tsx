@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useRef, useState } from "react";
@@ -16,30 +15,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { useTranslation } from "react-i18next";
 
-import {
-  AppleIcon,
-  AuthButton,
-  Button,
-  GoogleIcon,
-  ShowcaseSlide,
-  ShowcaseStage,
-  showcaseThemes,
-  Text,
-} from "@/components";
-import { useAuth } from "@/features";
-import { HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
-import { getCurrentProfile } from "@/repositories";
+import { AuthButtons, Button, ShowcaseSlide, ShowcaseStage, showcaseThemes, Text } from "@/components";
+import { useOnboardingSignIn } from "@/features/onboardingSignIn";
 import { colors, fonts, radii, spacing } from "@/theme";
 
 // Room the floating footer (56pt buttons) takes over each slide's copy.
 const FOOTER_SPACE = 56 + spacing.huge + spacing.xxl;
-// The last slide's sign-in block: two 56pt buttons, the email link and an error line.
-const AUTH_SPACE = 56 * 2 + 12 + 40 + 20 + spacing.xxl;
+// The last slide's sign-in block: three 56pt buttons, the invite link and an error line.
+const AUTH_SPACE = 56 * 3 + 12 * 2 + 40 + 20 + spacing.lg;
 
 export default function HookCarouselRoute() {
   const { t } = useTranslation();
-  const { error, signInWithApple, signInWithGoogle } = useAuth();
-  const [formError, setFormError] = useState<string | null>(null);
+  const signIn = useOnboardingSignIn();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const slideWidth = Platform.OS === "web" ? Math.min(width, 430) : width;
@@ -70,26 +57,6 @@ export default function HookCarouselRoute() {
     listRef.current?.scrollToOffset({ offset: next * slideWidth, animated: true });
     currentRef.current = next;
     setCurrent(next);
-  }
-
-  // Sign-in happens on the tour's last slide; the profile questions follow.
-  async function signIn(provider: () => Promise<void>) {
-    setFormError(null);
-    await AsyncStorage.setItem(HAS_SEEN_HOOK_KEY, "true");
-    try {
-      await provider();
-      // Not "/": inside this group it resolves to (onboarding)/index, which
-      // would re-ask a returning user the profile questions.
-      const profile = await getCurrentProfile();
-      router.replace(profile.onboarding_completed_at ? "/(tabs)/recipes" : "/(onboarding)");
-    } catch {
-      setFormError(t("auth.genericError"));
-    }
-  }
-
-  async function continueWithEmail() {
-    await AsyncStorage.setItem(HAS_SEEN_HOOK_KEY, "true");
-    router.push({ pathname: "/(auth)/otp", params: { mode: "sign-up" } });
   }
 
   return (
@@ -204,28 +171,27 @@ export default function HookCarouselRoute() {
 
       {last ? (
         <View style={[styles.auth, { bottom: insets.bottom + spacing.lg }]}>
-          <AuthButton
-            label={t("auth.apple")}
-            backgroundColor={colors.black}
-            color={colors.white}
-            icon={<AppleIcon />}
-            onPress={() => void signIn(signInWithApple)}
+          {/* Sign-in is the tour's last slide; the profile questions follow. */}
+          <AuthButtons
+            appleLabel={t("auth.apple")}
+            googleLabel={t("auth.google")}
+            emailLabel={t("auth.emailContinue")}
+            onApple={() => void signIn.apple()}
+            onGoogle={() => void signIn.google()}
+            onEmail={() => void signIn.email()}
           />
-          <AuthButton
-            label={t("auth.google")}
-            backgroundColor={colors.white}
-            color={colors.text}
-            icon={<GoogleIcon />}
-            onPress={() => void signIn(signInWithGoogle)}
-          />
-          <Pressable accessibilityRole="button" onPress={() => void continueWithEmail()} style={styles.emailLink}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push("/(onboarding)/invite")}
+            style={styles.inviteLink}
+          >
             <Text variant="label" style={styles.skipLabel}>
-              {t("auth.emailContinue")}
+              {t("onboarding.hook.inviteCode")}
             </Text>
           </Pressable>
-          {formError || error ? (
+          {signIn.error ? (
             <Text variant="small" color={colors.redInk} center>
-              {formError ?? error}
+              {signIn.error}
             </Text>
           ) : null}
         </View>
@@ -366,7 +332,7 @@ const styles = StyleSheet.create({
     right: spacing.xxxl,
     gap: 12,
   },
-  emailLink: {
+  inviteLink: {
     alignItems: "center",
     paddingVertical: 10,
   },

@@ -82,6 +82,7 @@ export const sr = {
       start: "Pokaži mi",
       next: "Dalje",
       skip: "Preskoči",
+      inviteCode: "Imam kod za poziv",
       slides: [
         {
           key: "welcome",
@@ -211,6 +212,13 @@ export const sr = {
           demo: {},
         },
       ],
+    },
+    invite: {
+      eyebrow: "Kod za poziv",
+      title: "Pridružuješ se nečijoj kuhinji?",
+      body: "Unesi kod koji si dobio/la, pa se prijavi. Pridružićeš se njihovoj kuhinji kad završiš podešavanje.",
+      inputLabel: "Kod za poziv",
+      placeholder: "LEFTOVR-XXXXXXXX",
     },
     personalization: {
       finish: "Zavrsi podesavanje",

@@ -35,38 +35,20 @@ export function AuthLanding({
   return (
     <View style={styles.wrap}>
       <View style={styles.brandBlock}>
-        <View style={styles.wordmarkRow}>
-          <Logo size={40} />
-        </View>
+        <Logo size={40} />
         <Text variant="body" muted center style={styles.body}>
           {body}
         </Text>
       </View>
 
-      <View style={styles.buttons}>
-        <AuthButton
-          label={appleLabel}
-          backgroundColor={colors.black}
-          color={colors.white}
-          icon={<AppleIcon />}
-          onPress={onApple}
-        />
-        <AuthButton
-          label={googleLabel}
-          backgroundColor={colors.paper}
-          color={colors.text}
-          borderColor={colors.hairlineStrong}
-          icon={<GoogleIcon />}
-          onPress={onGoogle}
-        />
-        <AuthButton
-          label={emailLabel}
-          backgroundColor={colors.primary}
-          color={colors.surface}
-          icon={<EmailIcon />}
-          onPress={onEmail}
-        />
-      </View>
+      <AuthButtons
+        appleLabel={appleLabel}
+        googleLabel={googleLabel}
+        emailLabel={emailLabel}
+        onApple={onApple}
+        onGoogle={onGoogle}
+        onEmail={onEmail}
+      />
 
       <View style={styles.spacer} />
 
@@ -85,13 +67,64 @@ export function AuthLanding({
   );
 }
 
-export function AuthButton({
+/** Continue with Apple / Google / email — the sign-in choices, shared by the
+ * sign-up screen, the tour's last slide and the invite-code screen. */
+export function AuthButtons({
+  appleLabel,
+  googleLabel,
+  emailLabel,
+  onApple,
+  onGoogle,
+  onEmail,
+  disabled,
+}: {
+  appleLabel: string;
+  googleLabel: string;
+  emailLabel: string;
+  onApple?: () => void;
+  onGoogle?: () => void;
+  onEmail: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <View style={styles.buttons}>
+      <AuthButton
+        label={appleLabel}
+        backgroundColor={colors.black}
+        color={colors.white}
+        icon={<AppleIcon />}
+        onPress={onApple}
+        disabled={disabled}
+      />
+      <AuthButton
+        label={googleLabel}
+        backgroundColor={colors.paper}
+        color={colors.text}
+        borderColor={colors.hairlineStrong}
+        icon={<GoogleIcon />}
+        onPress={onGoogle}
+        disabled={disabled}
+      />
+      <AuthButton
+        label={emailLabel}
+        backgroundColor={colors.primary}
+        color={colors.surface}
+        icon={<EmailIcon />}
+        onPress={onEmail}
+        disabled={disabled}
+      />
+    </View>
+  );
+}
+
+function AuthButton({
   label,
   icon,
   backgroundColor,
   color,
   borderColor,
   onPress,
+  disabled,
 }: {
   label: string;
   icon: React.ReactNode;
@@ -99,14 +132,17 @@ export function AuthButton({
   color: string;
   borderColor?: string;
   onPress?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
+      disabled={disabled}
       style={({ pressed }) => [
         styles.authButton,
         { backgroundColor, borderColor: borderColor ?? backgroundColor },
+        disabled && styles.disabled,
         pressed && styles.pressed,
       ]}
     >
@@ -118,7 +154,7 @@ export function AuthButton({
   );
 }
 
-export function AppleIcon() {
+function AppleIcon() {
   return (
     <Svg width={18} height={20} viewBox="0 0 18 20" fill={colors.white}>
       <Path d="M14.6 10.6c0-2 1.6-3 1.7-3-0.9-1.4-2.4-1.6-2.9-1.6-1.2-0.1-2.4 0.7-3 0.7-0.6 0-1.6-0.7-2.6-0.7-1.3 0-2.5 0.8-3.2 2-1.4 2.4-0.4 5.9 1 7.8 0.7 0.9 1.5 2 2.5 1.9 1 0 1.4-0.6 2.6-0.6 1.2 0 1.5 0.6 2.6 0.6 1.1 0 1.8-0.9 2.4-1.9 0.8-1.1 1.1-2.1 1.1-2.2-0.1-0.1-2.2-0.8-2.2-3zm-2-5.6c0.5-0.6 0.9-1.5 0.8-2.4-0.8 0-1.7 0.5-2.2 1.2-0.5 0.5-0.9 1.5-0.8 2.3 0.9 0.1 1.7-0.4 2.2-1.1z" />
@@ -126,7 +162,7 @@ export function AppleIcon() {
   );
 }
 
-export function GoogleIcon() {
+function GoogleIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 18 18">
       <Path fill="#4285F4" d="M17.6 9.2c0-.6-.1-1.2-.2-1.8H9v3.4h4.8c-.2 1.1-.8 2.1-1.8 2.7v2.3h2.9c1.7-1.6 2.7-3.9 2.7-6.6z" />
@@ -157,11 +193,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 48,
   },
-  wordmarkRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
   body: {
     marginTop: 18,
     maxWidth: 260,
@@ -180,6 +211,9 @@ const styles = StyleSheet.create({
   },
   pressed: {
     transform: [{ scale: 0.985 }],
+  },
+  disabled: {
+    opacity: 0.45,
   },
   authButtonLabel: {
     fontSize: 16,

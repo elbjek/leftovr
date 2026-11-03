@@ -82,6 +82,7 @@ export const en = {
       start: "Show me how",
       next: "Next",
       skip: "Skip",
+      inviteCode: "I have an invite code",
       slides: [
         {
           key: "welcome",
@@ -211,6 +212,13 @@ export const en = {
           demo: {},
         },
       ],
+    },
+    invite: {
+      eyebrow: "Invite code",
+      title: "Joining someone's kitchen?",
+      body: "Enter the code you were sent, then sign in. You'll join their kitchen when you finish setting up.",
+      inputLabel: "Invite code",
+      placeholder: "LEFTOVR-XXXXXXXX",
     },
     personalization: {
       finish: "Finish setup",
