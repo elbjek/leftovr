@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, fonts, radii, spacing } from "../../theme";
-import { Text } from "../primitives";
+import { Button, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // Recipe ideas, TinyMeals-style: the "Try next" hero and list cards on the
@@ -24,6 +24,7 @@ export function TryNextCard({
   favoriteLabel,
   onFavorite,
   onPress,
+  ctaLabel,
 }: {
   eyebrow: string;
   title: string;
@@ -37,6 +38,8 @@ export function TryNextCard({
   favoriteLabel: string;
   onFavorite?: () => void;
   onPress: () => void;
+  /** A full-width button at the bottom ("Cook this") doing the same as tapping the card. */
+  ctaLabel?: string;
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.hero, pressed && styles.pressed]}>
@@ -94,6 +97,7 @@ export function TryNextCard({
           </Text>
         </View>
       ) : null}
+      {ctaLabel ? <Button title={ctaLabel} onPress={onPress} /> : null}
     </Pressable>
   );
 }

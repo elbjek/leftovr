@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, V
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, Text, TryNextCard, WeekStrip } from "@/components";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, Text, TryNextCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -465,19 +465,31 @@ export default function RecipesRoute() {
                 favoriteLabel={t("recipes.list.favorite")}
                 onFavorite={dish.row ? () => toggleFavorite(dish.row!.id, dish.row!.is_favorite) : undefined}
                 onPress={dish.open}
+                ctaLabel={t("recipes.home.cookThis")}
               />
-              <Pressable
-                accessibilityRole="button"
-                onPress={hasTonight ? () => setIdeasOpen(true) : openCookPrompt}
-                style={({ pressed }) => [styles.moreIdeas, pressed && styles.savedRowPressed]}
-              >
-                <Text variant="small" muted>
-                  {t("recipes.home.notFeelingIt")}{" "}
-                  <Text variant="small" color={colors.primary} style={styles.metaStrong}>
-                    {hasTonight ? t("recipes.tryNext.seeIdeas") : t("recipes.home.moreIdeas")}
+              {/* The cook prompt (meal, people, base…) stays one tap away even
+                  once tonight's ideas exist. */}
+              <Button
+                title={t("recipes.generateCta")}
+                variant="ghost"
+                loading={generating}
+                onPress={openCookPrompt}
+                style={styles.askAgain}
+              />
+              {hasTonight ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setIdeasOpen(true)}
+                  style={({ pressed }) => [styles.moreIdeas, pressed && styles.savedRowPressed]}
+                >
+                  <Text variant="small" muted>
+                    {t("recipes.home.notFeelingIt")}{" "}
+                    <Text variant="small" color={colors.primary} style={styles.metaStrong}>
+                      {t("recipes.tryNext.seeIdeas")}
+                    </Text>
                   </Text>
-                </Text>
-              </Pressable>
+                </Pressable>
+              ) : null}
             </>
           ) : (
             <DinnerHero
@@ -838,6 +850,9 @@ const styles = StyleSheet.create({
   sectionBlock: {
     paddingHorizontal: spacing.screenX,
     marginBottom: spacing.xxl,
+  },
+  askAgain: {
+    marginTop: spacing.md,
   },
   moreIdeas: {
     alignSelf: "center",

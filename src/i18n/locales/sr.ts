@@ -596,7 +596,7 @@ export const sr = {
     },
     home: {
       eyebrow: "Šta je za večeru?",
-      moreIdeas: "Još ideja",
+      cookThis: "Kuvaj ovo",
       title: "Kuvaj od onoga što imaš",
       titleEmpty: "Skeniraj namirnice za početak",
       useToday_one: "{{count}} stvar treba iskoristiti danas",

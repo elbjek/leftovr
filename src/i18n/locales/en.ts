@@ -587,7 +587,7 @@ export const en = {
     },
     home: {
       eyebrow: "What's for dinner?",
-      moreIdeas: "More ideas",
+      cookThis: "Cook this",
       title: "Cook from what you have",
       titleEmpty: "Scan your groceries to start",
       useToday_one: "{{count}} thing to use today",
