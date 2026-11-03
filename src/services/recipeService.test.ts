@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { availableBaseOptions, matchRecipes, selectMakeableRecipes } from "./recipeService";
+import { availableBaseOptions, latestGeneratedBatch, matchRecipes, selectMakeableRecipes } from "./recipeService";
 import { InventoryCategory, InventoryLot } from "./inventoryRules";
 
 const base = { inventory: [], avoidances: [], isPremium: false };
@@ -170,5 +170,33 @@ describe("coverage + selectMakeableRecipes", () => {
     const matches = matchRecipes({ ...base, inventory: [expired] });
     expect(matches.every((r) => r.matchedItems.every((m) => !m.inFridge))).toBe(true);
     expect(selectMakeableRecipes(matches, { isPremium: false })).toEqual([]);
+  });
+});
+
+describe("latestGeneratedBatch", () => {
+  const now = new Date(2026, 9, 28, 19, 0);
+  const row = (id: string, session: string | null, by: string | null, at: Date) => ({
+    id, session_id: session, generated_by: by, created_at: at.toISOString(),
+  });
+
+  it("returns my newest batch when it was generated today", () => {
+    const rows = [
+      row("a", "s2", "me", new Date(2026, 9, 28, 12, 0)),
+      row("b", "s2", "me", new Date(2026, 9, 28, 12, 0, 1)),
+      row("c", "s1", "me", new Date(2026, 9, 27, 18, 0)),
+      row("d", "s3", "partner", new Date(2026, 9, 28, 18, 0)),
+    ];
+    expect(latestGeneratedBatch(rows, "me", now).map((r) => r.id)).toEqual(["a", "b"]);
+  });
+
+  it("returns nothing when my last batch is from yesterday", () => {
+    const rows = [row("c", "s1", "me", new Date(2026, 9, 27, 23, 30))];
+    expect(latestGeneratedBatch(rows, "me", now)).toEqual([]);
+  });
+
+  it("returns nothing without a user or own sessions", () => {
+    const rows = [row("x", null, "me", new Date(2026, 9, 28, 12, 0))];
+    expect(latestGeneratedBatch(rows, "me", now)).toEqual([]);
+    expect(latestGeneratedBatch(rows, null, now)).toEqual([]);
   });
 });

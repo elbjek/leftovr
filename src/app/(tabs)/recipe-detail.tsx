@@ -45,6 +45,7 @@ export default function RecipeDetailRoute() {
     recipeId: string;
     isFavorite: string;
     cookedCount: string;
+    returnTo?: string;
   }>();
 
   const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
@@ -584,9 +585,12 @@ export default function RecipeDetailRoute() {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t("recipes.detail.backLabel")}
-        // Always return to the recipes list — inside the tab group,
-        // router.back() can land on whichever tab was visited before.
-        onPress={() => router.replace("/(tabs)/recipes")}
+        // Return to the list the recipe was opened from — inside the tab
+        // group, router.back() can land on whichever tab was visited before.
+        // Tab screens stay mounted, so All recipes keeps its search and scroll.
+        onPress={() =>
+          router.replace(params.returnTo === "all-recipes" ? "/(tabs)/all-recipes" : "/(tabs)/recipes")
+        }
         style={styles.backButton}
       >
         <Svg width={14} height={14} viewBox="0 0 14 14">

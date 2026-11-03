@@ -156,3 +156,89 @@ export async function getInsightsData(
     moneyWasted,
   };
 }
+
+/** When things were used up or cooked since `since` — feeds the usage streak. */
+export async function getUsageTimestamps(householdId: string, since: string, userId?: string): Promise<string[]> {
+  const supabase = getSupabaseClient();
+  let query = supabase
+    .from("item_usage_events")
+    .select("used_at")
+    .eq("household_id", householdId)
+    .gte("used_at", since);
+  if (userId) query = query.eq("used_by", userId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []).map((row: { used_at: string }) => row.used_at);
+}
+
+export type DayActivity = {
+  cooked: { recipeId: string; title: string }[];
+  /** Distinct foods used up (cooked with or marked used). */
+  used: { name: string; category: string }[];
+  /** Money saved that day, household currency only. */
+  moneySaved: number;
+};
+
+/** One day's cooking and using up, for the home week strip's day sheet. */
+export async function getDayActivity(
+  householdId: string,
+  from: string,
+  until: string,
+  userId?: string,
+): Promise<DayActivity> {
+  const supabase = getSupabaseClient();
+
+  let cookedQuery = supabase
+    .from("cooked_events")
+    .select("recipe_id, recipes(title)")
+    .eq("household_id", householdId)
+    .not("recipe_id", "is", null)
+    .gte("created_at", from)
+    .lt("created_at", until)
+    .order("created_at", { ascending: true });
+  if (userId) cookedQuery = cookedQuery.eq("cooked_by", userId);
+
+  let usedQuery = supabase
+    .from("item_usage_events")
+    .select("normalized_name, category")
+    .eq("household_id", householdId)
+    .gte("used_at", from)
+    .lt("used_at", until)
+    .order("used_at", { ascending: true });
+  if (userId) usedQuery = usedQuery.eq("used_by", userId);
+
+  let valueQuery = supabase
+    .from("value_events")
+    .select("value, currency, households!inner(currency_code)")
+    .eq("household_id", householdId)
+    .eq("kind", "saved")
+    .gte("occurred_at", from)
+    .lt("occurred_at", until);
+  if (userId) valueQuery = valueQuery.eq("created_by", userId);
+
+  const [cooked, used, value] = await Promise.all([cookedQuery, usedQuery, valueQuery]);
+  if (cooked.error) throw cooked.error;
+  if (used.error) throw used.error;
+  if (value.error) throw value.error;
+
+  type CookedRow = { recipe_id: string; recipes?: { title?: string } | { title?: string }[] | null };
+  const cookedList: DayActivity["cooked"] = [];
+  for (const row of (cooked.data ?? []) as unknown as CookedRow[]) {
+    const title = Array.isArray(row.recipes) ? row.recipes[0]?.title : row.recipes?.title;
+    if (title && !cookedList.some((c) => c.recipeId === row.recipe_id)) cookedList.push({ recipeId: row.recipe_id, title });
+  }
+
+  const usedList: DayActivity["used"] = [];
+  for (const row of (used.data ?? []) as { normalized_name: string; category: string }[]) {
+    if (!usedList.some((u) => u.name === row.normalized_name)) usedList.push({ name: row.normalized_name, category: row.category });
+  }
+
+  // Same rule as the weekly totals: only the household's current currency counts.
+  type ValueRow = { value: number; currency: string | null; households: { currency_code: string } };
+  let moneySaved = 0;
+  for (const row of (value.data ?? []) as unknown as ValueRow[]) {
+    if (row.currency == null || row.currency === row.households.currency_code) moneySaved += row.value;
+  }
+
+  return { cooked: cookedList, used: usedList, moneySaved };
+}

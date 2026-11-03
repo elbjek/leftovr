@@ -29,7 +29,7 @@ import { recipeSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
 import { recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 
-type CookedSummary = { count: number; cookedBy: (string | null)[] };
+export type CookedSummary = { count: number; cookedBy: (string | null)[] };
 
 type RecipesState = {
   loading: boolean;
@@ -39,6 +39,8 @@ type RecipesState = {
   currentSessionId: string | null;
   savedRecipes: RecipeRow[];
   cookedRecipes: RecipeRow[];
+  /** When cookedRecipes[0] was last cooked by the current user. */
+  lastCookedAt: string | null;
   /** Household-wide cooked counts and cooks, keyed by recipe id. */
   cookedSummaries: Record<string, CookedSummary>;
   /** True once a session was created this app session (free taste consumed). */
@@ -78,6 +80,7 @@ export function useRecipes(
     currentSessionId: null,
     savedRecipes: [],
     cookedRecipes: [],
+    lastCookedAt: null,
     cookedSummaries: {},
     consumedFreeGeneration: false,
     quotaExceeded: false,
@@ -93,6 +96,7 @@ export function useRecipes(
         currentSessionId: null,
         savedRecipes: [],
         cookedRecipes: [],
+        lastCookedAt: null,
         cookedSummaries: {},
         consumedFreeGeneration: s.consumedFreeGeneration,
         quotaExceeded: false,
@@ -145,6 +149,8 @@ export function useRecipes(
         loading: false,
         savedRecipes,
         cookedRecipes,
+        // Rows arrive newest-first, so the first of this user's is the latest cook.
+        lastCookedAt: cookedEventRows.find((row) => !userId || row.cooked_by === userId)?.created_at ?? null,
         cookedSummaries,
       }));
     } catch (err) {

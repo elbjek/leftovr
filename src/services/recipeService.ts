@@ -1,6 +1,6 @@
 import { i18n } from "@/i18n";
 import { MockRecipe, RECIPE_LIBRARY } from "@/mocks/recipeLibrary";
-import { canonicalFoodName, InventoryCategory, InventoryLot, resolveUrgency } from "./inventoryRules";
+import { canonicalFoodName, InventoryCategory, InventoryLot, normalizeFoodName, resolveUrgency } from "./inventoryRules";
 
 /** What a dish is built around. Soft AI-only guide; the matcher ignores it. */
 export type BasePreference =
@@ -220,6 +220,55 @@ export function selectMakeableRecipes(
 export function formatComplexity(complexity: string): string {
   const key = complexity === "simple" ? "simple" : complexity === "medium" ? "medium" : "involved";
   return i18n.t(`recipes.complexity.${key}`);
+}
+
+/** A recipe tag as a display label ("salad" -> "Salad"). */
+export function formatCategory(tag: string): string {
+  return tag.charAt(0).toUpperCase() + tag.slice(1);
+}
+
+/** Saved recipe ingredients are untyped JSON; keep only entries with a name. */
+export function parseRecipeIngredients(ingredients: unknown): { name: string }[] {
+  if (!Array.isArray(ingredients)) return [];
+  return ingredients.filter((ingredient): ingredient is { name: string } => (
+    typeof ingredient === "object" &&
+    ingredient !== null &&
+    "name" in ingredient &&
+    typeof ingredient.name === "string"
+  ));
+}
+
+// Every required ingredient counts — no staple assumption, so the number
+// matches what the detail screen (and a future AI generation) actually needs.
+export function fridgeCoverage(ingredients: unknown, inventoryNames: Set<string>) {
+  const counted = parseRecipeIngredients(ingredients).filter(
+    (ing) => (ing as { required?: boolean }).required !== false,
+  );
+  const have = counted.filter((ing) => inventoryNames.has(normalizeFoodName(ing.name))).length;
+  return { have, total: counted.length };
+}
+
+/**
+ * Tonight's picks after an app restart: the recipes from the user's most
+ * recent generation, read from what's already saved (no new AI call). Only a
+ * batch generated today (local day) counts — yesterday's ideas aren't
+ * "tonight's", so the home goes back to asking.
+ */
+export function latestGeneratedBatch<T extends { session_id: string | null; generated_by: string | null; created_at: string }>(
+  recipes: T[],
+  userId: string | null | undefined,
+  now: Date = new Date(),
+): T[] {
+  if (!userId) return [];
+  const mine = recipes.filter((r) => r.generated_by === userId && r.session_id);
+  if (mine.length === 0) return [];
+  const latest = mine.reduce((a, b) => (b.created_at > a.created_at ? b : a));
+  const made = new Date(latest.created_at);
+  const sameDay =
+    made.getFullYear() === now.getFullYear() &&
+    made.getMonth() === now.getMonth() &&
+    made.getDate() === now.getDate();
+  return sameDay ? mine.filter((r) => r.session_id === latest.session_id) : [];
 }
 
 export function formatTimeLabel(minutes: number): string {

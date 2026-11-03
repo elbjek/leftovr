@@ -20,6 +20,10 @@ type TabBarProps = {
   navigateToTab: (routeKey: string) => void;
 };
 
+// Recipes is the home: the app opens here, and a hidden or unknown tab falls
+// back here too.
+export const unstable_settings = { anchor: "recipes" };
+
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { loading, session } = useAuth();
@@ -36,17 +40,17 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="fridge"
-        options={{
-          title: t("tabs.fridge"),
-          tabBarIcon: ({ color }) => <KitchenIcon color={String(color)} />,
-        }}
-      />
-      <Tabs.Screen
         name="recipes"
         options={{
           title: t("tabs.recipes"),
           tabBarIcon: ({ color }) => <RecipesIcon color={String(color)} />,
+        }}
+      />
+      <Tabs.Screen
+        name="fridge"
+        options={{
+          title: t("tabs.fridge"),
+          tabBarIcon: ({ color }) => <KitchenIcon color={String(color)} />,
         }}
       />
       <Tabs.Screen
@@ -75,12 +79,17 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <SettingsIcon color={String(color)} />,
         }}
       />
-      {/* Detail screen lives inside the tab group so the dock stays visible,
-          but it is not itself a tab. */}
-      <Tabs.Screen name="recipe-detail" options={{ href: null }} />
+      {/* Detail and the full recipe list live inside the tab group so the
+          dock stays visible, but they are not tabs: LeftovrTabBar skips them
+          by name. No `href: null` — expo-router 58 treats that as a hidden
+          tab and redirects away from it as soon as it is focused. */}
+      <Tabs.Screen name="recipe-detail" />
+      <Tabs.Screen name="all-recipes" />
     </Tabs>
   );
 }
+
+const NON_TAB_ROUTES = new Set(["recipe-detail", "all-recipes"]);
 
 function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
   const { t } = useTranslation();
@@ -95,8 +104,8 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
   return (
     <View style={styles.dock}>
       {state.routes.map((route, index) => {
-        // Routes in the group that aren't tabs (href: null) don't get a dock slot.
-        if (route.name === "recipe-detail") return null;
+        // Routes in the group that aren't tabs don't get a dock slot.
+        if (NON_TAB_ROUTES.has(route.name)) return null;
         const focused = state.index === index;
         const color = focused ? colors.primary : colors.muted2;
         const label = getTabLabel(route.name, t);

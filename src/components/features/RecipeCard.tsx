@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { colors, radii, spacing } from "../../theme";
+import { colors, fonts, radii } from "../../theme";
 import { FoodGlyph } from "../illustrations";
 import { Text } from "../primitives";
 
@@ -15,18 +15,20 @@ type Props = {
   favoriteLabel?: string;
   favorite?: boolean;
   cookedLabel?: string;
-  /** Marks a just-generated recipe with an accent "new" pill. */
+  /** Marks a just-generated recipe with an accent "new" eyebrow. */
   newLabel?: string;
   onPress?: () => void;
 };
 
+// White recipe row (TinyMeals list card): food tile, eyebrow, bold name, a
+// dotted meta line and what it uses from the kitchen.
 export function RecipeCard({
   title,
   timeLabel,
   complexityLabel,
   usedItems,
   usesLabel,
-  metaSeparator = " - ",
+  metaSeparator = " · ",
   favoriteLabel,
   favorite = false,
   cookedLabel,
@@ -34,6 +36,7 @@ export function RecipeCard({
   onPress,
 }: Props) {
   const leadItem = usedItems[0] ?? title;
+  const eyebrow = newLabel ?? cookedLabel;
 
   return (
     <Pressable
@@ -42,43 +45,40 @@ export function RecipeCard({
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
       <View style={styles.art}>
-        <FoodGlyph name={leadItem} size={54} />
+        <FoodGlyph name={leadItem} size={40} />
         {favorite ? (
           <View style={styles.favorite}>
-            <Text variant="micro" color={colors.text}>
-           
+            <Text variant="micro" color={colors.accentInk}>
               {favoriteLabel}
             </Text>
           </View>
         ) : null}
       </View>
       <View style={styles.copy}>
-        <Text variant="h3" numberOfLines={1}>{title}</Text>
+        {eyebrow ? (
+          <Text variant="micro" uppercase color={newLabel ? colors.accentInk : colors.muted} style={styles.eyebrow} numberOfLines={1}>
+            {eyebrow}
+          </Text>
+        ) : null}
+        <Text style={styles.title} numberOfLines={2}>
+          {title}
+        </Text>
         <View style={styles.metaRow}>
-          {newLabel ? (
-            <View style={styles.newBadge}>
-              <Text variant="micro" color={colors.text}>{newLabel}</Text>
-            </View>
-          ) : null}
-          <Text variant="small" muted>
+          <View style={styles.dot} />
+          <Text variant="small" color={colors.primary} style={styles.meta} numberOfLines={1}>
             {timeLabel}
             {metaSeparator}
             {complexityLabel}
           </Text>
-          {cookedLabel ? (
-            <View style={styles.cookedBadge}>
-              <Text variant="micro" color={colors.primary}>{cookedLabel}</Text>
-            </View>
-          ) : null}
         </View>
         {usedItems.length > 0 ? (
-          <Text variant="small" color={colors.primary} style={styles.uses} numberOfLines={1}>
+          <Text variant="small" muted numberOfLines={1} style={styles.uses}>
             {usesLabel} {usedItems.slice(0, 3).join(", ")}
           </Text>
         ) : null}
       </View>
-      <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-        <Path d="M5 3L9 7L5 11" stroke={colors.muted2} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+      <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
+        <Path d="M5 2.5 9.5 7 5 11.5" stroke={colors.muted2} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
       </Svg>
     </Pressable>
   );
@@ -86,63 +86,73 @@ export function RecipeCard({
 
 const styles = StyleSheet.create({
   card: {
-    minHeight: 82,
     backgroundColor: colors.paper,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    padding: 10,
+    borderRadius: radii.xxl,
+    padding: 14,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.md,
+    gap: 14,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
   },
   pressed: {
-    transform: [{ scale: 0.99 }],
+    transform: [{ scale: 0.98 }],
   },
   art: {
-    width: 60,
-    height: 60,
-    borderRadius: radii.sm,
+    width: 64,
+    height: 64,
+    borderRadius: radii.xl,
     backgroundColor: colors.accentSoft,
     alignItems: "center",
     justifyContent: "center",
-    position: "relative",
   },
   favorite: {
     position: "absolute",
-    top: spacing.sm,
-    right: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    backgroundColor: "rgba(243,239,232,0.92)",
-    borderRadius: radii.pill,
+    top: -4,
+    right: -4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.paper,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.cardLine,
   },
   copy: {
     flex: 1,
     minWidth: 0,
   },
+  eyebrow: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    letterSpacing: 0.77,
+    marginBottom: 3,
+  },
+  title: {
+    fontFamily: fonts.bodyExtraBold,
+    fontWeight: "800",
+    fontSize: 16,
+    lineHeight: 20,
+  },
   metaRow: {
-    marginTop: 4,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: 6,
+    marginTop: 4,
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.accent,
+  },
+  meta: {
+    flexShrink: 1,
+    fontFamily: fonts.bodyBold,
+    fontWeight: "700",
   },
   uses: {
-    marginTop: spacing.xs,
-    fontWeight: "600",
-  },
-  cookedBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    backgroundColor: colors.primary50,
-    borderRadius: radii.pill,
-  },
-  newBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    backgroundColor: colors.accentSoft,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    borderRadius: radii.pill,
+    marginTop: 2,
   },
 });

@@ -61,5 +61,5 @@ export default function IndexRoute() {
     return <Redirect href="/(onboarding)" />;
   }
 
-  return <Redirect href="/(tabs)/fridge" />;
+  return <Redirect href="/(tabs)/recipes" />;
 }
