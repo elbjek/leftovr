@@ -5,9 +5,8 @@ import { useTranslation } from "react-i18next";
 
 import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, GeneratingOverlay, Logo, PremiumSheet, RecipeCard, RecipeGlyph, SavedRecipeRow, ScanIcon, Screen, Text, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
-import { useHousehold, useInventory, useRecipes, useStreak } from "@/hooks";
+import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak } from "@/hooks";
 import { formatMoney } from "@/lib";
-import { DayActivity, getDayActivity } from "@/repositories/insightsRepository";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
 import {
   formatComplexity,
@@ -34,8 +33,6 @@ export default function RecipesRoute() {
   const [cookPromptKey, setCookPromptKey] = useState(0);
   const [cookingMode, setCookingMode] = useState<CookingMode>("household");
   const [generateNotice, setGenerateNotice] = useState<string | null>(null);
-  // The week strip's day sheet: the tapped day, and its activity once loaded.
-  const [openDay, setOpenDay] = useState<{ date: Date; activity: DayActivity | null } | null>(null);
   const [lastFilters, setLastFilters] = useState<CookFilters | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -80,19 +77,8 @@ export default function RecipesRoute() {
     if (quotaExceeded) setShowPremium(true);
   }, [quotaExceeded]);
 
-  const showDay = async (date: Date) => {
-    if (!activeHousehold?.id) return;
-    setOpenDay({ date, activity: null });
-    const until = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
-    let activity: DayActivity = { cooked: [], used: [], moneySaved: 0 };
-    try {
-      activity = await getDayActivity(activeHousehold.id, date.toISOString(), until.toISOString(), profile?.id);
-    } catch {
-      // A failed load reads as an empty day; tapping the day again retries.
-    }
-    // Ignore a late answer for a day the user already moved on from.
-    setOpenDay((current) => (current?.date === date ? { date, activity } : current));
-  };
+  // The week strip's day sheet.
+  const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, profile?.id);
 
   const { streak, freezes, today: usedToday, days: week, refresh: refreshStreak } = useStreak(activeHousehold?.id);
 
@@ -577,7 +563,7 @@ export default function RecipesRoute() {
 
       <DaySheet
         visible={openDay != null}
-        onDismiss={() => setOpenDay(null)}
+        onDismiss={closeDay}
         title={openDay?.date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }) ?? ""}
         activity={
           openDay?.activity
@@ -596,7 +582,7 @@ export default function RecipesRoute() {
         onOpenRecipe={(recipeId) => {
           const recipe = savedRecipes.find((r) => r.id === recipeId);
           if (!recipe) return;
-          setOpenDay(null);
+          closeDay();
           openSavedRecipe(recipe);
         }}
       />

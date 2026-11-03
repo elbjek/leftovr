@@ -893,6 +893,14 @@ export const sr = {
     },
   },
   insights: {
+    wins: {
+      eyebrow: "Tvoji uspesi",
+      saved_one: "{{count}} namirnica spašena",
+      saved_few: "{{count}} namirnice spašene",
+      saved_other: "{{count}} namirnica spašeno",
+      cookedOnly: "Kuvano kod kuće",
+      showAll: "Prikaži sve ({{count}})",
+    },
     recap: {
       eyebrow: "Mesečni pregled",
       titleComplete: "Tvoj {{month}} uz leftovr",

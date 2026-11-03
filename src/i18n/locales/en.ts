@@ -880,6 +880,13 @@ export const en = {
     },
   },
   insights: {
+    wins: {
+      eyebrow: "Your wins",
+      saved_one: "{{count}} thing saved",
+      saved_other: "{{count}} things saved",
+      cookedOnly: "Cooked at home",
+      showAll: "Show all {{count}}",
+    },
     recap: {
       eyebrow: "Monthly recap",
       titleComplete: "Your {{month}} in leftovr",

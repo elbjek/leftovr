@@ -21,3 +21,4 @@ export * from "./SavedRecipeRow";
 export * from "./ScanMethodCard";
 export * from "./ShelfRow";
 export * from "./WeekStrip";
+export * from "./WinsList";

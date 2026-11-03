@@ -1,4 +1,4 @@
-import { InsightsRawData } from "@/repositories/insightsRepository";
+import { InsightsRawData, WinsRaw } from "@/repositories/insightsRepository";
 
 export type InsightsSummary = {
   receiptScans: number;
@@ -74,6 +74,42 @@ export function recapWindow(now: Date = new Date()): { start: Date; until: Date 
   const complete = now.getDate() <= 3;
   const start = new Date(now.getFullYear(), now.getMonth() - (complete ? 1 : 0), 1);
   return { start, until: complete ? new Date(now.getFullYear(), now.getMonth(), 1) : null, complete };
+}
+
+export type WinDay = {
+  /** Local midnight of the day. */
+  date: Date;
+  itemsUsed: number;
+  /** Distinct dishes cooked that day. */
+  cooked: string[];
+  moneySaved: number;
+};
+
+/** The wins list: one entry per local day that used something up or cooked, newest first. */
+export function groupWinsByDay(raw: WinsRaw): WinDay[] {
+  const days = new Map<string, WinDay>();
+  const day = (iso: string) => {
+    const at = new Date(iso);
+    const date = new Date(at.getFullYear(), at.getMonth(), at.getDate());
+    const key = date.toDateString();
+    let entry = days.get(key);
+    if (!entry) {
+      entry = { date, itemsUsed: 0, cooked: [], moneySaved: 0 };
+      days.set(key, entry);
+    }
+    return entry;
+  };
+  for (const at of raw.used) day(at).itemsUsed += 1;
+  for (const { at, title } of raw.cooked) {
+    const entry = day(at);
+    if (!entry.cooked.includes(title)) entry.cooked.push(title);
+  }
+  // Money alone doesn't make a day a win, but it rides along on one.
+  for (const { at, value } of raw.saved) {
+    const entry = days.get(new Date(new Date(at).setHours(0, 0, 0, 0)).toDateString());
+    if (entry) entry.moneySaved += value;
+  }
+  return [...days.values()].sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
 /** Items to use up per day for the home's daily goal; 1 already keeps the streak. */

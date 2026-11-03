@@ -4,12 +4,13 @@ import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 
-import { EmptyState, MonthlyRecap, PremiumSheet, RecipeGlyph, Screen, ScreenHeader, SegmentedControl, Text } from "@/components";
+import { DaySheet, EmptyState, MonthlyRecap, PremiumSheet, RecipeGlyph, Screen, ScreenHeader, SegmentedControl, Text, WinsList } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import { useHousehold, useInsights, useMonthlyRecap, useStreak } from "@/hooks";
+import { useDaySheet, useHousehold, useInsights, useMonthlyRecap, useStreak, useWins } from "@/hooks";
+import { InventoryCategory, toUiCategory } from "@/services";
 import { formatCategoryLabel, InsightsSummary } from "@/services/insightsService";
 import { formatMoney } from "@/lib/money";
-import { colors, radii, spacing } from "@/theme";
+import { colors, fonts, radii, spacing } from "@/theme";
 
 export default function InsightsRoute() {
   const { t } = useTranslation();
@@ -38,6 +39,9 @@ export default function InsightsRoute() {
     showHouseholdScope,
   );
   const { streak, refresh: refreshStreak } = useStreak(activeHousehold?.id);
+  // Your wins: every day you used something up, for everyone like the recap.
+  const { wins, refresh: refreshWins } = useWins(activeHousehold?.id, profile?.id);
+  const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, profile?.id);
 
   // Cooking happens on other tabs — refetch whenever this tab gains focus.
   useFocusEffect(
@@ -45,17 +49,18 @@ export default function InsightsRoute() {
       void refreshInsights();
       void refreshRecap();
       void refreshStreak();
-    }, [refreshInsights, refreshRecap, refreshStreak]),
+      void refreshWins();
+    }, [refreshInsights, refreshRecap, refreshStreak, refreshWins]),
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refreshInsights(), refreshRecap(), refresh()]);
+      await Promise.all([refreshInsights(), refreshRecap(), refreshWins(), refresh()]);
     } finally {
       setRefreshing(false);
     }
-  }, [refreshInsights, refreshRecap, refresh]);
+  }, [refreshInsights, refreshRecap, refreshWins, refresh]);
 
   const currency = activeHousehold?.currency_code ?? "USD";
   const month = period.start.toLocaleDateString(undefined, { month: "long" });
@@ -102,10 +107,49 @@ export default function InsightsRoute() {
     />
   );
 
+  const winsSection = (
+    <WinsList
+      eyebrow={t("insights.wins.eyebrow")}
+      showAllLabel={t("insights.wins.showAll", { count: wins.length })}
+      days={wins.map((day) => ({
+        key: day.date.toDateString(),
+        date: day.date.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }),
+        title: day.itemsUsed > 0 ? t("insights.wins.saved", { count: day.itemsUsed }) : t("insights.wins.cookedOnly"),
+        detail: day.cooked.length > 0 ? day.cooked.join(", ") : undefined,
+        money: day.moneySaved > 0 ? formatMoney(day.moneySaved, currency) : undefined,
+        onPress: () => void showDay(day.date),
+      }))}
+    />
+  );
+
+  const daySheet = (
+    <DaySheet
+      visible={openDay != null}
+      onDismiss={closeDay}
+      title={openDay?.date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }) ?? ""}
+      activity={
+        openDay?.activity
+          ? {
+              cooked: openDay.activity.cooked,
+              used: openDay.activity.used.map((food) => ({ ...food, category: toUiCategory(food.category as InventoryCategory) })),
+            }
+          : null
+      }
+      saved={
+        openDay?.activity && openDay.activity.moneySaved > 0
+          ? t("recipes.week.saved", { amount: formatMoney(openDay.activity.moneySaved, currency) })
+          : undefined
+      }
+      labels={{ cooked: t("recipes.week.dayCooked"), used: t("recipes.week.dayUsed"), empty: t("recipes.week.dayEmpty") }}
+    />
+  );
+
   if (!isPremium) {
     return (
       <Screen scroll contentContainerStyle={styles.freeContent}>
         {recapCard}
+        {winsSection}
+        {daySheet}
         <View style={styles.gateWrap}>
           <EmptyState
             title={t("insights.title")}
@@ -174,6 +218,7 @@ export default function InsightsRoute() {
         }
       >
         {recapCard}
+        {winsSection}
 
         <View style={styles.miniGrid}>
           <MiniStat
@@ -208,6 +253,7 @@ export default function InsightsRoute() {
         <PatternCard summary={summary} />
         <MostCookedCard summary={summary} />
       </ScrollView>
+      {daySheet}
     </Screen>
   );
 }
@@ -393,8 +439,10 @@ const styles = StyleSheet.create({
   },
   heroValue: {
     color: colors.surface,
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 64,
-    lineHeight: 61,
+    // Below the font size iOS clips the digits' tops.
+    lineHeight: 72,
     fontWeight: "700",
   },
   heroMeta: {

@@ -163,6 +163,52 @@ export async function getInsightsData(
   };
 }
 
+export type WinsRaw = {
+  /** When each item was used up (cooked with or marked used). */
+  used: string[];
+  cooked: { at: string; title: string }[];
+  /** Money saved, household currency only. */
+  saved: { at: string; value: number }[];
+};
+
+/** Everything used up, cooked and saved since `since` — the Insights wins list. */
+export async function getWinsRaw(householdId: string, since: string, userId: string): Promise<WinsRaw> {
+  const supabase = getSupabaseClient();
+  const [used, cooked, value] = await Promise.all([
+    supabase.from("item_usage_events").select("used_at").eq("household_id", householdId).eq("used_by", userId).gte("used_at", since),
+    supabase
+      .from("cooked_events")
+      .select("created_at, recipes(title)")
+      .eq("household_id", householdId)
+      .eq("cooked_by", userId)
+      .gte("created_at", since),
+    supabase
+      .from("value_events")
+      .select("occurred_at, value, currency, households!inner(currency_code)")
+      .eq("household_id", householdId)
+      .eq("created_by", userId)
+      .eq("kind", "saved")
+      .gte("occurred_at", since),
+  ]);
+  if (used.error) throw used.error;
+  if (cooked.error) throw cooked.error;
+  if (value.error) throw value.error;
+
+  type CookedRow = { created_at: string; recipes?: { title?: string } | { title?: string }[] | null };
+  type ValueRow = { occurred_at: string; value: number; currency: string | null; households: { currency_code: string } };
+  return {
+    used: (used.data ?? []).map((row: { used_at: string }) => row.used_at),
+    cooked: ((cooked.data ?? []) as unknown as CookedRow[]).flatMap((row) => {
+      const title = Array.isArray(row.recipes) ? row.recipes[0]?.title : row.recipes?.title;
+      return title ? [{ at: row.created_at, title }] : [];
+    }),
+    // Same rule as every money total: only the household's current currency.
+    saved: ((value.data ?? []) as unknown as ValueRow[])
+      .filter((row) => row.currency == null || row.currency === row.households.currency_code)
+      .map((row) => ({ at: row.occurred_at, value: row.value })),
+  };
+}
+
 export type StreakDayState = "used" | "frozen" | "none";
 
 export type StreakState = {
