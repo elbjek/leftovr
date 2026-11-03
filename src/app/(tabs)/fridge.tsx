@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, FoodListCard, GeneratingLoader, KitchenPulse, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodCard, FoodListCard, GeneratingLoader, KitchenPulse, PlusIcon, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -1046,14 +1046,6 @@ function SearchIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
       <Path d="M8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12ZM12.5 12.5L16 16" stroke={colors.muted} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 20 20" fill="none">
-      <Path d="M10 4V16M4 10H16" stroke={colors.surface} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }

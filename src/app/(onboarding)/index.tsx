@@ -14,15 +14,17 @@ import {
 } from "@/repositories";
 import { colors, spacing } from "@/theme";
 
-type StepKey = "name" | "people" | "currency" | "invite";
+type StepKey = "name" | "people" | "shopping" | "currency" | "invite";
 type Choice = {
   label: string;
   subtitle?: string;
   value: string;
 };
 
-const steps: StepKey[] = ["name", "people", "currency", "invite"];
-const requiredStepCount = 3;
+const steps: StepKey[] = ["name", "people", "shopping", "currency", "invite"];
+const requiredStepCount = 4;
+// Also picks the recommended way to add food (`recommendedAddMethod`).
+const SHOPPING_STYLES = ["weekly", "few", "asneed"] as const;
 // Matches the Settings servings picker; 6 stands for "6 or more".
 const PEOPLE_OPTIONS = [1, 2, 3, 4, 5, 6];
 
@@ -55,6 +57,7 @@ export default function OnboardingRoute() {
   const [stepIndex, setStepIndex] = useState(hasSavedDisplayName ? 1 : 0);
   const [displayName, setDisplayName] = useState(hasSavedDisplayName ? profile?.display_name ?? "" : "");
   const [people, setPeople] = useState(profile?.default_servings ?? 2);
+  const [shoppingStyle, setShoppingStyle] = useState(profile?.shopping_style ?? "weekly");
   const [currency, setCurrency] = useState<string>(activeHousehold?.currency_code ?? guessCurrency());
   const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -108,7 +111,7 @@ export default function OnboardingRoute() {
       const personalization: OnboardingPersonalization = {
         cookingForSeed: people === 1 ? "solo" : people === 2 ? "partner" : "family",
         defaultServings: people,
-        shoppingStyle: profile?.shopping_style ?? "weekly",
+        shoppingStyle,
         primaryGoal: profile?.primary_goal ?? "waste",
         avoidances: profile?.avoidances ?? [],
         currencyCode: currency,
@@ -202,6 +205,18 @@ export default function OnboardingRoute() {
             }))}
             selected={String(people)}
             onSelect={(choice) => setPeople(Number(choice.value))}
+          />
+        ) : null}
+
+        {step === "shopping" ? (
+          <ChoiceList
+            choices={SHOPPING_STYLES.map((value) => ({
+              value,
+              label: t(`settings.shoppingStyleChoices.${value}`),
+              subtitle: t(`onboarding.personalization.shopping.hint.${value}`),
+            }))}
+            selected={shoppingStyle}
+            onSelect={(choice) => setShoppingStyle(choice.value)}
           />
         ) : null}
 

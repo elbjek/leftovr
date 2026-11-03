@@ -221,6 +221,16 @@ export const en = {
         count_other: "{{count}} people",
         orMore: "{{count}} or more",
       },
+      shopping: {
+        eyebrow: "Your shopping",
+        title: "How do you usually shop?",
+        body: "We'll suggest the quickest way to add food. You can change it any time in Settings.",
+        hint: {
+          weekly: "Scan the receipt and add it all at once",
+          few: "Snap your fridge and pantry",
+          asneed: "Scan a barcode, one item at a time",
+        },
+      },
       currency: {
         eyebrow: "Money",
         title: "What currency do you shop in?",
@@ -352,7 +362,7 @@ export const en = {
   scan: {
     barcodeOffline: "Couldn't reach the product database. Check your connection and try again.",
     title: "Add to your kitchen",
-    body: "Scan a receipt first. Barcode and manual add are there when you only need one item.",
+    body: "Pick whatever fits what you just bought.",
     limitStatus: "1 free receipt scan available.",
     phaseEight: "Barcode and manual add arrive in Phase 8.",
     cameraDenied: "Camera permission is needed to scan a receipt.",
@@ -744,7 +754,7 @@ export const en = {
   tabs: {
     fridge: "Kitchen",
     recipes: "Recipes",
-    scan: "Scan",
+    scan: "Add",
     insights: "Insights",
     settings: "Settings",
   },

@@ -66,6 +66,15 @@ type ScanMode =
   | "notifications";
 type ScanChoice = "receipt" | "ereceipt" | "pantry" | "barcode" | "manual";
 
+const ADD_METHODS: ScanChoice[] = ["receipt", "pantry", "ereceipt", "barcode", "manual"];
+// The way of adding food that fits how someone shops (onboarding / Settings
+// "Shopping style"); it gets the Recommended badge and goes first.
+const RECOMMENDED_BY_SHOPPING_STYLE: Record<string, ScanChoice> = {
+  weekly: "receipt",
+  few: "pantry",
+  asneed: "barcode",
+};
+
 // E-receipts are a few small pages; cap the upload to bound the (paid) AI call
 // and block oversized/wrong documents before they reach storage or OpenAI.
 const MAX_ERECEIPT_PDF_BYTES = 10 * 1024 * 1024;
@@ -1415,6 +1424,8 @@ export default function ScanRoute() {
     );
   }
 
+  const recommendedMethod = profile?.shopping_style ? RECOMMENDED_BY_SHOPPING_STYLE[profile.shopping_style] : undefined;
+
   return (
     <Screen contentContainerStyle={styles.content}>
       <View style={styles.header}>
@@ -1428,32 +1439,17 @@ export default function ScanRoute() {
       </View>
 
       <View style={styles.choices}>
-        <ScanMethodCard
-          method="receipt"
-          body={t("scan.receipt.body")}
-          recommended
-          onPress={() => openSelectedChoice("receipt")}
-        />
-        <ScanMethodCard
-          method="pantry"
-          body={t("scan.pantry.body")}
-          onPress={() => openSelectedChoice("pantry")}
-        />
-        <ScanMethodCard
-          method="ereceipt"
-          body={t("scan.ereceipt.body")}
-          onPress={() => openSelectedChoice("ereceipt")}
-        />
-        <ScanMethodCard
-          method="barcode"
-          body={t("scan.barcode.body")}
-          onPress={() => openSelectedChoice("barcode")}
-        />
-        <ScanMethodCard
-          method="manual"
-          body={t("scan.manual.body")}
-          onPress={() => openSelectedChoice("manual")}
-        />
+        {[...ADD_METHODS]
+          .sort((a, b) => Number(b === recommendedMethod) - Number(a === recommendedMethod))
+          .map((method) => (
+            <ScanMethodCard
+              key={method}
+              method={method}
+              body={t(`scan.${method}.body`)}
+              recommended={method === recommendedMethod}
+              onPress={() => openSelectedChoice(method)}
+            />
+          ))}
       </View>
 
       {error ? (

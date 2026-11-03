@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
-import { ScanIcon } from "@/components";
+import { PlusIcon } from "@/components";
 import { useAuth } from "@/features";
 import { colors, fonts } from "@/theme";
 
@@ -59,7 +59,7 @@ export default function TabsLayout() {
           title: t("tabs.scan"),
           tabBarIcon: () => (
             <View style={styles.scanButton}>
-              <ScanIcon color={colors.surface} size={26} />
+              <PlusIcon color={colors.surface} size={26} />
             </View>
           ),
           tabBarLabelStyle: [styles.label, styles.scanLabel],
@@ -134,7 +134,7 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
                   pressed && styles.pressed,
                 ]}
               >
-                <ScanIcon color={colors.surface} size={26} />
+                <PlusIcon color={colors.surface} size={26} />
               </Pressable>
               <Text style={styles.scanLabel}>{label}</Text>
             </View>

@@ -222,6 +222,16 @@ export const sr = {
         count_other: "{{count}} osoba",
         orMore: "{{count}} ili više",
       },
+      shopping: {
+        eyebrow: "Tvoja kupovina",
+        title: "Kako obično kupuješ?",
+        body: "Predložićemo najbrži način da dodaš namirnice. Možeš to da promeniš u Podešavanjima.",
+        hint: {
+          weekly: "Skeniraj račun i dodaj sve odjednom",
+          few: "Slikaj frižider i ostavu",
+          asneed: "Skeniraj bar-kod, jednu po jednu",
+        },
+      },
       currency: {
         eyebrow: "Novac",
         title: "U kojoj valuti kupuješ?",
@@ -353,7 +363,7 @@ export const sr = {
   scan: {
     barcodeOffline: "Nije moguće povezati se sa bazom proizvoda. Proveri vezu i pokušaj ponovo.",
     title: "Dodaj u kuhinju",
-    body: "Prvo skeniraj racun. Barkod i rucni unos su tu kada treba samo jedna stavka.",
+    body: "Izaberi šta odgovara onome što si upravo kupio/la.",
     limitStatus: "Dostupno je 1 besplatno skeniranje racuna.",
     phaseEight: "Barkod i rucni unos stizu u Phase 8.",
     cameraDenied: "Dozvola za kameru je potrebna za skeniranje racuna.",
@@ -757,7 +767,7 @@ export const sr = {
   tabs: {
     fridge: "Kuhinja",
     recipes: "Recepti",
-    scan: "Skeniraj",
+    scan: "Dodaj",
     insights: "Uvidi",
     settings: "Podesavanja",
   },
@@ -792,9 +802,9 @@ export const sr = {
     },
     shoppingStyleLabel: "Stil kupovine",
     shoppingStyleChoices: {
-      weekly: "Jedna velika nedeljn kupovina",
+      weekly: "Jedna velika nedeljna kupovina",
       few: "Nekoliko puta nedeljno",
-      asneed: "Kad mi zatreba nesto",
+      asneed: "Kad mi zatreba nešto",
     },
     avoidancesLabel: "Dijetetska izbegavanja",
     avoidancesBody: "Iskljuceno iz predloga recepata.",
