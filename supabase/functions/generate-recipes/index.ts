@@ -598,38 +598,35 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
 
 // Stable rules — identical across requests, so it stays in the `system` message
 // and benefits from prompt caching. Request-specific data goes in `user`.
+// Picking dishes. Shared by card mode and legacy full mode; written for
+// Claude, which follows a plainly stated rule (with its reason) better than a
+// stack of emphatic patches. The writing rules live in WRITING_RULES and
+// EXPAND_SYSTEM_PROMPT, so the card call isn't told how to write fields it
+// doesn't return.
 const SYSTEM_PROMPT = [
-  "You generate practical Leftovr recipe ideas from food a household currently has.",
-  "Tone: low-effort, approximate, useful, opportunity-framed. Avoid guilt, exact expiry dates, calories, and nutrition tracking.",
-  "Culinary judgment: create normal, appetizing meals grounded in real cooking traditions, not novelty mashups. Only combine ingredients when there is a recognizable culinary reason (classic pairing, shared cuisine, sauce/dressing that bridges them, or common breakfast/lunch/dinner pattern). Do not force unrelated household items into the same recipe just because they are available; it is better to use fewer well-matched items.",
-  "Subset rule: you do NOT have to use every item. Pick the largest subset that forms ONE coherent, real dish, and ignore the rest. A simple dish from 2-3 items that belong together always beats a mashup that uses more items. Never bend an item's role to fit (do not make sweet fruit savory, do not push a savory vegetable into a dessert) — if an item only fits a different kind of dish, leave it out of this one.",
-  "Sweet fruit can be used when it belongs naturally (yogurt, oats, smoothies, salads, desserts, some cheese boards), but never put sweet fruit (banana, apple, berries) into an egg/savory base like a frittata, omelette, scramble, or stir-fry. Avoid awkward sweet-savory combinations unless they are a familiar named dish. If a combination sounds like a dare, joke, TikTok stunt, or pregnancy craving, do not return it — fall back to the safest coherent dish from a smaller subset instead.",
-  "Ready-to-eat rule: items with category `snacks` or `drinks`, and any sweet/confectionery/chocolate/candy/pastry product (e.g. a chocolate-filled croissant, a candy bar, soda), are finished products, NOT savory cooking ingredients. Never cook or combine them into savory dishes (e.g. never make an egg-and-chocolate-croissant dish). Use them only on their own or inside a fitting sweet/dessert context, and only when it reads as a real treat — otherwise ignore them and build the recipe from the actual cooking ingredients.",
-  "TITLE — name the dish the way a home cook or a friend would say it, in the requested language:",
-  "- Lead with the dish. 2–5 words. Reflect the main protein/vegetable plus its form or technique.",
-  "- If it is a recognised dish, use its real name (e.g. Shakshuka, Carbonara, Tortilla de patatas). Otherwise describe it plainly.",
-  "- Sentence case: capitalise only the first word and proper nouns. No trailing punctuation, no emoji, no ALL CAPS, no quotation marks.",
-  "- BANNED words and patterns: filler adjectives (delicious, tasty, easy, quick, simple, amazing, ultimate, perfect, hearty, healthy, homemade, classic), 'with a twist', listing every ingredient, restaurant/menu-speak, invented brand names.",
-  "- Do not just concatenate ingredients ('Chicken, Rice and Peas'); name the actual dish ('Lemon chicken rice').",
-  "Title examples — bad -> good:",
-  "  'Delicious Easy Chicken Dinner' -> 'Garlic butter chicken'",
-  "  'Eggs, Spinach, Feta and Tomato Scramble' -> 'Spinach feta scramble'",
-  "  'Hearty Wholesome Vegetable Medley Bowl' -> 'Roasted vegetable bowl'",
-  "  'Pasta with Tomatoes and Garlic and Basil' -> 'Tomato basil pasta'",
-  "Keep the description to one short sentence. Use at most 3 tags.",
-  "Write steps for a beginner cook: cooking steps (stove/oven) name the heat level, pan or pot size where relevant, a time estimate, and a visual or sensory doneness cue (e.g. \"until translucent\", \"until shimmering\"). Prep and assembly steps (chopping, mixing, plating) do NOT involve a stove — never write \"no heat\", \"off heat\", or a heat level for them; just state the action.",
-  "Include prep detail inside steps (dice size, drain or pat dry) instead of assuming knowledge.",
-  "One action per step. Use as many steps as the recipe needs; do not compress multiple actions into one step, and do not pad simple recipes.",
-  "Expiring-first is a strong PREFERENCE, not a hard gate: the inventory is sorted most-urgent first, so prefer building each dish around the soonest-expiring items and include at least one whenever it fits a coherent dish. But never return empty or skip a good recipe just because the urgent items are awkward together — if they don't fit, cook a coherent dish from the rest of the inventory. A coherent dish that ignores the urgent items beats no dish at all.",
-  "Do NOT force multiple expiring items into one dish. Combine two or more expiring items only when they genuinely belong together in the same dish; if they don't make sense together, build a coherent dish around just one and leave the rest for another suggestion. Coherence always wins over cramming — one expiring item used well beats several jammed into a dish that no one would actually cook.",
-  "MAKEABLE (hard rule): only propose dishes the household can make right now. Every essential ingredient — one the dish cannot be made without (flour in pancakes, pasta in a pasta dish, rice in fried rice) — must be in the household list, except these basic staples, which you may assume: water, salt, pepper, cooking oil, common dried herbs and spices. Optional extras (garnish, toppings, a squeeze of lemon) may be missing. If a dish needs an essential the household lacks, do not propose it; pick one it can make.",
-  "Ingredient names must match household item names where used. required=true for every essential ingredient, whether or not the household has it; required=false only for optional extras (garnish, toppings, finishing touches) and the basic staples (water, salt, pepper, cooking oil, common dried herbs and spices). Never mark an essential false because it is missing: flour in pancakes is always required=true.",
-  "Ingredient amounts: for whole produce and naturally-countable items, use counts and set countable=true — e.g. '1 large onion', '2 tomatoes', '3 eggs', '1 bell pepper', '2 slices bread'. For ingredients genuinely sold and measured by weight or volume, use g/ml/kg/L and set countable=false — e.g. '400g minced meat', '200g rice', '150g cheddar', '100ml milk'. Never express a whole vegetable or fruit in grams, and never express meat, grains, or liquids as a bare count.",
-  "Never include avoided ingredients; list any avoidance categories a recipe touches in avoidanceTags.",
-  "Respect the prompt filters: matching mealType, timeMinutes within max time, and include the vibe/tag in tags when one is set.",
-  "Empty result: return an empty recipes array whenever the inventory has no real COOKING ingredients to build a coherent dish from — this INCLUDES a fridge that holds only ready-to-eat / snack / confectionery / drink products (e.g. only popcorn, chips, a chocolate croissant, a candy bar, soda). In that case do NOT invent a dish; return empty. Also return empty when the only items simply do not belong in any single real dish. If — and only if — there ARE real cooking ingredients that form a coherent, appetizing dish, you MUST return at least one; do not return empty just because the expiring items don't fit together or the best dish ignores some items. Never invent food the household doesn't have. When the honest choice is between a nonsense recipe and no recipe, ALWAYS return no recipe.",
-  "INTERNAL CONSISTENCY (hard rule): within a single recipe the title, description, ingredients, and steps must all describe the SAME dish made from the SAME household foods. Never output a recipe whose title names a food that is not in its own ingredients/steps, or whose steps are about a different food than the title (e.g. title 'Chocolate croissant' with popcorn ingredients and steps). If you cannot produce an internally consistent recipe from the available food, omit it rather than forcing one.",
+  "You suggest meals for leftovr, an app that helps a household cook from the food it already has and use things up before they go off. The people reading your suggestions are home cooks, often beginners, deciding what to make. Keep the tone practical and encouraging: no guilt about waste, no exact expiry dates, no calories or nutrition talk.",
+  "A good suggestion is a dish a home cook would recognise and want to eat, made from a subset of the household's food that genuinely belongs together: a classic pairing, a shared cuisine, a sauce that bridges the ingredients, a familiar breakfast, lunch or dinner pattern. You don't need to use everything; two or three items used well beat a dish that crams in more. Leave out anything that only fits a different kind of dish rather than bending its role (sweet fruit stays out of eggs and stir-fries, for example). Novelty combinations that read as a dare or a joke aren't useful to anyone.",
+  "The household list is sorted most urgent first. Build each dish around something that's going off soon when it fits naturally. When the urgent items don't belong together, use one of them well, or cook a good dish from the rest: a coherent dish that skips the urgent items is better than none.",
+  "Snacks, drinks and finished sweet products (a chocolate croissant, a candy bar, soda) aren't cooking ingredients. Use them only as themselves, or in a dessert where they make sense.",
+  "Only suggest dishes the household can make right now. Every essential ingredient, meaning one the dish can't be made without (flour in pancakes, rice in fried rice), must be in the household list. You can assume water, salt, pepper, cooking oil and common dried herbs and spices. Optional extras like a garnish or a squeeze of lemon can be missing.",
+  "If the food can't make a real dish (for example, the kitchen holds only snacks and drinks), return an empty list rather than inventing one. When there is a real dish to make, return it, even if it leaves some items unused.",
+  "A recipe's title, description and ingredients all describe the same dish, made from the same household food. Leave out every avoided ingredient. Respect the filters: the meal type, the time limit, and the vibe as a tag when one is set.",
+  "Titles name the dish the way a friend would say it, in the requested language: two to five words, leading with the dish and its main ingredient or technique. Use the real name of a recognised dish (Shakshuka, Carbonara, Tortilla de patatas); otherwise describe it plainly. Sentence case, with no punctuation, emoji, quotes, filler adjectives (delicious, easy, hearty) or lists of ingredients. For example: \"Garlic butter chicken\", \"Spinach feta scramble\", \"Tomato basil pasta\".",
+  "Descriptions are one short sentence. Use up to three tags.",
+].join("\n\n");
+
+// Writing the full recipe in one call (legacy full mode for older app builds;
+// card mode writes these in the expand call instead).
+const WRITING_RULES = [
+  "Writing the recipe:",
+  "Name ingredients the way the household list does. required is true for every essential ingredient, even one the household doesn't have (flour in pancakes is always required), and false only for optional extras and the basic staples. Amounts: counts for whole or countable produce ('1 large onion', '3 eggs', countable=true); weight or volume for the rest ('400g minced meat', '100ml milk', countable=false). List any avoidance categories the recipe touches in avoidanceTags.",
+  "Steps are for a beginner: one action per step, as many as the dish needs. Cooking steps name the heat, the pan or pot size where it matters, a time, and a doneness cue (\"until translucent\"). Prep and assembly steps just state the action. Put prep detail (dice size, drain, pat dry) inside the step.",
 ].join("\n");
+
+// Who the food is for, in words the model can act on (not the enum name).
+function cookingFor(mode: GenerateRecipesRequest["cookingMode"]) {
+  return `Cooking for: ${mode === "just_me" ? "one person" : "the whole household"}.`;
+}
 
 // Most-recent distinct recipe titles for a household — used to steer fresh
 // generations away from dishes already suggested. Best-effort: on any error it
@@ -668,9 +665,8 @@ function buildMessages(
       ? `Recently suggested to this household — avoid repeating these or close variants unless nothing else coherent is possible: ${recentTitles.join("; ")}.`
       : "",
     `Language: write the ENTIRE recipe in ${lang} — title, description, every step, all tags, AND all ingredient names. Do NOT mix languages within a recipe. If an item name is in another language, translate it into ${lang} (keep it the natural name a ${lang} cook would use). The only exception is proper brand names, which stay as-is.`,
-    `Cooking mode: ${input.cookingMode ?? "household"}.`,
+    cookingFor(input.cookingMode),
     `Servings: ${input.servings ?? 2}.`,
-    `Premium optimized: ${input.isPremium ? "yes" : "no"}.`,
     `Hard serving constraint: recipe servings MUST equal ${input.servings ?? 2}.`,
     `Hard dietary constraints: ${
       input.avoidances?.length
@@ -699,7 +695,7 @@ function buildMessages(
       : "Return 1 recipe card: your single most confident pick for what this household has. If the household cannot make any coherent real dish, return an empty recipes array instead of inventing one.",
   ].join("\n");
 
-  return { system: SYSTEM_PROMPT, user };
+  return { system: `${SYSTEM_PROMPT}\n\n${WRITING_RULES}`, user };
 }
 
 // Last-line defence on the model's title: kill quotes/trailing punctuation, a
@@ -983,7 +979,7 @@ function buildCardMessages(
       ? `Recently suggested to this household — avoid repeating these or close variants unless nothing else coherent is possible: ${recentTitles.join("; ")}.`
       : "",
     `Language: write title, description and tags in ${lang}.`,
-    `Cooking mode: ${input.cookingMode ?? "household"}.`,
+    cookingFor(input.cookingMode),
     `Hard dietary constraints: ${
       input.avoidances?.length ? `avoid ${input.avoidances.join(", ")}.` : "none"
     }`,
@@ -994,16 +990,15 @@ function buildCardMessages(
     `- max time: ${input.filters?.maxMinutes != null ? `${input.filters.maxMinutes} minutes` : "any"}`,
     `- vibe/tag: ${input.filters?.vibe ?? "any"}`,
     input.filters?.cuisine && input.filters.cuisine !== "any"
-      ? `- cuisine: ${input.filters.cuisine.replace(/_/g, " ")} — strongly prefer this cuisine, but if the inventory cannot make a coherent ${input.filters.cuisine.replace(/_/g, " ")} dish, fall back to the best coherent dish. Never sacrifice coherence for the cuisine.`
+      ? `- cuisine: ${input.filters.cuisine.replace(/_/g, " ")} (use it when the food allows a good dish in that style; otherwise suggest the best dish)`
       : "- cuisine: any",
     input.filters?.basePreference && input.filters.basePreference !== "anything"
-      ? `- build around: ${input.filters.basePreference} — a guide, not a hard constraint. Fall back to the best coherent recipe if the base does not fit. Never sacrifice coherence for the base.`
+      ? `- build around: ${input.filters.basePreference} (a preference; fall back to the best dish if it doesn't fit)`
       : "- build around: anything",
     wantCount > 1
-      ? `Return EXACTLY ${wantCount} recipe cards that are genuinely different dishes (different main technique or cuisine; none a variant of another). If fewer coherent dishes exist, return only those. If none, return an empty array.`
-      : "Return EXACTLY 1 recipe card: your most confident coherent pick. If none is coherent, return an empty array.",
-    "These are lightweight cards: title, one-sentence description, usedIngredientIds, tags (max 3), mealType, category (course type e.g. main/salad/breakfast), and timeMinutes. Do NOT write steps or ingredient amounts.",
-    "usedIngredientIds MUST be ids copied verbatim from the inventory list above, only for items the dish actually uses.",
+      ? `Suggest ${wantCount} genuinely different dishes (different main technique or cuisine). If fewer good dishes exist, return only those.`
+      : "Suggest the one dish you're most confident in.",
+    "category is the course type (main, salad, soup, breakfast…). usedIngredientIds lists the id values from the household list, copied exactly, for the items each dish uses.",
   ].join("\n");
 
   return { system: SYSTEM_PROMPT, user };
@@ -1085,15 +1080,11 @@ async function handleExpand(
 // selection/coherence rules in SYSTEM_PROMPT are irrelevant once the dish is
 // chosen, and including them costs reasoning + latency for no benefit.
 const EXPAND_SYSTEM_PROMPT = [
-  "You write the full ingredient list and steps for a dish that has ALREADY been chosen. Keep the dish as given; do not change it.",
-  "Ingredient names should match household item names where used. required=true for every essential ingredient (the dish fails without it), whether or not the household has it; required=false only for optional extras (garnish, toppings, finishing touches) and basic staples (water, salt, pepper, cooking oil, common dried herbs and spices). Never mark an essential false because it is missing: flour in pancakes is always required=true.",
-  "Build the recipe from what the household has: every essential ingredient should come from the household list or the basic staples. Leave optional extras out rather than adding things the household would have to buy.",
-  "matchKey: for an ingredient taken from the household, copy that item's canonical name EXACTLY as written in parentheses in the household list (never translated or reworded); null for anything not from the household list.",
-  "Ingredient amounts: counts for whole/countable produce (e.g. '2 tomatoes', '3 eggs'); weight or volume otherwise (e.g. '400g rice', '100ml milk').",
-  "Write steps for a beginner cook: cooking steps (stove/oven) name the heat level, pan or pot size where relevant, a time estimate, and a doneness cue. Prep and assembly steps just state the action — never write \"no heat\" or a heat level for them.",
-  "One action per step. At most 8 steps and at most 12 ingredients. Do not pad.",
-  "Never include avoided ingredients.",
-].join("\n");
+  "You write the ingredient list and steps for a dish that has already been chosen; keep it that dish. The cooks are often beginners.",
+  "Ingredients: use the household's food (listed in the request) and the basic staples (water, salt, pepper, cooking oil, common dried herbs and spices). Leave optional extras out rather than adding things they would have to buy. Name ingredients the way the household list does. matchKey is that item's canonical name exactly as written in parentheses in the household list (not translated), or null for anything not from the list. required is true for every essential ingredient, even one the household doesn't have (flour in pancakes is always required), and false only for optional extras and the basic staples. Amounts: counts for whole or countable produce ('2 tomatoes', '3 eggs'); weight or volume for the rest ('400g rice', '100ml milk').",
+  "Steps: the recipe is read on a phone while cooking, so keep it to at most 8 steps and 12 ingredients. Each step is one clear stage of the cooking, not every tiny action. Cooking steps name the heat, the pan or pot size where it matters, a time, and a doneness cue (\"until translucent\"). Prep and assembly steps just state the action. Put prep detail (dice size, drain, pat dry) inside the step.",
+  "Leave out every avoided ingredient.",
+].join("\n\n");
 
 function buildExpandMessages(
   input: GenerateRecipesRequest,
@@ -1106,7 +1097,7 @@ function buildExpandMessages(
 
   const user = [
     `Expand this chosen dish into a full recipe: "${card.title}"${card.description ? ` — ${card.description}` : ""}.`,
-    `Write everything in ${lang}. Servings MUST equal ${servings}.`,
+    `Write everything in ${lang}. Amounts for ${servings} servings.`,
     usedNames.length ? `Build it around these household items: ${usedNames.join(", ")}.` : "",
     `Hard dietary constraints: ${
       input.avoidances?.length
@@ -1115,7 +1106,6 @@ function buildExpandMessages(
     }`,
     "What the household has:",
     ...formatInventory(inventory),
-    "Return ONLY ingredients and steps for THIS dish.",
   ].join("\n");
 
   return { system: EXPAND_SYSTEM_PROMPT, user };
@@ -1124,7 +1114,7 @@ function buildExpandMessages(
 // A full pantry (~200 lots) serializes to ~50k chars; anything far past that is
 // not a real request.
 const EXPAND_MAX_BODY_CHARS = 100_000;
-// Premium makes up to 50 generations/day × 2 cards, each prefetch-expanded,
+// Premium makes up to 50 generations/day × 3 cards, each prefetch-expanded,
 // plus detail opens. Free gets one lifetime generation, so 20 covers reopening
 // saved recipes.
 const EXPAND_DAILY_LIMIT_PREMIUM = 200;
