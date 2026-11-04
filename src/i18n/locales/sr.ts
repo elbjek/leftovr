@@ -1,4 +1,11 @@
 export const sr = {
+  calendar: {
+    previousMonth: "Prethodni mesec",
+    nextMonth: "Sledeći mesec",
+    back: "Nazad",
+    chooseMonthYear: "Izaberi mesec i godinu",
+    year: "Godina",
+  },
   common: {
     continue: "Nastavi",
     loading: "Ucitavanje",

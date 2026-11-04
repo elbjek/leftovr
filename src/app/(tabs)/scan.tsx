@@ -5,12 +5,11 @@ import * as FileSystem from "expo-file-system/legacy";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
+import { BackButton, BottomSheet, Button, Card, DateField, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
@@ -141,7 +140,6 @@ export default function ScanRoute() {
   const [manualUnit, setManualUnit] = useState<string>(DEFAULT_UNIT);
   const [manualExpiry, setManualExpiry] = useState<Date | null>(null);
   const [manualExpiryEnabled, setManualExpiryEnabled] = useState(true);
-  const [showExpiryPicker, setShowExpiryPicker] = useState(false);
   const [customSheetVisible, setCustomSheetVisible] = useState(false);
   const [offSearching, setOffSearching] = useState(false);
   const [draftProduct, setDraftProduct] = useState<BarcodeProduct | null>(null);
@@ -722,7 +720,6 @@ export default function ScanRoute() {
       setManualExpiry(null);
       setManualExpiryEnabled(true);
       setCustomSheetVisible(false);
-      setShowExpiryPicker(false);
       setDraftProduct(null);
       setMode("addSuccess");
     } catch (addError) {
@@ -1218,65 +1215,18 @@ export default function ScanRoute() {
               />
             </View>
 
-            <View style={styles.fieldBox}>
-              <Text variant="micro" muted uppercase>
-                {t("scan.manual.expiryLabel")}
-              </Text>
-              <View style={styles.expiryRow}>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    if (!manualExpiryEnabled) {
-                      setManualExpiryEnabled(true);
-                      return;
-                    }
-                    setShowExpiryPicker(true);
-                  }}
-                  style={({ pressed }) => [
-                    styles.expiryPill,
-                    !manualExpiryEnabled && styles.expiryPillMuted,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text
-                    variant="label"
-                    color={manualExpiryEnabled ? colors.primary : colors.muted}
-                  >
-                    {manualExpiryEnabled
-                      ? expiryValue.toLocaleDateString(undefined, {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : t("scan.manual.expiryNone")}
-                  </Text>
-                </Pressable>
-                {manualExpiryEnabled ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    hitSlop={spacing.sm}
-                    onPress={() => setManualExpiryEnabled(false)}
-                    style={({ pressed }) => [pressed && styles.pressed]}
-                  >
-                    <Text variant="small" muted>
-                      {t("scan.manual.expiryNone")}
-                    </Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            </View>
-
-            {showExpiryPicker && manualExpiryEnabled ? (
-              <DateTimePicker
-                value={expiryValue}
-                mode="date"
-                minimumDate={new Date()}
-                onChange={(_event, date) => {
-                  setShowExpiryPicker(Platform.OS === "ios");
-                  if (date) setManualExpiry(date);
-                }}
-              />
-            ) : null}
+            <DateField
+              label={t("scan.manual.expiryLabel")}
+              value={manualExpiryEnabled ? expiryValue : null}
+              placeholder={t("scan.manual.expiryNone")}
+              minDate={new Date()}
+              onChange={(date) => {
+                setManualExpiry(date);
+                setManualExpiryEnabled(true);
+              }}
+              onClear={() => setManualExpiryEnabled(false)}
+              clearLabel={t("scan.manual.expiryNone")}
+            />
 
             <TextField
               label={t("scan.manual.priceLabel")}
@@ -1818,22 +1768,5 @@ const styles = StyleSheet.create({
   stepValue: {
     minWidth: 24,
     textAlign: "center",
-  },
-  expiryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  expiryPill: {
-    backgroundColor: colors.primary50,
-    borderRadius: radii.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    minHeight: 36,
-    justifyContent: "center",
-  },
-  expiryPillMuted: {
-    backgroundColor: colors.surface2,
   },
 });

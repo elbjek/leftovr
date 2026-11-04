@@ -1,10 +1,9 @@
 import { useCallback, useState } from "react";
-import { Alert, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
-import DateTimePicker from "@react-native-community/datetimepicker";
 
-import { BottomSheet, Button, CheckItem, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, KitchenPulse, PlusIcon, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, KitchenPulse, PlusIcon, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -817,7 +816,6 @@ function ItemActionSheet({
     netLabel: string;
     expiryLabel: string;
     expiryNone: string;
-    expiryDone: string;
     partialLabel: string;
     partialFull: string;
     partialSomeUsed: string;
@@ -836,7 +834,6 @@ function ItemActionSheet({
   const [netInput, setNetInput] = useState("");
   const [partialState, setPartialState] = useState<PartialState>("full");
   const [expiry, setExpiry] = useState<Date | null>(null);
-  const [showExpiryPicker, setShowExpiryPicker] = useState(false);
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [lastKey, setLastKey] = useState(group?.key);
 
@@ -850,7 +847,6 @@ function ItemActionSheet({
     setNetInput(lot?.net_amount != null ? String(lot.net_amount) : "");
     setPartialState(lot?.partial_state ?? "full");
     setExpiry(lot?.expires_at ? parseLocalDate(lot.expires_at) : null);
-    setShowExpiryPicker(false);
     setConfirmingRemove(false);
   }
 
@@ -943,75 +939,14 @@ function ItemActionSheet({
           </View>
         ) : null}
 
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            if (!expiry) setExpiry(new Date());
-            setShowExpiryPicker(true);
-          }}
-          style={({ pressed }) => [styles.fieldBox, styles.whiteField, pressed && styles.expiryPressed]}
-        >
-          <Text variant="micro" muted uppercase>
-            {labels.expiryLabel}
-          </Text>
-          <View style={styles.expiryRow}>
-            <Text variant="label" color={expiry ? colors.primary : colors.muted}>
-              {expiry
-                ? expiry.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
-                : labels.expiryNone}
-            </Text>
-            {expiry ? (
-              <Pressable
-                accessibilityRole="button"
-                hitSlop={spacing.sm}
-                onPress={() => {
-                  setExpiry(null);
-                  setShowExpiryPicker(false);
-                }}
-                style={({ pressed }) => [pressed && styles.expiryPressed]}
-              >
-                <Text variant="small" muted>
-                  {labels.expiryNone}
-                </Text>
-              </Pressable>
-            ) : null}
-          </View>
-        </Pressable>
-
-        {showExpiryPicker && expiry && Platform.OS === "android" ? (
-          <DateTimePicker
-            value={expiry}
-            mode="date"
-            display="calendar"
-            onChange={(_event, date) => {
-              setShowExpiryPicker(false);
-              if (date) setExpiry(date);
-            }}
-          />
-        ) : null}
-
-        {Platform.OS === "ios" ? (
-          <BottomSheet visible={showExpiryPicker && Boolean(expiry)} onDismiss={() => setShowExpiryPicker(false)}>
-            <View style={styles.dateSheet}>
-              <Text variant="h3" center>
-                {labels.expiryLabel}
-              </Text>
-              <View style={styles.dateCalendarCard}>
-                <DateTimePicker
-                  value={expiry ?? new Date()}
-                  mode="date"
-                  display="inline"
-                  themeVariant="light"
-                  accentColor={colors.primary}
-                  onChange={(_event, date) => {
-                    if (date) setExpiry(date);
-                  }}
-                />
-              </View>
-              <Button title={labels.expiryDone} variant="accent" onPress={() => setShowExpiryPicker(false)} />
-            </View>
-          </BottomSheet>
-        ) : null}
+        <DateField
+          label={labels.expiryLabel}
+          value={expiry}
+          placeholder={labels.expiryNone}
+          onChange={setExpiry}
+          onClear={() => setExpiry(null)}
+          clearLabel={labels.expiryNone}
+        />
 
         <View style={styles.sheetButtons}>
           <Button
@@ -1175,7 +1110,6 @@ function getActionLabels(t: ReturnType<typeof useTranslation>["t"]) {
     netLabel: t("fridge.actions.netLabel"),
     expiryLabel: t("fridge.actions.expiryLabel"),
     expiryNone: t("fridge.actions.expiryNone"),
-    expiryDone: t("fridge.actions.expiryDone"),
     partialLabel: t("fridge.actions.partialLabel"),
     partialFull: t("fridge.meta.full"),
     partialSomeUsed: t("fridge.meta.someUsed"),
@@ -1550,24 +1484,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     gap: spacing.xs,
   },
-  expiryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
   expiryPressed: {
     opacity: 0.78,
-  },
-  dateSheet: {
-    gap: spacing.lg,
-  },
-  dateCalendarCard: {
-    borderRadius: radii.xl,
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
   },
 });

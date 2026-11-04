@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import Svg, { Path } from "react-native-svg";
 
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import { applySuggestion, INVENTORY_CATEGORIES, PartialState, ReceiptConfirmItem, ScanSuggestion } from "@/services";
 import { CategoryTone, categoryColors, colors, fonts, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { BottomSheet, Button, Card, FilterChip, Text, TextField, UnitPicker } from "../primitives";
+import { BottomSheet, Button, Card, DateField, FilterChip, Text, TextField, UnitPicker } from "../primitives";
 
 type Props = {
   items: ReceiptConfirmItem[];
@@ -55,7 +54,6 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
       noExpiry: false,
     })),
   );
-  const [expiryPickerRowId, setExpiryPickerRowId] = useState<string | null>(null);
   // Row whose category is being corrected (C14).
   const [categoryRowId, setCategoryRowId] = useState<string | null>(null);
   const categoryRow = rows.find((row) => row.id === categoryRowId);
@@ -65,10 +63,6 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
     ? rows.filter((row) => parseAmount(row.quantityText) == null || (!row.expiresAt && !row.noExpiry)).length
     : 0;
   const confirmDisabled = itemCount === 0 || confirming || missingCount > 0;
-  const activeExpiryRow = rows.find((row) => row.id === expiryPickerRowId);
-  const activeExpiryDate = activeExpiryRow?.expiresAt
-    ? parseLocalDate(activeExpiryRow.expiresAt)
-    : new Date();
 
   function patchRow(id: string, patch: Partial<EditableRow>) {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...patch } : row)));
@@ -231,40 +225,15 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
                 />
               ) : null}
 
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t("scan.manual.expiryLabel")}
-                style={[styles.expiryBox, expiryPickerRowId === row.id && styles.expiryBoxActive]}
-                onPress={() => setExpiryPickerRowId(row.id)}
-              >
-                <Text variant="micro" muted uppercase>
-                  {t("scan.manual.expiryLabel")}
-                </Text>
-                <View style={styles.expiryValueRow}>
-                  <Text
-                    style={styles.expiryValue}
-                    color={row.expiresAt || row.noExpiry ? colors.text : colors.muted}
-                  >
-                    {row.expiresAt
-                      ? formatExpiry(row.expiresAt)
-                      : row.noExpiry
-                        ? t("scan.confirm.noExpiry")
-                        : t("scan.confirm.addExpiry")}
-                  </Text>
-                  {row.expiresAt || row.noExpiry ? (
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t("scan.manual.expiryNone")}
-                      hitSlop={8}
-                      onPress={() => patchRow(row.id, { expiresAt: null, noExpiry: false })}
-                    >
-                      <CloseIcon color={colors.muted} />
-                    </Pressable>
-                  ) : (
-                    <CalendarIcon color={colors.muted} />
-                  )}
-                </View>
-              </Pressable>
+              <DateField
+                label={t("scan.manual.expiryLabel")}
+                value={row.expiresAt ? parseLocalDate(row.expiresAt) : null}
+                placeholder={row.noExpiry ? t("scan.confirm.noExpiry") : t("scan.confirm.addExpiry")}
+                minDate={new Date()}
+                onChange={(date) => patchRow(row.id, { expiresAt: toLocalDateString(date), noExpiry: false })}
+                onClear={() => patchRow(row.id, { expiresAt: null, noExpiry: false })}
+                clearLabel={t("scan.manual.expiryNone")}
+              />
               {requireDetails && !row.expiresAt && !row.noExpiry ? (
                 <Button
                   title={t("scan.confirm.noExpiry")}
@@ -279,22 +248,6 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
         })}
       </ScrollView>
 
-      {expiryPickerRowId !== null ? (
-        <DateTimePicker
-          value={activeExpiryDate}
-          mode="date"
-          minimumDate={new Date()}
-          onChange={(_event, date) => {
-            setExpiryPickerRowId(Platform.OS === "ios" ? expiryPickerRowId : null);
-            if (date && expiryPickerRowId) {
-              patchRow(expiryPickerRowId, { expiresAt: toLocalDateString(date), noExpiry: false });
-            }
-          }}
-        />
-      ) : null}
-      {expiryPickerRowId !== null && Platform.OS === "ios" ? (
-        <Button title={t("common.continue")} variant="text" onPress={() => setExpiryPickerRowId(null)} />
-      ) : null}
 
       <BottomSheet visible={categoryRow != null} onDismiss={() => setCategoryRowId(null)}>
         <View style={styles.categorySheet}>
@@ -418,21 +371,6 @@ function CloseIcon({ color }: { color: string }) {
   );
 }
 
-function CalendarIcon({ color }: { color: string }) {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 14 14">
-      <Path
-        d="M2.5 3.5h9v8h-9zM2.5 5.8h9M4.5 2v2M9.5 2v2"
-        stroke={color}
-        strokeWidth={1.3}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-    </Svg>
-  );
-}
-
 function toLocalDateString(date: Date) {
   const month = `${date.getMonth() + 1}`.padStart(2, "0");
   const day = `${date.getDate()}`.padStart(2, "0");
@@ -442,14 +380,6 @@ function toLocalDateString(date: Date) {
 function parseLocalDate(value: string) {
   const [year, month, day] = value.split("-").map(Number);
   return new Date(year, (month ?? 1) - 1, day ?? 1);
-}
-
-function formatExpiry(value: string) {
-  return parseLocalDate(value).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 const styles = StyleSheet.create({
@@ -614,28 +544,6 @@ const styles = StyleSheet.create({
   },
   missingHint: {
     marginTop: spacing.xs,
-  },
-  expiryBox: {
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    borderRadius: radii.lg,
-    backgroundColor: colors.paper,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: spacing.xs,
-  },
-  expiryBoxActive: {
-    borderColor: colors.sage,
-  },
-  expiryValueRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    height: 36,
-  },
-  expiryValue: {
-    fontSize: 15,
-    lineHeight: 20,
   },
   confirmButton: {
     minHeight: 48,

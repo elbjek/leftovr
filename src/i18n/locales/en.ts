@@ -1,4 +1,11 @@
 export const en = {
+  calendar: {
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+    back: "Back",
+    chooseMonthYear: "Choose month and year",
+    year: "Year",
+  },
   common: {
     continue: "Continue",
     loading: "Loading",
