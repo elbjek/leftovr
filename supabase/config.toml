@@ -74,6 +74,9 @@ verify_jwt = false
 [functions.notify-member-activity]
 verify_jwt = false
 
+[functions.cleanup-receipt-images]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 policy = "oneshot"
