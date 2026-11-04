@@ -233,7 +233,17 @@ Deno.serve(async (req) => {
     return Response.json({ error: "missing_anthropic_api_key" }, { status: 500 });
   }
 
+  // The whole body ends up in the prompt, so an oversized one is a cost attack,
+  // not a kitchen: reject it by its declared size before reading it, then by
+  // its real size (chunked bodies send no length).
+  // ponytail: one whole-body cap instead of per-field limits.
+  if (Number(req.headers.get("content-length") ?? 0) > MAX_BODY_CHARS) {
+    return Response.json({ error: "request_too_large" }, { status: 413 });
+  }
   const raw = await req.text();
+  if (raw.length > MAX_BODY_CHARS) {
+    return Response.json({ error: "request_too_large" }, { status: 413 });
+  }
   let input: GenerateRecipesRequest = {};
   try {
     input = JSON.parse(raw);
@@ -244,13 +254,8 @@ Deno.serve(async (req) => {
 
   // Expand happens after a card is tapped: it does NOT consume a generation
   // credit (the card phase already did) and has no idempotency lock. It has its
-  // own per-user daily cap (handleExpand) and a body size cap, since the whole
-  // body ends up in the prompt.
+  // own per-user daily cap (handleExpand).
   if (input.mode === "expand") {
-    // ponytail: one whole-body cap instead of per-field limits.
-    if (raw.length > EXPAND_MAX_BODY_CHARS) {
-      return Response.json({ error: "expand_request_too_large" }, { status: 413 });
-    }
     return await handleExpand(input, authHeader, apiKey);
   }
 
@@ -1112,8 +1117,8 @@ function buildExpandMessages(
 }
 
 // A full pantry (~200 lots) serializes to ~50k chars; anything far past that is
-// not a real request.
-const EXPAND_MAX_BODY_CHARS = 100_000;
+// not a real request. Applies to every mode (cards, expand, legacy full).
+const MAX_BODY_CHARS = 100_000;
 // Premium makes up to 50 generations/day × 3 cards, each prefetch-expanded,
 // plus detail opens. Free gets one lifetime generation, so 20 covers reopening
 // saved recipes.
