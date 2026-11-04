@@ -286,14 +286,17 @@ Deno.serve(async (req) => {
     const fileBase64 = bytesToBase64(new Uint8Array(await file.arrayBuffer()));
     // We don't retain receipt files: delete as soon as it's decoded so a wrong
     // upload (an ID, a random PDF) never lingers in storage. Runs before the AI
-    // call, so success, empty, and failure paths all leave nothing behind.
-    // Cleanup failure is non-fatal — the scan continues.
-    const { error: removeError } = await supabase.storage
+    // call and is awaited right after it (the catch path discards again), so
+    // success, empty, and failure paths all leave nothing behind. It runs
+    // alongside the AI call rather than delaying it. Cleanup failure is
+    // non-fatal — the scan continues.
+    const fileRemoval = supabase.storage
       .from("receipt-images")
-      .remove([input.imagePath]);
-    if (removeError) {
-      console.error("[normalize-receipt] receipt file cleanup failed", removeError);
-    }
+      .remove([input.imagePath])
+      .then(({ error: removeError }) => {
+        if (removeError) console.error("[normalize-receipt] receipt file cleanup failed", removeError);
+      })
+      .catch((removeError) => console.error("[normalize-receipt] receipt file cleanup failed", removeError));
     const isPdf = input.imagePath.toLowerCase().endsWith(".pdf");
     // Digital e-receipts come as PDFs (a document block); camera scans are
     // images. The receipt goes before the instructions.
@@ -316,6 +319,8 @@ Deno.serve(async (req) => {
       },
     );
 
+    await fileRemoval;
+
     console.info("[normalize-receipt] token usage", {
       scanId: scan.id,
       promptTokens: inputTokens,
@@ -327,18 +332,21 @@ Deno.serve(async (req) => {
     // Keep the row for rate-limit accounting but strip every receipt-derived
     // field, and never touch the line cache.
     if (extraction.lines.length === 0) {
-      await releaseFreeClaim();
-      await supabase
-        .from("receipt_scans")
-        .update({
-          status: "failed",
-          image_path: null,
-          receipt_signature: null,
-          error_message: "no_receipt_items",
-          prompt_tokens: inputTokens,
-          processed_at: new Date().toISOString(),
-        })
-        .eq("id", scan.id);
+      // Independent writes; run together so "nothing found" comes back fast.
+      await Promise.all([
+        releaseFreeClaim(),
+        supabase
+          .from("receipt_scans")
+          .update({
+            status: "failed",
+            image_path: null,
+            receipt_signature: null,
+            error_message: "no_receipt_items",
+            prompt_tokens: inputTokens,
+            processed_at: new Date().toISOString(),
+          })
+          .eq("id", scan.id),
+      ]);
       return Response.json({
         scanId: scan.id,
         storeChain: "unknown",

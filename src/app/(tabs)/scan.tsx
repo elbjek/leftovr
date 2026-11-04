@@ -391,6 +391,8 @@ export default function ScanRoute() {
     ];
     try {
       const result = await work;
+      // Nothing found: go straight to the "couldn't find anything" screen.
+      if ((result as { items?: unknown[] }).items?.length === 0) return result;
       setProcessingStep("complete");
       // Brief hold so all three checks are visible before the screen swaps.
       await new Promise((resolve) => setTimeout(resolve, 400));

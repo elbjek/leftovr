@@ -316,13 +316,16 @@ Deno.serve(async (req) => {
       }),
     );
     // We don't retain pantry photos: delete as soon as they're decoded so
-    // nothing lingers in storage on any path. Cleanup failure is non-fatal.
-    const { error: removeError } = await supabase.storage
+    // nothing lingers in storage on any path. Runs alongside the AI call and
+    // is awaited right after it (the catch path discards again). Cleanup
+    // failure is non-fatal.
+    const photoRemoval = supabase.storage
       .from("receipt-images")
-      .remove(imagePaths);
-    if (removeError) {
-      console.error("[normalize-pantry] photo cleanup failed", removeError);
-    }
+      .remove(imagePaths)
+      .then(({ error: removeError }) => {
+        if (removeError) console.error("[normalize-pantry] photo cleanup failed", removeError);
+      })
+      .catch((removeError) => console.error("[normalize-pantry] photo cleanup failed", removeError));
 
     // Identifying food in photos is extraction: Haiku at low effort, photos
     // before the instructions. 6000 fits a large 3-photo pantry (~40
@@ -343,6 +346,8 @@ Deno.serve(async (req) => {
       },
     );
 
+    await photoRemoval;
+
     console.info("[normalize-pantry] token usage", {
       scanId: scan.id,
       photos: imagePaths.length,
@@ -354,17 +359,20 @@ Deno.serve(async (req) => {
     // Nothing recognizable (dark photos, not a pantry): keep the row for
     // rate-limit accounting but retain nothing derived from the photos.
     if (extraction.lines.length === 0) {
-      await releaseFreeClaim();
-      await supabase
-        .from("receipt_scans")
-        .update({
-          status: "failed",
-          image_path: null,
-          error_message: "no_pantry_items",
-          prompt_tokens: inputTokens,
-          processed_at: new Date().toISOString(),
-        })
-        .eq("id", scan.id);
+      // Independent writes; run together so "nothing found" comes back fast.
+      await Promise.all([
+        releaseFreeClaim(),
+        supabase
+          .from("receipt_scans")
+          .update({
+            status: "failed",
+            image_path: null,
+            error_message: "no_pantry_items",
+            prompt_tokens: inputTokens,
+            processed_at: new Date().toISOString(),
+          })
+          .eq("id", scan.id),
+      ]);
       return Response.json({ scanId: scan.id, lines: [] });
     }
 
