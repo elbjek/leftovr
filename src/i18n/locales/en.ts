@@ -588,6 +588,7 @@ export const en = {
     home: {
       eyebrow: "What's for dinner?",
       cookThis: "Cook this",
+      moreIdeas: "More ideas",
       title: "Cook from what you have",
       titleEmpty: "Scan your groceries to start",
       useToday_one: "{{count}} thing to use today",
@@ -603,7 +604,6 @@ export const en = {
     scanCta: "Scan",
     scanBody: "Add food to your kitchen and Leftovr turns it into recipe ideas.",
     tryNext: {
-      title: "Try next",
       tonight: "Tonight · from your kitchen",
       fromYours: "From your recipes",
       youHave: "From your kitchen",

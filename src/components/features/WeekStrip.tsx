@@ -38,12 +38,12 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
           <Text variant="micro" muted uppercase>
             {goal.eyebrow}
           </Text>
-          <Text variant="h3">{goal.title}</Text>
+          <Text variant="label">{goal.title}</Text>
         </View>
       </View>
 
       <View style={styles.head}>
-        <Text variant="label" style={styles.month}>
+        <Text variant="small" muted style={styles.month}>
           {month}
         </Text>
         <View style={styles.badges}>
@@ -148,8 +148,8 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
 
 // Progress toward today's goal; full once the target is met.
 function GoalRing({ done, total }: { done: number; total: number }) {
-  const size = 48;
-  const stroke = 5;
+  const size = 36;
+  const stroke = 4;
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
   const progress = Math.min(done, total) / total;
@@ -171,7 +171,7 @@ function GoalRing({ done, total }: { done: number; total: number }) {
           />
         ) : null}
       </Svg>
-      <Text variant="label" style={[styles.ringLabel, styles.bold]}>
+      <Text variant="micro" style={[styles.ringLabel, styles.bold]}>
         {`${Math.min(done, total)}/${total}`}
       </Text>
     </View>
@@ -222,8 +222,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.md,
+    paddingTop: spacing.xxs,
+    paddingBottom: spacing.sm,
     marginBottom: spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: colors.cardLine,
@@ -234,8 +234,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   ring: {
-    width: 48,
-    height: 48,
+    width: 36,
+    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -254,8 +254,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   month: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "700",
+    fontFamily: fonts.bodySemiBold,
   },
   streak: {
     flexDirection: "row",
@@ -270,8 +269,8 @@ const styles = StyleSheet.create({
     width: 40,
     alignItems: "center",
     gap: 2,
-    paddingTop: 7,
-    paddingBottom: 8,
+    paddingTop: 5,
+    paddingBottom: 6,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
   },

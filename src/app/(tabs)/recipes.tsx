@@ -440,9 +440,6 @@ export default function RecipesRoute() {
         <View style={styles.heroWrap}>
           {dish && dishCoverage ? (
             <>
-              <Text variant="micro" muted uppercase style={[styles.eyebrow, styles.cookAgainLabel]}>
-                {t("recipes.tryNext.title")}
-              </Text>
               <TryNextCard
                 eyebrow={hasTonight ? t("recipes.tryNext.tonight") : t("recipes.tryNext.fromYours")}
                 title={dish.title}
@@ -459,7 +456,7 @@ export default function RecipesRoute() {
                 ctaLabel={t("recipes.home.cookThis")}
                 // The cook prompt (meal, people, base…) sits beside Cook this so
                 // both stay above the fold, even once tonight's ideas exist.
-                secondaryLabel={t("recipes.generateCta")}
+                secondaryLabel={t("recipes.home.moreIdeas")}
                 onSecondary={openCookPrompt}
               />
               {hasTonight ? (
@@ -890,8 +887,5 @@ const styles = StyleSheet.create({
   metaStrong: {
     fontFamily: fonts.bodyBold,
     fontWeight: "700",
-  },
-  cookAgainLabel: {
-    marginBottom: spacing.sm,
   },
 });

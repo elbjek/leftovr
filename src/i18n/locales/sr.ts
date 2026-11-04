@@ -597,6 +597,7 @@ export const sr = {
     home: {
       eyebrow: "Šta je za večeru?",
       cookThis: "Kuvaj ovo",
+      moreIdeas: "Još ideja",
       title: "Kuvaj od onoga što imaš",
       titleEmpty: "Skeniraj namirnice za početak",
       useToday_one: "{{count}} stvar treba iskoristiti danas",
@@ -614,7 +615,6 @@ export const sr = {
     scanCta: "Skeniraj",
     scanBody: "Dodaj namirnice u kuhinju i Leftovr ce ih pretvoriti u ideje za recepte.",
     tryNext: {
-      title: "Probaj sledeće",
       tonight: "Večeras · iz tvoje kuhinje",
       fromYours: "Iz tvojih recepata",
       youHave: "Iz tvoje kuhinje",

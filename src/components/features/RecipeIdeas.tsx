@@ -42,7 +42,7 @@ export function TryNextCard({
   onPress: () => void;
   /** A button at the bottom ("Cook this") doing the same as tapping the card. */
   ctaLabel?: string;
-  /** An outline button beside the CTA (e.g. "What should I cook?"). */
+  /** An outline button beside the CTA (e.g. "More ideas"). */
   secondaryLabel?: string;
   onSecondary?: () => void;
 }) {
@@ -61,15 +61,24 @@ export function TryNextCard({
         </View>
         {onFavorite ? <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} /> : null}
       </View>
+      {/* Why it's tonight's pick (e.g. what it saves from going off) leads. */}
+      {why ? (
+        <View style={styles.why}>
+          <SparkIcon />
+          <Text variant="small" color={colors.primary} style={[styles.copy, styles.bold]}>
+            {why}
+          </Text>
+        </View>
+      ) : null}
       {description ? (
-        <Text variant="small" numberOfLines={2} style={styles.description}>
+        <Text variant="small" muted numberOfLines={1}>
           {description}
         </Text>
       ) : null}
       {ingredients.length > 0 ? (
         <>
           <View style={styles.rowBetween}>
-            <Text variant="micro" uppercase muted style={styles.eyebrow}>
+            <Text variant="micro" muted>
               {ingredientsLabel}
             </Text>
             {stepsLabel ? (
@@ -93,14 +102,6 @@ export function TryNextCard({
             ))}
           </View>
         </>
-      ) : null}
-      {why ? (
-        <View style={styles.why}>
-          <SparkIcon />
-          <Text variant="small" color={colors.primary} style={[styles.copy, styles.bold]}>
-            {why}
-          </Text>
-        </View>
       ) : null}
       {ctaLabel ? (
         // Same shapes as the ideas view's "View recipe" / "Give me 3 more".
@@ -418,9 +419,6 @@ const styles = StyleSheet.create({
     borderRadius: 3.5,
     backgroundColor: colors.accent,
   },
-  description: {
-    color: colors.text,
-  },
   rowBetween: {
     flexDirection: "row",
     alignItems: "baseline",
@@ -445,9 +443,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.sm,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    backgroundColor: colors.sageSoft,
   },
   heart: {
     width: 36,
@@ -468,11 +467,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
   },
+  // Cook this is the card's main action, so it takes the wider share.
   actionPrimary: {
-    flex: 1,
+    flex: 1.4,
   },
   actionSecondary: {
-    flex: 1.5,
+    flex: 1,
   },
   listCardHighlight: {
     backgroundColor: colors.accentSoft,
