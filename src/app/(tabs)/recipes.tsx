@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
+import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 
 import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, Text, TryNextCard, WeekStrip } from "@/components";
@@ -93,6 +94,10 @@ export default function RecipesRoute() {
   const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, profile?.id);
 
   const { streak, freezes, today: usedToday, days: week, refresh: refreshStreak } = useStreak(activeHousehold?.id);
+
+  // Tapping Recipes in the dock always lands on the home, out of the ideas view.
+  const navigation = useNavigation<BottomTabNavigationProp<Record<string, undefined>>>();
+  useEffect(() => navigation.addListener("tabPress", () => setIdeasOpen(false)), [navigation]);
 
   useFocusEffect(
     useCallback(() => {
