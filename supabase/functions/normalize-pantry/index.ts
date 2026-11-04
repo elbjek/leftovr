@@ -271,6 +271,12 @@ Deno.serve(async (req) => {
     })
     .select("id")
     .single();
+  // The database's burst-proof daily ceiling (usage_burst_ceiling migration).
+  if (scanError?.message === "usage_cap_reached") {
+    await discardUploads();
+    await releaseFreeClaim();
+    return Response.json({ error: "receipt_scan_rate_limited" }, { status: 429 });
+  }
   if (scanError || !scan) {
     console.error("[normalize-pantry] scan insert failed", scanError);
     await discardUploads();

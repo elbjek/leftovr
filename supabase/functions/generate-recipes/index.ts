@@ -565,8 +565,11 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
 
   // Retry of a failed (or stale processing) attempt: reuse its row (unique per
   // user + key).
+  // The claim only succeeds if the row is still as we read it, so parallel
+  // retries of one failed key can't each start a paid call: the losers see
+  // it in flight.
   if (existing?.id) {
-    await supabase
+    const claim = supabase
       .from("recipe_generation_attempts")
       .update({
         status: "processing",
@@ -575,7 +578,15 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
         attempt_count: (existing.attempt_count ?? 1) + 1,
         created_at: now.toISOString(),
       })
-      .eq("id", existing.id);
+      .eq("id", existing.id)
+      .eq("status", existing.status);
+    const { data: claimed } = await (existing.attempt_count == null
+      ? claim.is("attempt_count", null)
+      : claim.eq("attempt_count", existing.attempt_count)
+    ).select("id");
+    if (!claimed?.length) {
+      return { response: Response.json({ source: "processing" }, { status: 202 }) };
+    }
     return { attemptId: existing.id, supabase, premium, userId };
   }
 
@@ -597,6 +608,10 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
   // A parallel request with the same key won the insert: it is in flight.
   if (insert.error.code === "23505") {
     return { response: Response.json({ source: "processing" }, { status: 202 }) };
+  }
+  // The database's burst-proof daily ceiling (usage_burst_ceiling migration).
+  if (insert.error.message === "usage_cap_reached") {
+    return { response: Response.json({ error: "recipe_generation_rate_limited" }, { status: 429 }) };
   }
   return { response: Response.json({ error: "generation_lock_failed" }, { status: 500 }) };
 }
@@ -1165,6 +1180,10 @@ async function consumeExpandQuota(
   }
 
   const { error } = await supabase.from("recipe_expand_events").insert({ user_id: userId });
+  // The database's burst-proof daily ceiling (usage_burst_ceiling migration).
+  if (error?.message === "usage_cap_reached") {
+    return Response.json({ error: "recipe_expand_rate_limited" }, { status: 429 });
+  }
   if (error) {
     return Response.json({ error: "expand_quota_failed" }, { status: 500 });
   }
