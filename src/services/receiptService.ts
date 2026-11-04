@@ -5,6 +5,7 @@ import {
   getShelfLifeRange,
   InventoryCategory,
   normalizeFoodName,
+  PartialState,
 } from "./inventoryRules";
 
 // The model self-reports honestly only at the extremes: it parks anything it
@@ -49,6 +50,10 @@ export type ReceiptConfirmItem = {
   expiresAt?: string | null;
   // Per-line price (read or AI-estimated), in the receipt's currency.
   price?: number | null;
+  // The model couldn't count it (pantry photos): the user is asked for it.
+  quantityUnknown?: boolean;
+  // How much of the pack is left; pantry items may already be opened.
+  partialState?: PartialState;
   // Metric size per pack as printed on the line/packaging (B7); the catalog
   // default is only the fallback.
   netAmount?: number | null;
@@ -87,6 +92,8 @@ export type NormalizedReceiptLine = {
     netUnit: string | null;
     price?: number | null;
     priceApproximate?: boolean;
+    // Printed best-before date read from a pantry photo (YYYY-MM-DD).
+    expiresOn?: string | null;
   };
   alternatives?: { name: string; normalizedName: string; category: string }[];
 };
@@ -130,6 +137,7 @@ export function buildReceiptConfirmItemsFromLines(
         ? line.item.category
         : "other") as ReceiptConfirmItem["category"],
       quantity: line.item.quantity != null && line.item.quantity > 0 ? line.item.quantity : 1,
+      quantityUnknown: !(line.item.quantity != null && line.item.quantity > 0),
       unit: line.item.unit ?? "item",
       confidence: line.confidence,
       lowConfidence,
@@ -137,6 +145,7 @@ export function buildReceiptConfirmItemsFromLines(
       rawText: line.rawText,
       scannedName: line.item.name,
       price: line.item.price ?? null,
+      expiresAt: isDateString(line.item.expiresOn) ? line.item.expiresOn : null,
       netAmount: line.item.netAmount,
       netUnit: line.item.netUnit,
       suggestions: lowConfidence ? toSuggestions(line) : undefined,
@@ -198,7 +207,7 @@ export function buildConfirmedReceiptInventoryRows(
         unit,
         net_amount: netAmount,
         net_unit: packNet?.netUnit ?? null,
-        partial_state: "full" as const,
+        partial_state: item.partialState ?? ("full" as const),
         shelf_life_range: getShelfLifeRange(name, item.category),
         expires_at: item.expiresAt ?? null,
         source: input.source ?? ("receipt" as const),
@@ -210,4 +219,8 @@ export function buildConfirmedReceiptInventoryRows(
         purchase_amount: item.price != null ? purchaseAmount : null,
       };
     });
+}
+
+function isDateString(value: string | null | undefined): value is string {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value));
 }

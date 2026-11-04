@@ -17,6 +17,10 @@ type PantryLine = {
     unit: string | null;
     netAmount: number | null;
     netUnit: "ml" | "g" | null;
+    // Rough retail price for the visible quantity, in the household currency.
+    price: number | null;
+    // Best-before / use-by date printed on the pack, only when legible.
+    expiresOn: string | null;
   };
   // Candidate foods for an unsure line, best first (empty when confident).
   alternatives: { name: string; normalizedName: string; category: string }[];
@@ -62,6 +66,8 @@ const PANTRY_SCHEMA = {
               unit: nullable("string"),
               netAmount: nullable("number"),
               netUnit: { anyOf: [{ type: "string", enum: ["ml", "g"] }, { type: "null" }] },
+              price: nullable("number"),
+              expiresOn: nullable("string"),
             },
             required: [
               "name",
@@ -71,6 +77,8 @@ const PANTRY_SCHEMA = {
               "unit",
               "netAmount",
               "netUnit",
+              "price",
+              "expiresOn",
             ],
             additionalProperties: false,
           },
@@ -106,7 +114,7 @@ const MAX_PANTRY_PHOTOS = 3;
 // this; anything longer is a hung request or unusable photos — fail fast.
 const PANTRY_AI_TIMEOUT_MS = 30_000;
 
-const PROMPT = [
+const buildPrompt = (currency: string, today: string) => [
   "These are photos of the inside of someone's kitchen: pantry shelves, fridge, cupboards, or countertops. Identify every distinct edible food and drink item you can see.",
   "If the photos are NOT of food storage (e.g. a person, a document, a random room), return an empty `lines` array. Never invent items.",
   "The photos may overlap: the same shelf can appear in more than one photo. Return each distinct product ONCE across all photos — merge duplicates and count the total visible packages in `quantity`.",
@@ -116,6 +124,8 @@ const PROMPT = [
   "Pick `category` from the provided enum. Use `other` only when nothing else fits.",
   "`quantity` is how many packages/pieces of that product are visible in total, or null when you cannot tell. `unit` is the natural counting unit (usually null or a count unit like \"item\"); do NOT guess weights.",
   "`netAmount`/`netUnit` only when a metric size is readable on the packaging (1L -> 1000 ml, 400g -> 400 g); otherwise null.",
+  `\`price\` is a rough typical supermarket price, in ${currency} (number only, no symbol), for the whole visible \`quantity\` of that item (one package when \`quantity\` is null) as if bought new. It is always an estimate; use null only when you cannot reasonably guess.`,
+  `\`expiresOn\` is the best-before or use-by date printed on that item's packaging, as YYYY-MM-DD (today is ${today}), only when you can clearly read it in the photo. Otherwise null. Never estimate or infer a date.`,
   "Only return edible food and drink. Exclude non-food items on the same shelves (cleaning supplies, toiletries, paper goods, pet food, utensils, appliances, containers you cannot see into).",
   "`confidence` (0-1) is your certainty that `name`/`normalizedName` is the correct real food. Partially hidden items, unreadable labels, or shape-only guesses stay below 0.5. Only use confidence above 0.75 when the product is unmistakable — a clearly readable label or an unambiguous fresh item (bananas, eggs).",
   "`normalizedName` MUST be a real, standard food or drink an English speaker would recognize. If you cannot confidently identify the product, keep `name` descriptive, set confidence below 0.5, and give your best real-food guess as `normalizedName` — never a made-up word.",
@@ -176,7 +186,7 @@ Deno.serve(async (req) => {
       .single(),
     supabase
       .from("households")
-      .select("plan_tier")
+      .select("plan_tier, currency_code")
       .eq("id", input.householdId)
       .maybeSingle(),
     supabase
@@ -322,7 +332,10 @@ Deno.serve(async (req) => {
       new Anthropic({ apiKey }),
       {
         model: HAIKU,
-        content: [...imageParts, { type: "text", text: PROMPT }],
+        content: [
+          ...imageParts,
+          { type: "text", text: buildPrompt(household?.currency_code ?? "USD", now.toISOString().slice(0, 10)) },
+        ],
         schema: PANTRY_SCHEMA,
         maxTokens: 6000,
         effort: "low",

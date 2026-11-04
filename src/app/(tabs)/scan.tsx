@@ -1319,7 +1319,8 @@ export default function ScanRoute() {
           onCancel={returnToChoice}
           rawLabel={choice === "pantry" ? t("scan.pantry.spotted") : undefined}
           sourceLabel={choice === "pantry" ? t("scan.pantry.photoShows") : undefined}
-          showPrice={choice !== "pantry"}
+          showPrice
+          requireDetails={choice === "pantry"}
         />
       </Screen>
     );

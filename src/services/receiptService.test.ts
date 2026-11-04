@@ -180,6 +180,21 @@ describe("confirmed rows from scanned lines", () => {
     expect(row).toMatchObject({ net_amount: 1000, net_unit: "g" });
   });
 
+  it("keeps a printed pantry date and flags an uncounted item", () => {
+    const [dated, uncounted] = buildReceiptConfirmItemsFromLines([
+      scanned({ expiresOn: "2026-11-20" }),
+      scanned({ quantity: null, expiresOn: "best before soon" }),
+    ]);
+    expect(dated).toMatchObject({ expiresAt: "2026-11-20", quantityUnknown: false });
+    expect(uncounted).toMatchObject({ expiresAt: null, quantityUnknown: true, quantity: 1 });
+  });
+
+  it("saves how much of an opened pack is left", () => {
+    const [item] = buildReceiptConfirmItemsFromLines([scanned()]);
+    const [row] = buildConfirmedReceiptInventoryRows([{ ...item, partialState: "some_used" }], input);
+    expect(row.partial_state).toBe("some_used");
+  });
+
   describe("quick-look suggestions", () => {
     const alt = (name: string, normalizedName: string, category = "pantry") => ({ name, normalizedName, category });
     const input = { householdId: "h", scanId: "s", userId: "u", addedAt: "2026-10-28T10:00:00.000Z" };

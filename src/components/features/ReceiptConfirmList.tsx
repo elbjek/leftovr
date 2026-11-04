@@ -5,7 +5,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import Svg, { Path } from "react-native-svg";
 
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
-import { applySuggestion, INVENTORY_CATEGORIES, ReceiptConfirmItem, ScanSuggestion } from "@/services";
+import { applySuggestion, INVENTORY_CATEGORIES, PartialState, ReceiptConfirmItem, ScanSuggestion } from "@/services";
 import { CategoryTone, categoryColors, colors, fonts, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
 import { BottomSheet, Button, Card, FilterChip, Text, TextField, UnitPicker } from "../primitives";
@@ -21,21 +21,38 @@ type Props = {
   // Lead-in before the raw text on a quick-look card. Defaults to "Receipt
   // says"; pantry passes "Photo shows".
   sourceLabel?: string;
-  // Receipts show an editable line price; pantry photos have none to check.
+  // Show an editable line price (read or AI-estimated).
   showPrice?: boolean;
+  // Pantry: food may be old or opened, so every row needs an amount, how much
+  // is left, and an expiry date (or an explicit "no date on it").
+  requireDetails?: boolean;
 };
 
-type EditableRow = ReceiptConfirmItem & { quantityText: string; priceText: string };
+type EditableRow = ReceiptConfirmItem & { quantityText: string; priceText: string; noExpiry: boolean };
 
-export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, rawLabel, sourceLabel, showPrice }: Props) {
+const PARTIAL_STATES: { value: PartialState; labelKey: string }[] = [
+  { value: "full", labelKey: "fridge.meta.full" },
+  { value: "some_used", labelKey: "fridge.meta.someUsed" },
+  { value: "low", labelKey: "fridge.meta.low" },
+];
+
+function parseAmount(text: string) {
+  const value = Number(text.replace(",", "."));
+  return text.trim() !== "" && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, rawLabel, sourceLabel, showPrice, requireDetails }: Props) {
   const { t } = useTranslation();
   const [rows, setRows] = useState<EditableRow[]>(() =>
     items.map((item) => ({
       ...item,
       unit: normalizeUnit(item.unit),
       expiresAt: item.expiresAt ?? null,
-      quantityText: String(item.quantity),
+      // An uncounted pantry item starts blank so the user fills it in.
+      quantityText: requireDetails && item.quantityUnknown ? "" : String(item.quantity),
       priceText: item.price != null ? String(item.price) : "",
+      partialState: item.partialState ?? "full",
+      noExpiry: false,
     })),
   );
   const [expiryPickerRowId, setExpiryPickerRowId] = useState<string | null>(null);
@@ -44,6 +61,10 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
   const categoryRow = rows.find((row) => row.id === categoryRowId);
 
   const itemCount = rows.length;
+  const missingCount = requireDetails
+    ? rows.filter((row) => parseAmount(row.quantityText) == null || (!row.expiresAt && !row.noExpiry)).length
+    : 0;
+  const confirmDisabled = itemCount === 0 || confirming || missingCount > 0;
   const activeExpiryRow = rows.find((row) => row.id === expiryPickerRowId);
   const activeExpiryDate = activeExpiryRow?.expiresAt
     ? parseLocalDate(activeExpiryRow.expiresAt)
@@ -68,7 +89,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
 
   function handleConfirm() {
     const finalItems: ReceiptConfirmItem[] = rows.map((row) => {
-      const { quantityText, priceText, ...item } = row;
+      const { quantityText, priceText, noExpiry: _noExpiry, ...item } = row;
       const parsed = Number(quantityText.replace(",", "."));
       const parsedPrice = Number(priceText.replace(",", "."));
       const name = item.name.trim();
@@ -183,6 +204,24 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
                 </View>
               </View>
 
+              {requireDetails ? (
+                <View style={styles.leftField}>
+                  <Text variant="micro" muted uppercase>
+                    {t("scan.confirm.leftLabel")}
+                  </Text>
+                  <View style={styles.leftChips}>
+                    {PARTIAL_STATES.map((state) => (
+                      <FilterChip
+                        key={state.value}
+                        label={t(state.labelKey as any)}
+                        active={row.partialState === state.value}
+                        onPress={() => patchRow(row.id, { partialState: state.value })}
+                      />
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+
               {showPrice ? (
                 <TextField
                   label={t("scan.confirm.priceLabel")}
@@ -204,16 +243,20 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
                 <View style={styles.expiryValueRow}>
                   <Text
                     style={styles.expiryValue}
-                    color={row.expiresAt ? colors.text : colors.muted}
+                    color={row.expiresAt || row.noExpiry ? colors.text : colors.muted}
                   >
-                    {row.expiresAt ? formatExpiry(row.expiresAt) : t("scan.confirm.addExpiry")}
+                    {row.expiresAt
+                      ? formatExpiry(row.expiresAt)
+                      : row.noExpiry
+                        ? t("scan.confirm.noExpiry")
+                        : t("scan.confirm.addExpiry")}
                   </Text>
-                  {row.expiresAt ? (
+                  {row.expiresAt || row.noExpiry ? (
                     <Pressable
                       accessibilityRole="button"
                       accessibilityLabel={t("scan.manual.expiryNone")}
                       hitSlop={8}
-                      onPress={() => patchRow(row.id, { expiresAt: null })}
+                      onPress={() => patchRow(row.id, { expiresAt: null, noExpiry: false })}
                     >
                       <CloseIcon color={colors.muted} />
                     </Pressable>
@@ -222,6 +265,14 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
                   )}
                 </View>
               </Pressable>
+              {requireDetails && !row.expiresAt && !row.noExpiry ? (
+                <Button
+                  title={t("scan.confirm.noExpiry")}
+                  variant="text"
+                  onPress={() => patchRow(row.id, { noExpiry: true })}
+                  style={styles.noExpiryButton}
+                />
+              ) : null}
             </View>
           </Card>
           );
@@ -236,7 +287,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
           onChange={(_event, date) => {
             setExpiryPickerRowId(Platform.OS === "ios" ? expiryPickerRowId : null);
             if (date && expiryPickerRowId) {
-              patchRow(expiryPickerRowId, { expiresAt: toLocalDateString(date) });
+              patchRow(expiryPickerRowId, { expiresAt: toLocalDateString(date), noExpiry: false });
             }
           }}
         />
@@ -265,13 +316,18 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
         </View>
       </BottomSheet>
 
+      {missingCount > 0 ? (
+        <Text variant="small" muted center style={styles.missingHint}>
+          {t("scan.confirm.needsDetails", { count: missingCount })}
+        </Text>
+      ) : null}
       <Pressable
         accessibilityRole="button"
-        disabled={itemCount === 0 || confirming}
+        disabled={confirmDisabled}
         onPress={handleConfirm}
         style={({ pressed }) => [
           styles.confirmButton,
-          (itemCount === 0 || confirming) && styles.confirmButtonDisabled,
+          confirmDisabled && styles.confirmButtonDisabled,
           pressed && styles.confirmButtonPressed,
         ]}
       >
@@ -544,6 +600,20 @@ const styles = StyleSheet.create({
   },
   unitField: {
     flex: 1,
+  },
+  leftField: {
+    gap: spacing.xs,
+  },
+  leftChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+  },
+  noExpiryButton: {
+    alignSelf: "flex-start",
+  },
+  missingHint: {
+    marginTop: spacing.xs,
   },
   expiryBox: {
     borderWidth: 1,
