@@ -395,8 +395,7 @@ export default function RecipesRoute() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
-        {/* TinyMeals-style top: who, today's nudge, tonight's dish (the screen's
-            job, kept above the fold), then the week. */}
+        {/* TinyMeals-style top: who, today's nudge, the week, tonight's dish. */}
         <View style={styles.header}>
           <View style={styles.brand}>
             <Logo size={26} />
@@ -434,6 +433,26 @@ export default function RecipesRoute() {
             </Text>
           </Pressable>
         ) : null}
+
+        <View style={styles.weekWrap}>
+          <WeekStrip
+            days={week}
+            goal={{ done: usedToday, total: DAILY_GOAL, eyebrow: t("recipes.week.goalEyebrow"), title: goalTitle }}
+            streak={streak >= 2 ? t("recipes.week.streak", { count: streak }) : undefined}
+            freezes={{ count: freezes, label: t("recipes.week.freezes", { count: freezes }) }}
+            note={
+              lastFrozen
+                ? t("recipes.week.frozenNote", { day: lastFrozen.date.toLocaleDateString(undefined, { weekday: "long" }) })
+                : undefined
+            }
+            lastLabel={t("recipes.week.lastCooked")}
+            lastValue={lastCooked ? `${lastCooked.title} · ${lastCookedDay}` : t("recipes.week.nothingCooked")}
+            onLastPress={lastCooked ? () => openSavedRecipe(lastCooked) : undefined}
+            historyLabel={t("recipes.week.history")}
+            onHistory={() => router.push({ pathname: "/(tabs)/all-recipes", params: { tab: "cooked" } })}
+            onDayPress={showDay}
+          />
+        </View>
 
         {/* Recipes are the home: tonight's dish as TinyMeals' "Try next" when
             there is one, the question when there isn't. */}
@@ -492,26 +511,6 @@ export default function RecipesRoute() {
               onPress={fridgeEmpty ? () => router.push("/(tabs)/scan") : openCookPrompt}
             />
           )}
-        </View>
-
-        <View style={styles.weekWrap}>
-          <WeekStrip
-            days={week}
-            goal={{ done: usedToday, total: DAILY_GOAL, eyebrow: t("recipes.week.goalEyebrow"), title: goalTitle }}
-            streak={streak >= 2 ? t("recipes.week.streak", { count: streak }) : undefined}
-            freezes={{ count: freezes, label: t("recipes.week.freezes", { count: freezes }) }}
-            note={
-              lastFrozen
-                ? t("recipes.week.frozenNote", { day: lastFrozen.date.toLocaleDateString(undefined, { weekday: "long" }) })
-                : undefined
-            }
-            lastLabel={t("recipes.week.lastCooked")}
-            lastValue={lastCooked ? `${lastCooked.title} · ${lastCookedDay}` : t("recipes.week.nothingCooked")}
-            onLastPress={lastCooked ? () => openSavedRecipe(lastCooked) : undefined}
-            historyLabel={t("recipes.week.history")}
-            onHistory={() => router.push({ pathname: "/(tabs)/all-recipes", params: { tab: "cooked" } })}
-            onDayPress={showDay}
-          />
         </View>
 
         {recipeError ? (
