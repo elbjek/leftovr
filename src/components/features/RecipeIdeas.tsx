@@ -25,6 +25,8 @@ export function TryNextCard({
   onFavorite,
   onPress,
   ctaLabel,
+  secondaryLabel,
+  onSecondary,
 }: {
   eyebrow: string;
   title: string;
@@ -38,8 +40,11 @@ export function TryNextCard({
   favoriteLabel: string;
   onFavorite?: () => void;
   onPress: () => void;
-  /** A full-width button at the bottom ("Cook this") doing the same as tapping the card. */
+  /** A button at the bottom ("Cook this") doing the same as tapping the card. */
   ctaLabel?: string;
+  /** An outline button beside the CTA (e.g. "What should I cook?"). */
+  secondaryLabel?: string;
+  onSecondary?: () => void;
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.hero, pressed && styles.pressed]}>
@@ -57,7 +62,7 @@ export function TryNextCard({
         {onFavorite ? <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} /> : null}
       </View>
       {description ? (
-        <Text variant="small" style={styles.description}>
+        <Text variant="small" numberOfLines={2} style={styles.description}>
           {description}
         </Text>
       ) : null}
@@ -97,7 +102,14 @@ export function TryNextCard({
           </Text>
         </View>
       ) : null}
-      {ctaLabel ? <Button title={ctaLabel} onPress={onPress} /> : null}
+      {ctaLabel ? (
+        <View style={styles.actions}>
+          <Button title={ctaLabel} onPress={onPress} style={[styles.action, styles.actionPrimary]} />
+          {secondaryLabel && onSecondary ? (
+            <Button title={secondaryLabel} variant="ghost" onPress={onSecondary} style={[styles.action, styles.actionSecondary]} />
+          ) : null}
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -434,6 +446,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     padding: spacing.md,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  // Tighter side padding so both labels fit side by side on a phone.
+  action: {
+    paddingHorizontal: spacing.md,
+  },
+  actionPrimary: {
+    flex: 1,
+  },
+  actionSecondary: {
+    flex: 1.5,
   },
   listCardHighlight: {
     backgroundColor: colors.accentSoft,

@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, V
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, Text, TryNextCard, WeekStrip } from "@/components";
+import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, Text, TryNextCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -273,7 +273,7 @@ export default function RecipesRoute() {
   // Try next: tonight's dish, the foods you have for it (soon ones first) and why it fits.
   const dishHave = dish ? haveOf(dish.ingredients) : [];
   const dishSoon = dish ? soonOf(dish.ingredients) : [];
-  const dishChips = [...dishSoon, ...dishHave.filter((ing) => !dishSoon.includes(ing))].slice(0, 6).map((ing) => ({
+  const dishChips = [...dishSoon, ...dishHave.filter((ing) => !dishSoon.includes(ing))].slice(0, 4).map((ing) => ({
     label: capitalize(ing.name),
     tag: dishSoon.includes(ing) ? t("recipes.tryNext.soonTag") : undefined,
   }));
@@ -390,7 +390,8 @@ export default function RecipesRoute() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
-        {/* TinyMeals-style top: who, today's nudge, the week, tonight's dish. */}
+        {/* TinyMeals-style top: who, today's nudge, tonight's dish (the screen's
+            job, kept above the fold), then the week. */}
         <View style={styles.header}>
           <View style={styles.brand}>
             <Logo size={26} />
@@ -429,26 +430,6 @@ export default function RecipesRoute() {
           </Pressable>
         ) : null}
 
-        <View style={styles.weekWrap}>
-          <WeekStrip
-            days={week}
-            goal={{ done: usedToday, total: DAILY_GOAL, eyebrow: t("recipes.week.goalEyebrow"), title: goalTitle }}
-            streak={streak >= 2 ? t("recipes.week.streak", { count: streak }) : undefined}
-            freezes={{ count: freezes, label: t("recipes.week.freezes", { count: freezes }) }}
-            note={
-              lastFrozen
-                ? t("recipes.week.frozenNote", { day: lastFrozen.date.toLocaleDateString(undefined, { weekday: "long" }) })
-                : undefined
-            }
-            lastLabel={t("recipes.week.lastCooked")}
-            lastValue={lastCooked ? `${lastCooked.title} · ${lastCookedDay}` : t("recipes.week.nothingCooked")}
-            onLastPress={lastCooked ? () => openSavedRecipe(lastCooked) : undefined}
-            historyLabel={t("recipes.week.history")}
-            onHistory={() => router.push({ pathname: "/(tabs)/all-recipes", params: { tab: "cooked" } })}
-            onDayPress={showDay}
-          />
-        </View>
-
         {/* Recipes are the home: tonight's dish as TinyMeals' "Try next" when
             there is one, the question when there isn't. */}
         <View style={styles.heroWrap}>
@@ -471,15 +452,10 @@ export default function RecipesRoute() {
                 onFavorite={dish.row ? () => toggleFavorite(dish.row!.id, dish.row!.is_favorite) : undefined}
                 onPress={dish.open}
                 ctaLabel={t("recipes.home.cookThis")}
-              />
-              {/* The cook prompt (meal, people, base…) stays one tap away even
-                  once tonight's ideas exist. */}
-              <Button
-                title={t("recipes.generateCta")}
-                variant="ghost"
-                loading={generating}
-                onPress={openCookPrompt}
-                style={styles.askAgain}
+                // The cook prompt (meal, people, base…) sits beside Cook this so
+                // both stay above the fold, even once tonight's ideas exist.
+                secondaryLabel={t("recipes.generateCta")}
+                onSecondary={openCookPrompt}
               />
               {hasTonight ? (
                 <Pressable
@@ -514,6 +490,26 @@ export default function RecipesRoute() {
               onPress={fridgeEmpty ? () => router.push("/(tabs)/scan") : openCookPrompt}
             />
           )}
+        </View>
+
+        <View style={styles.weekWrap}>
+          <WeekStrip
+            days={week}
+            goal={{ done: usedToday, total: DAILY_GOAL, eyebrow: t("recipes.week.goalEyebrow"), title: goalTitle }}
+            streak={streak >= 2 ? t("recipes.week.streak", { count: streak }) : undefined}
+            freezes={{ count: freezes, label: t("recipes.week.freezes", { count: freezes }) }}
+            note={
+              lastFrozen
+                ? t("recipes.week.frozenNote", { day: lastFrozen.date.toLocaleDateString(undefined, { weekday: "long" }) })
+                : undefined
+            }
+            lastLabel={t("recipes.week.lastCooked")}
+            lastValue={lastCooked ? `${lastCooked.title} · ${lastCookedDay}` : t("recipes.week.nothingCooked")}
+            onLastPress={lastCooked ? () => openSavedRecipe(lastCooked) : undefined}
+            historyLabel={t("recipes.week.history")}
+            onHistory={() => router.push({ pathname: "/(tabs)/all-recipes", params: { tab: "cooked" } })}
+            onDayPress={showDay}
+          />
         </View>
 
         {recipeError ? (
@@ -856,9 +852,6 @@ const styles = StyleSheet.create({
   sectionBlock: {
     paddingHorizontal: spacing.screenX,
     marginBottom: spacing.xxl,
-  },
-  askAgain: {
-    marginTop: spacing.md,
   },
   moreIdeas: {
     alignSelf: "center",
