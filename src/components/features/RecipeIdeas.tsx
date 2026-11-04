@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, fonts, radii, spacing } from "../../theme";
-import { Button, Text } from "../primitives";
+import { Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // Recipe ideas, TinyMeals-style: the "Try next" hero and list cards on the
@@ -103,10 +103,27 @@ export function TryNextCard({
         </View>
       ) : null}
       {ctaLabel ? (
+        // Same shapes as the ideas view's "View recipe" / "Give me 3 more".
         <View style={styles.actions}>
-          <Button title={ctaLabel} onPress={onPress} style={[styles.action, styles.actionPrimary]} />
+          <Pressable
+            accessibilityRole="button"
+            onPress={onPress}
+            style={({ pressed }) => [styles.view, styles.actionPrimary, pressed && styles.pressed]}
+          >
+            <Text variant="label" color={colors.surface} style={styles.viewLabel} numberOfLines={1}>
+              {ctaLabel}
+            </Text>
+          </Pressable>
           {secondaryLabel && onSecondary ? (
-            <Button title={secondaryLabel} variant="ghost" onPress={onSecondary} style={[styles.action, styles.actionSecondary]} />
+            <Pressable
+              accessibilityRole="button"
+              onPress={onSecondary}
+              style={({ pressed }) => [styles.more, styles.actionSecondary, pressed && styles.pressed]}
+            >
+              <Text variant="label" style={styles.bold} numberOfLines={1}>
+                {secondaryLabel}
+              </Text>
+            </Pressable>
           ) : null}
         </View>
       ) : null}
@@ -450,10 +467,6 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     gap: spacing.sm,
-  },
-  // Tighter side padding so both labels fit side by side on a phone.
-  action: {
-    paddingHorizontal: spacing.md,
   },
   actionPrimary: {
     flex: 1,
