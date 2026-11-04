@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     minHeight: 48,
-    borderRadius: radii.pill,
+    borderRadius: radii.lg,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",

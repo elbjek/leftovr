@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   authButton: {
     height: 56,
-    borderRadius: radii.pill,
+    borderRadius: radii.lg,
     borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",

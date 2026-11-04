@@ -1369,7 +1369,7 @@ const styles = StyleSheet.create({
   refreshButton: {
     minHeight: 38,
     paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
+    borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.hairlineStrong,
     justifyContent: "center",
@@ -1391,7 +1391,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing.xs,
     minHeight: 50,
-    borderRadius: radii.xl,
+    borderRadius: radii.lg,
   },
   removeLabel: {
     fontFamily: fonts.bodyBold,

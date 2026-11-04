@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   cta: {
     marginTop: spacing.md,
     minHeight: 50,
-    borderRadius: radii.xl,
+    borderRadius: radii.lg,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",

@@ -75,7 +75,7 @@ function getForeground(variant: ButtonVariant) {
 const styles = StyleSheet.create({
   base: {
     minHeight: 56,
-    borderRadius: radii.pill,
+    borderRadius: radii.lg,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xl,

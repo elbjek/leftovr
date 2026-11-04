@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
   browseAll: {
     marginHorizontal: spacing.screenX,
     minHeight: 48,
-    borderRadius: radii.xl,
+    borderRadius: radii.lg,
     backgroundColor: colors.paper,
     alignItems: "center",
     justifyContent: "center",

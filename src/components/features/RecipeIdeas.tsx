@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     gap: 6,
     minHeight: 40,
     paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
+    borderRadius: radii.md,
     backgroundColor: colors.surface2,
     borderWidth: 1,
     borderColor: colors.cardLine,
