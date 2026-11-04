@@ -82,6 +82,10 @@ const MAX_ERECEIPT_PDF_BYTES = 10 * 1024 * 1024;
 // A pantry scan is one AI call over all photos; 3 shots cover a pantry or
 // fridge without letting the (paid) vision request grow unbounded.
 const MAX_PANTRY_PHOTOS = 3;
+// Slight zoom (~1.3-1.6x; expo maps zoom 0-1 exponentially to the lens's max)
+// so a receipt fills the frame from beyond the main lens's minimum focus
+// distance (~15-20cm on recent iPhones), where it can get sharp.
+const RECEIPT_ZOOM = 0.1;
 
 export default function ScanRoute() {
   const { t } = useTranslation();
@@ -153,12 +157,20 @@ export default function ScanRoute() {
   const [pantryPhotos, setPantryPhotos] = useState<{ uri: string; base64: string }[]>([]);
   const [pantryCapturing, setPantryCapturing] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
-  // iOS continuous AF can lock; pulsing the mode off→on forces a refocus.
-  const [focusMode, setFocusMode] = useState<"on" | "off">("on");
+  // expo-camera's "off" is continuous autofocus; "on" runs one focus pass and
+  // holds it. Rest on continuous; a tap runs a fresh pass, then goes back to
+  // continuous so moving the phone refocuses on its own.
+  const [focusMode, setFocusMode] = useState<"on" | "off">("off");
+  const focusTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const refocus = useCallback(() => {
+    clearTimeout(focusTimer.current);
     setFocusMode("off");
-    setTimeout(() => setFocusMode("on"), 50);
+    focusTimer.current = setTimeout(() => {
+      setFocusMode("on");
+      focusTimer.current = setTimeout(() => setFocusMode("off"), 3000);
+    }, 50);
   }, []);
+  useEffect(() => () => clearTimeout(focusTimer.current), []);
   // Seeded with the initial param so the auto-open effect below does not re-run
   // for the deep-link already handled by initialMode (avoids a double permission prompt).
   const consumedModeRef = useRef<string | null>(params.mode ?? null);
@@ -756,8 +768,20 @@ export default function ScanRoute() {
     return (
       <Screen padded={false} backgroundColor={colors.black}>
         <View style={styles.cameraWrap}>
-          <CameraView ref={receiptCameraRef} style={styles.camera} facing="back" />
-          <View style={styles.cameraOverlay}>
+          <CameraView
+            ref={receiptCameraRef}
+            style={styles.camera}
+            facing="back"
+            autofocus={focusMode}
+            zoom={RECEIPT_ZOOM}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("scan.tapToFocus")}
+            onPress={refocus}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.cameraOverlay} pointerEvents="box-none">
             <View style={styles.cameraTop}>
               <Button
                 title={t("common.cancel")}
@@ -827,8 +851,14 @@ export default function ScanRoute() {
     return (
       <Screen padded={false} backgroundColor={colors.black}>
         <View style={styles.cameraWrap}>
-          <CameraView ref={receiptCameraRef} style={styles.camera} facing="back" />
-          <View style={styles.cameraOverlay}>
+          <CameraView ref={receiptCameraRef} style={styles.camera} facing="back" autofocus={focusMode} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("scan.tapToFocus")}
+            onPress={refocus}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.cameraOverlay} pointerEvents="box-none">
             <View style={styles.cameraTop}>
               <Button
                 title={t("common.cancel")}
