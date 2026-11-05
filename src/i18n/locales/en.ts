@@ -1088,6 +1088,13 @@ export const en = {
       weekMoney: "My week with leftovr: {{items}} things used up instead of thrown away, {{dinners}} dinners cooked, {{amount}} saved.",
       month: "My {{month}} with leftovr: {{items}} things used up instead of thrown away, {{dinners}} dinners cooked.",
       monthMoney: "My {{month}} with leftovr: {{items}} things used up instead of thrown away, {{dinners}} dinners cooked, {{amount}} saved.",
+      card: {
+        week: "My week with leftovr",
+        month: "My {{month}} with leftovr",
+        year: "My {{year}} with leftovr",
+        title_one: "{{count}} thing used up instead of thrown away",
+        title_other: "{{count}} things used up instead of thrown away",
+      },
     },
     period: {
       week: "Week",

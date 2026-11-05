@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, Share, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
@@ -15,13 +15,14 @@ import {
   PremiumSheet,
   Screen,
   SectionTitle,
+  ShareCardExport,
   Text,
   TopDinners,
   UsedTossedChart,
   WinsList,
 } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import { useDaySheet, usePeriodInsights, useStreak, useWins } from "@/hooks";
+import { useDaySheet, usePeriodInsights, useShareImage, useStreak, useWins } from "@/hooks";
 import { InventoryCategory, Period, toUiCategory } from "@/services";
 import { formatMoney } from "@/lib/money";
 import { colors, fonts, radii, spacing } from "@/theme";
@@ -43,6 +44,7 @@ export default function InsightsRoute() {
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<Period>("month");
   const [menuOpen, setMenuOpen] = useState(false);
+  const summaryImage = useShareImage();
   const scope = "household" as const;
   const currency = activeHousehold?.currency_code ?? "USD";
   const money = (value: number) => formatMoney(value, currency);
@@ -244,8 +246,21 @@ export default function InsightsRoute() {
   const share = () => {
     const counts = { month: monthName, year: span.start.getFullYear(), items: kitchen.used, dinners: summary.cookedEvents };
     const key = `insights.share.${period}${summary.moneySaved > 0 ? "Money" : ""}`;
-    void Share.share({ message: t(key, { ...counts, amount: money(summary.moneySaved) }) });
+    void summaryImage.share(t(key, { ...counts, amount: money(summary.moneySaved) }));
   };
+  // The image behind Share: the same figures as the summary card, branded.
+  const shareCard = (
+    <ShareCardExport
+      viewRef={summaryImage.ref}
+      eyebrow={t(`insights.share.card.${period}`, { month: monthName, year: span.start.getFullYear() })}
+      title={t("insights.share.card.title", { count: kitchen.used })}
+      money={summary.moneySaved > 0 ? { label: t("insights.stats.saved"), value: money(summary.moneySaved) } : null}
+      figures={[
+        { value: String(summary.cookedEvents), label: t("insights.summary.cooked", { count: summary.cookedEvents }) },
+        { value: String(streak), label: t("insights.summary.streak", { count: streak }) },
+      ]}
+    />
+  );
 
   const summaryCard = (
     <PeriodSummary
@@ -347,6 +362,7 @@ export default function InsightsRoute() {
         }))}
       />
 
+      {shareCard}
       {sheets}
     </Screen>
   );

@@ -1120,6 +1120,14 @@ export const sr = {
       weekMoney: "Moja nedelja uz leftovr: {{items}} namirnica potrošeno umesto bačeno, {{dinners}} skuvanih večera, {{amount}} ušteđeno.",
       month: "Moj {{month}} uz leftovr: {{items}} namirnica potrošeno umesto bačeno, {{dinners}} skuvanih večera.",
       monthMoney: "Moj {{month}} uz leftovr: {{items}} namirnica potrošeno umesto bačeno, {{dinners}} skuvanih večera, {{amount}} ušteđeno.",
+      card: {
+        week: "Moja nedelja uz leftovr",
+        month: "Moj {{month}} uz leftovr",
+        year: "Moja {{year}}. uz leftovr",
+        title_one: "{{count}} namirnica potrošena umesto bačena",
+        title_few: "{{count}} namirnice potrošene umesto bačene",
+        title_other: "{{count}} namirnica potrošeno umesto bačeno",
+      },
     },
     period: {
       week: "Nedelja",

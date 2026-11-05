@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Animated, Pressable, ScrollView, ScrollViewInstance, Share, StyleSheet, View } from "react-native";
+import { Alert, Animated, Pressable, ScrollView, ScrollViewInstance, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, Card, CookReward, RecipeGlyph, Text, TextField } from "@/components";
+import { BottomSheet, Button, Card, CookReward, RecipeGlyph, ShareCardExport, Text, TextField } from "@/components";
 import { isPremium, useAuth } from "@/features";
-import { deviceTimeZone, notifyInventoryChanged, useInventory } from "@/hooks";
+import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
 import { formatMoney, newClientId } from "@/lib";
 import { addAmounts, canonicalFoodName, DAILY_GOAL, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, resolveUrgency } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
@@ -219,6 +219,7 @@ export default function RecipeDetailRoute() {
   const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
   const cookIdRef = useRef<string | null>(null);
+  const rewardImage = useShareImage();
   // The after-cook reward: what this cook used up, plus the figures it
   // moved (null when they couldn't be loaded).
   const [reward, setReward] = useState<{
@@ -449,7 +450,7 @@ export default function RecipeDetailRoute() {
 
   function shareReward() {
     if (!reward) return;
-    void Share.share({ message: t("recipes.reward.shareMessage", { count: reward.items.length, title }) });
+    void rewardImage.share(t("recipes.reward.shareMessage", { count: reward.items.length, title }));
   }
 
   // This dinner's saving leads; the all-time total sits under it. A cook of
@@ -725,20 +726,33 @@ export default function RecipeDetailRoute() {
         }}
         // The reward is drawn inside this sheet's Modal: a second Modal
         // stacked on it didn't reliably show on iOS.
+        // The share image is drawn off screen in the same overlay.
         overlay={
-          <CookReward
-            visible={reward !== null}
-            eyebrow={t("recipes.reward.eyebrow", { title })}
-            title={t("recipes.reward.title", { count: reward?.items.length ?? 0 })}
-            items={reward?.items ?? []}
-            goal={rewardGoal}
-            streak={reward?.streak ? { value: reward.streak.streak, label: t("recipes.reward.streak", { count: reward.streak.streak }) } : null}
-            money={rewardMoney}
-            doneLabel={t("recipes.reward.done")}
-            shareLabel={t("recipes.reward.share")}
-            onDone={finishReward}
-            onShare={shareReward}
-          />
+          <>
+            <CookReward
+              visible={reward !== null}
+              eyebrow={t("recipes.reward.eyebrow", { title })}
+              title={t("recipes.reward.title", { count: reward?.items.length ?? 0 })}
+              items={reward?.items ?? []}
+              goal={rewardGoal}
+              streak={reward?.streak ? { value: reward.streak.streak, label: t("recipes.reward.streak", { count: reward.streak.streak }) } : null}
+              money={rewardMoney}
+              doneLabel={t("recipes.reward.done")}
+              shareLabel={t("recipes.reward.share")}
+              onDone={finishReward}
+              onShare={shareReward}
+            />
+            {reward ? (
+              <ShareCardExport
+                viewRef={rewardImage.ref}
+                eyebrow={t("recipes.reward.eyebrow", { title })}
+                title={t("recipes.reward.title", { count: reward.items.length })}
+                chips={reward.items}
+                money={rewardMoney ? { label: rewardMoney.label, value: formatMoney(rewardMoney.value, rewardMoney.currency) } : null}
+                figures={reward.streak ? [{ value: String(reward.streak.streak), label: t("recipes.reward.streak", { count: reward.streak.streak }) }] : []}
+              />
+            ) : null}
+          </>
         }
       >
         {swapIndex === null ? (
