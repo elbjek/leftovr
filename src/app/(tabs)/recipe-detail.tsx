@@ -3,12 +3,13 @@ import { Alert, Animated, Pressable, ScrollView, ScrollViewInstance, StyleSheet,
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
+import { Image } from "expo-image";
 
 import { BottomSheet, Button, Card, CookReward, RecipeGlyph, ShareCardExport, Text, TextField } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
 import { formatMoney, newClientId } from "@/lib";
-import { addAmounts, canonicalFoodName, DAILY_GOAL, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, resolveUrgency } from "@/services";
+import { addAmounts, canonicalFoodName, DAILY_GOAL, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
@@ -46,6 +47,7 @@ export default function RecipeDetailRoute() {
     recipeId: string;
     isFavorite: string;
     cookedCount: string;
+    coverPath?: string;
     returnTo?: string;
   }>();
 
@@ -61,6 +63,22 @@ export default function RecipeDetailRoute() {
   const recipeId = params.recipeId ?? "";
   const cookedCount = Number(params.cookedCount ?? 0);
   const hasCooked = cookedCount > 0;
+
+  // The cover photo: from the list when it had one, else asked for here (which
+  // also gives older recipes a cover the first time they're opened). Keyed by
+  // recipe, since this tab screen stays mounted between recipes.
+  const [fetchedCover, setFetchedCover] = useState<{ id: string; path: string } | null>(null);
+  const coverUri = recipeCoverUrl(params.coverPath || (fetchedCover?.id === recipeId ? fetchedCover.path : null));
+  useEffect(() => {
+    if (params.coverPath || !recipeId) return;
+    let live = true;
+    void requestRecipeCover(recipeId).then((path) => {
+      if (live && path) setFetchedCover({ id: recipeId, path });
+    });
+    return () => {
+      live = false;
+    };
+  }, [recipeId, params.coverPath]);
 
   // Two-phase: a card arrives with ingredients (used fridge items) but no steps.
   // We expand it on open into full ingredients + steps, then persist so the next
@@ -659,6 +677,7 @@ export default function RecipeDetailRoute() {
         >
           <RecipeGlyph size={48} />
         </Animated.View>
+        {coverUri ? <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} /> : null}
         {urgentBadge ? (
           <View style={styles.urgentChip}>
             <Text variant="small" color={colors.primary}>

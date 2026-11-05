@@ -16,6 +16,7 @@ type RecipeDetailInput = {
   recipeId: string;
   isFavorite: boolean;
   cookedCount: number;
+  coverPath?: string | null;
 };
 
 // Recipe detail lives inside the tab group, so every path to it passes the full
@@ -34,6 +35,7 @@ export function openRecipeDetail(recipe: RecipeDetailInput, returnTo: RecipeRetu
       recipeId: recipe.recipeId,
       isFavorite: String(recipe.isFavorite),
       cookedCount: String(recipe.cookedCount),
+      coverPath: recipe.coverPath ?? "",
       returnTo,
     },
   });
@@ -52,6 +54,7 @@ export function openSavedRecipe(recipe: RecipeRow, returnTo: RecipeReturnTo = "r
       recipeId: recipe.id,
       isFavorite: recipe.is_favorite,
       cookedCount: recipe.cooked_count ?? 0,
+      coverPath: recipe.cover_path,
     },
     returnTo,
   );

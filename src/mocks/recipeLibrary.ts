@@ -8,6 +8,8 @@ type MockIngredient = {
 export type MockRecipe = {
   key: string;
   title: string;
+  /** AI cards only: short generic English dish name that keys the shared cover. */
+  dish?: string;
   description: string;
   timeMinutes: number;
   complexity: "simple" | "medium" | "involved";

@@ -13,3 +13,4 @@ export * from "./recipeService";
 export * from "./units";
 export * from "./depletionPlan";
 export * from "./purchaseService";
+export * from "./recipeCoverService";

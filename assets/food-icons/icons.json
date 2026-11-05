@@ -1,0 +1,921 @@
+{
+  "count": 130,
+  "format": "PNG, 1024x1024, transparent background",
+  "saveTo": "assets/food-icons/<id>.png (lowercase id, exactly as below)",
+  "how": "Generate the first icon (apple) with the prompt alone. When you like it, attach that apple image as the style reference for every other icon, so all of them match.",
+  "prompt": "Flat illustration of {draw}, a single food icon for a grocery app. Centered, seen from a slight three-quarter front angle, filling about 75% of a square canvas, on a fully transparent background. Simple rounded shapes, flat natural colours, slightly warm and muted, one soft lighter highlight per shape, no outlines, no gradients, no drop shadow, no plate or surface, no text, no labels, no brand logos, no faces. Match the style of the reference icon exactly.",
+  "foods": [
+    {
+      "id": "milk",
+      "name": "Milk",
+      "sr": "Mleko",
+      "category": "dairy_eggs",
+      "draw": "a carton of milk"
+    },
+    {
+      "id": "yogurt",
+      "name": "Yogurt",
+      "sr": "Jogurt",
+      "category": "dairy_eggs",
+      "draw": "a small cup of plain yogurt with the lid peeled back"
+    },
+    {
+      "id": "kefir",
+      "name": "Kefir",
+      "sr": "Kefir",
+      "category": "dairy_eggs",
+      "draw": "a small bottle of kefir"
+    },
+    {
+      "id": "cheese",
+      "name": "Cheese",
+      "sr": "Kačkavalj",
+      "category": "dairy_eggs",
+      "draw": "a wedge of yellow hard cheese"
+    },
+    {
+      "id": "white_cheese",
+      "name": "White cheese",
+      "sr": "Beli sir",
+      "category": "dairy_eggs",
+      "draw": "a block of crumbly white brined cheese"
+    },
+    {
+      "id": "kajmak",
+      "name": "Kajmak",
+      "sr": "Kajmak",
+      "category": "dairy_eggs",
+      "draw": "a small clay pot of thick clotted cream"
+    },
+    {
+      "id": "butter",
+      "name": "Butter",
+      "sr": "Puter",
+      "category": "dairy_eggs",
+      "draw": "a block of butter, partly unwrapped"
+    },
+    {
+      "id": "cream",
+      "name": "Cream",
+      "sr": "Pavlaka",
+      "category": "dairy_eggs",
+      "draw": "a small tub of sour cream"
+    },
+    {
+      "id": "mozzarella",
+      "name": "Mozzarella",
+      "sr": "Mocarela",
+      "category": "dairy_eggs",
+      "draw": "a ball of fresh mozzarella"
+    },
+    {
+      "id": "cream_cheese",
+      "name": "Cream cheese",
+      "sr": "Krem sir",
+      "category": "dairy_eggs",
+      "draw": "a small round tub of cream cheese"
+    },
+    {
+      "id": "eggs",
+      "name": "Eggs",
+      "sr": "Jaja",
+      "category": "dairy_eggs",
+      "draw": "three brown eggs"
+    },
+    {
+      "id": "chicken_breast",
+      "name": "Chicken breast",
+      "sr": "Pileće belo meso",
+      "category": "meat",
+      "draw": "a raw chicken breast fillet"
+    },
+    {
+      "id": "chicken",
+      "name": "Chicken",
+      "sr": "Piletina",
+      "category": "meat",
+      "draw": "a raw chicken drumstick and thigh"
+    },
+    {
+      "id": "ground_meat",
+      "name": "Ground meat",
+      "sr": "Mleveno meso",
+      "category": "meat",
+      "draw": "a mound of raw ground meat"
+    },
+    {
+      "id": "beef",
+      "name": "Beef",
+      "sr": "Junetina",
+      "category": "meat",
+      "draw": "a raw beef steak"
+    },
+    {
+      "id": "pork",
+      "name": "Pork",
+      "sr": "Svinjetina",
+      "category": "meat",
+      "draw": "a raw pork chop"
+    },
+    {
+      "id": "bacon",
+      "name": "Bacon",
+      "sr": "Slanina",
+      "category": "meat",
+      "draw": "three strips of bacon"
+    },
+    {
+      "id": "sausage",
+      "name": "Sausage",
+      "sr": "Kobasica",
+      "category": "meat",
+      "draw": "a coiled sausage"
+    },
+    {
+      "id": "ham",
+      "name": "Ham",
+      "sr": "Šunka",
+      "category": "meat",
+      "draw": "a few folded slices of ham"
+    },
+    {
+      "id": "salami",
+      "name": "Salami",
+      "sr": "Salama",
+      "category": "meat",
+      "draw": "a salami with two round slices cut"
+    },
+    {
+      "id": "prosciutto",
+      "name": "Prosciutto",
+      "sr": "Pršuta",
+      "category": "meat",
+      "draw": "a few thin slices of dry-cured ham"
+    },
+    {
+      "id": "salmon",
+      "name": "Salmon",
+      "sr": "Losos",
+      "category": "fish",
+      "draw": "a raw salmon fillet"
+    },
+    {
+      "id": "tuna",
+      "name": "Tuna",
+      "sr": "Tunjevina",
+      "category": "fish",
+      "draw": "an open can of tuna"
+    },
+    {
+      "id": "white_fish",
+      "name": "White fish",
+      "sr": "Bela riba",
+      "category": "fish",
+      "draw": "a white fish fillet"
+    },
+    {
+      "id": "shrimp",
+      "name": "Shrimp",
+      "sr": "Škampi",
+      "category": "fish",
+      "draw": "three pink cooked shrimp"
+    },
+    {
+      "id": "sardines",
+      "name": "Sardines",
+      "sr": "Sardine",
+      "category": "fish",
+      "draw": "an open tin of sardines"
+    },
+    {
+      "id": "tomato",
+      "name": "Tomato",
+      "sr": "Paradajz",
+      "category": "vegetables",
+      "draw": "a red tomato"
+    },
+    {
+      "id": "cucumber",
+      "name": "Cucumber",
+      "sr": "Krastavac",
+      "category": "vegetables",
+      "draw": "a cucumber"
+    },
+    {
+      "id": "bell_pepper",
+      "name": "Bell pepper",
+      "sr": "Paprika",
+      "category": "vegetables",
+      "draw": "a red bell pepper"
+    },
+    {
+      "id": "chili",
+      "name": "Chili pepper",
+      "sr": "Ljuta papričica",
+      "category": "vegetables",
+      "draw": "two small red chili peppers"
+    },
+    {
+      "id": "onion",
+      "name": "Onion",
+      "sr": "Crni luk",
+      "category": "vegetables",
+      "draw": "a brown onion"
+    },
+    {
+      "id": "spring_onion",
+      "name": "Spring onion",
+      "sr": "Mladi luk",
+      "category": "vegetables",
+      "draw": "a bunch of spring onions"
+    },
+    {
+      "id": "garlic",
+      "name": "Garlic",
+      "sr": "Beli luk",
+      "category": "vegetables",
+      "draw": "a garlic bulb with one clove"
+    },
+    {
+      "id": "leek",
+      "name": "Leek",
+      "sr": "Praziluk",
+      "category": "vegetables",
+      "draw": "a leek"
+    },
+    {
+      "id": "potato",
+      "name": "Potato",
+      "sr": "Krompir",
+      "category": "vegetables",
+      "draw": "two potatoes"
+    },
+    {
+      "id": "sweet_potato",
+      "name": "Sweet potato",
+      "sr": "Batat",
+      "category": "vegetables",
+      "draw": "a sweet potato"
+    },
+    {
+      "id": "carrot",
+      "name": "Carrot",
+      "sr": "Šargarepa",
+      "category": "vegetables",
+      "draw": "a carrot with green top"
+    },
+    {
+      "id": "beetroot",
+      "name": "Beetroot",
+      "sr": "Cvekla",
+      "category": "vegetables",
+      "draw": "a beetroot with leaves"
+    },
+    {
+      "id": "cabbage",
+      "name": "Cabbage",
+      "sr": "Kupus",
+      "category": "vegetables",
+      "draw": "a green cabbage"
+    },
+    {
+      "id": "lettuce",
+      "name": "Lettuce",
+      "sr": "Zelena salata",
+      "category": "vegetables",
+      "draw": "a head of lettuce"
+    },
+    {
+      "id": "spinach",
+      "name": "Spinach",
+      "sr": "Spanać",
+      "category": "vegetables",
+      "draw": "a small bunch of spinach leaves"
+    },
+    {
+      "id": "kale",
+      "name": "Kale",
+      "sr": "Kelj",
+      "category": "vegetables",
+      "draw": "a few curly kale leaves"
+    },
+    {
+      "id": "broccoli",
+      "name": "Broccoli",
+      "sr": "Brokoli",
+      "category": "vegetables",
+      "draw": "a head of broccoli"
+    },
+    {
+      "id": "cauliflower",
+      "name": "Cauliflower",
+      "sr": "Karfiol",
+      "category": "vegetables",
+      "draw": "a head of cauliflower"
+    },
+    {
+      "id": "zucchini",
+      "name": "Zucchini",
+      "sr": "Tikvica",
+      "category": "vegetables",
+      "draw": "a zucchini"
+    },
+    {
+      "id": "eggplant",
+      "name": "Eggplant",
+      "sr": "Plavi patlidžan",
+      "category": "vegetables",
+      "draw": "an eggplant"
+    },
+    {
+      "id": "pumpkin",
+      "name": "Pumpkin",
+      "sr": "Bundeva",
+      "category": "vegetables",
+      "draw": "a small orange pumpkin"
+    },
+    {
+      "id": "mushrooms",
+      "name": "Mushrooms",
+      "sr": "Pečurke",
+      "category": "vegetables",
+      "draw": "three white button mushrooms"
+    },
+    {
+      "id": "peas",
+      "name": "Peas",
+      "sr": "Grašak",
+      "category": "vegetables",
+      "draw": "an open pea pod with peas"
+    },
+    {
+      "id": "green_beans",
+      "name": "Green beans",
+      "sr": "Boranija",
+      "category": "vegetables",
+      "draw": "a small bundle of green beans"
+    },
+    {
+      "id": "corn",
+      "name": "Corn",
+      "sr": "Kukuruz",
+      "category": "vegetables",
+      "draw": "a corn cob with husk"
+    },
+    {
+      "id": "celery",
+      "name": "Celery",
+      "sr": "Celer",
+      "category": "vegetables",
+      "draw": "a few celery stalks"
+    },
+    {
+      "id": "radish",
+      "name": "Radish",
+      "sr": "Rotkvica",
+      "category": "vegetables",
+      "draw": "a bunch of red radishes"
+    },
+    {
+      "id": "parsley",
+      "name": "Parsley",
+      "sr": "Peršun",
+      "category": "vegetables",
+      "draw": "a bunch of flat-leaf parsley"
+    },
+    {
+      "id": "dill",
+      "name": "Dill",
+      "sr": "Mirođija",
+      "category": "vegetables",
+      "draw": "a bunch of dill"
+    },
+    {
+      "id": "basil",
+      "name": "Basil",
+      "sr": "Bosiljak",
+      "category": "vegetables",
+      "draw": "a sprig of basil"
+    },
+    {
+      "id": "apple",
+      "name": "Apple",
+      "sr": "Jabuka",
+      "category": "fruit",
+      "draw": "a red apple with a leaf"
+    },
+    {
+      "id": "pear",
+      "name": "Pear",
+      "sr": "Kruška",
+      "category": "fruit",
+      "draw": "a green pear"
+    },
+    {
+      "id": "banana",
+      "name": "Banana",
+      "sr": "Banana",
+      "category": "fruit",
+      "draw": "a bunch of two bananas"
+    },
+    {
+      "id": "orange",
+      "name": "Orange",
+      "sr": "Pomorandža",
+      "category": "fruit",
+      "draw": "an orange with a leaf"
+    },
+    {
+      "id": "mandarin",
+      "name": "Mandarin",
+      "sr": "Mandarina",
+      "category": "fruit",
+      "draw": "a mandarin"
+    },
+    {
+      "id": "lemon",
+      "name": "Lemon",
+      "sr": "Limun",
+      "category": "fruit",
+      "draw": "a lemon and a lemon half"
+    },
+    {
+      "id": "lime",
+      "name": "Lime",
+      "sr": "Limeta",
+      "category": "fruit",
+      "draw": "a lime"
+    },
+    {
+      "id": "strawberries",
+      "name": "Strawberries",
+      "sr": "Jagode",
+      "category": "fruit",
+      "draw": "three strawberries"
+    },
+    {
+      "id": "raspberries",
+      "name": "Raspberries",
+      "sr": "Maline",
+      "category": "fruit",
+      "draw": "a small pile of raspberries"
+    },
+    {
+      "id": "blueberries",
+      "name": "Blueberries",
+      "sr": "Borovnice",
+      "category": "fruit",
+      "draw": "a small pile of blueberries"
+    },
+    {
+      "id": "cherries",
+      "name": "Cherries",
+      "sr": "Trešnje",
+      "category": "fruit",
+      "draw": "a pair of cherries on a stem"
+    },
+    {
+      "id": "grapes",
+      "name": "Grapes",
+      "sr": "Grožđe",
+      "category": "fruit",
+      "draw": "a bunch of green grapes"
+    },
+    {
+      "id": "peach",
+      "name": "Peach",
+      "sr": "Breskva",
+      "category": "fruit",
+      "draw": "a peach with a leaf"
+    },
+    {
+      "id": "plum",
+      "name": "Plum",
+      "sr": "Šljiva",
+      "category": "fruit",
+      "draw": "two dark purple plums"
+    },
+    {
+      "id": "watermelon",
+      "name": "Watermelon",
+      "sr": "Lubenica",
+      "category": "fruit",
+      "draw": "a slice of watermelon"
+    },
+    {
+      "id": "kiwi",
+      "name": "Kiwi",
+      "sr": "Kivi",
+      "category": "fruit",
+      "draw": "a kiwi and a kiwi half"
+    },
+    {
+      "id": "pineapple",
+      "name": "Pineapple",
+      "sr": "Ananas",
+      "category": "fruit",
+      "draw": "a pineapple"
+    },
+    {
+      "id": "avocado",
+      "name": "Avocado",
+      "sr": "Avokado",
+      "category": "fruit",
+      "draw": "an avocado half with the pit"
+    },
+    {
+      "id": "bread",
+      "name": "Bread",
+      "sr": "Hleb",
+      "category": "bakery",
+      "draw": "a loaf of bread"
+    },
+    {
+      "id": "baguette",
+      "name": "Baguette",
+      "sr": "Baget",
+      "category": "bakery",
+      "draw": "a baguette"
+    },
+    {
+      "id": "roll",
+      "name": "Bread roll",
+      "sr": "Kifla",
+      "category": "bakery",
+      "draw": "a crescent bread roll"
+    },
+    {
+      "id": "flatbread",
+      "name": "Flatbread",
+      "sr": "Lepinja",
+      "category": "bakery",
+      "draw": "a round flatbread"
+    },
+    {
+      "id": "tortilla",
+      "name": "Tortilla",
+      "sr": "Tortilja",
+      "category": "bakery",
+      "draw": "a stack of flour tortillas"
+    },
+    {
+      "id": "pastry",
+      "name": "Pastry",
+      "sr": "Pecivo",
+      "category": "bakery",
+      "draw": "a croissant"
+    },
+    {
+      "id": "burek",
+      "name": "Burek",
+      "sr": "Burek",
+      "category": "bakery",
+      "draw": "a wedge of flaky filo pie"
+    },
+    {
+      "id": "rice",
+      "name": "Rice",
+      "sr": "Pirinač",
+      "category": "pantry",
+      "draw": "a bag of rice with a few grains"
+    },
+    {
+      "id": "pasta",
+      "name": "Pasta",
+      "sr": "Testenina",
+      "category": "pantry",
+      "draw": "a small pile of dry penne pasta"
+    },
+    {
+      "id": "spaghetti",
+      "name": "Spaghetti",
+      "sr": "Špagete",
+      "category": "pantry",
+      "draw": "a bundle of dry spaghetti"
+    },
+    {
+      "id": "flour",
+      "name": "Flour",
+      "sr": "Brašno",
+      "category": "pantry",
+      "draw": "a paper bag of flour"
+    },
+    {
+      "id": "sugar",
+      "name": "Sugar",
+      "sr": "Šećer",
+      "category": "pantry",
+      "draw": "a bowl of sugar cubes"
+    },
+    {
+      "id": "salt",
+      "name": "Salt",
+      "sr": "So",
+      "category": "pantry",
+      "draw": "a salt shaker"
+    },
+    {
+      "id": "spices",
+      "name": "Spices",
+      "sr": "Začini",
+      "category": "pantry",
+      "draw": "a small jar of red paprika powder"
+    },
+    {
+      "id": "olive_oil",
+      "name": "Olive oil",
+      "sr": "Maslinovo ulje",
+      "category": "pantry",
+      "draw": "a bottle of olive oil"
+    },
+    {
+      "id": "oil",
+      "name": "Oil",
+      "sr": "Ulje",
+      "category": "pantry",
+      "draw": "a bottle of sunflower oil"
+    },
+    {
+      "id": "vinegar",
+      "name": "Vinegar",
+      "sr": "Sirće",
+      "category": "pantry",
+      "draw": "a bottle of vinegar"
+    },
+    {
+      "id": "honey",
+      "name": "Honey",
+      "sr": "Med",
+      "category": "pantry",
+      "draw": "a jar of honey with a dipper"
+    },
+    {
+      "id": "jam",
+      "name": "Jam",
+      "sr": "Džem",
+      "category": "pantry",
+      "draw": "a jar of red jam"
+    },
+    {
+      "id": "ajvar",
+      "name": "Ajvar",
+      "sr": "Ajvar",
+      "category": "pantry",
+      "draw": "a jar of red pepper relish"
+    },
+    {
+      "id": "peanut_butter",
+      "name": "Peanut butter",
+      "sr": "Kikiriki puter",
+      "category": "pantry",
+      "draw": "a jar of peanut butter"
+    },
+    {
+      "id": "oats",
+      "name": "Oats",
+      "sr": "Ovsene pahuljice",
+      "category": "pantry",
+      "draw": "a bowl of rolled oats"
+    },
+    {
+      "id": "cereal",
+      "name": "Cereal",
+      "sr": "Žitarice",
+      "category": "pantry",
+      "draw": "a cereal box"
+    },
+    {
+      "id": "lentils",
+      "name": "Lentils",
+      "sr": "Sočivo",
+      "category": "pantry",
+      "draw": "a small pile of red lentils"
+    },
+    {
+      "id": "beans",
+      "name": "Beans",
+      "sr": "Pasulj",
+      "category": "pantry",
+      "draw": "a small pile of white beans"
+    },
+    {
+      "id": "chickpeas",
+      "name": "Chickpeas",
+      "sr": "Leblebije",
+      "category": "pantry",
+      "draw": "a small pile of chickpeas"
+    },
+    {
+      "id": "canned_tomatoes",
+      "name": "Canned tomatoes",
+      "sr": "Paradajz u konzervi",
+      "category": "pantry",
+      "draw": "an open can of chopped tomatoes"
+    },
+    {
+      "id": "passata",
+      "name": "Passata",
+      "sr": "Pasirani paradajz",
+      "category": "pantry",
+      "draw": "a glass bottle of tomato passata"
+    },
+    {
+      "id": "nuts",
+      "name": "Nuts",
+      "sr": "Orašasti plodovi",
+      "category": "pantry",
+      "draw": "a few walnuts"
+    },
+    {
+      "id": "coffee",
+      "name": "Coffee",
+      "sr": "Kafa",
+      "category": "pantry",
+      "draw": "a bag of coffee with a few beans"
+    },
+    {
+      "id": "tea",
+      "name": "Tea",
+      "sr": "Čaj",
+      "category": "pantry",
+      "draw": "a tea bag on a string"
+    },
+    {
+      "id": "frozen_vegetables",
+      "name": "Frozen vegetables",
+      "sr": "Smrznuto povrće",
+      "category": "frozen",
+      "draw": "a bag of frozen mixed vegetables"
+    },
+    {
+      "id": "frozen_berries",
+      "name": "Frozen berries",
+      "sr": "Smrznuto voće",
+      "category": "frozen",
+      "draw": "a bag of frozen berries"
+    },
+    {
+      "id": "fries",
+      "name": "Fries",
+      "sr": "Pomfrit",
+      "category": "frozen",
+      "draw": "a bag of frozen fries"
+    },
+    {
+      "id": "frozen_pizza",
+      "name": "Frozen pizza",
+      "sr": "Smrznuta pica",
+      "category": "frozen",
+      "draw": "a frozen pizza"
+    },
+    {
+      "id": "ice_cream",
+      "name": "Ice cream",
+      "sr": "Sladoled",
+      "category": "frozen",
+      "draw": "a tub of ice cream"
+    },
+    {
+      "id": "water",
+      "name": "Water",
+      "sr": "Voda",
+      "category": "drinks",
+      "draw": "a bottle of water"
+    },
+    {
+      "id": "juice",
+      "name": "Juice",
+      "sr": "Sok",
+      "category": "drinks",
+      "draw": "a carton of orange juice"
+    },
+    {
+      "id": "soda",
+      "name": "Soda",
+      "sr": "Gazirani sok",
+      "category": "drinks",
+      "draw": "a soda can"
+    },
+    {
+      "id": "beer",
+      "name": "Beer",
+      "sr": "Pivo",
+      "category": "drinks",
+      "draw": "a bottle of beer"
+    },
+    {
+      "id": "wine",
+      "name": "Wine",
+      "sr": "Vino",
+      "category": "drinks",
+      "draw": "a bottle of red wine"
+    },
+    {
+      "id": "chocolate",
+      "name": "Chocolate",
+      "sr": "Čokolada",
+      "category": "snacks",
+      "draw": "a chocolate bar, partly unwrapped"
+    },
+    {
+      "id": "chips",
+      "name": "Chips",
+      "sr": "Čips",
+      "category": "snacks",
+      "draw": "a bag of potato chips"
+    },
+    {
+      "id": "biscuits",
+      "name": "Biscuits",
+      "sr": "Keks",
+      "category": "snacks",
+      "draw": "three round biscuits"
+    },
+    {
+      "id": "crackers",
+      "name": "Crackers",
+      "sr": "Krekeri",
+      "category": "snacks",
+      "draw": "a few square crackers"
+    }
+  ],
+  "categories": [
+    {
+      "id": "category_dairy_eggs",
+      "name": "Dairy & eggs",
+      "sr": "Mlečni proizvodi i jaja",
+      "category": "dairy_eggs",
+      "draw": "a carton of milk with an egg beside it"
+    },
+    {
+      "id": "category_meat",
+      "name": "Meat",
+      "sr": "Meso",
+      "category": "meat",
+      "draw": "a raw steak and a drumstick"
+    },
+    {
+      "id": "category_fish",
+      "name": "Fish",
+      "sr": "Riba",
+      "category": "fish",
+      "draw": "a whole fish"
+    },
+    {
+      "id": "category_vegetables",
+      "name": "Vegetables",
+      "sr": "Povrće",
+      "category": "vegetables",
+      "draw": "a carrot, a tomato and a head of broccoli"
+    },
+    {
+      "id": "category_fruit",
+      "name": "Fruit",
+      "sr": "Voće",
+      "category": "fruit",
+      "draw": "an apple, a banana and a lemon"
+    },
+    {
+      "id": "category_bakery",
+      "name": "Bakery",
+      "sr": "Pekara",
+      "category": "bakery",
+      "draw": "a loaf of bread and a croissant"
+    },
+    {
+      "id": "category_pantry",
+      "name": "Pantry",
+      "sr": "Ostava",
+      "category": "pantry",
+      "draw": "a jar, a bag of rice and a bottle of oil"
+    },
+    {
+      "id": "category_frozen",
+      "name": "Frozen",
+      "sr": "Smrznuto",
+      "category": "frozen",
+      "draw": "a bag of frozen peas with a few ice crystals"
+    },
+    {
+      "id": "category_drinks",
+      "name": "Drinks",
+      "sr": "Pića",
+      "category": "drinks",
+      "draw": "a bottle of water and a carton of juice"
+    },
+    {
+      "id": "category_snacks",
+      "name": "Snacks",
+      "sr": "Grickalice",
+      "category": "snacks",
+      "draw": "a chocolate bar and a bag of chips"
+    },
+    {
+      "id": "category_other",
+      "name": "Other",
+      "sr": "Ostalo",
+      "category": "other",
+      "draw": "a paper grocery bag with a baguette and greens sticking out"
+    }
+  ]
+}

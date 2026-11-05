@@ -34,6 +34,10 @@ export type RecipeRow = {
   generated_by: string | null;
   created_at: string;
   cooked_count?: number;
+  /** Generic English dish name that keys the shared cover (null before covers). */
+  dish_key?: string | null;
+  /** Path in the public recipe-covers bucket once the cover exists. */
+  cover_path?: string | null;
 };
 
 // Trimmed snapshot shape: full InventoryLot rows duplicated household data
@@ -65,6 +69,7 @@ export type CreateRecipeInput = {
   usedInventoryItemIds: string[];
   tags: string[];
   avoidanceTags: string[];
+  dishKey?: string | null;
 };
 
 export async function createRecipeSession(input: CreateRecipeSessionInput) {
@@ -113,6 +118,7 @@ export async function createRecipe(input: CreateRecipeInput) {
       used_inventory_item_ids: input.usedInventoryItemIds,
       tags: input.tags,
       avoidance_tags: input.avoidanceTags,
+      dish_key: input.dishKey?.slice(0, 60) ?? null,
       generated_by: userId,
     })
     .select("*")

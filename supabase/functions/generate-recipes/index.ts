@@ -55,6 +55,8 @@ type GenerateRecipesRequest = {
 // Lightweight card returned by mode === "cards".
 type AiRecipeCardLite = {
   title: string;
+  // Short generic English dish name ("tomato pasta"); keys the shared cover.
+  dish: string;
   description: string;
   usedIngredientIds: string[];
   tags: string[];
@@ -165,6 +167,7 @@ const CARD_SCHEMA = {
         type: "object",
         properties: {
           title: { type: "string" },
+          dish: { type: "string" },
           description: { type: "string" },
           usedIngredientIds: { type: "array", items: { type: "string" } },
           tags: { type: "array", items: { type: "string" } },
@@ -174,6 +177,7 @@ const CARD_SCHEMA = {
         },
         required: [
           "title",
+          "dish",
           "description",
           "usedIngredientIds",
           "tags",
@@ -1018,6 +1022,7 @@ function buildCardMessages(
     wantCount > 1
       ? `Suggest ${wantCount} genuinely different dishes (different main technique or cuisine). If fewer good dishes exist, return only those.`
       : "Suggest the one dish you're most confident in.",
+    "dish is what the plate is, in 2-4 plain lowercase English words, generic enough that similar dishes share it (\"tomato pasta\", \"chicken paprikash\", \"vegetable omelette\"), always English whatever the language.",
     "category is the course type (main, salad, soup, breakfast…). usedIngredientIds lists the id values from the household list, copied exactly, for the items each dish uses.",
   ].join("\n");
 

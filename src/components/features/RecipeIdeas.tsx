@@ -3,7 +3,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { colors, fonts, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
-import { RecipeGlyph } from "./RecipeGlyph";
+import { RecipeCover } from "./RecipeCover";
 
 // Recipe ideas, TinyMeals-style: the "Try next" hero and list cards on the
 // home, and the "N ideas" screen a generation lands on.
@@ -27,6 +27,7 @@ export function TryNextCard({
   ctaLabel,
   secondaryLabel,
   onSecondary,
+  coverPath,
 }: {
   eyebrow: string;
   title: string;
@@ -45,12 +46,13 @@ export function TryNextCard({
   /** An outline button beside the CTA (e.g. "More ideas"). */
   secondaryLabel?: string;
   onSecondary?: () => void;
+  coverPath?: string | null;
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.hero, pressed && styles.pressed]}>
       <View style={styles.heroTop}>
         <View style={styles.tileLarge}>
-          <RecipeGlyph size={40} />
+          <RecipeCover path={coverPath} glyphSize={40} />
         </View>
         <View style={styles.copy}>
           <Text variant="micro" uppercase muted style={styles.eyebrow}>
@@ -143,6 +145,7 @@ export function RecipeListCard({
   favoriteLabel,
   onFavorite,
   onPress,
+  coverPath,
 }: {
   badge: string;
   /** Yellow badge (something to use soon) instead of the muted one. */
@@ -155,11 +158,12 @@ export function RecipeListCard({
   favoriteLabel: string;
   onFavorite?: () => void;
   onPress: () => void;
+  coverPath?: string | null;
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.listCard, highlight && styles.listCardHighlight, pressed && styles.pressed]}>
       <View style={styles.tileLarge}>
-        <RecipeGlyph size={36} />
+        <RecipeCover path={coverPath} glyphSize={36} />
       </View>
       <View style={styles.copy}>
         <Text variant="micro" uppercase numberOfLines={1} color={badgeAccent ? colors.accentInk : colors.muted} style={styles.eyebrow}>
@@ -175,7 +179,15 @@ export function RecipeListCard({
   );
 }
 
-type Idea = { key: string; title: string; meta: string; description?: string; pill?: string; onPress: () => void };
+type Idea = {
+  key: string;
+  title: string;
+  meta: string;
+  description?: string;
+  pill?: string;
+  coverPath?: string | null;
+  onPress: () => void;
+};
 
 /** Where a generation lands: the best match, the others, and "Give me 3 more". */
 export function IdeasResults({
@@ -236,7 +248,7 @@ export function IdeasResults({
               </Text>
             </View>
             <View style={styles.tileLarge}>
-              <RecipeGlyph size={40} />
+              <RecipeCover path={best.coverPath} glyphSize={40} />
             </View>
           </View>
           {best.description ? <Text variant="body">{best.description}</Text> : null}
@@ -262,7 +274,7 @@ export function IdeasResults({
               style={({ pressed }) => [styles.card, styles.listCard, pressed && styles.pressed]}
             >
               <View style={styles.tileSmall}>
-                <RecipeGlyph size={28} />
+                <RecipeCover path={idea.coverPath} glyphSize={28} />
               </View>
               <View style={[styles.copy, styles.otherCopy]}>
                 <Text numberOfLines={2} style={styles.listTitle}>
@@ -373,6 +385,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   tileSmall: {
     width: 48,
@@ -381,6 +394,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   copy: {
     flex: 1,

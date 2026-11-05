@@ -176,6 +176,7 @@ export default function RecipesRoute() {
         recipeId: recipeId ?? "",
         isFavorite: saved?.is_favorite ?? false,
         cookedCount: saved?.cooked_count ?? 0,
+        coverPath: saved?.cover_path ?? null,
       });
     },
     [savedRecipes],
@@ -353,6 +354,7 @@ export default function RecipesRoute() {
         meta: [formatTimeLabel(match.timeMinutes), formatComplexity(match.complexity)].join(" · "),
         description: match.description,
         pill: coveragePill(match.ingredients),
+        coverPath: savedForMatch(match)?.cover_path,
         onPress: () => navigateToDetail(match, savedForMatch(match)?.id),
       }))
     : restoredTonight.map((recipe) => ({
@@ -361,6 +363,7 @@ export default function RecipesRoute() {
         meta: [formatTimeLabel(recipe.time_minutes ?? 20), formatComplexity(recipe.complexity ?? "simple")].join(" · "),
         description: recipe.description ?? undefined,
         pill: coveragePill(recipe.ingredients),
+        coverPath: recipe.cover_path,
         onPress: () => openSavedRecipe(recipe),
       }));
 
@@ -462,6 +465,7 @@ export default function RecipesRoute() {
           {dish && dishCoverage ? (
             <>
               <TryNextCard
+                coverPath={dish.row?.cover_path}
                 eyebrow={hasTonight ? t("recipes.tryNext.tonight") : t("recipes.tryNext.fromYours")}
                 title={dish.title}
                 meta={[formatTimeLabel(dish.minutes), formatComplexity(dish.complexity)].join(" · ")}
@@ -579,6 +583,7 @@ export default function RecipesRoute() {
                     ]
                       .filter(Boolean)
                       .join(" · ")}
+                    coverPath={entry.recipe.cover_path}
                     favorite={entry.recipe.is_favorite}
                     favoriteLabel={t("recipes.list.favorite")}
                     onFavorite={() => toggleFavorite(entry.recipe.id, entry.recipe.is_favorite)}

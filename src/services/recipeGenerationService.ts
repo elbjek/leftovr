@@ -89,6 +89,7 @@ function normalizeAiTags(tags: string[], requestedVibe: string | undefined) {
 /** Lightweight card from phase-1 generation (mode: "cards") — no steps/amounts. */
 export type AiRecipeCardLite = {
   title: string;
+  dish?: string;
   description: string;
   usedIngredientIds: string[];
   tags: string[];
@@ -114,6 +115,7 @@ export function mapAiCardsToMatches(
     return {
       key: `ai-card-${index}-${card.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
       title: card.title,
+      dish: card.dish,
       description: card.description,
       timeMinutes: card.timeMinutes,
       complexity: "simple",

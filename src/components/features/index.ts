@@ -18,6 +18,7 @@ export * from "./PremiumSheet";
 export * from "./ReceiptConfirmList";
 export * from "./RecipeCard";
 export * from "./RecipeGlyph";
+export * from "./RecipeCover";
 export * from "./RecipeIdeas";
 export * from "./RetentionCard";
 export * from "./SavedRecipeRow";

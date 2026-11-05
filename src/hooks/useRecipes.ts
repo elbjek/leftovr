@@ -24,6 +24,7 @@ import {
   RecipeRateLimitedError,
 } from "@/services/recipeGenerationService";
 import { friendlyMessage } from "@/services/edgeErrors";
+import { requestRecipeCover } from "@/services/recipeCoverService";
 import { useTranslation } from "react-i18next";
 import { recipeSignature } from "@/lib";
 import { InventoryLot, resolveUrgency } from "@/services/inventoryRules";
@@ -292,6 +293,7 @@ export function useRecipes(
               usedInventoryItemIds: usedIds,
               tags: match.tags,
               avoidanceTags: match.avoidanceTags,
+              dishKey: match.dish,
             });
             savedRecipes.push(recipe);
           }
@@ -304,6 +306,18 @@ export function useRecipes(
             consumedFreeGeneration: true,
             savedRecipes: [...savedRecipes, ...s.savedRecipes],
           }));
+
+          // Covers (OpenAI, shared by dish) start right away, in the background;
+          // each tile shows its drawn glyph until its photo lands.
+          for (const recipe of savedRecipes) {
+            void requestRecipeCover(recipe.id).then((path) => {
+              if (!path) return;
+              setState((s) => ({
+                ...s,
+                savedRecipes: s.savedRecipes.map((r) => (r.id === recipe.id ? { ...r, cover_path: path } : r)),
+              }));
+            });
+          }
 
           // Prefetch phase-2 detail in the background so opening a fresh card
           // shows steps instantly instead of waiting on the expand call. The

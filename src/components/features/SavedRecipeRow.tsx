@@ -7,7 +7,7 @@ import type { RecipeRow } from "@/repositories/recipeRepository";
 import { formatCategory, fridgeCoverage } from "@/services/recipeService";
 import { colors, fonts, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
-import { RecipeGlyph } from "./RecipeGlyph";
+import { RecipeCover } from "./RecipeCover";
 
 type Props = {
   recipe: RecipeRow;
@@ -48,7 +48,7 @@ export function SavedRecipeRow({ recipe, onPress, onFavorite, cookedSummary, mem
       style={({ pressed }) => [styles.savedRow, pressed && styles.savedRowPressed]}
     >
       <View style={[styles.savedRowThumb, { backgroundColor: thumbColorFor(recipe.title) }]}>
-        <RecipeGlyph size={38} variant="simple" />
+        <RecipeCover path={recipe.cover_path} glyphSize={38} glyphVariant="simple" />
       </View>
       <View style={styles.savedRowCopy}>
         <Text style={styles.savedRowTitle} numberOfLines={2}>{recipe.title}</Text>
@@ -163,6 +163,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   savedRowCopy: {
     flex: 1,
