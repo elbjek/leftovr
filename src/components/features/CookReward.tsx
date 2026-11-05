@@ -5,6 +5,10 @@ import Svg, { Path } from "react-native-svg";
 
 import { colors, fonts, radii, spacing } from "../../theme";
 import { Button, Text } from "../primitives";
+import { FlameIcon, GoalRing } from "./WeekStrip";
+
+// More than this and the chips crowd the screen; the rest fold into "+N".
+const MAX_CHIPS = 6;
 
 type Props = {
   visible: boolean;
@@ -12,8 +16,14 @@ type Props = {
   eyebrow: string;
   /** e.g. "4 things saved from the bin". */
   title: string;
-  /** Up to three figures in one card (today's goal, streak, money saved). */
-  stats: { value: string; label: string }[];
+  /** What the cook used up, as named on the cook sheet. */
+  items: string[];
+  /** Today's goal after this cook; null when it couldn't be loaded. */
+  goal: { done: number; total: number; label: string } | null;
+  /** e.g. { value: 5, label: "day streak" }; null when it couldn't be loaded. */
+  streak: { value: number; label: string } | null;
+  /** Money saved today, formatted; null when hidden (free tier, nothing priced). */
+  saved: { value: string; label: string } | null;
   doneLabel: string;
   shareLabel: string;
   onDone: () => void;
@@ -24,7 +34,7 @@ type Props = {
 // streak. Same cream, bordered look as the home; the check pops in once.
 // A full-screen layer, not a Modal: it rides in the cook sheet's Modal
 // (BottomSheet `overlay`) so iOS never has to stack two.
-export function CookReward({ visible, eyebrow, title, stats, doneLabel, shareLabel, onDone, onShare }: Props) {
+export function CookReward({ visible, eyebrow, title, items, goal, streak, saved, doneLabel, shareLabel, onDone, onShare }: Props) {
   const insets = useSafeAreaInsets();
   const [pop] = useState(() => new Animated.Value(0));
 
@@ -51,8 +61,12 @@ export function CookReward({ visible, eyebrow, title, stats, doneLabel, shareLab
   }, [pop, visible]);
 
   const scale = pop.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
+  const rise = pop.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
 
   if (!visible) return null;
+
+  const shown = items.slice(0, MAX_CHIPS);
+  const more = items.length - shown.length;
 
   return (
     <Animated.View
@@ -61,7 +75,7 @@ export function CookReward({ visible, eyebrow, title, stats, doneLabel, shareLab
       <View style={styles.head}>
         <Animated.View style={[styles.check, { opacity: pop, transform: [{ scale }] }]}>
           <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-            <Path d="M5 12l5 5 9-10" stroke={colors.primary} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+            <Path d="M5 12l5 5 9-10" stroke={colors.surface} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
         </Animated.View>
         <Text variant="micro" muted uppercase center>
@@ -70,21 +84,66 @@ export function CookReward({ visible, eyebrow, title, stats, doneLabel, shareLab
         <Text variant="h1" center accessibilityRole="header">
           {title}
         </Text>
+        {shown.length > 0 ? (
+          <View style={styles.chips}>
+            {shown.map((name, index) => (
+              <View key={`${index}-${name}`} style={styles.chip}>
+                <Text variant="small" color={colors.primary} style={styles.semibold} numberOfLines={1}>
+                  {name}
+                </Text>
+              </View>
+            ))}
+            {more > 0 ? (
+              <View style={[styles.chip, styles.chipMore]}>
+                <Text variant="small" muted style={styles.semibold}>
+                  {`+${more}`}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
       </View>
 
-      {stats.length > 0 ? (
-        <View style={styles.stats}>
-          {stats.map((stat, index) => (
-            <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
-              <Text variant="h2" color={colors.primary} style={styles.statValue}>
-                {stat.value}
+      {goal || streak || saved ? (
+        <Animated.View style={[styles.card, { transform: [{ translateY: rise }] }]}>
+          {goal || streak ? (
+            <View style={styles.row}>
+              <View style={styles.goal}>
+                {goal ? (
+                  <>
+                    <GoalRing done={goal.done} total={goal.total} />
+                    <Text variant="label" style={styles.goalLabel}>
+                      {goal.label}
+                    </Text>
+                  </>
+                ) : null}
+              </View>
+              {streak ? (
+                <View style={styles.streak} accessible accessibilityLabel={`${streak.value} ${streak.label}`}>
+                  <View style={styles.streakValue}>
+                    <FlameIcon size={18} />
+                    <Text variant="h2" color={colors.accentInk} style={styles.number}>
+                      {streak.value}
+                    </Text>
+                  </View>
+                  <Text variant="small" muted>
+                    {streak.label}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+          {saved ? (
+            <View style={[styles.row, (goal || streak) && styles.divider]}>
+              <Text variant="label" muted style={styles.goalLabel}>
+                {saved.label}
               </Text>
-              <Text variant="small" muted center>
-                {stat.label}
+              <Text variant="h2" color={colors.primary} style={styles.number}>
+                {saved.value}
               </Text>
             </View>
-          ))}
-        </View>
+          ) : null}
+        </Animated.View>
       ) : null}
 
       <View style={styles.spacer} />
@@ -111,7 +170,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     backgroundColor: colors.appBackground,
     paddingHorizontal: spacing.screenX,
-    gap: spacing.xxl,
+    gap: spacing.huge,
   },
   head: {
     alignItems: "center",
@@ -121,31 +180,66 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.sageTint,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: spacing.xs,
   },
-  stats: {
+  chips: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  chip: {
+    maxWidth: "100%",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xxs,
+    borderRadius: radii.pill,
+    backgroundColor: colors.sageTint,
+  },
+  chipMore: {
+    backgroundColor: colors.surface2,
+  },
+  card: {
     backgroundColor: colors.paper,
     borderWidth: 1,
     borderColor: colors.cardLine,
     borderRadius: radii.xl,
+    paddingHorizontal: spacing.lg,
   },
-  stat: {
-    flex: 1,
+  row: {
+    flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+    justifyContent: "space-between",
+    gap: spacing.md,
     paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xs,
   },
-  statDivider: {
-    borderLeftWidth: 1,
-    borderLeftColor: colors.cardLine,
+  divider: {
+    borderTopWidth: 1,
+    borderTopColor: colors.cardLine,
   },
-  statValue: {
+  goal: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  goalLabel: {
+    flexShrink: 1,
+  },
+  streak: {
+    alignItems: "flex-end",
+  },
+  streakValue: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xxs,
+  },
+  number: {
     fontFamily: fonts.bodyExtraBold,
+    fontVariant: ["tabular-nums"],
   },
   spacer: {
     flex: 1,
@@ -157,6 +251,9 @@ const styles = StyleSheet.create({
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
+  },
+  semibold: {
+    fontFamily: fonts.bodySemiBold,
   },
   bold: {
     fontFamily: fonts.bodyBold,

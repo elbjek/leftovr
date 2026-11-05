@@ -219,10 +219,10 @@ export default function RecipeDetailRoute() {
   const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
   const cookIdRef = useRef<string | null>(null);
-  // The after-cook reward: how many things this cook used up, plus the
-  // figures it moved (null when they couldn't be loaded).
+  // The after-cook reward: what this cook used up, plus the figures it
+  // moved (null when they couldn't be loaded).
   const [reward, setReward] = useState<{
-    rescued: number;
+    items: string[];
     streak: { streak: number; today: number } | null;
     savedToday: number | null;
   } | null>(null);
@@ -375,6 +375,7 @@ export default function RecipeDetailRoute() {
       // soonest-expiry first) instead of stale snapshot lot ids. Sum duplicate
       // ingredients so each item is depleted by its total amount once.
       const byName = new Map<string, { amount: number; unit: string }>();
+      const shownNames = new Map<string, string>();
       for (const item of cookedItems) {
         if (!item.used) continue;
         // A swapped row depletes the chosen fridge item instead of the
@@ -383,6 +384,7 @@ export default function RecipeDetailRoute() {
         const existing = byName.get(key);
         const amount = { amount: item.quantityToUse, unit: item.unit };
         byName.set(key, existing ? addAmounts(existing, amount) : amount);
+        if (!shownNames.has(key)) shownNames.set(key, item.swapDisplay ?? item.name);
       }
       const usedItems = [...byName.entries()].map(([normalizedName, v]) => ({
         normalizedName,
@@ -426,7 +428,7 @@ export default function RecipeDetailRoute() {
           : null,
       ]);
       setReward({
-        rescued: usedItems.length,
+        items: [...shownNames.values()],
         streak: streakState ? { streak: streakState.streak, today: streakState.today } : null,
         savedToday: day && day.moneySaved > 0 ? day.moneySaved : null,
       });
@@ -448,22 +450,19 @@ export default function RecipeDetailRoute() {
 
   function shareReward() {
     if (!reward) return;
-    void Share.share({ message: t("recipes.reward.shareMessage", { count: reward.rescued, title }) });
+    void Share.share({ message: t("recipes.reward.shareMessage", { count: reward.items.length, title }) });
   }
 
-  const rewardStats = reward
-    ? [
-        ...(reward.streak
-          ? [
-              { value: `${Math.min(reward.streak.today, DAILY_GOAL)}/${DAILY_GOAL}`, label: t("recipes.reward.today") },
-              { value: String(reward.streak.streak), label: t("recipes.reward.streak", { count: reward.streak.streak }) },
-            ]
-          : []),
-        ...(reward.savedToday !== null
-          ? [{ value: formatMoney(reward.savedToday, activeHousehold?.currency_code ?? "USD"), label: t("recipes.reward.savedToday") }]
-          : []),
-      ]
-    : [];
+  const rewardGoal = reward?.streak
+    ? {
+        done: Math.min(reward.streak.today, DAILY_GOAL),
+        total: DAILY_GOAL,
+        label:
+          reward.streak.today >= DAILY_GOAL
+            ? t("recipes.week.goalDone")
+            : t("recipes.week.goalMore", { count: DAILY_GOAL - reward.streak.today }),
+      }
+    : null;
 
   async function handleFavoriteToggle() {
     if (!recipeId) return;
@@ -718,8 +717,15 @@ export default function RecipeDetailRoute() {
           <CookReward
             visible={reward !== null}
             eyebrow={t("recipes.reward.eyebrow", { title })}
-            title={t("recipes.reward.title", { count: reward?.rescued ?? 0 })}
-            stats={rewardStats}
+            title={t("recipes.reward.title", { count: reward?.items.length ?? 0 })}
+            items={reward?.items ?? []}
+            goal={rewardGoal}
+            streak={reward?.streak ? { value: reward.streak.streak, label: t("recipes.reward.streak", { count: reward.streak.streak }) } : null}
+            saved={
+              reward?.savedToday != null
+                ? { value: formatMoney(reward.savedToday, activeHousehold?.currency_code ?? "USD"), label: t("recipes.reward.savedToday") }
+                : null
+            }
             doneLabel={t("recipes.reward.done")}
             shareLabel={t("recipes.reward.share")}
             onDone={finishReward}

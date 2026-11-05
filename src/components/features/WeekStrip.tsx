@@ -147,7 +147,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
 }
 
 // Progress toward today's goal; full once the target is met.
-function GoalRing({ done, total }: { done: number; total: number }) {
+export function GoalRing({ done, total }: { done: number; total: number }) {
   const size = 36;
   const stroke = 4;
   const r = (size - stroke) / 2;
@@ -186,9 +186,9 @@ function SnowflakeIcon({ size, color }: { size: number; color: string }) {
   );
 }
 
-function FlameIcon() {
+export function FlameIcon({ size = 13 }: { size?: number }) {
   return (
-    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.7 1.2 2.8 2.3 3.2C10.6 9.4 11 6 12 3Z"
         stroke={colors.accentInk}
