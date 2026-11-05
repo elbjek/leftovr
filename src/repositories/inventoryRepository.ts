@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase";
-import { valueOfAmount, deriveUnitPrice } from "@/lib/money";
+import { valueOfAmount, lotRemainingValue } from "@/lib/money";
 import {
   insertValueEvent,
   fetchPricedLots,
@@ -166,7 +166,7 @@ type RemovableLot = Pick<
 /**
  * Remove lots and record the money outcome of the amount that left inventory:
  * "used" → saved, "discarded" → wasted. Each priced lot's remaining amount is
- * valued at its unit price.
+ * valued with lotRemainingValue.
  */
 export async function removeInventoryGroup(
   lots: RemovableLot[],
@@ -206,12 +206,10 @@ export async function removeInventoryGroup(
 
   const kind = reason === "discarded" ? "wasted" : "saved";
   for (const lot of lots) {
-    const unit = deriveUnitPrice(lot.purchase_price, lot.purchase_amount);
-    const remaining = lot.net_amount ?? lot.quantity;
     await insertValueEvent({
       householdId,
       kind,
-      value: valueOfAmount(remaining, unit),
+      value: lotRemainingValue(lot),
       normalizedName: lot.normalized_name,
       category: lot.category,
       // Valued at the lot's price, so it's in the lot's currency (C16).

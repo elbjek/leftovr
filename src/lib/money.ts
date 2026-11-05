@@ -32,6 +32,24 @@ export function categoryAverageUnitPrice(
   return unitPrices.reduce((a, b) => a + b, 0) / unitPrices.length;
 }
 
+/**
+ * What a priced lot's remaining food is worth. purchase_amount is the net g/ml
+ * the price covered, or (older rows, a net added later) the pack count; read it
+ * as a net only when it exceeds the count, which a count never does. Capped at
+ * the price: a lot can't be worth more than it cost. apply_cook mirrors this.
+ */
+export function lotRemainingValue(lot: {
+  purchase_price: number | null;
+  purchase_amount: number | null;
+  net_amount: number | null;
+  quantity: number;
+}): number {
+  const { purchase_price: price, purchase_amount: basis } = lot;
+  if (price == null || !basis || basis <= 0) return 0;
+  const left = lot.net_amount != null && basis > lot.quantity ? lot.net_amount : lot.quantity;
+  return Math.min(price, (price / basis) * left);
+}
+
 /** Money value of a consumed/discarded amount at a unit price. */
 export function valueOfAmount(amount: number, unitPrice: number | null): number {
   if (!unitPrice || amount <= 0) return 0;

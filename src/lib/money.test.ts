@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deriveUnitPrice, valueOfAmount, formatMoney, categoryAverageUnitPrice } from "./money";
+import { deriveUnitPrice, valueOfAmount, formatMoney, categoryAverageUnitPrice, lotRemainingValue } from "./money";
 
 describe("categoryAverageUnitPrice", () => {
   it("averages unit prices of priced lots in a category", () => {
@@ -50,5 +50,25 @@ describe("formatMoney", () => {
   });
   it("falls back to code prefix for unknown currency", () => {
     expect(formatMoney(1.5, "ZZZ")).toContain("1.5");
+  });
+});
+
+describe("lotRemainingValue", () => {
+  it("values a pack priced per pack but measured in grams at its price, not price × grams", () => {
+    // Real row: ground beef, 1 pack of 500 g for 620 RSD, purchase_amount = 1.
+    const beef = { purchase_price: 620, purchase_amount: 1, net_amount: 500, quantity: 1 };
+    expect(lotRemainingValue(beef)).toBe(620);
+  });
+  it("values a gram-priced lot by what is left", () => {
+    // 1 kg for 500, 400 g left.
+    expect(lotRemainingValue({ purchase_price: 500, purchase_amount: 1000, net_amount: 400, quantity: 1 })).toBe(200);
+  });
+  it("values a counted lot by what is left", () => {
+    // 10 eggs for 330, 8 left.
+    expect(lotRemainingValue({ purchase_price: 330, purchase_amount: 10, net_amount: null, quantity: 8 })).toBe(264);
+  });
+  it("never exceeds the price and is 0 when unpriced", () => {
+    expect(lotRemainingValue({ purchase_price: 100, purchase_amount: 2, net_amount: null, quantity: 5 })).toBe(100);
+    expect(lotRemainingValue({ purchase_price: null, purchase_amount: null, net_amount: 500, quantity: 1 })).toBe(0);
   });
 });
