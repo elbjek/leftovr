@@ -34,8 +34,8 @@ const PERIODS: Period[] = ["week", "month", "year"];
 // going off, your go-to dinners and your wins — always the whole kitchen.
 // Same top as the home (logo + pill, here the period "This month ▾"), then a
 // headline. Every section always shows, with a friendly line when it has no
-// data yet. Premium only: free accounts see their summary dimmed under an
-// Unlock card.
+// data yet. Premium only: free accounts see a placeholder summary dimmed
+// under an Unlock card.
 export default function InsightsRoute() {
   const { t } = useTranslation();
   const { profile, activeHousehold, refresh } = useAuth();
@@ -152,6 +152,33 @@ export default function InsightsRoute() {
   const refreshControl = (
     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
   );
+
+  // Free accounts see the summary's shape under the Unlock card, never their
+  // own figures: every number is a placeholder.
+  if (!isPremium) {
+    return (
+      <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
+        {header(t(`insights.period.this.${period}`))}
+        <View style={styles.preview} pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+          <PeriodSummary
+            label={t("insights.stats.saved")}
+            value="••••"
+            stats={["used", "cooked", "streak"].map((key) => ({ value: "–", label: t(`insights.summary.${key}`, { count: 5 }) }))}
+            shareLabel={t(`insights.share.${period}Label`)}
+            onShare={() => {}}
+          />
+        </View>
+        <View style={styles.lock}>
+          <Text variant="h2">{t("insights.lock.title")}</Text>
+          <Text variant="body" color={colors.accentInk}>
+            {t("insights.lock.body")}
+          </Text>
+          <Button title={t("insights.lock.action")} onPress={() => setShowPremium(true)} />
+        </View>
+        {sheets}
+      </Screen>
+    );
+  }
 
   if (!data) {
     return (
@@ -277,25 +304,6 @@ export default function InsightsRoute() {
       onShare={share}
     />
   );
-
-  if (!isPremium) {
-    return (
-      <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-        {header(t(`insights.period.this.${period}`))}
-        <View style={styles.preview} pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-          {summaryCard}
-        </View>
-        <View style={styles.lock}>
-          <Text variant="h2">{t("insights.lock.title")}</Text>
-          <Text variant="body" color={colors.accentInk}>
-            {t("insights.lock.body")}
-          </Text>
-          <Button title={t("insights.lock.action")} onPress={() => setShowPremium(true)} />
-        </View>
-        {sheets}
-      </Screen>
-    );
-  }
 
   return (
     <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
@@ -451,7 +459,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Free accounts see their own summary faded behind the Unlock card.
+  // Free accounts see a placeholder summary faded behind the Unlock card.
   preview: {
     opacity: 0.35,
   },

@@ -3,7 +3,7 @@ import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, Vi
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, KitchenPulse, PlusIcon, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, KitchenPulse, PlusIcon, PremiumSheet, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -42,7 +42,7 @@ type KitchenView = null | "all" | "low" | "soon" | Category;
 
 export default function FridgeRoute() {
   const { t } = useTranslation();
-  const { profile, activeHousehold } = useAuth();
+  const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
   const {
     loading,
     groups,
@@ -71,6 +71,7 @@ export default function FridgeRoute() {
   const activeGroups = groups.filter((group) => group.urgency !== "expired");
   const [checkSheetVisible, setCheckSheetVisible] = useState(false);
   const [householdOpen, setHouseholdOpen] = useState(false);
+  const [showPremium, setShowPremium] = useState(false);
   const toCheckItem = (group: InventoryGroup): CheckItem => {
     const expiry = earliestExpiry(group.lots);
     // In the expired band any explicit date has necessarily passed, so a
@@ -395,7 +396,7 @@ export default function FridgeRoute() {
                 previewBody: t("fridge.eatFirstPreviewBody"),
                 unlockAction: t("fridge.eatFirstUnlock"),
               }}
-              onUpgradePress={() => router.push("/(tabs)/settings")}
+              onUpgradePress={() => setShowPremium(true)}
             />
           ) : null}
 
@@ -544,6 +545,7 @@ export default function FridgeRoute() {
         onClose={() => setHouseholdOpen(false)}
         itemCount={groups.length}
       />
+      <PremiumSheet visible={showPremium} onPurchased={refreshAuth} onDismiss={() => setShowPremium(false)} />
       </Screen>
   );
 }
