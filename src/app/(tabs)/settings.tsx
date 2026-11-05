@@ -10,14 +10,14 @@ import {
   Button,
   Card,
   ChoiceCard,
-  HouseholdSection,
+  HouseholdSheet,
   PremiumSheet,
   Screen,
   ScreenHeader,
   Text,
   TextField,
 } from "@/components";
-import { canShareHousehold, useAuth, useMeasurementSystem } from "@/features";
+import { useAuth, useMeasurementSystem } from "@/features";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { deleteAccount, exportAccountData, presentCodeRedemptionSheet, registerDevice } from "@/services";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
@@ -64,6 +64,13 @@ export default function SettingsRoute() {
   const [editingAvoidances, setEditingAvoidances] = useState(false);
   const [editingServings, setEditingServings] = useState(false);
   const [editingCurrency, setEditingCurrency] = useState(false);
+  // A /join deep link lands here with ?joinCode= — open the household sheet on it.
+  const [householdOpen, setHouseholdOpen] = useState(Boolean(joinCode));
+  const [prevJoinCode, setPrevJoinCode] = useState(joinCode);
+  if (joinCode !== prevJoinCode) {
+    setPrevJoinCode(joinCode);
+    if (joinCode) setHouseholdOpen(true);
+  }
   const [localAvoidances, setLocalAvoidances] = useState<string[]>(profile?.avoidances ?? []);
 
   const household = useHousehold(activeHousehold?.id);
@@ -87,7 +94,6 @@ export default function SettingsRoute() {
     if (next) await registerDevice();
     await fn(next);
   };
-  const isHouseholdPremium = canShareHousehold(profile, activeHousehold);
 
   function handleLanguageChange(language: SupportedLanguage) {
     i18n.changeLanguage(language);
@@ -329,46 +335,30 @@ export default function SettingsRoute() {
               setLocalAvoidances(profile?.avoidances ?? []);
               setEditingAvoidances(true);
             }}
+            last
           />
-          {activeHousehold ? (
+        </SettingsGroup>
+
+        {/* Household: members / invite / join live in HouseholdSheet */}
+        {activeHousehold ? (
+          <SettingsGroup label={t("settings.household.title")}>
+            <SettingsRow
+              label={t("settings.household.manageRow")}
+              value={activeHousehold.name}
+              onPress={() => setHouseholdOpen(true)}
+            />
             <SettingsRow
               label={t("settings.servingsTitle")}
               value={t("settings.servingsLabel", { count: activeHousehold.default_servings })}
               onPress={() => setEditingServings(true)}
             />
-          ) : null}
-          {activeHousehold ? (
             <SettingsRow
               label={t("settings.currencyTitle")}
               value={activeHousehold.currency_code}
               onPress={() => setEditingCurrency(true)}
               last
             />
-          ) : null}
-        </SettingsGroup>
-
-        {/* Household */}
-        {profile && activeHousehold ? (
-          <HouseholdSection
-            householdName={activeHousehold.name}
-            members={household.members}
-            currentUserId={profile.id}
-            activeInvite={household.activeInvite}
-            isPremium={isHouseholdPremium}
-            hasOwnPaidSub={(profile.tier ?? "free") !== "free"}
-            currentItemCount={lots.length}
-            onCreateInvite={household.createInvite}
-            onLookupCode={household.lookupCode}
-            onJoin={async (code, moveItems) => {
-              await household.joinHousehold(code, moveItems);
-              await refresh();
-            }}
-            onPremiumGate={() => {
-              setPremiumPlan("household");
-              setShowPremium(true);
-            }}
-            initialJoinCode={typeof joinCode === "string" ? joinCode : undefined}
-          />
+          </SettingsGroup>
         ) : null}
 
         {/* Notifications */}
@@ -757,6 +747,12 @@ export default function SettingsRoute() {
         </View>
       </BottomSheet>
 
+      <HouseholdSheet
+        visible={householdOpen}
+        onClose={() => setHouseholdOpen(false)}
+        itemCount={lots.length}
+        initialJoinCode={typeof joinCode === "string" ? joinCode : undefined}
+      />
       <PremiumSheet
         visible={showPremium}
         plan={premiumPlan}

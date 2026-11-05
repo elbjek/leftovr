@@ -64,6 +64,39 @@ export async function updateHouseholdCurrency(householdId: string, currencyCode:
   if (error) throw error;
 }
 
+export async function renameHousehold(householdId: string, name: string) {
+  const { error } = await getSupabaseClient()
+    .from("households")
+    .update({ name })
+    .eq("id", householdId);
+  if (error) throw error;
+}
+
+/** Leaves a shared kitchen; returns the caller's new solo household id. */
+export async function leaveHousehold(householdId: string): Promise<string> {
+  const { data, error } = await getSupabaseClient().rpc("leave_household", {
+    target_household_id: householdId,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function removeHouseholdMember(householdId: string, userId: string) {
+  const { error } = await getSupabaseClient().rpc("remove_household_member", {
+    target_household_id: householdId,
+    member_user_id: userId,
+  });
+  if (error) throw error;
+}
+
+export async function transferHouseholdOwnership(householdId: string, userId: string) {
+  const { error } = await getSupabaseClient().rpc("transfer_household_ownership", {
+    target_household_id: householdId,
+    new_owner_id: userId,
+  });
+  if (error) throw error;
+}
+
 export async function createHouseholdInvite(householdId: string): Promise<HouseholdInvite> {
   const supabase = getSupabaseClient();
 

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Animated, Easing, Modal, Pressable, StyleProp, StyleSheet, useWindowDimensions, View, ViewStyle } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, Modal, Platform, Pressable, StyleProp, StyleSheet, useWindowDimensions, View, ViewStyle } from "react-native";
 import { colors, radii, shadows, spacing } from "../../theme";
 
 type Props = {
@@ -13,16 +13,26 @@ type Props = {
    * closes is dismissed along with it on iOS.
    */
   overlay?: React.ReactNode;
+  /**
+   * Called once the sheet's Modal is fully gone. Open the next Modal (another
+   * sheet) from here, never right after onDismiss — iOS would dismiss it too.
+   */
+  onClosed?: () => void;
 };
 
 // The dim backdrop fades in place while only the sheet slides up; the Modal
 // itself doesn't animate (its "slide" moved the backdrop with the sheet).
 // It stays mounted until the closing animation ends.
-export function BottomSheet({ visible, onDismiss, children, style, overlay }: Props) {
+export function BottomSheet({ visible, onDismiss, children, style, overlay, onClosed }: Props) {
   const { height } = useWindowDimensions();
   const [progress] = useState(() => new Animated.Value(0));
   const [mounted, setMounted] = useState(visible);
   if (visible && !mounted) setMounted(true);
+  // Kept in a ref so an inline callback doesn't restart the animation effect.
+  const onClosedRef = useRef(onClosed);
+  useEffect(() => {
+    onClosedRef.current = onClosed;
+  }, [onClosed]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -32,12 +42,22 @@ export function BottomSheet({ visible, onDismiss, children, style, overlay }: Pr
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start(({ finished }) => {
-      if (finished && !visible) setMounted(false);
+      if (finished && !visible) {
+        setMounted(false);
+        // iOS reports this from Modal.onDismiss, after the native dismissal.
+        if (Platform.OS !== "ios") onClosedRef.current?.();
+      }
     });
   }, [visible, mounted, progress]);
 
   return (
-    <Modal animationType="none" transparent visible={mounted} onRequestClose={onDismiss}>
+    <Modal
+      animationType="none"
+      transparent
+      visible={mounted}
+      onRequestClose={onDismiss}
+      onDismiss={Platform.OS === "ios" ? onClosed : undefined}
+    >
       <Animated.View style={[styles.backdrop, { opacity: progress }]}>
         <Pressable accessibilityRole="button" style={StyleSheet.absoluteFill} onPress={onDismiss} />
       </Animated.View>

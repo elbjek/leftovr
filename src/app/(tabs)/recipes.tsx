@@ -4,7 +4,7 @@ import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "exp
 import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 
-import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, Text, TryNextCard, WeekStrip } from "@/components";
+import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, Text, TryNextCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -39,6 +39,7 @@ export default function RecipesRoute() {
   const isPremium = resolvePremium(profile, activeHousehold);
   const userAvoidances = profile?.avoidances ?? [];
   const [showPremium, setShowPremium] = useState(false);
+  const [householdOpen, setHouseholdOpen] = useState(false);
   const [showCookPrompt, setShowCookPrompt] = useState(false);
   const [cookPromptKey, setCookPromptKey] = useState(0);
   const [cookingMode, setCookingMode] = useState<CookingMode>("household");
@@ -404,7 +405,8 @@ export default function RecipesRoute() {
           {activeHousehold ? (
             <Pressable
               accessibilityRole="button"
-              onPress={() => router.push("/(tabs)/settings")}
+              accessibilityLabel={t("settings.household.openSheet", { name: activeHousehold.name })}
+              onPress={() => setHouseholdOpen(true)}
               style={({ pressed }) => [styles.householdPill, pressed && styles.savedRowPressed]}
             >
               <View style={styles.householdAvatar}>
@@ -730,6 +732,11 @@ export default function RecipesRoute() {
           ]}
         />
       ) : null}
+      <HouseholdSheet
+        visible={householdOpen}
+        onClose={() => setHouseholdOpen(false)}
+        itemCount={inventory.length}
+      />
     </Screen>
   );
 }

@@ -11,6 +11,9 @@ import {
   acceptHouseholdInvite,
   InviteLookup,
   getCombinedAvoidances,
+  leaveHousehold,
+  removeHouseholdMember,
+  transferHouseholdOwnership,
 } from "@/repositories/householdRepository";
 
 type HouseholdState = {
@@ -76,6 +79,23 @@ export function useHousehold(householdId: string | null | undefined) {
     joinHousehold: async (code: string, moveItems: boolean): Promise<string> => {
       const newId = await acceptHouseholdInvite(code, moveItems);
       return newId;
+    },
+
+    leave: async (): Promise<string | null> => {
+      if (!householdId) return null;
+      return leaveHousehold(householdId);
+    },
+
+    removeMember: async (userId: string) => {
+      if (!householdId) return;
+      await removeHouseholdMember(householdId, userId);
+      await load();
+    },
+
+    makeOwner: async (userId: string) => {
+      if (!householdId) return;
+      await transferHouseholdOwnership(householdId, userId);
+      await load();
     },
 
     getItemCount: async (): Promise<number> => {

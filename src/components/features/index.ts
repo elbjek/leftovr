@@ -8,6 +8,7 @@ export * from "./EatFirstShelf";
 export * from "./EmptyFridge";
 export * from "./FeatureShowcase";
 export * from "./HouseholdSection";
+export * from "./HouseholdSheet";
 export * from "./InsightsSections";
 export * from "./PeriodSummary";
 export * from "./FoodCard";

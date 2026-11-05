@@ -3,7 +3,7 @@ import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, Vi
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, KitchenPulse, PlusIcon, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, KitchenPulse, PlusIcon, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
@@ -70,6 +70,7 @@ export default function FridgeRoute() {
   const expiredGroups = groups.filter((group) => group.urgency === "expired");
   const activeGroups = groups.filter((group) => group.urgency !== "expired");
   const [checkSheetVisible, setCheckSheetVisible] = useState(false);
+  const [householdOpen, setHouseholdOpen] = useState(false);
   const toCheckItem = (group: InventoryGroup): CheckItem => {
     const expiry = earliestExpiry(group.lots);
     // In the expired band any explicit date has necessarily passed, so a
@@ -241,7 +242,8 @@ export default function FridgeRoute() {
             {activeHousehold ? (
               <Pressable
                 accessibilityRole="button"
-                onPress={() => router.push("/(tabs)/settings")}
+                accessibilityLabel={t("settings.household.openSheet", { name: activeHousehold.name })}
+                onPress={() => setHouseholdOpen(true)}
                 style={({ pressed }) => [styles.householdPill, pressed && styles.savedRowPressed]}
               >
                 <View style={styles.householdAvatar}>
@@ -537,6 +539,11 @@ export default function FridgeRoute() {
         }}
       />
 
+      <HouseholdSheet
+        visible={householdOpen}
+        onClose={() => setHouseholdOpen(false)}
+        itemCount={groups.length}
+      />
       </Screen>
   );
 }

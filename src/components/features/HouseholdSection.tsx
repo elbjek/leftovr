@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Alert, Linking, Share, StyleSheet, View } from "react-native";
+import { Alert, Linking, Pressable, Share, StyleSheet, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
 import { colors, radii, spacing } from "../../theme";
-import { Button, Card, Text, TextField } from "../primitives";
+import { Button, Text, TextField } from "../primitives";
 import { HouseholdInvite, HouseholdMember, InviteLookup } from "@/repositories/householdRepository";
 
 type Props = {
@@ -21,6 +21,11 @@ type Props = {
   onLookupCode: (code: string) => Promise<InviteLookup | null>;
   onJoin: (code: string, moveItems: boolean) => Promise<void>;
   onPremiumGate: () => void;
+  /** True when the user's own subscription is what makes this kitchen Household Premium. */
+  paysForHousehold: boolean;
+  onRemoveMember: (userId: string) => Promise<void>;
+  onMakeOwner: (userId: string) => Promise<void>;
+  onLeave: () => Promise<void>;
   initialJoinCode?: string;
 };
 
@@ -64,6 +69,10 @@ export function HouseholdSection({
   onLookupCode,
   onJoin,
   onPremiumGate,
+  paysForHousehold,
+  onRemoveMember,
+  onMakeOwner,
+  onLeave,
   initialJoinCode,
 }: Props) {
   const { t } = useTranslation();
@@ -86,6 +95,68 @@ export function HouseholdSection({
     setLookupResult(null);
     setLookupError(null);
     setJoinError(null);
+  }
+
+  const isOwner = members.some((m) => m.user_id === currentUserId && m.role === "owner");
+  // Same heir rule as the server: the longest-standing other member (list is joined_at order).
+  const heir = members.find((m) => m.user_id !== currentUserId);
+
+  async function run(action: () => Promise<void>) {
+    try {
+      await action();
+    } catch {
+      Alert.alert(t("settings.household.manageErrorTitle"), t("settings.household.manageError"));
+    }
+  }
+
+  function handleManageMember(member: HouseholdMember) {
+    const name = member.display_name;
+    Alert.alert(name, undefined, [
+      {
+        text: t("settings.household.makeOwner"),
+        onPress: () =>
+          Alert.alert(
+            t("settings.household.makeOwnerTitle", { name }),
+            t("settings.household.makeOwnerBody"),
+            [
+              { text: t("common.cancel"), style: "cancel" },
+              { text: t("settings.household.makeOwner"), onPress: () => void run(() => onMakeOwner(member.user_id)) },
+            ],
+          ),
+      },
+      {
+        text: t("settings.household.removeMember"),
+        style: "destructive",
+        onPress: () =>
+          Alert.alert(
+            t("settings.household.removeTitle", { name }),
+            t("settings.household.removeBody"),
+            [
+              { text: t("common.cancel"), style: "cancel" },
+              {
+                text: t("settings.household.removeMember"),
+                style: "destructive",
+                onPress: () => void run(() => onRemoveMember(member.user_id)),
+              },
+            ],
+          ),
+      },
+      { text: t("common.cancel"), style: "cancel" },
+    ]);
+  }
+
+  function handleLeave() {
+    const body = [
+      t("settings.household.leaveBody"),
+      isOwner && heir ? t("settings.household.leaveOwnerBody", { name: heir.display_name }) : null,
+      paysForHousehold ? t("settings.household.leavePayerBody") : null,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+    Alert.alert(t("settings.household.leaveTitle", { name: householdName }), body, [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("settings.household.leave"), style: "destructive", onPress: () => void run(onLeave) },
+    ]);
   }
 
   async function handleCreateInvite() {
@@ -169,13 +240,9 @@ export function HouseholdSection({
   }
 
   return (
-    <Card>
-      <View style={styles.cardInner}>
+    <View style={styles.cardInner}>
         <View style={styles.sectionHeader}>
-          <Text variant="label">{t("settings.household.title")}</Text>
-          <Text variant="small" muted>
-            {householdName}
-          </Text>
+          <Text variant="label">{t("settings.household.membersTitle")}</Text>
           <Text variant="small" muted>
             {t("settings.household.memberCount", { count: members.length })}
           </Text>
@@ -202,9 +269,28 @@ export function HouseholdSection({
                       : t("settings.household.member")}
                   </Text>
                 </View>
+                {isOwner && !isYou ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t("settings.household.manageMember", { name: member.display_name })}
+                    hitSlop={8}
+                    onPress={() => handleManageMember(member)}
+                  >
+                    <Text variant="small" color={colors.primary}>
+                      {t("settings.household.manage")}
+                    </Text>
+                  </Pressable>
+                ) : null}
               </View>
             );
           })}
+          {members.length > 1 ? (
+            <Pressable accessibilityRole="button" hitSlop={8} onPress={handleLeave} style={styles.leave}>
+              <Text variant="small" color={colors.red}>
+                {t("settings.household.leave")}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
 
         {isPremium && activeInvite ? (
@@ -314,8 +400,7 @@ export function HouseholdSection({
             onPress={handleLookup}
           />
         )}
-      </View>
-    </Card>
+    </View>
   );
 }
 
@@ -341,6 +426,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
+  },
+  leave: {
+    alignSelf: "flex-start",
+    paddingVertical: spacing.xs,
   },
   memberInfo: {
     flex: 1,
