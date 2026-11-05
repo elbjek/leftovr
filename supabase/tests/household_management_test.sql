@@ -16,24 +16,27 @@ declare
   h_new uuid;
   raised boolean;
 begin
-  perform set_config('session_replication_role', 'replica', true);
-  insert into auth.users (id, email, aud, role) values
-    (u_ana, 'ana@t', 'authenticated', 'authenticated'),
-    (u_bo,  'bo@t',  'authenticated', 'authenticated'),
-    (u_cy,  'cy@t',  'authenticated', 'authenticated');
-  insert into public.profiles (id, display_name, tier) values
-    (u_ana, 'Ana', 'household_premium'),
-    (u_bo,  'Bo',  'free'),
-    (u_cy,  'Cy',  'free');
-  insert into public.households (name, plan_tier, created_by, currency_code)
-    values ('Ana''s kitchen', 'household_premium', u_ana, 'RSD') returning id into h;
+  -- Sign-up trigger (handle_new_user) creates each profile + solo kitchen.
+  -- (The CLI login role can't set session_replication_role to skip it.)
+  insert into auth.users (id, email, aud, role, raw_user_meta_data) values
+    (u_ana, 'ana@t', 'authenticated', 'authenticated', '{"display_name":"Ana"}'),
+    (u_bo,  'bo@t',  'authenticated', 'authenticated', '{"display_name":"Bo"}'),
+    (u_cy,  'cy@t',  'authenticated', 'authenticated', '{"display_name":"Cy"}');
+  select active_household_id into h from public.profiles where id = u_ana;
+  update public.profiles set tier = 'household_premium' where id = u_ana;
+  update public.households set plan_tier = 'household_premium', currency_code = 'RSD' where id = h;
+  -- Bo and Cy move into Ana's kitchen; their own sign-up kitchens are retired.
+  update public.household_members set status = 'removed', removed_at = now()
+    where user_id in (u_bo, u_cy);
+  update public.households set status = 'archived'
+    where created_by in (u_bo, u_cy);
+  update public.household_members set joined_at = now() - interval '3 days'
+    where household_id = h and user_id = u_ana;
   insert into public.household_members (household_id, user_id, role, joined_at) values
-    (h, u_ana, 'owner',  now() - interval '3 days'),
-    (h, u_bo,  'member', now() - interval '2 days'),
-    (h, u_cy,  'member', now() - interval '1 day');
-  update public.profiles set active_household_id = h where id in (u_ana, u_bo, u_cy);
+    (h, u_bo, 'member', now() - interval '2 days'),
+    (h, u_cy, 'member', now() - interval '1 day');
+  update public.profiles set active_household_id = h where id in (u_bo, u_cy);
   insert into public.household_invites (household_id, code, created_by) values (h, 'MGMT0001', u_ana);
-  perform set_config('session_replication_role', 'origin', true);
 
   -- CASE1: a member can't remove anyone or take ownership.
   perform set_config('request.jwt.claims', json_build_object('sub', u_bo, 'role', 'authenticated')::text, true);
