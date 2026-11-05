@@ -379,3 +379,41 @@ export async function getDayActivity(
 
   return { cooked: cookedList, used: usedList, moneySaved };
 }
+
+/**
+ * Money one cook saved and the user's all-time saved, household currency only.
+ * apply_cook writes the cooked_events row and its saved value_events in one
+ * transaction, so they share the same now() timestamp.
+ */
+export async function getCookSavings(
+  householdId: string,
+  cookId: string,
+  userId: string,
+): Promise<{ cook: number; total: number }> {
+  const supabase = getSupabaseClient();
+  const [cooked, value] = await Promise.all([
+    supabase.from("cooked_events").select("created_at").eq("client_cook_id", cookId).maybeSingle(),
+    // ponytail: summed client-side like the Insights totals; capped by the
+    // API's row limit (1000), move to an RPC sum if a user ever gets near it.
+    supabase
+      .from("value_events")
+      .select("value, currency, occurred_at, households!inner(currency_code)")
+      .eq("household_id", householdId)
+      .eq("kind", "saved")
+      .eq("created_by", userId),
+  ]);
+  if (cooked.error) throw cooked.error;
+  if (value.error) throw value.error;
+
+  // Compared as text: both columns serialize the same, to the microsecond.
+  const cookedAt = (cooked.data?.created_at as string | undefined) ?? null;
+  type ValueRow = { value: number; currency: string | null; occurred_at: string; households: { currency_code: string } };
+  let cook = 0;
+  let total = 0;
+  for (const row of (value.data ?? []) as unknown as ValueRow[]) {
+    if (row.currency != null && row.currency !== row.households.currency_code) continue;
+    total += row.value;
+    if (row.occurred_at === cookedAt) cook += row.value;
+  }
+  return { cook, total };
+}

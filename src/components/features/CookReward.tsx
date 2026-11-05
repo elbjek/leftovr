@@ -3,7 +3,8 @@ import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, View } from
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, fonts, radii, spacing } from "../../theme";
+import { formatMoney } from "../../lib/money";
+import { colors, fonts, radii, spacing, typography } from "../../theme";
 import { Button, Text } from "../primitives";
 import { FlameIcon, GoalRing } from "./WeekStrip";
 
@@ -18,128 +19,164 @@ type Props = {
   title: string;
   /** What the cook used up, as named on the cook sheet. */
   items: string[];
+  /** The money figure that counts up, with its label and an optional line under it. */
+  money: { value: number; currency: string; label: string; note: string | null } | null;
   /** Today's goal after this cook; null when it couldn't be loaded. */
   goal: { done: number; total: number; label: string } | null;
   /** e.g. { value: 5, label: "day streak" }; null when it couldn't be loaded. */
   streak: { value: number; label: string } | null;
-  /** Money saved today, formatted; null when hidden (free tier, nothing priced). */
-  saved: { value: string; label: string } | null;
   doneLabel: string;
   shareLabel: string;
   onDone: () => void;
   onShare: () => void;
 };
 
-// The payoff right after a cook: what was rescued and what it did for the
-// streak. Same cream, bordered look as the home; the check pops in once.
-// A full-screen layer, not a Modal: it rides in the cook sheet's Modal
-// (BottomSheet `overlay`) so iOS never has to stack two.
-export function CookReward({ visible, eyebrow, title, items, goal, streak, saved, doneLabel, shareLabel, onDone, onShare }: Props) {
+// The payoff right after a cook: what was rescued, what it saved and what it
+// did for the streak. The check pops with one ring burst, the used items and
+// cards follow in a short stagger and the money counts up once. Reduce Motion
+// shows the end state. A full-screen layer, not a Modal: it rides in the cook
+// sheet's Modal (BottomSheet `overlay`) so iOS never has to stack two.
+export function CookReward({ visible, eyebrow, title, items, money, goal, streak, doneLabel, shareLabel, onDone, onShare }: Props) {
   const insets = useSafeAreaInsets();
   const [pop] = useState(() => new Animated.Value(0));
+  const [burst] = useState(() => new Animated.Value(0));
+  const [enter] = useState(() => new Animated.Value(0));
+  const [count] = useState(() => new Animated.Value(0));
+  const [shown, setShown] = useState(0);
+  const target = money?.value ?? 0;
 
   useEffect(() => {
     if (!visible) return;
     let cancelled = false;
-    pop.setValue(0);
+    const values = [pop, burst, enter, count];
+    // Listen first, so the reset also clears the last cook's figure.
+    const listener = count.addListener(({ value }) => setShown(value));
+    values.forEach((v) => v.setValue(0));
     AccessibilityInfo.isReduceMotionEnabled().then((reduce) => {
       if (cancelled) return;
       if (reduce) {
         pop.setValue(1);
+        burst.setValue(1);
+        enter.setValue(1);
+        count.setValue(target);
         return;
       }
-      Animated.timing(pop, {
-        toValue: 1,
-        duration: 320,
-        easing: Easing.out(Easing.back(1.6)),
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.timing(pop, { toValue: 1, duration: 320, easing: Easing.out(Easing.back(1.6)), useNativeDriver: true }),
+        Animated.timing(burst, { toValue: 1, delay: 120, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(enter, { toValue: 1, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        // Drives text, so JS-driven; it starts once the money card is in.
+        Animated.timing(count, { toValue: target, delay: 300, duration: 900, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
+      ]).start();
     });
     return () => {
       cancelled = true;
+      count.removeListener(listener);
+      values.forEach((v) => v.stopAnimation());
     };
-  }, [pop, visible]);
-
-  const scale = pop.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
-  const rise = pop.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
+  }, [burst, count, enter, pop, target, visible]);
 
   if (!visible) return null;
 
-  const shown = items.slice(0, MAX_CHIPS);
-  const more = items.length - shown.length;
+  const scale = pop.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
+  // A slice of `enter` per element, so they arrive one after another.
+  const slice = (start: number, end: number) => ({
+    opacity: enter.interpolate({ inputRange: [start, end], outputRange: [0, 1], extrapolate: "clamp" }),
+    transform: [{ translateY: enter.interpolate({ inputRange: [start, end], outputRange: [12, 0], extrapolate: "clamp" }) }],
+  });
+
+  const chips = items.slice(0, MAX_CHIPS);
+  const more = items.length - chips.length;
 
   return (
     <Animated.View
       style={[styles.screen, { opacity: pop, paddingTop: insets.top + spacing.huge * 2, paddingBottom: insets.bottom + spacing.xxl }]}
     >
       <View style={styles.head}>
-        <Animated.View style={[styles.check, { opacity: pop, transform: [{ scale }] }]}>
-          <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-            <Path d="M5 12l5 5 9-10" stroke={colors.surface} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
-        </Animated.View>
+        <View style={styles.checkSlot}>
+          <Animated.View
+            style={[
+              styles.burst,
+              {
+                opacity: burst.interpolate({ inputRange: [0, 1], outputRange: [0.45, 0] }),
+                transform: [{ scale: burst.interpolate({ inputRange: [0, 1], outputRange: [1, 1.7] }) }],
+              },
+            ]}
+          />
+          <Animated.View style={[styles.check, { transform: [{ scale }] }]}>
+            <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
+              <Path d="M5 12l5 5 9-10" stroke={colors.surface} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </Animated.View>
+        </View>
         <Text variant="micro" muted uppercase center>
           {eyebrow}
         </Text>
         <Text variant="h1" center accessibilityRole="header">
           {title}
         </Text>
-        {shown.length > 0 ? (
+        {chips.length > 0 ? (
           <View style={styles.chips}>
-            {shown.map((name, index) => (
-              <View key={`${index}-${name}`} style={styles.chip}>
+            {chips.map((name, index) => (
+              <Animated.View key={`${index}-${name}`} style={[styles.chip, slice(0.1 + index * 0.06, 0.4 + index * 0.06)]}>
                 <Text variant="small" color={colors.primary} style={styles.semibold} numberOfLines={1}>
                   {name}
                 </Text>
-              </View>
+              </Animated.View>
             ))}
             {more > 0 ? (
-              <View style={[styles.chip, styles.chipMore]}>
+              <Animated.View style={[styles.chip, styles.chipMore, slice(0.1 + chips.length * 0.06, 0.4 + chips.length * 0.06)]}>
                 <Text variant="small" muted style={styles.semibold}>
                   {`+${more}`}
                 </Text>
-              </View>
+              </Animated.View>
             ) : null}
           </View>
         ) : null}
       </View>
 
-      {goal || streak || saved ? (
-        <Animated.View style={[styles.card, { transform: [{ translateY: rise }] }]}>
-          {goal || streak ? (
-            <View style={styles.row}>
-              <View style={styles.goal}>
-                {goal ? (
-                  <>
-                    <GoalRing done={goal.done} total={goal.total} />
-                    <Text variant="label" style={styles.goalLabel}>
-                      {goal.label}
-                    </Text>
-                  </>
-                ) : null}
-              </View>
-              {streak ? (
-                <View style={styles.streak} accessible accessibilityLabel={`${streak.value} ${streak.label}`}>
-                  <View style={styles.streakValue}>
-                    <FlameIcon size={18} />
-                    <Text variant="h2" color={colors.accentInk} style={styles.number}>
-                      {streak.value}
-                    </Text>
-                  </View>
-                  <Text variant="small" muted>
-                    {streak.label}
-                  </Text>
-                </View>
-              ) : null}
-            </View>
+      {money ? (
+        <Animated.View
+          style={[styles.money, slice(0.35, 0.8)]}
+          accessible
+          accessibilityLabel={`${money.label} ${formatMoney(money.value, money.currency)}${money.note ? `. ${money.note}` : ""}`}
+        >
+          <Text variant="micro" uppercase color={colors.sage}>
+            {money.label}
+          </Text>
+          <Text color={colors.accent} style={styles.moneyValue} numberOfLines={1} adjustsFontSizeToFit>
+            {formatMoney(shown, money.currency)}
+          </Text>
+          {money.note ? (
+            <Text variant="small" color={colors.surface} style={styles.moneyNote}>
+              {money.note}
+            </Text>
           ) : null}
-          {saved ? (
-            <View style={[styles.row, (goal || streak) && styles.divider]}>
-              <Text variant="label" muted style={styles.goalLabel}>
-                {saved.label}
-              </Text>
-              <Text variant="h2" color={colors.primary} style={styles.number}>
-                {saved.value}
+        </Animated.View>
+      ) : null}
+
+      {goal || streak ? (
+        <Animated.View style={[styles.card, slice(0.45, 0.9)]}>
+          <View style={styles.goal}>
+            {goal ? (
+              <>
+                <GoalRing done={goal.done} total={goal.total} />
+                <Text variant="label" style={styles.shrink}>
+                  {goal.label}
+                </Text>
+              </>
+            ) : null}
+          </View>
+          {streak ? (
+            <View style={styles.streak} accessible accessibilityLabel={`${streak.value} ${streak.label}`}>
+              <View style={styles.streakValue}>
+                <FlameIcon size={18} />
+                <Text variant="h2" color={colors.accentInk} style={styles.number}>
+                  {streak.value}
+                </Text>
+              </View>
+              <Text variant="small" muted>
+                {streak.label}
               </Text>
             </View>
           ) : null}
@@ -165,25 +202,37 @@ export function CookReward({ visible, eyebrow, title, items, goal, streak, saved
   );
 }
 
+const CHECK = 72;
+
 const styles = StyleSheet.create({
   screen: {
     ...StyleSheet.absoluteFill,
     backgroundColor: colors.appBackground,
     paddingHorizontal: spacing.screenX,
-    gap: spacing.huge,
+    gap: spacing.xxl,
   },
   head: {
     alignItems: "center",
     gap: spacing.md,
   },
+  checkSlot: {
+    width: CHECK,
+    height: CHECK,
+    marginBottom: spacing.xs,
+  },
   check: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: CHECK,
+    height: CHECK,
+    borderRadius: CHECK / 2,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: spacing.xs,
+  },
+  burst: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: CHECK / 2,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
   chips: {
     flexDirection: "row",
@@ -202,23 +251,33 @@ const styles = StyleSheet.create({
   chipMore: {
     backgroundColor: colors.surface2,
   },
-  card: {
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    borderRadius: radii.xl,
+  money: {
+    alignItems: "center",
+    gap: spacing.xxs,
+    paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
+    borderRadius: radii.xl,
+    backgroundColor: colors.primary,
   },
-  row: {
+  moneyValue: {
+    ...typography.display,
+    fontVariant: ["tabular-nums"],
+  },
+  moneyNote: {
+    opacity: 0.8,
+    textAlign: "center",
+  },
+  card: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
     paddingVertical: spacing.lg,
-  },
-  divider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.cardLine,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.paper,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    borderRadius: radii.xl,
   },
   goal: {
     flex: 1,
@@ -226,7 +285,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
   },
-  goalLabel: {
+  shrink: {
     flexShrink: 1,
   },
   streak: {

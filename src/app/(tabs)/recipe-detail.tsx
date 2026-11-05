@@ -9,7 +9,7 @@ import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory } from "@/hooks";
 import { formatMoney, newClientId } from "@/lib";
 import { addAmounts, canonicalFoodName, DAILY_GOAL, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, resolveUrgency } from "@/services";
-import { getDayActivity, syncStreak } from "@/repositories/insightsRepository";
+import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
@@ -224,7 +224,7 @@ export default function RecipeDetailRoute() {
   const [reward, setReward] = useState<{
     items: string[];
     streak: { streak: number; today: number } | null;
-    savedToday: number | null;
+    savings: { cook: number; total: number } | null;
   } | null>(null);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
 
@@ -370,6 +370,7 @@ export default function RecipeDetailRoute() {
     // One id per cook, kept across retries (timeout, re-confirm, sheet
     // reopened) until a cook succeeds, so the server never depletes twice.
     cookIdRef.current ??= newClientId();
+    const cookId = cookIdRef.current;
     try {
       // Deplete by item name against current inventory (spilling across lots,
       // soonest-expiry first) instead of stale snapshot lot ids. Sum duplicate
@@ -399,7 +400,7 @@ export default function RecipeDetailRoute() {
           recipeId: recipeId || null,
           servings,
           usedItems,
-          cookId: cookIdRef.current,
+          cookId,
         }),
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error(t("common.fridgeUpdateError"))), 20000),
@@ -419,18 +420,16 @@ export default function RecipeDetailRoute() {
       // a slow answer (4s) just hides that figure.
       const settle = <T,>(promise: Promise<T>) =>
         Promise.race([promise.catch(() => null), new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000))]);
-      const startOfToday = new Date();
-      startOfToday.setHours(0, 0, 0, 0);
-      const [streakState, day] = await Promise.all([
+      const [streakState, savings] = await Promise.all([
         settle(syncStreak(activeHousehold.id, deviceTimeZone())),
-        isPremium(profile, activeHousehold)
-          ? settle(getDayActivity(activeHousehold.id, startOfToday.toISOString(), new Date(startOfToday.getTime() + 86_400_000).toISOString(), profile?.id))
+        isPremium(profile, activeHousehold) && profile?.id
+          ? settle(getCookSavings(activeHousehold.id, cookId, profile.id))
           : null,
       ]);
       setReward({
         items: [...shownNames.values()],
         streak: streakState ? { streak: streakState.streak, today: streakState.today } : null,
-        savedToday: day && day.moneySaved > 0 ? day.moneySaved : null,
+        savings: savings && savings.total > 0 ? savings : null,
       });
     } catch (error) {
       Alert.alert(
@@ -453,6 +452,19 @@ export default function RecipeDetailRoute() {
     void Share.share({ message: t("recipes.reward.shareMessage", { count: reward.items.length, title }) });
   }
 
+  // This dinner's saving leads; the all-time total sits under it. A cook of
+  // unpriced food still shows the total.
+  const currency = activeHousehold?.currency_code ?? "USD";
+  const rewardMoney = reward?.savings
+    ? reward.savings.cook > 0
+      ? {
+          value: reward.savings.cook,
+          currency,
+          label: t("recipes.reward.savedCook"),
+          note: t("recipes.reward.savedTotal", { amount: formatMoney(reward.savings.total, currency) }),
+        }
+      : { value: reward.savings.total, currency, label: t("recipes.reward.savedSince"), note: null }
+    : null;
   const rewardGoal = reward?.streak
     ? {
         done: Math.min(reward.streak.today, DAILY_GOAL),
@@ -721,11 +733,7 @@ export default function RecipeDetailRoute() {
             items={reward?.items ?? []}
             goal={rewardGoal}
             streak={reward?.streak ? { value: reward.streak.streak, label: t("recipes.reward.streak", { count: reward.streak.streak }) } : null}
-            saved={
-              reward?.savedToday != null
-                ? { value: formatMoney(reward.savedToday, activeHousehold?.currency_code ?? "USD"), label: t("recipes.reward.savedToday") }
-                : null
-            }
+            money={rewardMoney}
             doneLabel={t("recipes.reward.done")}
             shareLabel={t("recipes.reward.share")}
             onDone={finishReward}
