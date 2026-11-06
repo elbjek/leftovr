@@ -45,9 +45,6 @@ export const colors = {
 } as const;
 
 export const fonts = {
-  display: "Fraunces",
-  displaySemiBold: "FrauncesSemiBold",
-  displayItalic: "FrauncesItalic",
   logo: "PlusJakartaSansExtraBold",
   body: "NunitoSans",
   bodyMedium: "NunitoSansMedium",
