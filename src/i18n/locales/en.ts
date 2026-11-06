@@ -18,6 +18,11 @@ export const en = {
     skipForNow: "Skip for now",
     unknownHousehold: "Solo household",
   },
+  errorBoundary: {
+    title: "This screen stopped working",
+    body: "Something crashed while drawing this page. Your kitchen data is safe.",
+    retry: "Try again",
+  },
   units: {
     selectTitle: "Select a unit",
     pcs: "pcs",

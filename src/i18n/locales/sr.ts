@@ -18,6 +18,11 @@ export const sr = {
     skipForNow: "Preskoci za sada",
     unknownHousehold: "Samostalno domacinstvo",
   },
+  errorBoundary: {
+    title: "Ovaj ekran je prestao da radi",
+    body: "Nesto je puklo dok se stranica crtala. Podaci u kuhinji su sacuvani.",
+    retry: "Pokusaj ponovo",
+  },
   units: {
     selectTitle: "Izaberi jedinicu",
     pcs: "kom",

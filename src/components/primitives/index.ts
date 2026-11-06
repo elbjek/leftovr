@@ -6,6 +6,7 @@ export * from "./Card";
 export * from "./ChoiceCard";
 export * from "./DateField";
 export * from "./EmptyState";
+export * from "./ErrorBoundary";
 export * from "./FilterChip";
 export * from "./GeneratingOverlay";
 export * from "./IconButton";
