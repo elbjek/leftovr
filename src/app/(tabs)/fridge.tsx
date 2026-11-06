@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, KitchenPulse, PlusIcon, PremiumSheet, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, KitchenPulse, PlusIcon, PremiumSheet, Screen, SegmentedControl, Tappable, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory } from "@/hooks";
@@ -17,7 +17,7 @@ import {
   toUiCategory,
   toUiUrgency,
 } from "@/services";
-import { categoryColors, CategoryTone, colors, fonts, radii, spacing, Urgency } from "@/theme";
+import { CategoryTone, Urgency, categoryColors, colors, radii, shadows, spacing, typography } from "@/theme";
 import { router, useFocusEffect } from "expo-router";
 import { FoodGlyph, Logo } from "@/components/illustrations";
 
@@ -240,30 +240,28 @@ export default function FridgeRoute() {
           </View>
           <View style={styles.headerActions}>
             {activeHousehold ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t("settings.household.openSheet", { name: activeHousehold.name })}
+              <Tappable
+                label={t("settings.household.openSheet", { name: activeHousehold.name })}
                 onPress={() => setHouseholdOpen(true)}
-                style={({ pressed }) => [styles.householdPill, pressed && styles.savedRowPressed]}
+                style={[styles.householdPill]}
               >
                 <View style={styles.householdAvatar}>
-                  <Text variant="micro" color={colors.primary} style={styles.strong}>
+                  <Text variant="micro" color={colors.primary} weight="extrabold">
                     {(firstName || activeHousehold.name).charAt(0).toUpperCase()}
                   </Text>
                 </View>
-                <Text variant="small" numberOfLines={1} style={styles.strong}>
+                <Text variant="small" numberOfLines={1} weight="extrabold">
                   {activeHousehold.name}
                 </Text>
-              </Pressable>
+              </Tappable>
             ) : null}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("fridge.addItem")}
+            <Tappable
+              label={t("fridge.addItem")}
               onPress={() => router.push("/(tabs)/scan")}
-              style={({ pressed }) => [styles.addButton, pressed && styles.savedRowPressed]}
+              style={[styles.addButton]}
             >
               <PlusIcon />
-            </Pressable>
+            </Tappable>
           </View>
         </View>
         {groups.length > 0 ? (
@@ -289,9 +287,8 @@ export default function FridgeRoute() {
               onBlur={() => setSearchFocused(false)}
             />
             {search ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t("fridge.clearSearch")}
+              <Tappable
+                label={t("fridge.clearSearch")}
                 onPress={() => setSearch("")}
                 hitSlop={10}
                 style={styles.clearButton}
@@ -299,7 +296,7 @@ export default function FridgeRoute() {
                 <Svg width={9} height={9} viewBox="0 0 24 24" fill="none">
                   <Path d="M5 5l14 14M19 5 5 19" stroke={colors.primary} strokeWidth={2.6} strokeLinecap="round" />
                 </Svg>
-              </Pressable>
+              </Tappable>
             ) : null}
           </View>
         </View>
@@ -308,19 +305,18 @@ export default function FridgeRoute() {
       {showResults ? (
         <>
           <View style={styles.resultsHead}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("common.back")}
+            <Tappable
+              label={t("common.back")}
               onPress={closeResults}
               hitSlop={6}
-              style={({ pressed }) => [styles.backButton, pressed && styles.savedRowPressed]}
+              style={[styles.backButton]}
             >
               <Svg width={8} height={14} viewBox="0 0 9 16" fill="none">
                 <Path d="M8 1 2 8l6 7" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
-            </Pressable>
+            </Tappable>
             <View style={styles.resultsCopy}>
-              <Text variant="h2" numberOfLines={1} style={styles.strong}>
+              <Text variant="h2" numberOfLines={1} weight="extrabold">
                 {resultsTitle}
               </Text>
               <Text variant="small" muted>
@@ -330,7 +326,7 @@ export default function FridgeRoute() {
           </View>
           {resultShelves.length === 0 ? (
             <View style={styles.centerState}>
-              <Text variant="label" style={styles.strong}>
+              <Text variant="label" weight="extrabold">
                 {t("fridge.noMatchTitle")}
               </Text>
               <Text variant="small" muted center>
@@ -433,7 +429,7 @@ export default function FridgeRoute() {
 
           {!loading && error ? (
             <View style={styles.centerState}>
-              <Text variant="small" color={colors.red} center>
+              <Text variant="small" color={colors.redInk} center>
                 {error}
               </Text>
             </View>
@@ -458,38 +454,37 @@ export default function FridgeRoute() {
           {categoryTiles.length > 0 ? (
             <View style={styles.tilesSection}>
               <View style={styles.sectionHead}>
-                <Text variant="micro" uppercase muted style={styles.eyebrow}>
+                <Text variant="micro" uppercase muted weight="extrabold">
                   {t("fridge.homeTitle")}
                 </Text>
-                <Pressable accessibilityRole="link" onPress={() => setView("all")} hitSlop={8}>
-                  <Text variant="small" color={colors.primary} style={styles.strong}>
+                <Tappable role="link" onPress={() => setView("all")} hitSlop={8}>
+                  <Text variant="small" color={colors.primary} weight="extrabold">
                     {t("fridge.shelves.seeAllCount", { count: activeGroups.length })}
                   </Text>
-                </Pressable>
+                </Tappable>
               </View>
               <View style={styles.tiles}>
                 {categoryTiles.map((tile) => {
                   const tone = categoryColors[toUiCategory(tile.category) as CategoryTone] ?? categoryColors.other;
                   return (
-                    <Pressable
+                    <Tappable
                       key={tile.category}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${tile.label}, ${tile.detail}`}
+                      label={`${tile.label}, ${tile.detail}`}
                       onPress={() => setView(tile.category)}
-                      style={({ pressed }) => [styles.tile, pressed && styles.savedRowPressed]}
+                      style={[styles.tile]}
                     >
                       <View style={[styles.tileIcon, { backgroundColor: tone.background }]}>
                         <FoodGlyph name="" category={tile.category} color={tone.mark} size={22} />
                       </View>
                       <View style={styles.tileCopy}>
-                        <Text variant="label" numberOfLines={1} style={styles.strong}>
+                        <Text variant="label" numberOfLines={1} weight="extrabold">
                           {tile.label}
                         </Text>
                         <Text variant="small" muted numberOfLines={1}>
                           {tile.detail}
                         </Text>
                       </View>
-                    </Pressable>
+                    </Tappable>
                   );
                 })}
               </View>
@@ -694,30 +689,25 @@ function CheckTheseSheet({
                   <Text variant="micro" muted uppercase>
                     {section.name} · {section.items.length}
                   </Text>
-                  <Pressable
-                    accessibilityRole="button"
+                  <Tappable
                     onPress={() => toggleSection(section.items)}
                     hitSlop={spacing.sm}
                   >
                     <Text variant="micro" color={colors.primary}>
                       {allSelected ? labels.clearSelection : labels.selectAll}
                     </Text>
-                  </Pressable>
+                  </Tappable>
                 </View>
                 {section.items.map((item) => {
                   const isSelected = selected.has(item.id);
                   return (
-                    <Pressable
+                    <Tappable
                       key={item.id}
-                      accessibilityRole="checkbox"
-                      accessibilityState={{ checked: isSelected }}
-                      accessibilityLabel={`${item.name} · ${item.shortLabel ?? item.label}`}
+                      role="checkbox"
+                      state={{ checked: isSelected }}
+                      label={`${item.name} · ${item.shortLabel ?? item.label}`}
                       onPress={() => toggle(item.id)}
-                      style={({ pressed }) => [
-                        styles.checkPickRow,
-                        isSelected && styles.checkPickRowSelected,
-                        pressed && styles.expiryPressed,
-                      ]}
+                      style={[styles.checkPickRow, isSelected && styles.checkPickRowSelected]}
                     >
                       <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>
                         {isSelected ? <CheckMarkIcon /> : null}
@@ -728,16 +718,15 @@ function CheckTheseSheet({
                       <Text variant="micro" muted numberOfLines={1}>
                         {item.shortLabel ?? item.label}
                       </Text>
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={labels.edit(item.name)}
+                      <Tappable
+                        label={labels.edit(item.name)}
                         onPress={() => onItemPress(item)}
                         hitSlop={spacing.sm}
-                        style={({ pressed }) => [styles.checkEditBtn, pressed && styles.expiryPressed]}
+                        style={[styles.checkEditBtn]}
                       >
                         <PencilIcon />
-                      </Pressable>
-                    </Pressable>
+                      </Tappable>
+                    </Tappable>
                   );
                 })}
               </View>
@@ -746,34 +735,31 @@ function CheckTheseSheet({
         </ScrollView>
         {selected.size > 0 ? (
           <View style={styles.checkActionBar}>
-            <Pressable
-              accessibilityRole="button"
+            <Tappable
               onPress={() => {
                 onStillGoodMany(Array.from(selected));
                 setSelected(new Set());
               }}
-              style={({ pressed }) => [styles.checkActionBtn, styles.checkKeepBtn, pressed && styles.expiryPressed]}
+              style={[styles.checkActionBtn, styles.checkKeepBtn]}
             >
               <Text variant="label" color={colors.primary}>{labels.stillGoodCount(selected.size)}</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
+            </Tappable>
+            <Tappable
               onPress={() => setConfirmingToss(true)}
-              style={({ pressed }) => [styles.checkActionBtn, styles.checkTossBtn, pressed && styles.expiryPressed]}
+              style={[styles.checkActionBtn, styles.checkTossBtn]}
             >
-              <Text variant="label" color={colors.red}>{labels.tossCount(selected.size)}</Text>
-            </Pressable>
+              <Text variant="label" color={colors.redInk}>{labels.tossCount(selected.size)}</Text>
+            </Tappable>
           </View>
         ) : (
-          <Pressable
-            accessibilityRole="button"
+          <Tappable
             onPress={onDismiss}
-            style={({ pressed }) => [styles.tossAllLink, pressed && styles.expiryPressed]}
+            style={[styles.tossAllLink]}
           >
             <Text variant="small" muted>
               {labels.cancel}
             </Text>
-          </Pressable>
+          </Tappable>
         )}
       </View>
     </BottomSheet>
@@ -894,7 +880,7 @@ function ItemActionSheet({
             <FoodGlyph name={group?.name ?? ""} category={group?.category} color={tone.mark} size={34} />
           </View>
           <View style={styles.itemHeadCopy}>
-            <Text style={styles.itemTitle} numberOfLines={2}>
+            <Text variant="h2" numberOfLines={2}>
               {group?.name}
             </Text>
             {group?.meta ? (
@@ -984,17 +970,16 @@ function ItemActionSheet({
           <Button title={labels.cancel} variant="text" onPress={onDismiss} />
         </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={labels.remove}
+        <Tappable
+          label={labels.remove}
           onPress={() => setConfirmingRemove(true)}
-          style={({ pressed }) => [styles.removeRow, pressed && styles.expiryPressed]}
+          style={[styles.removeRow]}
         >
           <TrashIcon />
-          <Text variant="label" color={colors.redInk} style={styles.removeLabel}>
+          <Text variant="label" color={colors.redInk} weight="bold">
             {labels.remove}
           </Text>
-        </Pressable>
+        </Tappable>
       </View>
     </BottomSheet>
   );
@@ -1098,7 +1083,7 @@ function SearchIcon() {
 function TrashIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Path d="M3.5 5H14.5M7 2.5H11M7.5 8V12.5M10.5 8V12.5M4.5 5L5.2 14.2A1.3 1.3 0 0 0 6.5 15.4H11.5A1.3 1.3 0 0 0 12.8 14.2L13.5 5" stroke={colors.red} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3.5 5H14.5M7 2.5H11M7.5 8V12.5M10.5 8V12.5M4.5 5L5.2 14.2A1.3 1.3 0 0 0 6.5 15.4H11.5A1.3 1.3 0 0 0 12.8 14.2L13.5 5" stroke={colors.redInk} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -1141,11 +1126,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
   },
   pulseCard: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface2,
     borderRadius: radii.xl,
     padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    ...shadows.soft,
   },
   sectionHead: {
     flexDirection: "row",
@@ -1158,7 +1142,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.cardLine,
     borderRadius: radii.xl,
@@ -1169,10 +1153,9 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontFamily: fonts.body,
-    fontSize: 15,
     color: colors.text,
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
+    ...typography.body,
   },
   addButton: {
     width: 44,
@@ -1233,10 +1216,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  strong: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-  },
   summary: {
     marginTop: spacing.md,
   },
@@ -1261,9 +1240,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1288,7 +1266,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.md,
     borderRadius: radii.xl,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.cardLine,
   },
@@ -1303,17 +1281,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
-  eyebrow: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    letterSpacing: 0.66,
-  },
   refreshButton: {
     minHeight: 38,
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.hairlineStrong,
+    backgroundColor: colors.surface2,
     justifyContent: "center",
   },
   centerState: {
@@ -1335,10 +1307,6 @@ const styles = StyleSheet.create({
     minHeight: 50,
     borderRadius: radii.lg,
   },
-  removeLabel: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-  },
   itemHead: {
     flexDirection: "row",
     alignItems: "center",
@@ -1356,16 +1324,9 @@ const styles = StyleSheet.create({
     minWidth: 0,
     gap: 2,
   },
-  itemTitle: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 22,
-    lineHeight: 26,
-  },
   whiteField: {
-    backgroundColor: colors.paper,
-    borderColor: colors.cardLine,
-    borderRadius: radii.xl,
+    backgroundColor: colors.surface2,
+    borderRadius: radii.lg,
   },
   sheetButtons: {
     gap: spacing.sm,
@@ -1379,9 +1340,7 @@ const styles = StyleSheet.create({
     width: "48%",
     minHeight: 52,
     borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     flexDirection: "row",
@@ -1390,7 +1349,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   filterChoiceActive: {
-    borderColor: colors.primary,
     backgroundColor: colors.primary,
   },
   filterChoicePressed: {
@@ -1443,7 +1401,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1.5,
     borderColor: colors.hairlineStrong,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1459,17 +1417,14 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 48,
     borderRadius: radii.lg,
-    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
   checkKeepBtn: {
-    backgroundColor: colors.sageSoft,
-    borderColor: colors.sageBorder,
+    backgroundColor: colors.sageTint,
   },
   checkTossBtn: {
-    backgroundColor: colors.paper,
-    borderColor: colors.red,
+    backgroundColor: colors.redSoft,
   },
   checkSheetList: {
     gap: spacing.sm,
@@ -1484,10 +1439,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fieldBox: {
-    borderWidth: 1,
-    borderColor: colors.hairline,
     borderRadius: radii.lg,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface2,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.xs,
