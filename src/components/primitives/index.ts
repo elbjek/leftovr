@@ -17,5 +17,6 @@ export * from "./Screen";
 export * from "./ScreenHeader";
 export * from "./SegmentedControl";
 export * from "./Text";
+export * from "./Toast";
 export * from "./TextField";
 export * from "./UnitPicker";

@@ -11,7 +11,7 @@ import "@/i18n";
 import { AuthProvider } from "@/features";
 import { useNotificationRouting } from "@/hooks";
 import { installErrorReporting, reportError, useLeftovrFonts } from "@/lib";
-import { ErrorBoundary } from "@/components/primitives";
+import { ErrorBoundary, ToastProvider } from "@/components/primitives";
 import { syncHouseholdTimezone, updateLastActive } from "@/repositories/notificationRepository";
 import { registerDevice } from "@/services";
 import { colors } from "@/theme";
@@ -72,7 +72,9 @@ export default function RootLayout() {
           <NotificationRouter />
           <StatusBar style="dark" />
           <View style={styles.appFrame}>
-            <Stack screenOptions={{ headerShown: false }} />
+            <ToastProvider>
+              <Stack screenOptions={{ headerShown: false }} />
+            </ToastProvider>
           </View>
         </AuthProvider>
       </ErrorBoundary>

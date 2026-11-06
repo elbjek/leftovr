@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { useToast } from "@/components/primitives";
+import { reportError } from "@/lib";
 
 import {
   getNotificationPreferences,
@@ -13,6 +17,22 @@ export function useNotifications(householdId: string | undefined) {
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
   const [householdSettings, setHouseholdSettings] = useState<HouseholdNotificationSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
+  const { t } = useTranslation();
+
+  // A failed write used to be silent: the switch just snapped back. Keep the
+  // UI honest and say so.
+  const guard = useCallback(
+    async (run: () => Promise<void>) => {
+      try {
+        await run();
+      } catch (error) {
+        reportError(error, { scope: "notificationPreferences" });
+        showToast(t("notifications.saveFailed"));
+      }
+    },
+    [showToast, t],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -38,56 +58,56 @@ export function useNotifications(householdId: string | undefined) {
     return () => { cancelled = true; };
   }, [householdId]);
 
-  const toggleAllNotifications = useCallback(async (enabled: boolean) => {
+  const toggleAllNotifications = useCallback((enabled: boolean) => guard(async () => {
     await updateNotificationPreferences({ notifications_enabled: enabled });
     setPreferences((prev) => prev ? { ...prev, notifications_enabled: enabled } : prev);
-  }, []);
+  }), [guard]);
 
-  const toggleSmartSuggestions = useCallback(async (enabled: boolean) => {
+  const toggleSmartSuggestions = useCallback((enabled: boolean) => guard(async () => {
     await updateNotificationPreferences({ smart_suggestions_enabled: enabled });
     setPreferences((prev) => prev ? { ...prev, smart_suggestions_enabled: enabled } : prev);
-  }, []);
+  }), [guard]);
 
-  const toggleMemberActivity = useCallback(async (enabled: boolean) => {
+  const toggleMemberActivity = useCallback((enabled: boolean) => guard(async () => {
     await updateNotificationPreferences({ member_activity_enabled: enabled });
     setPreferences((prev) => prev ? { ...prev, member_activity_enabled: enabled } : prev);
-  }, []);
+  }), [guard]);
 
-  const toggleTips = useCallback(async (enabled: boolean) => {
+  const toggleTips = useCallback((enabled: boolean) => guard(async () => {
     await updateNotificationPreferences({ tips_enabled: enabled });
     setPreferences((prev) => prev ? { ...prev, tips_enabled: enabled } : prev);
-  }, []);
+  }), [guard]);
 
-  const toggleReengagement = useCallback(async (enabled: boolean) => {
+  const toggleReengagement = useCallback((enabled: boolean) => guard(async () => {
     await updateNotificationPreferences({ reengagement_enabled: enabled });
     setPreferences((prev) => prev ? { ...prev, reengagement_enabled: enabled } : prev);
-  }, []);
+  }), [guard]);
 
-  const toggleStreakReminders = useCallback(async (enabled: boolean) => {
+  const toggleStreakReminders = useCallback((enabled: boolean) => guard(async () => {
     await updateNotificationPreferences({ streak_reminders_enabled: enabled });
     setPreferences((prev) => prev ? { ...prev, streak_reminders_enabled: enabled } : prev);
-  }, []);
+  }), [guard]);
 
-  const toggleDailySuggestion = useCallback(async (enabled: boolean) => {
+  const toggleDailySuggestion = useCallback((enabled: boolean) => guard(async () => {
     if (!householdId) return;
     await updateHouseholdNotificationSettings(householdId, { daily_suggestion_enabled: enabled });
     setHouseholdSettings((prev) => prev ? { ...prev, daily_suggestion_enabled: enabled } : prev);
-  }, [householdId]);
+  }), [householdId, guard]);
 
-  const toggleRecap = useCallback(async (enabled: boolean) => {
+  const toggleRecap = useCallback((enabled: boolean) => guard(async () => {
     if (!householdId) return;
     await updateHouseholdNotificationSettings(householdId, { recap_enabled: enabled });
     setHouseholdSettings((prev) => prev ? { ...prev, recap_enabled: enabled } : prev);
-  }, [householdId]);
+  }), [householdId, guard]);
 
-  const updateSendWindow = useCallback(async (start: string, end: string) => {
+  const updateSendWindow = useCallback((start: string, end: string) => guard(async () => {
     if (!householdId) return;
     await updateHouseholdNotificationSettings(householdId, {
       send_window_start: start,
       send_window_end: end,
     });
     setHouseholdSettings((prev) => prev ? { ...prev, send_window_start: start, send_window_end: end } : prev);
-  }, [householdId]);
+  }), [householdId, guard]);
 
   return {
     loading,

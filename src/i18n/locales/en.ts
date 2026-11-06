@@ -1199,6 +1199,7 @@ export const en = {
     dismiss: "Maybe later",
   },
   notifications: {
+    saveFailed: "Could not save that setting.",
     title: "Notifications",
     body: "Choose which notifications you receive.",
     allTitle: "All notifications",

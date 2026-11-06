@@ -1234,6 +1234,7 @@ export const sr = {
     dismiss: "Mozda kasnije",
   },
   notifications: {
+    saveFailed: "Nismo mogli da sacuvamo podesavanje.",
     title: "Obavestenja",
     body: "Izaberi koja obavestenja primas.",
     allTitle: "Sva obavestenja",
