@@ -12,6 +12,8 @@ const ROUTE_BY_TYPE: Record<string, Href> = {
   daily: "/(tabs)/fridge",
   eatfirst: "/(tabs)/fridge",
   member_activity: "/(tabs)/fridge",
+  member_cooked: "/(tabs)/fridge",
+  member_change: "/(tabs)/settings",
   recap: "/(tabs)/insights",
   streak: "/(tabs)/recipes",
   reengagement: "/(tabs)/recipes",
