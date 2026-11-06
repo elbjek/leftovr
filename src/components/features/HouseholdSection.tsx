@@ -167,6 +167,11 @@ export function HouseholdSection({
     setInviteLoading(true);
     try {
       await onCreateInvite();
+    } catch {
+      // The server gate is the household's plan_tier; the client gate also
+      // passes on the payer's own tier, so a just-purchased plan can fail here
+      // until the webhook lands. Say so instead of stopping the spinner.
+      Alert.alert(t("settings.household.manageErrorTitle"), t("settings.household.manageError"));
     } finally {
       setInviteLoading(false);
     }
