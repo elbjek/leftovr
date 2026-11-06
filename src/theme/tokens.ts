@@ -20,16 +20,11 @@ export const colors = {
   cardLine: "#E6E4D8",
   accent: "#F2C14E",
   accentSoft: "#FBE7B4",
-  // Secondary text on accent (gold) surfaces.
-  onAccentMuted: "#5C4A1E",
-  // Deeper gold for the logo's "r" on light surfaces, where #F2C14E is too faint.
-  accentDeep: "#B8861A",
   text: "#1F1F1F",
   // Green-gray tuned for 4.5:1+ contrast on cream surfaces at small sizes.
   muted: "#55655A",
   muted2: "#9AA59C",
   green: "#5E9A64",
-  yellow: "#F2C14E",
   red: "#E76F51",
   // Light sage highlight (from brand palette) for selected/active states.
   sage: "#A7C3A3",
@@ -166,7 +161,7 @@ export const shadows = {
 
 export const urgencyColors = {
   safe: colors.green,
-  useSoon: colors.yellow,
+  useSoon: colors.accent,
   urgent: colors.red,
   expired: colors.muted2,
 } as const;

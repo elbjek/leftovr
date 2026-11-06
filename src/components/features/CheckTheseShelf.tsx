@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: colors.accentSoft,
     borderWidth: 1,
-    borderColor: colors.yellow,
+    borderColor: colors.accent,
     borderRadius: radii.xl,
     paddingVertical: spacing.md + 2,
     paddingHorizontal: spacing.lg,

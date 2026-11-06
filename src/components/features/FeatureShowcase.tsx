@@ -45,8 +45,8 @@ export type ShowcaseTheme = {
 const gold: ShowcaseTheme = {
   bg: colors.accent,
   ink: colors.text,
-  muted: colors.onAccentMuted,
-  eyebrow: colors.onAccentMuted,
+  muted: colors.accentInk,
+  eyebrow: colors.accentInk,
   dark: false,
 };
 const light = (bg: string): ShowcaseTheme => ({

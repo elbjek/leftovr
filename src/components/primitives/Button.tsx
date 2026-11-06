@@ -1,6 +1,6 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
-import { colors, fonts, radii, shadows, spacing, typography } from "../../theme";
+import { colors, radii, shadows, spacing } from "../../theme";
 import { Text } from "./Text";
 
 type ButtonVariant = "primary" | "ghost" | "text" | "accent";
@@ -55,7 +55,7 @@ export function Button({
           <Text
             variant="label"
             color={foreground}
-            style={[styles.title, isText && styles.textTitle]}
+            style={isText ? styles.textTitle : undefined}
           >
             {title}
           </Text>
@@ -120,10 +120,6 @@ const styles = StyleSheet.create({
   },
   iconRight: {
     marginLeft: spacing.sm,
-  },
-  title: {
-    fontSize: typography.body.fontSize,
-    fontFamily: fonts.body,
   },
   textTitle: {
     color: colors.muted,
