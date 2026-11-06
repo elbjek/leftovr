@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase";
+import { asCountedPack } from "@/lib/units";
 import { valueOfAmount, lotRemainingValue } from "@/lib/money";
 import {
   insertValueEvent,
@@ -97,11 +98,13 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
   const category = input.category ?? inferCategory(name);
   const catalogItem = getCatalogFood(name);
   const addedAt = input.addedAt ?? new Date().toISOString();
-  const quantity = input.quantity ?? 1;
-  const unit = input.unit ?? catalogItem?.unit ?? "item";
+  const counted = asCountedPack(input.quantity ?? 1, input.unit ?? catalogItem?.unit ?? "item");
+  const quantity = counted.quantity;
+  const unit = counted.unit;
   const catalogNet = getCatalogNet(name);
-  const inputNetAmount = input.netAmount ?? null;
-  const inputNetUnit = input.netUnit ?? null;
+  const inputNetAmount = input.netUnit === "g" ? input.netAmount ?? null : null;
+  // No volume tracking: an "ml" net from a product or the UI is ignored.
+  const inputNetUnit = input.netUnit === "g" ? "g" : null;
   const netUnit = inputNetUnit ?? catalogNet?.netUnit ?? null;
   const netAmount = inputNetAmount ?? (catalogNet ? catalogNet.netAmount * quantity : null);
   // purchase_amount: the amount the price covers, for proportional attribution.

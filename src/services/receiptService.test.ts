@@ -93,8 +93,9 @@ describe("receipt service", () => {
     expect(rows[0]).toMatchObject({
       name: "Milk",
       normalized_name: "milk",
-      net_amount: 1000,
-      net_unit: "ml",
+      // Liquids carry no amount any more.
+      net_amount: null,
+      net_unit: null,
       shelf_life_range: "4-7 days",
     });
   });

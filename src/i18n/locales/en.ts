@@ -34,8 +34,6 @@ export const en = {
     carton: "carton",
     bag: "bag",
     box: "box",
-    L: "L",
-    ml: "ml",
     kg: "kg",
     g: "g",
   },

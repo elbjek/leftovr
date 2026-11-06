@@ -12,23 +12,23 @@ const lot = (over: Partial<PlanLot>): PlanLot => ({
   ...over,
 });
 
-describe("planDepletion - precise", () => {
-  it("subtracts recipe ml from a single net lot", () => {
-    const lots = [lot({ id: "a", net_amount: 1000, net_unit: "ml" })];
-    const ops = planDepletion(lots, { amount: 200, unit: "ml" });
+describe("planDepletion - precise (mass)", () => {
+  it("subtracts recipe grams from a single net lot", () => {
+    const lots = [lot({ id: "a", net_amount: 1000, net_unit: "g" })];
+    const ops = planDepletion(lots, { amount: 200, unit: "g" });
     expect(ops).toEqual([{ kind: "setNet", id: "a", netAmount: 800 }]);
   });
   it("removes a net lot when fully consumed", () => {
-    const lots = [lot({ id: "a", net_amount: 200, net_unit: "ml" })];
-    const ops = planDepletion(lots, { amount: 200, unit: "ml" });
+    const lots = [lot({ id: "a", net_amount: 200, net_unit: "g" })];
+    const ops = planDepletion(lots, { amount: 200, unit: "g" });
     expect(ops).toEqual([{ kind: "remove", id: "a" }]);
   });
   it("spills across net lots, soonest first (caller pre-sorts)", () => {
     const lots = [
-      lot({ id: "a", net_amount: 150, net_unit: "ml" }),
-      lot({ id: "b", net_amount: 1000, net_unit: "ml" }),
+      lot({ id: "a", net_amount: 150, net_unit: "g" }),
+      lot({ id: "b", net_amount: 1000, net_unit: "g" }),
     ];
-    const ops = planDepletion(lots, { amount: 400, unit: "ml" });
+    const ops = planDepletion(lots, { amount: 400, unit: "g" });
     expect(ops).toEqual([
       { kind: "remove", id: "a" },
       { kind: "setNet", id: "b", netAmount: 750 },
@@ -36,12 +36,20 @@ describe("planDepletion - precise", () => {
   });
 });
 
-describe("planDepletion - fallback", () => {
-  it("dimension mismatch falls back to partial step", () => {
-    const lots = [lot({ id: "a", net_amount: 200, net_unit: "g", partial_state: "full" })];
-    const ops = planDepletion(lots, { amount: 200, unit: "ml" });
-    expect(ops).toEqual([{ kind: "setPartial", id: "a", partialState: "some_used" }]);
+describe("planDepletion - liquids are untracked", () => {
+  it("a volume amount leaves the bottle alone", () => {
+    const lots = [lot({ id: "a", quantity: 1, unit: "bottle", partial_state: "full" })];
+    expect(planDepletion(lots, { amount: 200, unit: "ml" })).toEqual([]);
+    expect(planDepletion(lots, { amount: 2, unit: "tbsp" })).toEqual([]);
+    expect(planDepletion(lots, { amount: 1, unit: "l" })).toEqual([]);
   });
+  it("counted liquid packs are untouched too", () => {
+    const lots = [lot({ id: "a", quantity: 3, unit: "carton" })];
+    expect(planDepletion(lots, { amount: 500, unit: "ml" })).toEqual([]);
+  });
+});
+
+describe("planDepletion - fallback", () => {
   it("no-net countable lot decrements count", () => {
     const lots = [lot({ id: "a", quantity: 12, unit: "egg" })];
     const ops = planDepletion(lots, { amount: 2, unit: "egg" });

@@ -1,5 +1,7 @@
 // Canonical unit tokens offered in unit pickers. Stored as-is on inventory
 // rows; the visible label is localized via the `units` i18n namespace.
+// No volume units (2026-11-06): liquids are tracked as "have it / don't", so a
+// bottle is one bottle, never 600 ml.
 export const UNIT_OPTIONS = [
   "pcs",
   "pack",
@@ -9,8 +11,6 @@ export const UNIT_OPTIONS = [
   "carton",
   "bag",
   "box",
-  "L",
-  "ml",
   "kg",
   "g",
 ] as const;
@@ -49,11 +49,13 @@ const UNIT_ALIASES: Record<string, UnitOption> = {
   kesa: "bag",
   box: "box",
   kutija: "box",
-  l: "L",
-  lit: "L",
-  litar: "L",
-  liter: "L",
-  ml: "ml",
+  l: "bottle",
+  lit: "bottle",
+  litar: "bottle",
+  liter: "bottle",
+  ml: "bottle",
+  dl: "bottle",
+  cl: "bottle",
   kg: "kg",
   kilogram: "kg",
   g: "g",
@@ -65,4 +67,19 @@ export function normalizeUnit(raw: string | null | undefined): UnitOption {
   if (!raw) return DEFAULT_UNIT;
   const key = raw.trim().toLowerCase();
   return UNIT_ALIASES[key] ?? DEFAULT_UNIT;
+}
+
+const VOLUME_WORDS = new Set(["l", "lit", "litar", "liter", "litre", "ml", "dl", "cl", "milliliter", "mililitar"]);
+
+/**
+ * Liquids carry no amount: a volume unit collapses to a single countable pack,
+ * so a receipt line of "600 ml" is one bottle, not six hundred of anything.
+ */
+export function asCountedPack(
+  quantity: number,
+  raw: string | null | undefined,
+): { quantity: number; unit: string } {
+  const key = raw?.trim().toLowerCase() ?? "";
+  if (VOLUME_WORDS.has(key)) return { quantity: 1, unit: "bottle" };
+  return { quantity, unit: raw?.trim() || DEFAULT_UNIT };
 }

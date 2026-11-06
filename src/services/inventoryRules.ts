@@ -215,10 +215,12 @@ export function canonicalFoodName(name: string) {
   return FOOD_ALIASES[foldDiacritics(normalized)] ?? normalized;
 }
 
-export function getCatalogNet(name: string): { netAmount: number; netUnit: "ml" | "g" } | null {
+// Liquids are tracked as "have it / don't" (2026-11-06): a volume net is
+// dropped, so only a mass net ever reaches an inventory row.
+export function getCatalogNet(name: string): { netAmount: number; netUnit: "g" } | null {
   const food = getCatalogFood(name);
-  if (food?.netAmount && food.netUnit) {
-    return { netAmount: food.netAmount, netUnit: food.netUnit };
+  if (food?.netAmount && food.netUnit === "g") {
+    return { netAmount: food.netAmount, netUnit: "g" };
   }
   return null;
 }

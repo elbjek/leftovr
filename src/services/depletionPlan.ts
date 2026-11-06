@@ -24,13 +24,17 @@ export function planDepletion(
 ): DepletionOp[] {
   const ops: DepletionOp[] = [];
   const metric = toMetric(need.amount, need.unit);
-  const isMassOrVolume = metric.dimension === "volume" || metric.dimension === "mass";
-  let remainingMetric = isMassOrVolume ? metric.value : 0;
+  // Liquids are have-it-or-not (2026-11-06): a volume amount depletes nothing —
+  // the bottle stays until it's marked gone by hand.
+  // ponytail: this also covers spoon/cup amounts of a solid ("2 cups flour"),
+  // which used to take one partial step; split on the lot if that ever matters.
+  if (metric.dimension === "volume") return ops;
+  let remainingMetric = metric.dimension === "mass" ? metric.value : 0;
   // How many whole items a counted lot (no net_amount) should give up.
   //   - count units (item/egg)       -> the recipe's own count
   //   - mass + a known gramsPerItem   -> grams converted to items (the onion case)
-  //   - anything else (volume, mass
-  //     without a conversion, "handful") -> a single use, never the raw metric
+  //   - anything else (mass without a
+  //     conversion, "handful")        -> a single use, never the raw metric
   let remainingCount: number;
   if (metric.dimension === "mass" && opts.gramsPerItem) {
     remainingCount = Math.max(1, Math.round(metric.value / opts.gramsPerItem));
@@ -44,7 +48,7 @@ export function planDepletion(
     const precise =
       lot.net_amount != null &&
       lot.net_unit != null &&
-      (metric.dimension === "volume" || metric.dimension === "mass") &&
+      metric.dimension === "mass" &&
       metric.dimension === dimensionOf(lot.net_unit);
 
     if (precise) {

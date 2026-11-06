@@ -40,7 +40,7 @@ import {
 import { colors, radii, shadows, spacing } from "@/theme";
 
 function formatNet(product: BarcodeProduct) {
-  return product.netAmount && product.netUnit ? `${product.netAmount} ${product.netUnit}` : null;
+  return product.netAmount && product.netUnit === "g" ? `${product.netAmount} g` : null;
 }
 
 function toLocalDateString(date: Date) {

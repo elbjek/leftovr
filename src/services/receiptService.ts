@@ -1,3 +1,4 @@
+import { asCountedPack } from "@/lib/units";
 import {
   canonicalFoodName,
   getCatalogFood,
@@ -136,9 +137,13 @@ export function buildReceiptConfirmItemsFromLines(
       category: (VALID_CATEGORIES.has(line.item.category)
         ? line.item.category
         : "other") as ReceiptConfirmItem["category"],
-      quantity: line.item.quantity != null && line.item.quantity > 0 ? line.item.quantity : 1,
+      // A printed volume ("0,6 l") is one pack: liquids carry no amount.
+      quantity: asCountedPack(
+        line.item.quantity != null && line.item.quantity > 0 ? line.item.quantity : 1,
+        line.item.unit ?? "item",
+      ).quantity,
       quantityUnknown: !(line.item.quantity != null && line.item.quantity > 0),
-      unit: line.item.unit ?? "item",
+      unit: asCountedPack(1, line.item.unit ?? "item").unit,
       confidence: line.confidence,
       lowConfidence,
       included: true,
@@ -146,8 +151,8 @@ export function buildReceiptConfirmItemsFromLines(
       scannedName: line.item.name,
       price: line.item.price ?? null,
       expiresAt: isDateString(line.item.expiresOn) ? line.item.expiresOn : null,
-      netAmount: line.item.netAmount,
-      netUnit: line.item.netUnit,
+      netAmount: line.item.netUnit === "g" ? line.item.netAmount : null,
+      netUnit: line.item.netUnit === "g" ? "g" : null,
       suggestions: lowConfidence ? toSuggestions(line) : undefined,
     };
   });
@@ -179,11 +184,12 @@ export function buildConfirmedReceiptInventoryRows(
     .filter((item) => item.included)
     .map((item) => {
       const name = item.name.trim();
-      const unit = item.unit.trim() || "item";
-      const quantity = item.quantity > 0 ? item.quantity : 1;
+      const counted = asCountedPack(item.quantity > 0 ? item.quantity : 1, item.unit || "item");
+      const unit = counted.unit;
+      const quantity = counted.quantity;
       const printedNet =
-        item.netAmount != null && item.netAmount > 0 && (item.netUnit === "ml" || item.netUnit === "g")
-          ? { netAmount: item.netAmount, netUnit: item.netUnit as "ml" | "g" }
+        item.netAmount != null && item.netAmount > 0 && item.netUnit === "g"
+          ? { netAmount: item.netAmount, netUnit: "g" as const }
           : null;
       const packNet = printedNet ?? getCatalogNet(name);
       const netAmount = packNet ? packNet.netAmount * quantity : null;

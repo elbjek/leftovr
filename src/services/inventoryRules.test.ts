@@ -15,25 +15,26 @@ import {
   urgencyFromExpiry,
 } from "./inventoryRules";
 
+// Mass only: liquids no longer carry a net amount at all.
 const baseGroup = {
-  normalizedName: "milk",
+  normalizedName: "Greek yogurt",
   quantity: 1,
-  netAmount: 1000,
-  netUnit: "ml" as const,
+  netAmount: 500,
+  netUnit: "g" as const,
 };
 
 describe("isMetricAmountRunningLow", () => {
   it("returns true when measured amount is at or below 25 percent of catalog net", () => {
-    expect(isMetricAmountRunningLow({ ...baseGroup, netAmount: 250 })).toBe(true);
+    expect(isMetricAmountRunningLow({ ...baseGroup, netAmount: 125 })).toBe(true);
   });
 
   it("returns false when measured amount is above 25 percent of catalog net", () => {
-    expect(isMetricAmountRunningLow({ ...baseGroup, netAmount: 300 })).toBe(false);
+    expect(isMetricAmountRunningLow({ ...baseGroup, netAmount: 150 })).toBe(false);
   });
 
   it("scales threshold by quantity", () => {
-    expect(isMetricAmountRunningLow({ ...baseGroup, quantity: 2, netAmount: 500 })).toBe(true);
-    expect(isMetricAmountRunningLow({ ...baseGroup, quantity: 2, netAmount: 600 })).toBe(false);
+    expect(isMetricAmountRunningLow({ ...baseGroup, quantity: 2, netAmount: 250 })).toBe(true);
+    expect(isMetricAmountRunningLow({ ...baseGroup, quantity: 2, netAmount: 300 })).toBe(false);
   });
 
   it("ignores items without known metric amount", () => {
