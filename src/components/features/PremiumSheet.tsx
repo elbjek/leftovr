@@ -357,14 +357,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: spacing.lg,
     backgroundColor: colors.surface,
-    borderWidth: 1.5,
-    borderColor: colors.cardLine,
     borderRadius: radii.lg,
     position: "relative",
   },
   planCardSelected: {
-    backgroundColor: colors.sageSoft,
-    borderColor: colors.sage,
+    backgroundColor: colors.sageTint,
   },
   planBadge: {
     position: "absolute",

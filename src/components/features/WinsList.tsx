@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, fonts, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 const COLLAPSED_ROWS = 7;
@@ -71,8 +71,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    ...shadows.soft,
     borderRadius: radii.xl,
   },
   row: {
@@ -84,8 +83,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   rowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.cardLine,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
   },
   date: {
     width: 64,

@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
-import { colors, radii, spacing } from "../../theme";
+import { colors, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 export type ScanMethod = "receipt" | "ereceipt" | "pantry" | "barcode" | "manual";
@@ -132,9 +132,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xl,
     backgroundColor: colors.surface,
-    borderColor: colors.hairline,
-    borderWidth: 1.5,
     borderRadius: radii.xl,
+    ...shadows.soft,
   },
   cardActive: {
     backgroundColor: colors.sageSoft,

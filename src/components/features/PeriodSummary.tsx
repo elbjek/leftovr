@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, fonts, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
@@ -81,9 +81,8 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
     borderRadius: radii.xl,
+    ...shadows.soft,
     padding: spacing.xl,
     gap: spacing.lg,
   },
@@ -108,17 +107,15 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    backgroundColor: colors.card,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
   stats: {
     flexDirection: "row",
     paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardLine,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
   },
   stat: {
     flex: 1,

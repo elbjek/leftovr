@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, fonts, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 import { RecipeCover } from "./RecipeCover";
 
@@ -366,8 +366,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radii.xxl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    ...shadows.soft,
   },
   hero: {
     padding: spacing.lg,
@@ -487,8 +486,6 @@ const styles = StyleSheet.create({
   },
   listCardHighlight: {
     backgroundColor: colors.accentSoft,
-    borderColor: colors.accent,
-    borderWidth: 1.5,
   },
   results: {
     paddingTop: spacing.lg,
@@ -547,8 +544,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     minHeight: 52,
     borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
     backgroundColor: colors.surface,
   },
   bold: {

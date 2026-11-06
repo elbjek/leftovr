@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, fonts, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
@@ -212,8 +212,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radii.xl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    ...shadows.soft,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -225,8 +224,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxs,
     paddingBottom: spacing.sm,
     marginBottom: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.cardLine,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.hairline,
   },
   goalText: {
     flex: 1,
@@ -307,8 +306,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.cardLine,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
   },
   last: {
     flex: 1,

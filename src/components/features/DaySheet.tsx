@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
-import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "../../theme";
+import { CategoryTone, categoryColors, colors, fonts, radii, shadows, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
 import { BottomSheet, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
@@ -132,8 +132,7 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     borderRadius: radii.lg,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    ...shadows.soft,
   },
   recipeTile: {
     width: 44,

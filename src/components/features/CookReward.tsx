@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
 import { formatMoney } from "../../lib/money";
-import { colors, fonts, radii, spacing, typography } from "../../theme";
+import { colors, fonts, radii, shadows, spacing, typography } from "../../theme";
 import { Button, SegmentedControl, Text } from "../primitives";
 import type { ShareFormat } from "./ShareCard";
 import { FlameIcon, GoalRing } from "./WeekStrip";
@@ -290,8 +290,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.lg,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    ...shadows.soft,
     borderRadius: radii.xl,
   },
   goal: {

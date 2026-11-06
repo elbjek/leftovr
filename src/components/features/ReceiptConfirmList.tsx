@@ -473,8 +473,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     backgroundColor: colors.surface,
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.cardLine,
   },
   suggestionLabel: {
     fontFamily: fonts.bodyExtraBold,

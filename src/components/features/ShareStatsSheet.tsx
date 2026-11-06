@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import { useShareImage } from "../../hooks/useShareImage";
-import { colors, radii, spacing } from "../../theme";
+import { radii, spacing } from "../../theme";
 import { BottomSheet, Button, FilterChip, SegmentedControl, Text } from "../primitives";
 import { ShareCard, ShareCardExport, type ShareCardProps, type ShareFormat } from "./ShareCard";
 
@@ -105,8 +105,6 @@ const styles = StyleSheet.create({
   previewClip: {
     borderRadius: radii.xl,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: colors.cardLine,
   },
   chips: {
     gap: spacing.xs,

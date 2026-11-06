@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, fonts, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
@@ -93,8 +93,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radii.xxl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    ...shadows.soft,
     padding: spacing.lg,
   },
   top: {

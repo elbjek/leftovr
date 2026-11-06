@@ -532,8 +532,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.md,
     borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
     backgroundColor: colors.surface,
   },
   // Inline 3-up variant (time): icon stacked over centered label.
@@ -559,8 +557,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   mealCardActive: {
-    backgroundColor: colors.sageSoft,
-    borderColor: colors.sage,
+    backgroundColor: colors.sageTint,
   },
   mealIconTile: {
     width: 42,
@@ -592,16 +589,13 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: spacing.lg,
     borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
     backgroundColor: colors.surface,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
   },
   chipActive: {
-    backgroundColor: colors.sageSoft,
-    borderColor: colors.sage,
+    backgroundColor: colors.sageTint,
   },
   stepperRow: {
     flexDirection: "row",

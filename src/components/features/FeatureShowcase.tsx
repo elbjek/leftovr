@@ -700,8 +700,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     backgroundColor: colors.card,
     borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
     ...shadows.elevated,
   },
   cardGap: {
@@ -870,7 +868,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   cookRowLine: {
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.hairline,
   },
   checkbox: {

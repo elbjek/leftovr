@@ -5,7 +5,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import type { CookedSummary } from "@/hooks";
 import type { RecipeRow } from "@/repositories/recipeRepository";
 import { formatCategory, fridgeCoverage } from "@/services/recipeService";
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, fonts, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 import { RecipeCover } from "./RecipeCover";
 
@@ -151,8 +151,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    ...shadows.soft,
   },
   savedRowPressed: {
     transform: [{ scale: 0.98 }],
