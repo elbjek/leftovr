@@ -97,6 +97,8 @@ export default function SettingsRoute() {
 
   function handleLanguageChange(language: SupportedLanguage) {
     i18n.changeLanguage(language);
+    // Push copy is built server-side, so the server needs to know the choice.
+    void updateProfileField("language", language).catch(() => {});
   }
 
   async function saveName() {

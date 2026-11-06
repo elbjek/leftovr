@@ -14,6 +14,7 @@ import {
   getCurrentProfile,
   getHouseholdById,
   getHouseholdItemCount,
+  updateProfileField,
 } from "@/repositories";
 import { configurePurchases, identifyPurchaser, resetPurchaser, sendEmailOtp, signInWithApple, signInWithGoogle, signOut, verifyEmailOtp } from "@/services";
 import { getSupabaseClient, hasSupabaseConfig } from "@/lib/supabase";
@@ -112,6 +113,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       const profile = await getCurrentProfile();
+
+      // Push copy is built server-side; the language picker only ever lived in
+      // AsyncStorage, so every Serbian user looked like 'en' to the server.
+      // Fire-and-forget: a failed sync just means English pushes for now.
+      if (profile.language !== i18n.language) {
+        void updateProfileField("language", i18n.language).catch(() => {});
+        profile.language = i18n.language;
+      }
+
       let activeHousehold: Household | null = null;
 
       if (profile.active_household_id) {

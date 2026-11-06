@@ -102,7 +102,7 @@ export async function completeHouseholdFirstFill(householdId: string) {
 
 
 export async function updateProfileField(
-  field: "display_name" | "primary_goal" | "shopping_style",
+  field: "display_name" | "primary_goal" | "shopping_style" | "language",
   value: string,
 ) {
   const supabase = getSupabaseClient();
