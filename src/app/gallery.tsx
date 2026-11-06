@@ -13,6 +13,7 @@ import {
   Screen,
   ScreenHeader,
   SegmentedControl,
+  StatusPill,
   Tappable,
   Text,
   TextField,
@@ -195,6 +196,27 @@ export default function Gallery() {
         </Row>
         <Row label="no match · drawn fallback">
           <GlyphTile name="zzzz" category="other" size="md" />
+        </Row>
+      </Section>
+
+      <Section title="StatusPill">
+        <Row label="urgency · tone names match the Urgency keys">
+          <View style={styles.rowWrap}>
+            <StatusPill label="Fresh" tone="safe" />
+            <StatusPill label="Use soon" tone="useSoon" />
+            <StatusPill label="Today" tone="urgent" />
+            <StatusPill label="Expired" tone="expired" />
+          </View>
+        </Row>
+        <Row label="badges">
+          <View style={styles.rowWrap}>
+            <StatusPill label="4 items" />
+            <StatusPill label="Best value" tone="accent" />
+            <StatusPill label="Premium" tone="solid" />
+          </View>
+        </Row>
+        <Row label="long label truncates, pill keeps its height">
+          <StatusPill label="A very long status that will not fit on one line at all" tone="useSoon" />
         </Row>
       </Section>
 

@@ -15,6 +15,7 @@ export * from "./ScanIcon";
 export * from "./Screen";
 export * from "./ScreenHeader";
 export * from "./SegmentedControl";
+export * from "./StatusPill";
 export * from "./Tappable";
 export * from "./Text";
 export * from "./Toast";
