@@ -147,9 +147,10 @@ export const shadows = {
   card: {
     boxShadow: "0px 6px 14px rgba(31, 31, 31, 0.04)",
   },
-  // Soft warm lift for white cards on cream (Kitchen home).
+  // Soft lift for white cards on the grey page. Neutral, not warm: a brown
+  // shadow reads orange against #EDEDEB.
   soft: {
-    boxShadow: "0px 8px 22px rgba(120, 80, 40, 0.07)",
+    boxShadow: "0px 8px 22px rgba(31, 31, 31, 0.06)",
   },
   elevated: {
     boxShadow: "0px 14px 34px rgba(31, 31, 31, 0.10)",

@@ -129,8 +129,9 @@ export default function Gallery() {
           <Text muted>Padded by default.</Text>
         </Card>
         <View style={styles.gap} />
-        <Card dashed>
-          <Text muted>Dashed card</Text>
+        <Card padded={false} style={styles.listCard}>
+          <Text variant="h3">Unpadded card</Text>
+          <Text muted>For lists that pad their own rows.</Text>
         </Card>
       </Section>
 
