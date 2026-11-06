@@ -521,15 +521,43 @@
   .k-tag.soon  { background: var(--accent-soft); color: var(--accent-ink); }
   .k-tag.fresh { background: rgba(94,154,100,0.16); color: #3E6B45; }
 
-  /* 3. The three it uses, arcing down into the plate. */
-  .ill-cook { background: var(--accent-soft); flex-direction: column; justify-content: flex-end; padding-bottom: 20px; }
-  .ill-arc { display: flex; align-items: flex-end; gap: 14px; margin-bottom: -6px; }
-  .ill-cook .fi { width: 48px; height: 48px; }
-  .ill-cook .fi:nth-child(2) { margin-bottom: 16px; }
-  .ill-plate {
-    width: 132px; height: 34px; border-radius: 0 0 999px 999px;
-    border: 2px solid var(--primary); border-top: 0;
-    background: rgba(253,248,246,0.55);
+  /* 3. The recipe the kitchen already covers, and what cooking it spends. */
+  .ill-recipe { background: var(--accent-soft); padding: 12px 20px; }
+  .r-card {
+    width: 100%; background: var(--card); border: 1px solid var(--card-line);
+    border-radius: var(--r-card); padding: 11px;
+    box-shadow: 0 10px 20px -14px rgba(138,90,11,0.4);
+  }
+  .r-head { display: flex; align-items: center; gap: 10px; }
+  .r-dish {
+    width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+    background: var(--sage-tint); display: flex; align-items: center; justify-content: center;
+  }
+  .r-dish .fi { width: 26px; height: 26px; }
+  .r-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .r-meta b { font-size: 12.5px; font-weight: 800; letter-spacing: -0.01em; color: var(--text); }
+  .r-meta i { font-size: 10.5px; font-style: normal; color: var(--muted); }
+
+  .r-chips { display: flex; gap: 6px; margin: 10px 0 10px; }
+  .r-chip {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 30px; border-radius: 9px;
+    background: var(--surface-2); border: 1px solid var(--card-line);
+    transition: opacity 0.5s ease;
+  }
+  .r-chip .fi { width: 20px; height: 20px; }
+  .r-tick {
+    position: absolute; right: -3px; bottom: -3px; width: 14px; height: 14px;
+    padding: 2px; border-radius: 999px;
+    background: var(--primary); color: var(--surface);
+    opacity: 0; transform: scale(0.6);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .r-cta {
+    display: flex; align-items: center; justify-content: center;
+    height: 28px; border-radius: var(--r-btn);
+    background: var(--primary); color: var(--surface);
+    font-size: 11.5px; font-weight: 700;
   }
 
   /* The food settles in when the step scrolls into view: sequence matches
@@ -547,6 +575,16 @@
   .step-card:not(.seen) .snap-phone { opacity: 0; }
   .ill-capture .fi { animation-delay: calc(0.28s + var(--i) * 80ms) !important; }
   .step-card.seen .k-row { animation: shotIn 0.45s ease both; animation-delay: calc(var(--r, 0) * 110ms); }
+  /* Cooking spends them: tick, then settle back. Transition-only so reduced
+     motion simply shows the ticked state. */
+  .step-card.seen .r-tick { opacity: 1; transform: none; }
+  .step-card.seen .r-chip { opacity: 0.55; }
+  .step-card.seen .r-chip:nth-child(1) .r-tick { transition-delay: 0.65s; }
+  .step-card.seen .r-chip:nth-child(2) .r-tick { transition-delay: 0.8s; }
+  .step-card.seen .r-chip:nth-child(3) .r-tick { transition-delay: 0.95s; }
+  .step-card.seen .r-chip:nth-child(1) { transition-delay: 0.85s; }
+  .step-card.seen .r-chip:nth-child(2) { transition-delay: 1s; }
+  .step-card.seen .r-chip:nth-child(3) { transition-delay: 1.15s; }
   .step-card:not(.seen) .k-row { opacity: 0; }
   .k-row:nth-child(2) { --r: 1; }
   .k-row:nth-child(3) { --r: 2; }
@@ -557,6 +595,7 @@
     .step-card .fridge, .step-card.seen .fridge,
     .step-card .snap-phone, .step-card.seen .snap-phone,
     .step-card .k-row, .step-card.seen .k-row { animation: none; opacity: 1; }
+    .r-chip, .r-tick { transition: none !important; }
   }
   .step-card h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 8px; }
   .step-card p { font-size: 15px; color: var(--muted); line-height: 1.5; }
@@ -1311,14 +1350,25 @@
 
         <div class="step-card">
           <div class="step-num">3</div>
-          <!-- Step 3: the three it uses, arcing into the plate. -->
-          <div class="step-ill ill-cook">
-            <div class="ill-arc">
-              <img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0">
-              <img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1">
-              <img class="fi" src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2">
+          <!-- Step 3: the recipe the kitchen can already cover. On reveal the
+               three it uses get ticked and fade back, which is the depletion
+               the copy promises. -->
+          <div class="step-ill ill-recipe">
+            <div class="r-card">
+              <div class="r-head">
+                <span class="r-dish"><img class="fi" src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0"></span>
+                <span class="r-meta">
+                  <b data-i18n="step3.dish">Spinach &amp; feta pasta</b>
+                  <i data-i18n="step3.time">20 min, easy</i>
+                </span>
+              </div>
+              <div class="r-chips">
+                <span class="r-chip"><img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1"><svg class="r-tick" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4 5 8.8 9.5 3.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="r-chip"><img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2"><svg class="r-tick" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4 5 8.8 9.5 3.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="r-chip"><img class="fi" src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:3"><svg class="r-tick" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4 5 8.8 9.5 3.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </div>
+              <span class="r-cta" data-i18n="step3.cta">Cook this</span>
             </div>
-            <div class="ill-plate" aria-hidden="true"></div>
           </div>
           <h3 data-i18n="step3.title">Cook what you have</h3>
           <p data-i18n="step3.body">Recipes built from what you have, starring whatever should be eaten first. Cook one and those ingredients leave your kitchen automatically.</p>
@@ -1875,6 +1925,9 @@
       "step2.w3": "Fresh",
       "step2.title": "Your kitchen keeps track",
       "step2.body": 'Everything lands on shelves with gentle freshness windows, "best today", "this week", never scary expiration countdowns.',
+      "step3.dish": "Spinach & feta pasta",
+      "step3.time": "20 min, easy",
+      "step3.cta": "Cook this",
       "step3.title": "Cook what you have",
       "step3.body": "Recipes built from what you have, starring whatever should be eaten first. Cook one and those ingredients leave your kitchen automatically.",
       "stats.eyebrow": "Why it matters",
@@ -2076,6 +2129,9 @@
       "step2.w3": "Sveže",
       "step2.title": "Tvoja kuhinja vodi računa",
       "step2.body": "Sve sleće na virtuelne police, sređeno po kategoriji i poređano po tome šta prvo treba pojesti, da se ništa ne krije pozadi.",
+      "step3.dish": "Pasta sa spanaćem i fetom",
+      "step3.time": "20 min, lako",
+      "step3.cta": "Skuvaj ovo",
       "step3.title": "Kuvaj od onoga što već imaš",
       "step3.body": "Recepti od onoga što imaš, sa naglaskom na ono što prvo treba pojesti. Skuvaj jedan i namirnice se automatski uklanjaju iz kuhinje.",
       "stats.eyebrow": "Zašto je važno",
