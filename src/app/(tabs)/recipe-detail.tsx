@@ -697,6 +697,12 @@ export default function RecipeDetailRoute() {
             ))
           )}
         </View>
+
+        {/* Guideline 1.4.1: the steps and the ingredient list are AI-written,
+            so allergens are the cook's call, not the app's. */}
+        <Text variant="micro" muted style={styles.safetyNote}>
+          {t("recipes.detail.safetyNote")}
+        </Text>
       </View>
       </Animated.ScrollView>
 
@@ -1227,6 +1233,9 @@ const styles = StyleSheet.create({
   },
   steps: {
     gap: 0,
+  },
+  safetyNote: {
+    marginTop: spacing.lg,
   },
   stepsPending: {
     flexDirection: "row",

@@ -411,6 +411,17 @@ export default function FridgeRoute() {
           ) : null}
 
 
+          {/* Guideline 1.4.1: the dates here are estimates, not printed
+              best-before dates, so never let the app be the last word on
+              whether food is safe. */}
+          {groups.length > 0 ? (
+            <View style={styles.safetyNote}>
+              <Text variant="micro" muted>
+                {t("fridge.safetyNote")}
+              </Text>
+            </View>
+          ) : null}
+
           {loading ? (
             <View style={styles.centerState}>
               <GeneratingLoader size={110} />
@@ -1124,6 +1135,9 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   pulseWrap: {
+    paddingHorizontal: spacing.screenX,
+  },
+  safetyNote: {
     paddingHorizontal: spacing.screenX,
   },
   pulseCard: {

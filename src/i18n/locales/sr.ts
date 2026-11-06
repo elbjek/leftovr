@@ -278,6 +278,7 @@ export const sr = {
     message: "Dodirni za skeniranje i azuriranje kuhinje",
   },
   fridge: {
+    safetyNote: "Datumi su procena, ne garancija. Proveri očima i nosom pre nego što nešto pojedeš.",
     title: "Hej, evo sta imas.",
     titleWithName: "{{name}}, evo sta imas.",
     homeTitle: "Tvoja kuhinja",
@@ -802,6 +803,7 @@ export const sr = {
       generate: "Pronađi recepte",
     },
     detail: {
+      safetyNote: "Recepte piše veštačka inteligencija. Sastojke proveri sam/a — alergene i sve što ti deluje čudno.",
       backLabel: "Nazad",
       fromFridgeCount: "Od onoga sto imas · {{count}} stavki",
       ingredients: "Sastojci",

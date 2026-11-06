@@ -277,6 +277,7 @@ export const en = {
     message: "Tap to scan and update your kitchen",
   },
   fridge: {
+    safetyNote: "Dates are an estimate, not a guarantee. Use your eyes and nose before you eat something.",
     title: "Hey, here's what you have.",
     titleWithName: "{{name}}, here's what you have.",
     homeTitle: "Your kitchen",
@@ -784,6 +785,7 @@ export const en = {
       generate: "Find recipes",
     },
     detail: {
+      safetyNote: "Recipes are AI-written. Check the ingredients yourself for allergens and anything that looks off.",
       backLabel: "Back",
       fromFridgeCount: "From what you have · {{count}} items",
       ingredients: "Ingredients",
