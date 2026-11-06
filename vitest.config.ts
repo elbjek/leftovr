@@ -6,6 +6,7 @@ export default defineConfig({
     alias: {
       "@": resolve(__dirname, "src"),
       "expo-localization": resolve(__dirname, "src/test-stubs/expo-localization.ts"),
+      "expo-constants": resolve(__dirname, "src/test-stubs/expo-constants.ts"),
       "@react-native-async-storage/async-storage": resolve(
         __dirname,
         "src/test-stubs/async-storage.ts",

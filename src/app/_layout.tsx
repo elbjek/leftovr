@@ -9,13 +9,14 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "@/i18n";
 import { AuthProvider } from "@/features";
-import { useLeftovrFonts } from "@/lib";
+import { installErrorReporting, reportError, useLeftovrFonts } from "@/lib";
 import { ErrorBoundary } from "@/components/primitives";
 import { syncHouseholdTimezone, updateLastActive } from "@/repositories/notificationRepository";
 import { registerDevice } from "@/services";
 import { colors } from "@/theme";
 
 SplashScreen.preventAutoHideAsync();
+installErrorReporting();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useLeftovrFonts();
@@ -49,7 +50,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <ErrorBoundary>
+      <ErrorBoundary onError={(error, componentStack) => reportError(error, { componentStack })}>
         <AuthProvider>
           <StatusBar style="dark" />
           <View style={styles.appFrame}>
