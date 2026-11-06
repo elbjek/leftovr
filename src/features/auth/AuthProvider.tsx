@@ -1,4 +1,5 @@
 import { Session } from "@supabase/supabase-js";
+import { AppState } from "react-native";
 import React, {
   createContext,
   useCallback,
@@ -191,6 +192,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
+  }, [loadSessionProfile]);
+
+  useEffect(() => {
+    // Household membership changes server-side: another member can remove you,
+    // hand you ownership or join your kitchen while the app sits in the
+    // background. Re-read profile + household on foreground so the device
+    // isn't acting on a kitchen it has already left.
+    const sub = AppState.addEventListener("change", (appState) => {
+      if (appState !== "active") return;
+      void loadSessionProfile();
+    });
+    return () => sub.remove();
   }, [loadSessionProfile]);
 
   const value = useMemo<AuthContextValue>(
