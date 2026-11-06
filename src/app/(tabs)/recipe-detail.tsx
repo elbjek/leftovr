@@ -60,6 +60,10 @@ export default function RecipeDetailRoute() {
   // Recipe id still waiting for its phase-2 expand (set by the seeding effect,
   // consumed once inventory has loaded).
   const pendingExpandRef = useRef<string | null>(null);
+  // Declared with the other refs (not at its first use further down): the
+  // re-seed effect below writes it, and a ref must be created before any
+  // effect that touches it.
+  const cookIdRef = useRef<string | null>(null);
 
   const title = params.title ?? "";
   const description = params.description ?? "";
@@ -129,6 +133,10 @@ export default function RecipeDetailRoute() {
       : [];
     const baseSteps: string[] = params.steps ? JSON.parse(params.steps) : [];
     const baseTime = Number(params.timeMinutes ?? 20);
+    // Syncing this screen to new route params is exactly what the rule warns
+    // about, but the screen instance is reused across recipes, so there is no
+    // mount to re-seed from.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDetail({
       ingredients: baseIngredients,
       steps: baseSteps,
@@ -251,7 +259,6 @@ export default function RecipeDetailRoute() {
   const [extraAmount, setExtraAmount] = useState("1");
   const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
-  const cookIdRef = useRef<string | null>(null);
   const rewardImage = useShareImage();
   const [rewardFormat, setRewardFormat] = useState<ShareFormat>("post");
   // The after-cook reward: what this cook used up, plus the figures it

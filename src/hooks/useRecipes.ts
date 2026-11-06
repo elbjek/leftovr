@@ -48,7 +48,6 @@ type RecipesState = {
   consumedFreeGeneration: boolean;
   /** Server said 402 (free generation spent) — the screen opens the paywall.
    *  Server verdict is authoritative over cached entitlement state. */
-  quotaExceeded: boolean;
   error: string | null;
 };
 
@@ -62,11 +61,19 @@ export function useRecipes(
     freeGenerationUsed: boolean;
     servings?: number;
     userId?: string;
+    /** The server refused on quota (402). Fired instead of a state flag so the
+     *  caller can open the paywall without a setState-in-effect round trip. */
+    onQuotaExceeded?: () => void;
   },
 ) {
-  const { inventory, avoidances, isPremium, freeGenerationUsed, servings, userId } = options;
+  const { inventory, avoidances, isPremium, freeGenerationUsed, servings, userId, onQuotaExceeded } =
+    options;
   const { t } = useTranslation();
   const generationInFlightRef = useRef(false);
+  const quotaCallbackRef = useRef(onQuotaExceeded);
+  useEffect(() => {
+    quotaCallbackRef.current = onQuotaExceeded;
+  }, [onQuotaExceeded]);
   // Mirrors saved recipes so a generation can dedupe against them without the
   // callback closing over a stale state snapshot.
   const savedRecipesRef = useRef<RecipeRow[]>([]);
@@ -84,7 +91,6 @@ export function useRecipes(
     lastCookedAt: null,
     cookedSummaries: {},
     consumedFreeGeneration: false,
-    quotaExceeded: false,
     error: null,
   });
 
@@ -100,7 +106,6 @@ export function useRecipes(
         lastCookedAt: null,
         cookedSummaries: {},
         consumedFreeGeneration: s.consumedFreeGeneration,
-        quotaExceeded: false,
         error: null,
       }));
       return;
@@ -161,7 +166,7 @@ export function useRecipes(
         error: friendlyMessage(err, t("auth.genericError")),
       }));
     }
-  }, [householdId, userId]);
+  }, [householdId, userId, t]);
 
   useEffect(() => {
     load();
@@ -191,7 +196,7 @@ export function useRecipes(
         }
 
         generationInFlightRef.current = true;
-        setState((s) => ({ ...s, generating: true, quotaExceeded: false, error: null }));
+        setState((s) => ({ ...s, generating: true, error: null }));
 
         try {
           // Expired items are too old to cook with — keep them out of both the
@@ -383,7 +388,8 @@ export function useRecipes(
             return null;
           }
           if (err instanceof RecipeQuotaError) {
-            setState((s) => ({ ...s, generating: false, quotaExceeded: true }));
+            setState((s) => ({ ...s, generating: false }));
+            quotaCallbackRef.current?.();
             return null;
           }
           if (err instanceof RecipeRateLimitedError) {

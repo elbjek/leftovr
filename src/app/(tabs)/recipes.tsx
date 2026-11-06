@@ -74,7 +74,6 @@ export default function RecipesRoute() {
     currentSessionId,
     cookedSummaries,
     lastCookedAt,
-    quotaExceeded,
     error: recipeError,
   } = useRecipes(activeHousehold?.id, {
     inventory,
@@ -83,13 +82,10 @@ export default function RecipesRoute() {
     freeGenerationUsed: Boolean(profile?.free_recipe_generation_used_at),
     servings,
     userId: profile?.id,
+    // Server-side 402 (free generation spent) — authoritative over the local
+    // canGenerate gate, which can lag behind the profile row.
+    onQuotaExceeded: () => setShowPremium(true),
   });
-
-  // Server-side 402 (free generation spent) — authoritative over the local
-  // canGenerate gate, which can lag behind the profile row.
-  useEffect(() => {
-    if (quotaExceeded) setShowPremium(true);
-  }, [quotaExceeded]);
 
   // The week strip's day sheet.
   const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, profile?.id);
@@ -159,7 +155,16 @@ export default function RecipesRoute() {
     // generate against an empty fridge and always surface noneFound.
     if (inventoryLoading) return;
     router.setParams({ autoGenerate: undefined });
-    void handleGenerate(undefined);
+    // Deferred by a tick: this is an action fired by a navigation param, not
+    // state synchronisation, and running it inside the effect body would
+    // cascade renders through handleGenerate's setState calls.
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) void handleGenerate(undefined);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [autoGenerate, inventoryLoading, handleGenerate]);
 
   const navigateToDetail = useCallback(

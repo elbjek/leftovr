@@ -54,10 +54,17 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Re-open follows the caller's plan hint again, not last session's tab.
+  // Adjusted during render (the supported "reset state when a prop changes"
+  // pattern) rather than in the effect below, which would cascade renders.
+  const [wasVisible, setWasVisible] = useState(visible);
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
+    if (visible) setPlanTypeOverride(null);
+  }
+
   useEffect(() => {
     if (!visible) return;
-    // Re-open follows the caller's plan hint again, not last session's tab.
-    setPlanTypeOverride(null);
     let active = true;
     async function load() {
       setError(null);
