@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Animated, Pressable, ScrollView, ScrollViewInstance, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -262,6 +262,8 @@ export default function RecipeDetailRoute() {
     savings: { cook: number; total: number } | null;
   } | null>(null);
   const [favorite, setFavorite] = useState(params.isFavorite === "true");
+  // Fold the ingredients away to bring the steps up while cooking.
+  const [ingredientsOpen, setIngredientsOpen] = useState(true);
 
   const showCookCoachMark =
     (profile?.prototype_day ?? 1) >= 3 && !profile?.cooked_coachmark_seen_at;
@@ -529,17 +531,6 @@ export default function RecipeDetailRoute() {
   // recipe scrolls, with the glyph scaling down into the collapsed band. All
   // transform-driven so it runs on the native thread.
   const [scrollY] = useState(() => new Animated.Value(0));
-  // "Jump to recipe": long ingredient lists push the steps below the fold, so
-  // a shortcut scrolls straight to them. stepsY is the section label's offset
-  // within the body; the content itself starts at HERO_MAX_HEIGHT (padding).
-  const scrollRef = useRef<ScrollViewInstance>(null);
-  const [stepsY, setStepsY] = useState(0);
-  const jumpToSteps = () =>
-    scrollRef.current?.scrollTo({
-      // Clear the floating back button, which stays over the content.
-      y: SHEET_TOP + stepsY - insets.top - 56,
-      animated: true,
-    });
   // The cover drifts up at a third of the scroll speed; the content sheet
   // slides over it.
   const heroTranslate = scrollY.interpolate({
@@ -561,7 +552,6 @@ export default function RecipeDetailRoute() {
       </Animated.View>
 
       <Animated.ScrollView
-        ref={scrollRef}
         style={styles.scrollArea}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -610,20 +600,32 @@ export default function RecipeDetailRoute() {
                   ? t("recipes.detail.fromFridgeCount", { count: fridgeCount })
                   : t("recipes.detail.ingredients")}
               </Text>
-              {ingredients.length > 6 ? (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={jumpToSteps}
-                  style={({ pressed }) => [styles.jumpButton, pressed && { opacity: 0.6 }]}
-                >
-                  <Text variant="small" color={colors.primary}>
-                    {t("recipes.detail.jumpToRecipe")} ↓
-                  </Text>
-                </Pressable>
-              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: ingredientsOpen }}
+                onPress={() => setIngredientsOpen((open) => !open)}
+                style={({ pressed }) => [styles.foldButton, pressed && { opacity: 0.6 }]}
+              >
+                <Text variant="small" color={colors.primary}>
+                  {ingredientsOpen
+                    ? t("recipes.detail.hideIngredients")
+                    : t("recipes.detail.showIngredients", { count: ingredients.length })}
+                </Text>
+                <Chevron up={ingredientsOpen} />
+              </Pressable>
             </View>
-            <View style={styles.fridgeCard}>
-              {ingredients.map((ing, i) => {
+            <View style={[styles.fridgeCard, !ingredientsOpen && styles.fridgeCardFolded]}>
+              {!ingredientsOpen ? (
+                <View style={styles.foldedRow}>
+                  {ingredients.slice(0, 8).map((ing, i) => {
+                    const iconId = foodIconKey(ing.name);
+                    return iconId && !iconId.startsWith("category_") ? (
+                      <FoodGlyph key={i} name={iconId} size={20} />
+                    ) : null;
+                  })}
+                </View>
+              ) : null}
+              {ingredientsOpen && ingredients.map((ing, i) => {
                 const inFridge = isOwned(ing);
                 const isUrgent = matchedUrgentItems.includes(ing.name);
                 const missingRequired = !inFridge && ing.required;
@@ -673,12 +675,7 @@ export default function RecipeDetailRoute() {
           </>
         ) : null}
 
-        <Text
-          variant="micro"
-          muted
-          style={styles.sectionLabel}
-          onLayout={(event) => setStepsY(event.nativeEvent.layout.y)}
-        >
+        <Text variant="micro" muted style={styles.sectionLabel}>
           {t("recipes.detail.howToCook")}
         </Text>
 
@@ -1025,6 +1022,21 @@ function MetaChip({ icon, label }: { icon: React.ReactNode; label: string }) {
   );
 }
 
+function Chevron({ up }: { up: boolean }) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 14 14">
+      <Path
+        d={up ? "M3 9L7 5L11 9" : "M3 5L7 9L11 5"}
+        stroke={colors.primary}
+        strokeWidth={2}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 function ClockIcon() {
   return (
     <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
@@ -1155,10 +1167,22 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     flexShrink: 1,
   },
-  jumpButton: {
+  foldButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
     minHeight: 44,
-    justifyContent: "center",
     paddingLeft: spacing.md,
+  },
+  fridgeCardFolded: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  foldedRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   fridgeRow: {
     flexDirection: "row",
