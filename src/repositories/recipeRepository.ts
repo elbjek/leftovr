@@ -229,3 +229,22 @@ export async function toggleRecipeFavorite(recipeId: string, isFavorite: boolean
   if (error) throw error;
 }
 
+
+// Guideline 1.2: a way to flag a generated recipe. Insert-only by design —
+// nothing in the app reads these back. Reporting the same recipe twice hits
+// the unique index; that is the same outcome as the first report, so swallow it.
+export async function reportRecipe(input: { recipeId: string; householdId: string; reason?: string }) {
+  const supabase = getSupabaseClient();
+
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+
+  const { error } = await supabase.from("recipe_reports").insert({
+    recipe_id: input.recipeId,
+    household_id: input.householdId,
+    reported_by: userResult.user.id,
+    reason: input.reason?.trim() || null,
+  });
+
+  if (error && error.code !== "23505") throw error;
+}

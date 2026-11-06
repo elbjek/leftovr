@@ -803,6 +803,11 @@ export const sr = {
       generate: "Pronađi recepte",
     },
     detail: {
+      report: "Prijavi ovaj recept",
+      reportTitle: "Prijaviti ovaj recept?",
+      reportBody: "Javi nam da ovaj nije u redu — nebezbedan, besmislen ili uopšte nije hrana. Ide samo nama.",
+      reportConfirm: "Prijavi",
+      reportDone: "Hvala. Pogledaćemo ovaj recept.",
       safetyNote: "Recepte piše veštačka inteligencija. Sastojke proveri sam/a — alergene i sve što ti deluje čudno.",
       backLabel: "Nazad",
       fromFridgeCount: "Od onoga sto imas · {{count}} stavki",

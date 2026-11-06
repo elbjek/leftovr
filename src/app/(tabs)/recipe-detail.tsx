@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
-import { BottomSheet, Button, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Text, TextField } from "@/components";
+import { BottomSheet, Button, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Text, TextField, useToast } from "@/components";
 import type { ShareFormat } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
@@ -14,7 +14,7 @@ import { foodIconKey, formatMoney, newClientId } from "@/lib";
 import { addAmounts, canonicalFoodName, dailyGoal, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
-import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
+import { reportRecipe, toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
 import { colors, radii, spacing } from "@/theme";
 
 // The cover band, and how far the content sheet rides up over it.
@@ -55,6 +55,7 @@ export default function RecipeDetailRoute() {
   }>();
 
   const { profile, activeHousehold } = useAuth();
+  const { showToast } = useToast();
   const { groups: inventoryGroups, lots, loading: inventoryLoading } = useInventory(activeHousehold?.id);
   // Recipe id still waiting for its phase-2 expand (set by the seeding effect,
   // consumed once inventory has loaded).
@@ -388,6 +389,22 @@ export default function RecipeDetailRoute() {
     }
   }
 
+  function confirmReport() {
+    Alert.alert(t("recipes.detail.reportTitle"), t("recipes.detail.reportBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("recipes.detail.reportConfirm"),
+        style: "destructive",
+        onPress: () => {
+          if (!activeHousehold?.id) return;
+          void reportRecipe({ recipeId, householdId: activeHousehold.id })
+            .then(() => showToast(t("recipes.detail.reportDone")))
+            .catch(() => showToast(t("common.error")));
+        },
+      },
+    ]);
+  }
+
   function toggleCookedItem(index: number) {
     setCookedItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, used: !item.used } : item)),
@@ -703,6 +720,17 @@ export default function RecipeDetailRoute() {
         <Text variant="micro" muted style={styles.safetyNote}>
           {t("recipes.detail.safetyNote")}
         </Text>
+
+        {/* Guideline 1.2: a way to flag what the generator got wrong. */}
+        {recipeId ? (
+          <Button
+            title={t("recipes.detail.report")}
+            variant="text"
+            fit
+            onPress={confirmReport}
+            style={styles.reportButton}
+          />
+        ) : null}
       </View>
       </Animated.ScrollView>
 
@@ -1236,6 +1264,10 @@ const styles = StyleSheet.create({
   },
   safetyNote: {
     marginTop: spacing.lg,
+  },
+  reportButton: {
+    marginTop: spacing.xs,
+    alignSelf: "flex-start",
   },
   stepsPending: {
     flexDirection: "row",

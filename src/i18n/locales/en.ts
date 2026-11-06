@@ -785,6 +785,11 @@ export const en = {
       generate: "Find recipes",
     },
     detail: {
+      report: "Report this recipe",
+      reportTitle: "Report this recipe?",
+      reportBody: "Tell us this one got it wrong — unsafe, nonsense, or not food at all. It only goes to us.",
+      reportConfirm: "Report",
+      reportDone: "Thanks. We will take a look at this one.",
       safetyNote: "Recipes are AI-written. Check the ingredients yourself for allergens and anything that looks off.",
       backLabel: "Back",
       fromFridgeCount: "From what you have · {{count}} items",
