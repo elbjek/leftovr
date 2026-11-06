@@ -1054,6 +1054,8 @@ export const sr = {
       same: "Isto kao {{prev}}.",
       strongest: "Najbolja grupa: {{category}}.",
       weakest: "Najviše bacanja: {{category}}.",
+      chipStrong: "{{category}} prvo nestane",
+      chipWeak: "{{category}} se baca",
       lastWeek: "prošle nedelje",
       lastYear: "prošle godine",
     },
@@ -1139,6 +1141,11 @@ export const sr = {
       title: "Uvidi su deo Premiuma",
       body: "Vidi koliko uštediš svake nedelje, meseca i godine, šta bacaš i zašto, i šta se stalno kvari.",
       action: "Otključaj",
+      points: {
+        money: "Ušteda, nedelju po nedelju",
+        waste: "Šta potrošiš, a šta propadne",
+        share: "Račun koji možeš da podeliš",
+      },
     },
     share: {
       weekLabel: "Podeli svoju nedelju",

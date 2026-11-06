@@ -1026,6 +1026,8 @@ export const en = {
       same: "Same as {{prev}}.",
       strongest: "Your best food group: {{category}}.",
       weakest: "Most waste: {{category}}.",
+      chipStrong: "{{category}} finishes first",
+      chipWeak: "{{category}} slips",
       lastWeek: "last week",
       lastYear: "last year",
     },
@@ -1104,6 +1106,11 @@ export const en = {
       title: "Insights come with Premium",
       body: "See what you save each week, month and year, what you toss and why, and the foods that keep going off.",
       action: "Unlock",
+      points: {
+        money: "Money saved, week by week",
+        waste: "What you finish, what goes off",
+        share: "A receipt you can share",
+      },
     },
     share: {
       weekLabel: "Share your week",

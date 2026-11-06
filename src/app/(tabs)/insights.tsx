@@ -16,6 +16,7 @@ import {
   Screen,
   SectionTitle,
   ShareStatsSheet,
+  StoryCard,
   Tappable,
   Text,
   TopDinners,
@@ -27,7 +28,7 @@ import type { ShareLook } from "@/components";
 import { useDaySheet, usePeriodInsights, useStreak, useWins } from "@/hooks";
 import { InventoryCategory, Period, toUiCategory } from "@/services";
 import { formatMoney } from "@/lib/money";
-import { colors, radii, shadows, spacing } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 const PERIODS: Period[] = ["week", "month", "year"];
 
@@ -45,7 +46,6 @@ export default function InsightsRoute() {
   const [showPremium, setShowPremium] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<Period>("month");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const scope = "household" as const;
   const currency = activeHousehold?.currency_code ?? "USD";
@@ -74,53 +74,31 @@ export default function InsightsRoute() {
     }
   }, [refreshPeriod, refreshWins, refreshStreak, refresh]);
 
-  // Home-style header: logo on the left, the period pill on the right;
-  // Week / Month / Year open right under it.
-  const header = (label: string) => (
+  // Logo on the left as on the home, and the period as a segmented control
+  // right under it: three visible choices instead of a dropdown.
+  const header = () => (
     <View style={styles.top}>
       <View style={styles.header}>
         <View style={styles.brand}>
           <Logo size={26} />
           {isPremium ? <View style={styles.premiumDot} /> : null}
         </View>
-        {isPremium ? (
-          <Tappable
-            label={t("insights.period.change", { period: label })}
-            onPress={() => setMenuOpen((open) => !open)}
-            style={styles.pill}
-          >
-            <View style={styles.pillDot} />
-            <Text variant="small" weight="bold">
-              {label}
-            </Text>
-            <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" style={menuOpen ? styles.chevronOpen : undefined}>
-              <Path d="M6 9l6 6 6-6" stroke={colors.muted} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </Tappable>
-        ) : null}
       </View>
-      {menuOpen ? (
-        <View style={styles.menu}>
-          {PERIODS.map((option, index) => (
+      {isPremium ? (
+        <View style={styles.segmented} accessibilityRole="tablist">
+          {PERIODS.map((option) => (
             <Tappable
               key={option}
-              role="menuitem"
+              role="tab"
               selected={option === period}
-              onPress={() => {
-                setPeriod(option);
-                setMenuOpen(false);
-              }}
+              label={t(`insights.period.${option}`)}
+              onPress={() => setPeriod(option)}
               hitSlop={0}
-              style={[styles.menuRow, index > 0 && styles.menuDivider]}
+              style={[styles.segment, option === period && styles.segmentOn]}
             >
-              <Text variant="body" weight={option === period ? "bold" : undefined}>
+              <Text variant="label" weight="bold" color={option === period ? colors.primary : colors.muted}>
                 {t(`insights.period.${option}`)}
               </Text>
-              {option === period ? (
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                  <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
-                </Svg>
-              ) : null}
             </Tappable>
           ))}
         </View>
@@ -158,7 +136,7 @@ export default function InsightsRoute() {
   if (!isPremium) {
     return (
       <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-        {header(t(`insights.period.this.${period}`))}
+        {header()}
         <View style={styles.preview} pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
           <PeriodSummary
             label={t("insights.stats.saved")}
@@ -169,10 +147,35 @@ export default function InsightsRoute() {
           />
         </View>
         <View style={styles.lock}>
+          <View style={styles.lockSeal}>
+            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M4.5 10h15v10.5h-15zM8.2 10V7.6a3.8 3.8 0 017.6 0V10"
+                stroke={colors.accentInk}
+                strokeWidth={2.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </View>
           <Text variant="h2">{t("insights.lock.title")}</Text>
-          <Text variant="body" color={colors.accentInk}>
+          <Text variant="body" muted>
             {t("insights.lock.body")}
           </Text>
+          <View style={styles.lockPoints}>
+            {["money", "waste", "share"].map((point) => (
+              <View key={point} style={styles.lockPoint}>
+                <View style={styles.lockTick}>
+                  <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                    <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                </View>
+                <Text variant="label" style={styles.lockPointText}>
+                  {t(`insights.lock.points.${point}`)}
+                </Text>
+              </View>
+            ))}
+          </View>
           <Button title={t("insights.lock.action")} onPress={() => setShowPremium(true)} />
         </View>
         {sheets}
@@ -183,7 +186,7 @@ export default function InsightsRoute() {
   if (!data) {
     return (
       <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-        {header(t(`insights.period.this.${period}`))}
+        {header()}
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} />
         </View>
@@ -218,19 +221,19 @@ export default function InsightsRoute() {
   const headline =
     kitchen.used > 0 ? t(`insights.story.headline.${period}`, { count: kitchen.used }) : t(`insights.story.empty.${period}`);
   const usedDiff = kitchen.used - prevKitchen.used;
-  const storyLine = [
+  const storyLine =
     kitchen.used > 0 || prevKitchen.used > 0
       ? usedDiff > 0
         ? t("insights.story.more", { count: usedDiff, prev: prevName })
         : usedDiff < 0
           ? t("insights.story.fewer", { count: -usedDiff, prev: prevName })
           : t("insights.story.same", { prev: prevName })
-      : t("insights.story.start"),
-    kitchen.strongest ? t("insights.story.strongest", { category: categoryLabel(kitchen.strongest.category) }) : null,
-    kitchen.weakest ? t("insights.story.weakest", { category: categoryLabel(kitchen.weakest.category) }) : null,
-  ]
-    .filter(Boolean)
-    .join(" ");
+      : t("insights.story.start");
+  // The two group verdicts read as chips under the line, not as more sentences.
+  const storyChips = [
+    kitchen.strongest ? { text: t("insights.story.chipStrong", { category: categoryLabel(kitchen.strongest.category) }) } : null,
+    kitchen.weakest ? { text: t("insights.story.chipWeak", { category: categoryLabel(kitchen.weakest.category) }), weak: true } : null,
+  ].filter((chip): chip is { text: string; weak?: boolean } => chip !== null);
 
   // Chart: days of the week, or 7-day runs of the month. A running period's
   // `until` is when it loaded, so the bucket holding it is the current one.
@@ -369,18 +372,11 @@ export default function InsightsRoute() {
 
   return (
     <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-      {header(t(`insights.period.this.${period}`))}
-
-      <View style={styles.story}>
-        <Text variant="h2" accessibilityRole="header">
-          {headline}
-        </Text>
-        <Text variant="body" muted>
-          {storyLine}
-        </Text>
-      </View>
+      {header()}
 
       {summaryCard}
+
+      <StoryCard title={headline} body={storyLine} chips={storyChips} />
 
       <View style={styles.section}>
         <SectionTitle title={t(`insights.chart.title.${period}`)} />
@@ -469,48 +465,22 @@ const styles = StyleSheet.create({
     borderRadius: 3.5,
     backgroundColor: colors.accent,
   },
-  pill: {
+  // Week / Month / Year, all three visible.
+  segmented: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    minHeight: 36,
-    paddingHorizontal: spacing.md,
+    padding: 4,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
   },
-  pillDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: colors.primary,
-  },
-  story: {
-    gap: spacing.xs,
-    marginTop: -spacing.md,
-  },
-  chevronOpen: {
-    transform: [{ rotate: "180deg" }],
-  },
-  // Floats under the pill instead of pushing the page down.
-  menu: {
-    position: "absolute",
-    top: 44,
-    right: 0,
-    minWidth: 180,
-    borderRadius: radii.xl,
-    backgroundColor: colors.surface,
-    ...shadows.elevated,
-  },
-  menuRow: {
-    flexDirection: "row",
+  segment: {
+    flex: 1,
+    minHeight: 40,
     alignItems: "center",
-    justifyContent: "space-between",
-    minHeight: 48,
-    paddingHorizontal: spacing.lg,
+    justifyContent: "center",
+    borderRadius: radii.pill,
   },
-  menuDivider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.hairline,
+  segmentOn: {
+    backgroundColor: colors.surface,
   },
   section: {
     gap: spacing.sm,
@@ -527,7 +497,37 @@ const styles = StyleSheet.create({
   lock: {
     gap: spacing.md,
     padding: spacing.xl,
-    borderRadius: radii.xl,
+    borderRadius: radii.xxl,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.surface,
+  },
+  lockSeal: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.lg,
     backgroundColor: colors.accentSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  lockPoints: {
+    gap: spacing.sm,
+  },
+  lockPoint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  lockTick: {
+    width: 22,
+    height: 22,
+    borderRadius: radii.pill,
+    backgroundColor: colors.sageTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  lockPointText: {
+    flex: 1,
+    minWidth: 0,
   },
 });

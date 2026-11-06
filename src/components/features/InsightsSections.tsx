@@ -1,9 +1,8 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, radii, shadows, spacing } from "../../theme";
-import { GlyphTile, SectionHeader, Text } from "../primitives";
-import { RecipeGlyph } from "./RecipeGlyph";
+import { colors, radii, spacing } from "../../theme";
+import { GlyphTile, SectionHeader, Tappable, Text } from "../primitives";
 
 // The Insights tab's sections, TinyMeals-style: each answers one question
 // about your kitchen; with no data yet, the screen shows an EmptyNote instead.
@@ -26,6 +25,41 @@ export function SectionTitle({ title, aside, caption }: { title: string; aside?:
         <Text variant="small" muted>
           {caption}
         </Text>
+      ) : null}
+    </View>
+  );
+}
+
+/** The period in one sentence, with the strongest and weakest group as chips. */
+export function StoryCard({
+  title,
+  body,
+  chips,
+}: {
+  title: string;
+  body: string;
+  chips: { text: string; weak?: boolean }[];
+}) {
+  return (
+    <View style={styles.card}>
+      <View style={styles.storyText}>
+        <Text variant="h3" accessibilityRole="header">
+          {title}
+        </Text>
+        <Text variant="body" muted>
+          {body}
+        </Text>
+      </View>
+      {chips.length > 0 ? (
+        <View style={styles.chips}>
+          {chips.map((chip) => (
+            <View key={chip.text} style={[styles.chip, chip.weak && styles.chipWeak]}>
+              <Text variant="small" weight="bold" color={chip.weak ? colors.redInk : colors.primary}>
+                {chip.text}
+              </Text>
+            </View>
+          ))}
+        </View>
       ) : null}
     </View>
   );
@@ -72,11 +106,10 @@ export function UsedTossedChart({
         <Text variant="label" weight="bold">
           {title}
         </Text>
-        {aside ? (
-          <Text variant="small" muted>
-            {aside}
-          </Text>
-        ) : null}
+        <View style={styles.legend}>
+          <LegendDot color={colors.sage} label={legend.used} />
+          <LegendDot color={colors.redInk} label={legend.tossed} />
+        </View>
       </View>
       <View style={[styles.bars, { height: HEIGHT + 20 }]}>
         {bars.map((bar, index) => {
@@ -104,10 +137,22 @@ export function UsedTossedChart({
           </Text>
         ))}
       </View>
-      <View style={styles.legend}>
-        <LegendDot color={colors.sage} label={legend.used} />
-        <LegendDot color={colors.redInk} label={legend.tossed} />
-      </View>
+      {aside ? (
+        <View style={styles.callout}>
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M12 3l2.4 5.2 5.6.7-4.1 3.9 1.1 5.6L12 15.7 6.9 18.4 8 12.8 3.9 8.9l5.6-.7L12 3z"
+              stroke={colors.primary}
+              strokeWidth={2.2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+          <Text variant="small" weight="bold" color={colors.primary} style={styles.calloutText}>
+            {aside}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -138,18 +183,19 @@ export function FoodGroups({
           <View key={row.category} style={[styles.groupRow, index > 0 && styles.divider]}>
             <GlyphTile name="" category={row.category} size="sm" />
             <View style={styles.groupBody}>
-              <View style={styles.titleRow}>
-                <Text variant="label" weight="bold">
-                  {row.label}
-                </Text>
-                <Text variant="small" color={row.weak ? colors.redInk : colors.muted}>
-                  {row.detail}
-                </Text>
-              </View>
+              <Text variant="label" weight="bold">
+                {row.label}
+              </Text>
+              <Text variant="small" color={row.weak ? colors.redInk : colors.muted}>
+                {row.detail}
+              </Text>
               <View style={styles.progressTrack}>
                 <View style={[styles.progressFill, row.weak && styles.progressWeak, { width: `${Math.round(row.share * 100)}%` }]} />
               </View>
             </View>
+            <Text variant="label" weight="extrabold" color={row.weak ? colors.redInk : colors.primary}>
+              {`${Math.round(row.share * 100)}%`}
+            </Text>
           </View>
         ))}
       </View>
@@ -205,33 +251,26 @@ export function GoingOffList({
   );
 }
 
-/** The period's most-cooked dinners, ranked. */
+/** The period's most-cooked dinners as a menu: the dish, then how often. */
 export function TopDinners({ dinners }: { dinners: { title: string; detail: string; onPress?: () => void }[] }) {
   return (
-    <View style={styles.dinners}>
+    <View style={styles.menu}>
       {dinners.map((dinner, index) => (
-        <Pressable
+        <Tappable
           key={dinner.title}
-          accessibilityRole={dinner.onPress ? "button" : undefined}
+          role={dinner.onPress ? "button" : "text"}
           disabled={!dinner.onPress}
           onPress={dinner.onPress}
-          style={({ pressed }) => [styles.dinner, pressed && styles.pressed]}
+          hitSlop={0}
+          style={[styles.dinner, index > 0 && styles.menuDivider]}
         >
-          <View style={styles.dinnerTile}>
-            <RecipeGlyph size={30} />
-            <View style={styles.rank}>
-              <Text variant="small" weight="bold" color={colors.onPrimary}>
-                {index + 1}
-              </Text>
-            </View>
-          </View>
-          <Text variant="label" weight="bold" numberOfLines={2}>
+          <Text variant="label" weight="bold" color={colors.onPrimary} numberOfLines={2} style={styles.dinnerTitle}>
             {dinner.title}
           </Text>
-          <Text variant="small" muted>
+          <Text variant="label" weight="extrabold" color={colors.accent}>
             {dinner.detail}
           </Text>
-        </Pressable>
+        </Tappable>
       ))}
     </View>
   );
@@ -249,10 +288,39 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    ...shadows.soft,
+    borderRadius: radii.xxl,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
     padding: spacing.lg,
     gap: spacing.md,
+  },
+  storyText: {
+    gap: spacing.xs,
+  },
+  chips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
+    backgroundColor: colors.sageTint,
+  },
+  chipWeak: {
+    backgroundColor: colors.redSoft,
+  },
+  callout: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    backgroundColor: colors.sageTint,
+  },
+  calloutText: {
+    flex: 1,
   },
   note: {
     flexDirection: "row",
@@ -348,7 +416,7 @@ const styles = StyleSheet.create({
   groupBody: {
     flex: 1,
     minWidth: 0,
-    gap: 6,
+    gap: 4,
   },
   progressTrack: {
     height: 6,
@@ -377,46 +445,32 @@ const styles = StyleSheet.create({
   },
   dots: {
     flexDirection: "row",
-    gap: 6,
+    gap: 5,
   },
   dot: {
-    width: 14,
-    height: 14,
-    borderRadius: radii.xs,
+    width: 18,
+    height: 7,
+    borderRadius: radii.pill,
   },
-  dinners: {
-    flexDirection: "row",
-    gap: spacing.sm,
+  menu: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.xxl,
+    paddingHorizontal: spacing.lg,
   },
   dinner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+    minHeight: 56,
+    paddingVertical: spacing.md,
+  },
+  menuDivider: {
+    borderTopWidth: 1,
+    borderTopColor: colors.inverseHairline,
+  },
+  dinnerTitle: {
     flex: 1,
     minWidth: 0,
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    ...shadows.soft,
-    padding: spacing.md,
-    gap: spacing.xs,
-  },
-  dinnerTile: {
-    aspectRatio: 1,
-    borderRadius: radii.md,
-    backgroundColor: colors.sageTint,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.xs,
-  },
-  rank: {
-    position: "absolute",
-    top: 6,
-    left: 6,
-    width: 22,
-    height: 22,
-    borderRadius: radii.md,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pressed: {
-    opacity: 0.6,
   },
 });
