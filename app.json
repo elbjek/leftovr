@@ -12,7 +12,7 @@
       "bundleIdentifier": "app.leftovr.mobile",
       "usesAppleSignIn": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Leftovr uses your camera to scan receipts and barcodes.",
+        "NSCameraUsageDescription": "Leftovr uses your camera to photograph your shelves, scan receipts and read barcodes, so it can add that food to your kitchen.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {
