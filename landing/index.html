@@ -169,85 +169,107 @@
   .lang-toggle button[aria-pressed="true"] { background: var(--primary); color: var(--surface); }
   .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--primary); }
 
-  /* ── Stage ─────────────────────────────── */
   /* ── Hero ──────────────────────────────────────────────────────────
-     An editorial split: the message holds the left axis, the product demo
-     sits on the right as one elevated card. No background effects; the
-     contrast between cream page and paper card does the work. */
-  /* The hero owns the screen down to the fold, and it has its own light:
-     a warm vertical wash rather than a radial laid over flat cream. */
+     Night kitchen. The stage goes full-bleed green and the message sits in
+     the middle of it, centred, with nothing beside it to split attention.
+     The counter — your food and tonight's dinner — rises from the fold as
+     one cream card, so the page's first object is the product itself. */
   .stage {
     position: relative; overflow: hidden;
-    min-height: calc(100dvh - 71px);
-    display: flex; align-items: center;
-    padding: clamp(40px, 6vh, 72px) 0;
-    background: linear-gradient(177deg, #FCFAF7 0%, var(--surface) 38%, #F2EDE3 100%);
-  }
-  /* A single hairline where the hero ends, so the fold is deliberate. */
-  .stage::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: 0;
-    height: 1px; background: var(--hairline);
+    display: flex; flex-direction: column;
+    background: var(--primary-700);
+    color: var(--surface);
   }
 
+  /* The page's own food, oversized and cropped. On green it reads as
+     texture on a dark wall, not illustration. */
   .stage-texture { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-  .stage-texture .tx { position: absolute; opacity: 0.07; filter: saturate(0.5); }
-  .tx-1 { width: 320px; height: 320px; left: -108px; top: 9%;  transform: rotate(-14deg); }
-  .tx-2 { width: 270px; height: 270px; right: -84px; bottom: 7%; transform: rotate(16deg); }
-  .tx-3 { width: 230px; height: 230px; right: 13%;  top: -72px; transform: rotate(9deg); }
-  .tx-4 { width: 190px; height: 190px; left: 16%;   bottom: -66px; transform: rotate(-8deg); }
+  .stage-texture .tx { position: absolute; opacity: 0.06; filter: saturate(0.6); }
+  .tx-1 { width: 340px; height: 340px; left: -120px; top: 6%;  transform: rotate(-14deg); }
+  .tx-2 { width: 280px; height: 280px; right: -92px; top: 34%; transform: rotate(16deg); }
+  .tx-3 { width: 240px; height: 240px; right: 11%;  top: -84px; transform: rotate(9deg); }
+  .tx-4 { width: 200px; height: 200px; left: 14%;   top: -70px; transform: rotate(-8deg); }
   @media (max-width: 980px) { .tx-3, .tx-4 { display: none; } }
 
-  .stage-grid {
+  .stage-copy {
     position: relative; z-index: 1;
-    display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
-    gap: clamp(40px, 5.5vw, 80px); align-items: center;
-    max-width: 1180px;
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    padding: clamp(44px, 8vh, 104px) 0 clamp(28px, 5vh, 56px);
   }
-  .stage-copy { max-width: 38rem; }
+
+  .stage-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--accent); margin-bottom: 18px;
+  }
+  .stage-eyebrow::before {
+    content: ""; width: 6px; height: 6px; border-radius: 999px;
+    background: var(--accent);
+  }
 
   h1.stage-h1 {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     font-weight: 800;
-    font-size: clamp(33px, 4.2vw, 60px);
-    line-height: 1.04; letter-spacing: -0.036em;
-    color: var(--text); margin: 0 0 20px;
+    font-size: clamp(34px, 5.2vw, 68px);
+    line-height: 1.02; letter-spacing: -0.038em;
+    color: var(--surface); margin: 0 0 20px;
+    max-width: 17ch;
   }
-  /* Emphasis is the same typeface in the brand colour, not a drawn mark. */
-  .stage-h1 em { font-style: normal; color: var(--primary); }
+  /* Emphasis is the same typeface in gold, the one warm thing in the dark. */
+  .stage-h1 em { font-style: normal; color: var(--accent); }
 
   .stage-sub {
-    font-size: 18px; line-height: 1.55; color: var(--muted);
-    max-width: 30rem; margin: 0 0 36px;
+    font-size: 18.5px; line-height: 1.55;
+    color: rgba(249, 246, 241, 0.76);
+    max-width: 34rem; margin: 0 0 34px;
   }
 
-  /* ── The demo card ───────────────────────────────────────────────── */
-  .demo {
-    background: var(--paper); border: 1px solid var(--card-line);
-    border-radius: var(--r-lg); padding: 28px 30px 26px;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.9) inset,
-      0 28px 44px -28px rgba(120,80,40,0.42),
-      0 4px 10px -6px rgba(120,80,40,0.12);
+  /* The form inherits the dark stage: white fields, gold button. */
+  .stage-copy .capture { max-width: 480px; width: 100%; }
+  .stage-copy .capture-row { justify-content: center; }
+  .stage-copy .field { border-color: transparent; }
+  .stage-copy .field:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(242,193,78,0.22); }
+  .stage-copy .privacy { color: rgba(249, 246, 241, 0.64); justify-content: center; }
+  .stage-copy .form-success {
+    background: rgba(249, 246, 241, 0.08);
+    border-color: var(--inverse-hairline-strong);
+    color: var(--surface); text-align: left;
   }
-  .demo-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
-  /* The kitchen heading reads as a sentence; only Tonight keeps the small
-     caps, so the hero carries one label instead of three. */
+  .stage-copy .form-success .tick { background: var(--accent); }
+  .stage-copy .fs-sub { color: rgba(249, 246, 241, 0.72); font-size: 14px; }
+
+  /* ── The counter ─────────────────────────────────────────────────
+     One cream card, flush with the bottom of the stage: your kitchen on the
+     left, tonight's dinner on the right, a rule lit by gold between them. */
+  .stage-counter { position: relative; z-index: 1; margin-top: auto; }
+  .demo {
+    background: var(--paper); color: var(--text);
+    border: 1px solid var(--card-line); border-bottom: none;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    padding: 26px clamp(22px, 3vw, 38px) 28px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) 1px minmax(0, 1fr);
+    gap: 0 clamp(24px, 3.2vw, 44px); align-items: center;
+    box-shadow: 0 -28px 60px -30px rgba(0,0,0,0.45);
+  }
+  .demo-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; }
   .demo-label { font-size: 14px; font-weight: 700; color: var(--text); }
   .demo-count { font-size: 12.5px; color: var(--muted-2); }
   .demo-foot .demo-label {
     font-size: 10.5px; font-weight: 800; letter-spacing: 0.15em;
     text-transform: uppercase; color: var(--accent-ink);
+    display: block; margin-bottom: 12px;
   }
 
-  .k-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+  .k-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 18px; }
   /* Unused food sits back; the dish's own ingredients come forward. */
   .k-ing {
     display: flex; align-items: center; gap: 9px;
-    font-size: 14.5px; font-weight: 500; color: var(--muted);
+    font-size: 14px; font-weight: 500; color: var(--muted);
     transition: color 0.4s ease;
   }
   .k-ing img {
-    width: 34px; height: 34px; flex-shrink: 0; object-fit: contain;
+    width: 32px; height: 32px; flex-shrink: 0; object-fit: contain;
     opacity: 0.38; filter: saturate(0.2);
     transition: opacity 0.4s ease, filter 0.4s ease,
                 transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -255,17 +277,15 @@
   .k-ing.on { color: var(--text); font-weight: 700; }
   .k-ing.on img { opacity: 1; filter: none; transform: scale(1.1); }
 
-  /* The rule between the two halves. A gold sweep runs it on every swap:
-     these become that. */
-  .demo-rule { position: relative; height: 1px; background: var(--card-line); margin: 24px 0 20px; overflow: hidden; }
+  /* The rule between the two halves. A gold sweep runs it on every swap. */
+  .demo-rule { position: relative; align-self: stretch; width: 1px; background: var(--card-line); overflow: hidden; }
   .demo-sweep {
-    position: absolute; inset: 0; transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    position: absolute; inset: 0; transform: translateY(-100%);
+    background: linear-gradient(180deg, transparent, var(--accent), transparent);
   }
   .demo-rule.go .demo-sweep { animation: sweep 0.72s cubic-bezier(0.4, 0, 0.3, 1); }
-  @keyframes sweep { to { transform: translateX(100%); } }
+  @keyframes sweep { to { transform: translateY(100%); } }
 
-  .demo-foot .demo-label { display: block; margin-bottom: 12px; }
   .pick { display: flex; align-items: center; gap: 13px; }
   .pick-icons { display: flex; flex-shrink: 0; }
   .pick-icons span {
@@ -284,7 +304,7 @@
   .pick-text { flex: 1; min-width: 0; }
   .dish {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
-    font-weight: 800; font-size: 21px; line-height: 1.2;
+    font-weight: 800; font-size: 20px; line-height: 1.2;
     letter-spacing: -0.02em; color: var(--primary);
   }
   .dish-meta { font-size: 13px; line-height: 1.4; color: var(--muted); margin-top: 4px; }
@@ -305,17 +325,17 @@
   .dish-next svg { width: 16px; height: 16px; }
   .dish-next:hover { background: var(--primary-50); border-color: var(--primary); }
   .dish-next:active { transform: scale(0.94); }
-  .dish-next:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .dish-next:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 
-  .stage-copy .capture { max-width: 440px; }
-
-  /* Entrance: the message, then the card. */
+  /* Entrance: the message assembles, then the counter slides up under it. */
   @keyframes riseIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes counterIn { from { opacity: 0; transform: translateY(42px); } to { opacity: 1; transform: none; } }
   .stage-copy > * { animation: riseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .stage-copy > .stage-h1 { animation-delay: 0.04s; }
-  .stage-copy > .stage-sub { animation-delay: 0.10s; }
-  .stage-copy > .capture  { animation-delay: 0.16s; }
-  .demo { animation: riseIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both; }
+  .stage-copy > .stage-eyebrow { animation-delay: 0.02s; }
+  .stage-copy > .stage-h1 { animation-delay: 0.08s; }
+  .stage-copy > .stage-sub { animation-delay: 0.14s; }
+  .stage-copy > .capture  { animation-delay: 0.20s; }
+  .demo { animation: counterIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.26s both; }
 
   @media (prefers-reduced-motion: reduce) {
     .stage-copy > *, .demo { animation: none; opacity: 1; transform: none; }
@@ -325,14 +345,22 @@
   }
 
   @media (max-width: 980px) {
-    .stage { min-height: 0; display: block; padding: 36px 0 48px; }
-    .stage-grid { grid-template-columns: 1fr; gap: 36px; }
-    .stage-copy { max-width: none; }
-    .demo { order: 2; }
+    .stage-copy { padding: 44px 0 36px; }
+    .demo {
+      grid-template-columns: 1fr; gap: 0;
+      padding: 22px 20px 24px;
+    }
+    /* Stacked, the rule goes back to being a horizontal divider. */
+    .demo-rule { width: auto; height: 1px; align-self: auto; margin: 22px 0 20px; }
+    .demo-sweep { transform: translateX(-100%); background: linear-gradient(90deg, transparent, var(--accent), transparent); }
+    .demo-rule.go .demo-sweep { animation: sweepX 0.72s cubic-bezier(0.4, 0, 0.3, 1); }
+    @keyframes sweepX { to { transform: translateX(100%); } }
   }
   @media (max-width: 560px) {
-    .k-list { grid-template-columns: 1fr; gap: 9px; }
-    .demo { padding: 18px 18px 16px; }
+    .k-list { grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+    .k-ing { font-size: 13px; gap: 7px; }
+    .k-ing img { width: 28px; height: 28px; }
+    .stage-copy .capture-row { flex-direction: column; }
   }
 
   /* The device now lives under "What is leftovr?". */
@@ -1176,9 +1204,8 @@
 
   <!-- ─────────────── HERO ─────────────── -->
   <section class="stage" id="top-stage" data-screen-label="Hero">
-    <!-- The page's own food, oversized and cropped by the viewport. At this
-         opacity it is texture, not illustration: the cream gets something to
-         catch light on without anything competing with the card. -->
+    <!-- Food at wall scale, cropped by the viewport. On green it is texture:
+         the dark gets something to catch light on, nothing competes. -->
     <div class="stage-texture" aria-hidden="true">
       <img class="tx tx-1" src="/food/spinach.png" alt="" width="192" height="192" decoding="async">
       <img class="tx tx-2" src="/food/tomato.png" alt="" width="192" height="192" decoding="async">
@@ -1186,51 +1213,54 @@
       <img class="tx tx-4" src="/food/cheese.png" alt="" width="192" height="192" decoding="async">
     </div>
 
-    <div class="wrap stage-grid">
+    <div class="wrap stage-copy">
+      <span class="micro stage-eyebrow" data-i18n="hero.eyebrow">iPhone &middot; free to start</span>
 
-      <div class="stage-copy">
-        <h1 class="stage-h1" data-i18n-html="hero.h1">
-          Dinner, from what&#39;s <em>already in your fridge</em>.
-        </h1>
+      <h1 class="stage-h1" data-i18n-html="hero.h1">
+        Dinner, from what&#39;s <em>already in your fridge</em>.
+      </h1>
 
-        <p class="stage-sub" data-i18n="hero.sub">Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight&#39;s dinner from it.</p>
+      <p class="stage-sub" data-i18n="hero.sub">Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight&#39;s dinner from it.</p>
 
       <form class="capture" id="hero-form" novalidate>
         <label class="capture-label sr-only" for="hero-email" data-i18n="hero.formLabel">Get early access</label>
         <div class="capture-row">
           <input class="field" type="email" id="hero-email" name="email" placeholder="you@email.com" data-i18n-ph="hero.placeholder" autocomplete="email" required>
-          <button class="btn btn-primary" type="submit" data-i18n="hero.submit">Join the waitlist</button>
+          <button class="btn btn-accent" type="submit" data-i18n="hero.submit">Join the waitlist</button>
         </div>
         <div id="hero-captcha" class="captcha-widget"></div>
         <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="privacy">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="#55655A" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
           <span data-i18n="hero.privacy">Early-access updates only. Unsubscribe anytime.</span>
         </div>
         <p class="form-msg" id="hero-msg" role="status" aria-live="polite"></p>
       </form>
       <div class="form-success" id="hero-success">
-        <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#F9F6F1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div><b style="font-weight:700;" data-i18n="hero.successTitle">You&#39;re on the list.</b><br><span style="color:var(--muted);font-size:14px;" data-i18n="hero.successBody">We&#39;ll email your invite as soon as a spot opens, usually within a few days.</span></div>
+        <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#1A3A28" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><b style="font-weight:700;" data-i18n="hero.successTitle">You&#39;re on the list.</b><br><span class="fs-sub" data-i18n="hero.successBody">We&#39;ll email your invite as soon as a spot opens, usually within a few days.</span></div>
       </div>
-      </div>
+    </div>
 
-      <!-- The demo: one card, two sections, a rule between them. Tonight's
-           dish lights the things it uses in the kitchen above it. -->
+    <!-- The counter: your food on the left, tonight's dinner on the right,
+         a gold sweep down the rule on every swap. -->
+    <div class="wrap stage-counter">
       <div class="demo" role="img" aria-label="leftovr turning the food in your kitchen into tonight&#39;s dinner">
-        <div class="demo-head">
-          <span class="demo-label" data-i18n="stage.have">Your kitchen</span>
-          <span class="demo-count" data-i18n="stage.count">6 items</span>
-        </div>
+        <div class="demo-main">
+          <div class="demo-head">
+            <span class="demo-label" data-i18n="stage.have">Your kitchen</span>
+            <span class="demo-count" data-i18n="stage.count">6 items</span>
+          </div>
 
-        <ul class="k-list">
-            <li class="k-ing" data-ing="0"><img src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing0">Baby spinach</span></li>
-            <li class="k-ing" data-ing="1"><img src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing1">Feta</span></li>
-            <li class="k-ing" data-ing="2"><img src="/food/eggs.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing2">Free-range eggs</span></li>
-            <li class="k-ing" data-ing="3"><img src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing3">Cherry tomatoes</span></li>
-            <li class="k-ing" data-ing="4"><img src="/food/chicken_breast.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing4">Chicken breast</span></li>
-            <li class="k-ing" data-ing="5"><img src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing5">Pasta</span></li>
-        </ul>
+          <ul class="k-list">
+            <li class="k-ing" data-ing="0"><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing0">Baby spinach</span></li>
+            <li class="k-ing" data-ing="1"><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing1">Feta</span></li>
+            <li class="k-ing" data-ing="2"><img src="/food/eggs.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing2">Free-range eggs</span></li>
+            <li class="k-ing" data-ing="3"><img src="/food/tomato.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing3">Cherry tomatoes</span></li>
+            <li class="k-ing" data-ing="4"><img src="/food/chicken_breast.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing4">Chicken breast</span></li>
+            <li class="k-ing" data-ing="5"><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing5">Pasta</span></li>
+          </ul>
+        </div>
 
         <div class="demo-rule"><span class="demo-sweep"></span></div>
 
@@ -1252,7 +1282,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </section>
 
@@ -1996,6 +2025,7 @@
       "meta.desc": "leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start.",
       "nav.tag": "What's for dinner?",
       "nav.cta": "Get early access",
+      "hero.eyebrow": "iPhone · free to start",
       "hero.h1": "Dinner, from what's <em>already in your fridge</em>.",
       "hero.sub": "Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight's dinner from it.",
       "stage.have": "Your kitchen",
@@ -2202,6 +2232,7 @@
       "meta.desc": "leftovr pretvara sliku tvog frižidera ili ostave u recepte od hrane koju već imaš. Računi i bar-kodovi takođe pune kuhinju. iPhone, besplatno za početak.",
       "nav.tag": "Šta ima za večeru?",
       "nav.cta": "Rani pristup",
+      "hero.eyebrow": "iPhone · besplatno za početak",
       "hero.h1": "Večera od onoga <em>što već imaš u frižideru</em>.",
       "hero.sub": "Slikaj frižider. leftovr napuni tvoju kuhinju, označi šta prvo propada i od toga napravi večeru.",
       "stage.have": "Tvoja kuhinja",
