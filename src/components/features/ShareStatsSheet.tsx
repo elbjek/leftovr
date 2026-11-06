@@ -24,7 +24,7 @@ type Props = {
 };
 
 /** How tall the preview may be; the card's width follows from its format. */
-const PREVIEW_HEIGHT = 300;
+const PREVIEW_HEIGHT = 340;
 
 /**
  * Pick which stat to share and in which shape (Instagram post or story), see
