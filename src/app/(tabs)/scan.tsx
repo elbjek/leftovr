@@ -5,11 +5,11 @@ import * as FileSystem from "expo-file-system/legacy";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, DateField, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
+import { BackButton, BottomSheet, Button, Card, DateField, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnitPicker } from "@/components";
 import { acceptAiDisclosure, hasAcceptedAiDisclosure, isPremium as resolvePremium, useAuth } from "@/features";
 import { useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
@@ -37,7 +37,7 @@ import {
   ReceiptConfirmItem,
   searchOpenFoodFactsProducts,
 } from "@/services";
-import { colors, radii, spacing } from "@/theme";
+import { colors, radii, shadows, spacing } from "@/theme";
 
 function formatNet(product: BarcodeProduct) {
   return product.netAmount && product.netUnit ? `${product.netAmount} ${product.netUnit}` : null;
@@ -795,9 +795,8 @@ export default function ScanRoute() {
             autofocus={focusMode}
             zoom={RECEIPT_ZOOM}
           />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("scan.tapToFocus")}
+          <Tappable
+            label={t("scan.tapToFocus")}
             onPress={refocus}
             style={StyleSheet.absoluteFill}
           />
@@ -828,19 +827,18 @@ export default function ScanRoute() {
             </View>
 
             {error ? (
-              <Text variant="small" color={colors.red} center>
+              <Text variant="small" color={colors.redInk} center>
                 {error}
               </Text>
             ) : null}
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("scan.capture")}
+            <Tappable
+              label={t("scan.capture")}
               onPress={() => captureReceipt()}
               style={styles.captureButton}
             >
               <View style={styles.captureInner} />
-            </Pressable>
+            </Tappable>
           </View>
         </View>
       </Screen>
@@ -872,9 +870,8 @@ export default function ScanRoute() {
       <Screen padded={false} backgroundColor={colors.black}>
         <View style={styles.cameraWrap}>
           <CameraView ref={receiptCameraRef} style={styles.camera} facing="back" autofocus={focusMode} />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("scan.tapToFocus")}
+          <Tappable
+            label={t("scan.tapToFocus")}
             onPress={refocus}
             style={StyleSheet.absoluteFill}
           />
@@ -898,7 +895,7 @@ export default function ScanRoute() {
             </View>
 
             {error ? (
-              <Text variant="small" color={colors.red} center>
+              <Text variant="small" color={colors.redInk} center>
                 {error}
               </Text>
             ) : null}
@@ -909,9 +906,8 @@ export default function ScanRoute() {
                   {pantryPhotos.map((photo, index) => (
                     <View key={photo.uri} style={styles.pantryThumbWrap}>
                       <Image source={{ uri: photo.uri }} style={styles.pantryThumb} />
-                      <Pressable
-                        accessibilityRole="button"
-                        accessibilityLabel={t("scan.pantry.removePhoto", { number: index + 1 })}
+                      <Tappable
+                        label={t("scan.pantry.removePhoto", { number: index + 1 })}
                         hitSlop={spacing.sm}
                         onPress={() =>
                           setPantryPhotos((current) => current.filter((_, i) => i !== index))
@@ -919,7 +915,7 @@ export default function ScanRoute() {
                         style={styles.pantryThumbRemove}
                       >
                         <Text variant="micro" color={colors.onPrimary}>✕</Text>
-                      </Pressable>
+                      </Tappable>
                     </View>
                   ))}
                   <Text variant="small" color={colors.onPrimary}>
@@ -931,9 +927,8 @@ export default function ScanRoute() {
                 </View>
               ) : null}
 
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t("scan.pantry.capture")}
+              <Tappable
+                label={t("scan.pantry.capture")}
                 disabled={!canCapture}
                 onPress={() => capturePantryPhoto()}
                 style={[styles.captureButton, !canCapture && styles.captureButtonDisabled]}
@@ -943,7 +938,7 @@ export default function ScanRoute() {
                 ) : (
                   <View style={styles.captureInner} />
                 )}
-              </Pressable>
+              </Tappable>
 
               {pantryPhotos.length > 0 ? (
                 <Button
@@ -1008,14 +1003,13 @@ export default function ScanRoute() {
               />
             </View>
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("scan.tapToFocus")}
+            <Tappable
+              label={t("scan.tapToFocus")}
               onPress={refocus}
               style={styles.barcodeFrame}
             >
               <View style={styles.scanLine} />
-            </Pressable>
+            </Tappable>
 
             <View style={styles.coachCard}>
               <Text variant="label">{t("scan.barcodeCoachTitle")}</Text>
@@ -1025,7 +1019,7 @@ export default function ScanRoute() {
             </View>
 
             {error ? (
-              <Text variant="small" color={colors.red} center>
+              <Text variant="small" color={colors.redInk} center>
                 {error}
               </Text>
             ) : null}
@@ -1116,11 +1110,10 @@ export default function ScanRoute() {
               {t("scan.manual.onlineResults")}
             </Text>
             {offResults.map((product) => (
-              <Pressable
+              <Tappable
                 key={product.barcode}
-                accessibilityRole="button"
                 onPress={() => openProductSheet(product)}
-                style={({ pressed }) => [styles.suggestionRow, pressed && styles.pressed]}
+                style={[styles.suggestionRow]}
               >
                 <View>
                   <Text variant="label">{product.name}</Text>
@@ -1132,16 +1125,15 @@ export default function ScanRoute() {
                 <Text variant="label" color={colors.primary}>
                   {t("scan.add")}
                 </Text>
-              </Pressable>
+              </Tappable>
             ))}
           </View>
         ) : null}
 
         {showCustomManualAdd ? (
-          <Pressable
-            accessibilityRole="button"
+          <Tappable
             onPress={() => openProductSheet(null)}
-            style={({ pressed }) => [styles.customAddRow, pressed && styles.pressed]}
+            style={[styles.customAddRow]}
           >
             <View style={styles.customAddPlus}>
               <Text variant="h3" color={colors.primary}>+</Text>
@@ -1149,11 +1141,11 @@ export default function ScanRoute() {
             <Text variant="label" color={colors.primary}>
               {t("scan.manual.addCustom", { item: manualQuery.trim() })}
             </Text>
-          </Pressable>
+          </Tappable>
         ) : null}
 
         {error && !customSheetVisible ? (
-          <Text variant="small" color={colors.red} center>
+          <Text variant="small" color={colors.redInk} center>
             {error}
           </Text>
         ) : null}
@@ -1181,9 +1173,8 @@ export default function ScanRoute() {
               contentContainerStyle={styles.categoryRow}
             >
               {INVENTORY_CATEGORIES.map((category) => (
-                <Pressable
+                <Tappable
                   key={category}
-                  accessibilityRole="button"
                   onPress={() => setManualCategory(category)}
                   style={[
                     styles.categoryChip,
@@ -1196,7 +1187,7 @@ export default function ScanRoute() {
                   >
                     {t(`scan.categories.${category}`)}
                   </Text>
-                </Pressable>
+                </Tappable>
               ))}
             </ScrollView>
 
@@ -1206,27 +1197,25 @@ export default function ScanRoute() {
                   {t("scan.manual.quantityLabel")}
                 </Text>
                 <View style={styles.stepperRow}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t("scan.manual.quantityDown")}
+                  <Tappable
+                    label={t("scan.manual.quantityDown")}
                     hitSlop={spacing.sm}
                     onPress={() => setManualQuantity((current) => Math.max(1, current - 1))}
-                    style={({ pressed }) => [styles.stepButton, pressed && styles.pressed]}
+                    style={[styles.stepButton]}
                   >
                     <Text variant="h3" color={colors.primary}>−</Text>
-                  </Pressable>
+                  </Tappable>
                   <Text variant="h3" style={styles.stepValue}>
                     {manualQuantity}
                   </Text>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t("scan.manual.quantityUp")}
+                  <Tappable
+                    label={t("scan.manual.quantityUp")}
                     hitSlop={spacing.sm}
                     onPress={() => setManualQuantity((current) => current + 1)}
-                    style={({ pressed }) => [styles.stepButton, pressed && styles.pressed]}
+                    style={[styles.stepButton]}
                   >
                     <Text variant="h3" color={colors.primary}>+</Text>
-                  </Pressable>
+                  </Tappable>
                 </View>
               </View>
 
@@ -1279,7 +1268,7 @@ export default function ScanRoute() {
             />
 
             {error ? (
-              <Text variant="small" color={colors.red} center>
+              <Text variant="small" color={colors.redInk} center>
                 {error}
               </Text>
             ) : null}
@@ -1312,7 +1301,7 @@ export default function ScanRoute() {
           subtitle={choice === "pantry" ? t("scan.pantry.confirmBody") : t("scan.confirm.body")}
         />
         {error ? (
-          <Text variant="small" color={colors.red} center style={styles.confirmError}>
+          <Text variant="small" color={colors.redInk} center style={styles.confirmError}>
             {error}
           </Text>
         ) : null}
@@ -1459,7 +1448,7 @@ export default function ScanRoute() {
       </View>
 
       {error ? (
-        <Text variant="small" color={colors.red} center>
+        <Text variant="small" color={colors.redInk} center>
           {error}
         </Text>
       ) : null}
@@ -1638,7 +1627,8 @@ const styles = StyleSheet.create({
     borderRightWidth: 4,
   },
   coachCard: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
     borderRadius: radii.xl,
     padding: spacing.lg,
     gap: spacing.xs,
@@ -1721,9 +1711,7 @@ const styles = StyleSheet.create({
   suggestionRow: {
     minHeight: 68,
     borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     flexDirection: "row",
@@ -1755,7 +1743,7 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
     borderColor: colors.hairlineStrong,
     borderRadius: radii.lg,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
@@ -1773,25 +1761,20 @@ const styles = StyleSheet.create({
   },
   categoryChip: {
     borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairlineStrong,
+    backgroundColor: colors.surface2,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.paper,
   },
   categoryChipSelected: {
     backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   fieldRow: {
     flexDirection: "row",
     gap: spacing.md,
   },
   fieldBox: {
-    borderWidth: 1,
-    borderColor: colors.hairline,
     borderRadius: radii.lg,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface2,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: spacing.xs,

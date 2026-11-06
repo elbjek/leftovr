@@ -4,7 +4,8 @@ import { AccessibilityRole, AccessibilityState, Pressable, StyleProp, StyleSheet
 type Feedback = "opacity" | "scale" | "none";
 
 type Props = {
-  children: React.ReactNode;
+  /** Optional: a full-bleed tap target (a focus layer, a scrim) has none. */
+  children?: React.ReactNode;
   onPress?: () => void;
   onLongPress?: () => void;
   /** Spoken name. Required unless the children are already readable text. */
