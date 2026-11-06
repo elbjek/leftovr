@@ -167,74 +167,102 @@
   .lang-toggle button[aria-pressed="true"] { background: var(--primary); color: var(--surface); }
   .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--primary); }
 
-  /* ── Hero ──────────────────────────────── */
-  .hero { padding: 104px 0 80px; position: relative; overflow: hidden; }
-  .hero-grid {
-    position: relative; z-index: 2;
-    display: grid; grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
-    gap: 48px; align-items: center;
-    max-width: 1180px; margin: 0 auto;
-  }
-  .hero-copy { max-width: 580px; }
-
-  /* Hero background layers */
-  .hero-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-  .hg-grid {
-    position: absolute; inset: -12%;
-    background-image: radial-gradient(circle, rgba(27,67,50,0.16) 1.3px, transparent 1.5px);
-    background-size: 27px 27px;
-    -webkit-mask-image: radial-gradient(ellipse 58% 56% at 50% 44%, transparent 38%, #000 80%);
-    mask-image: radial-gradient(ellipse 58% 56% at 50% 44%, transparent 38%, #000 80%);
-    opacity: 0.5;
-  }
-  /* One warm light source behind the device. Large surfaces read as thicker,
-     so this is wide and soft rather than a tight corner blob. */
-  .hg-glow-gold {
-    position: absolute; width: 1000px; height: 1000px; border-radius: 50%;
-    right: -220px; top: -180px;
-    background:
-      radial-gradient(circle at 50% 50%, rgba(242,193,78,0.38), transparent 56%),
-      radial-gradient(circle at 38% 62%, rgba(167,195,163,0.26), transparent 58%);
-  }
-  .hg-ring {
-    position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
-    width: 1180px; height: 1180px; border-radius: 50%;
-    border: 1px solid var(--hairline);
-  }
-  .hg-ring::before {
-    content: ""; position: absolute; inset: 160px; border-radius: 50%;
-    border: 1px solid rgba(27,67,50,0.06);
-  }
+  /* ── Stage ─────────────────────────────── */
+  .stage { position: relative; overflow: hidden; padding: 72px 0 84px; }
+  .stage-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .stage-inner { position: relative; z-index: 2; max-width: 980px; text-align: center; }
 
   .kicker {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 7px 14px; border-radius: 999px;
     background: var(--primary-50); color: var(--primary);
-    font-weight: 600; font-size: 13px; text-transform: uppercase; margin-bottom: 22px;
+    font-weight: 700; font-size: 12px; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 26px;
   }
-  .kicker .seed { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .kicker .seed { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
-  h1.hero-h1 {
+  h1.stage-h1 {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     font-weight: 800;
-    font-size: clamp(38px, 4.6vw, 62px);
-    line-height: 1.02;
-    letter-spacing: -0.035em;
+    /* min keeps the nowrap underlined phrase inside a 390px screen */
+    font-size: clamp(31px, 5.6vw, 72px);
+    line-height: 1.02; letter-spacing: -0.038em;
     color: var(--text);
-    margin-bottom: 20px;
+    max-width: 16ch; margin: 0 auto 44px;
   }
-  .hero-h1 .mark { color: var(--primary); }
   .uline { position: relative; white-space: nowrap; }
-  .uline svg { position: absolute; left: 0; right: 0; bottom: -10px; width: 100%; height: 14px; }
+  .uline svg { position: absolute; left: 0; right: 0; bottom: -0.14em; width: 100%; height: 0.19em; }
 
-  .hero-tagline {
-    font-size: 23px; font-weight: 600; letter-spacing: -0.02em;
-    color: var(--primary); line-height: 1.2; margin-bottom: 14px;
+  /* The plate: your kitchen on the left, tonight on the right. */
+  .plate {
+    display: grid; grid-template-columns: 1.1fr auto 1fr; align-items: center;
+    gap: 34px; text-align: left;
+    background: var(--primary); color: var(--surface);
+    border-radius: var(--r-lg); padding: 34px 36px;
+    box-shadow: 0 30px 70px -34px rgba(35,75,52,0.55), 0 4px 14px rgba(31,31,31,0.06);
+  }
+  .plate-label {
+    font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 12px;
+  }
+  .ings { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 18px; }
+  /* Dim by default, lit when tonight's dish uses it. That swap IS the product. */
+  .ing {
+    position: relative; padding-left: 15px;
+    font-size: 15px; font-weight: 600; line-height: 1.3;
+    color: rgba(249,246,241,0.40);
+    transition: color 0.45s ease;
+  }
+  /* A tick that fills in when tonight's dish claims the ingredient. */
+  .ing::before {
+    content: ""; position: absolute; left: 0; top: 0.52em;
+    width: 7px; height: 7px; border-radius: 2px;
+    background: rgba(249,246,241,0.18);
+    transition: background 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .ing.on { color: var(--surface); }
+  .ing.on::before { background: var(--accent); transform: scale(1.25); }
+  .plate-arrow { color: rgba(249,246,241,0.30); width: 52px; }
+  .plate-arrow svg { width: 52px; height: 14px; }
+
+  .dish-wrap { position: relative; min-height: 4.6em; }
+  .dish {
+    font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
+    font-weight: 800; font-size: clamp(24px, 2.9vw, 34px);
+    line-height: 1.1; letter-spacing: -0.025em; color: var(--accent);
+  }
+  .dish-meta { font-size: 14px; line-height: 1.45; color: rgba(249,246,241,0.74); margin-top: 8px; }
+  .dish.swap, .dish-meta.swap { animation: dishIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  @keyframes dishIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  .stage-inner .capture { max-width: 470px; margin: 40px auto 0; }
+  .stage-inner .capture-label { text-align: center; }
+  .stage-inner .privacy { justify-content: center; }
+  .stage-inner .form-success { margin: 40px auto 0; }
+
+  /* Entrance: eyebrow, headline, then the plate deals in. */
+  @keyframes riseIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes plateIn { from { opacity: 0; transform: translateY(26px) scale(0.97); } to { opacity: 1; transform: none; } }
+  .stage-inner > * { animation: riseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .stage-inner > .kicker   { animation-delay: 0.02s; }
+  .stage-inner > .stage-h1 { animation-delay: 0.10s; }
+  .stage-inner > .plate    { animation: plateIn 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.20s both; }
+  .stage-inner > .capture  { animation-delay: 0.34s; }
+
+  /* The device now lives under "What is leftovr?". */
+  .define-device { display: flex; justify-content: center; margin: 44px 0 8px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage-inner > *, .stage-inner > .plate, .phone-stage,
+    .lo-head, .lo-urgent, .lo-week, .lo-try,
+    .dish, .dish-meta { animation: none; opacity: 1; transform: none; filter: none; }
+    .ing { transition: none; }
   }
 
-  .hero-sub {
-    font-size: 19px; line-height: 1.55; letter-spacing: 0; color: var(--muted);
-    max-width: 30rem; margin: 0 0 32px;
+  @media (max-width: 860px) {
+    .plate { grid-template-columns: 1fr; gap: 20px; padding: 26px 24px; text-align: left; }
+    .plate-arrow { transform: rotate(90deg); margin: 0 auto; }
+    .dish-wrap { min-height: 0; }
   }
 
   /* Inline email capture */
@@ -297,17 +325,11 @@
   }
 
   /* ── Phone mockup ──────────────────────── */
-  .phone-stage {
-    position: relative; display: flex; align-items: center; justify-content: center;
-    perspective: 1500px;
-  }
+  .phone-stage { position: relative; display: flex; align-items: center; justify-content: center; }
   /* Rest pose. JS writes --rx/--ry/--tx/--ty from two critically damped
      springs (Apple: damping 1.0, response 0.4), so the device keeps following
      the pointer and can be redirected at any frame. */
-  .phone {
-    --rx: 1.5deg; --ry: -9deg; --tx: 0px; --ty: 0px;
-    transform: rotateX(var(--rx)) rotateY(var(--ry)) translate3d(var(--tx), var(--ty), 0);
-  }
+
   .phone-glow {
     position: absolute; width: 520px; height: 520px; border-radius: 50%;
     background: radial-gradient(circle, rgba(242,193,78,0.26), transparent 68%);
@@ -928,48 +950,88 @@
 <main id="top">
 
   <!-- ─────────────── HERO ─────────────── -->
-  <section class="hero" data-screen-label="Hero">
-    <div class="hero-bg" aria-hidden="true">
+  <section class="stage" id="top-stage" data-screen-label="Hero">
+    <div class="stage-bg" aria-hidden="true">
       <div class="hg-glow-gold"></div>
-      <div class="hg-ring"></div>
       <div class="hg-grid"></div>
-
     </div>
-    <div class="wrap hero-grid">
-      <div class="hero-copy">
-        <div class="kicker" data-i18n-kicker="hero.kicker">
-          <span class="seed" aria-hidden="true"></span><span>Waste less</span><span class="seed" aria-hidden="true"></span><span>Cook more</span><span class="seed" aria-hidden="true"></span>
-        </div>
 
-        <h1 class="hero-h1" data-i18n-html="hero.h1">
-          Snap your shelves. <span class="uline">Cook what's on them<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#D4A843" stroke-width="4" stroke-linecap="round"/></svg></span>.
-        </h1>
-
-        <p class="hero-sub" data-i18n="hero.sub">Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight's dinner from it.</p>
-
-        <!-- Inline email capture -->
-        <form class="capture" id="hero-form" novalidate>
-          <label class="capture-label sr-only" for="hero-email" data-i18n="hero.formLabel">Get early access</label>
-          <div class="capture-row">
-            <input class="field" type="email" id="hero-email" name="email" placeholder="you@email.com" data-i18n-ph="hero.placeholder" autocomplete="email" required>
-            <button class="btn btn-primary" type="submit" data-i18n="hero.submit">Join the waitlist</button>
-          </div>
-          <div id="hero-captcha" class="captcha-widget"></div>
-          <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <div class="privacy">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="#6B7A6D" stroke-width="1.2" stroke-linejoin="round"/></svg>
-            <span data-i18n="hero.privacy">Early-access updates only. Unsubscribe anytime.</span>
-          </div>
-          <p class="form-msg" id="hero-msg" role="status" aria-live="polite"></p>
-        </form>
-        <div class="form-success" id="hero-success">
-          <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#F8F4EE" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <div><b style="font-weight:700;" data-i18n="hero.successTitle">You're on the list.</b><br><span style="color:var(--muted);font-size:14px;" data-i18n="hero.successBody">We'll email your invite as soon as a spot opens, usually within a few days.</span></div>
-        </div>
-
+    <div class="wrap stage-inner">
+      <div class="kicker" data-i18n-kicker="hero.kicker">
+        <span class="seed" aria-hidden="true"></span><span>Waste less</span><span class="seed" aria-hidden="true"></span><span>Cook more</span><span class="seed" aria-hidden="true"></span>
       </div>
 
-      <!-- Phone mockup -->
+      <h1 class="stage-h1" data-i18n-html="hero.h1">
+        Dinner, from what&#39;s <span class="uline">already in your fridge<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#F2C14E" stroke-width="4" stroke-linecap="round"/></svg></span>.
+      </h1>
+
+      <!-- The plate: what you have, and what it becomes. The loop below is the
+           product demo, so the motion is the message. -->
+      <div class="plate" role="img" aria-label="leftovr turning the food in your kitchen into tonight&#39;s dinner">
+        <div class="plate-side">
+          <div class="plate-label" data-i18n="stage.have">You have</div>
+          <div class="ings">
+            <span class="ing" data-ing="0" data-i18n="stage.ing0">Baby spinach</span>
+            <span class="ing" data-ing="1" data-i18n="stage.ing1">Feta</span>
+            <span class="ing" data-ing="2" data-i18n="stage.ing2">Free-range eggs</span>
+            <span class="ing" data-ing="3" data-i18n="stage.ing3">Cherry tomatoes</span>
+            <span class="ing" data-ing="4" data-i18n="stage.ing4">Chicken breast</span>
+            <span class="ing" data-ing="5" data-i18n="stage.ing5">Pasta</span>
+          </div>
+        </div>
+
+        <div class="plate-arrow" aria-hidden="true">
+          <svg viewBox="0 0 40 12" fill="none" preserveAspectRatio="none"><path d="M1 6h34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M30 1.5 35.5 6 30 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+
+        <div class="plate-side plate-answer">
+          <div class="plate-label" data-i18n="stage.tonight">Tonight</div>
+          <div class="dish-wrap">
+            <div class="dish" id="dish" data-i18n="stage.dish0">Spinach &amp; feta pasta</div>
+            <div class="dish-meta" id="dish-meta" data-i18n="stage.meta0">20 min &middot; uses the spinach before it turns</div>
+          </div>
+        </div>
+      </div>
+
+      <form class="capture" id="hero-form" novalidate>
+        <label class="capture-label sr-only" for="hero-email" data-i18n="hero.formLabel">Get early access</label>
+        <div class="capture-row">
+          <input class="field" type="email" id="hero-email" name="email" placeholder="you@email.com" data-i18n-ph="hero.placeholder" autocomplete="email" required>
+          <button class="btn btn-primary" type="submit" data-i18n="hero.submit">Join the waitlist</button>
+        </div>
+        <div id="hero-captcha" class="captcha-widget"></div>
+        <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="privacy">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="#55655A" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          <span data-i18n="hero.privacy">Early-access updates only. Unsubscribe anytime.</span>
+        </div>
+        <p class="form-msg" id="hero-msg" role="status" aria-live="polite"></p>
+      </form>
+      <div class="form-success" id="hero-success">
+        <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#F9F6F1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><b style="font-weight:700;" data-i18n="hero.successTitle">You&#39;re on the list.</b><br><span style="color:var(--muted);font-size:14px;" data-i18n="hero.successBody">We&#39;ll email your invite as soon as a spot opens, usually within a few days.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── WHAT IS LEFTOVR (plain-answer block) ─────────────── -->
+  <section class="define sec-pad" id="what" data-screen-label="What is leftovr">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="what.eyebrow">What is leftovr?</div>
+        <h2 class="sec-title" data-i18n-html="what.title">The app that already knows <span class="mark">what's in your kitchen.</span></h2>
+      </div>
+      <div class="define-card">
+        <p class="lede" data-i18n="what.body">leftovr is an iPhone app that turns the food you already own into dinner. Photograph your fridge or pantry — or scan a grocery receipt — and leftovr fills your kitchen, ranks everything by what should be eaten first, and generates recipes from those ingredients only.</p>
+        <div class="define-facts">
+          <span data-i18n="what.fact1">iPhone app</span>
+          <span data-i18n="what.fact2">English &amp; Serbian</span>
+          <span data-i18n="what.fact3">Five ways to add food</span>
+          <span data-i18n="what.fact4">Free to start</span>
+        </div>
+      </div>
+
+      <div class="define-device">
       <div class="phone-stage">
         <div class="phone-glow"></div>
         <div class="phone">
@@ -1052,24 +1114,8 @@
           </div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- ─────────────── WHAT IS LEFTOVR (plain-answer block) ─────────────── -->
-  <section class="define sec-pad" id="what" data-screen-label="What is leftovr">
-    <div class="wrap">
-      <div class="sec-head center">
-        <div class="micro eyebrow" data-i18n="what.eyebrow">What is leftovr?</div>
-        <h2 class="sec-title" data-i18n-html="what.title">The app that already knows <span class="mark">what's in your kitchen.</span></h2>
       </div>
-      <div class="define-card">
-        <p class="lede" data-i18n="what.body">leftovr is an iPhone app that turns the food you already own into dinner. Photograph your fridge or pantry — or scan a grocery receipt — and leftovr fills your kitchen, ranks everything by what should be eaten first, and generates recipes from those ingredients only.</p>
-        <div class="define-facts">
-          <span data-i18n="what.fact1">iPhone app</span>
-          <span data-i18n="what.fact2">English &amp; Serbian</span>
-          <span data-i18n="what.fact3">Five ways to add food</span>
-          <span data-i18n="what.fact4">Free to start</span>
-        </div>
+      <div class="define-card" style="margin-top:36px;">
         <p class="updated" data-i18n="what.updated">Page last updated 6 November 2026 by the leftovr team.</p>
       </div>
     </div>
@@ -1542,61 +1588,57 @@
   }
 
 
-  // ---------- Hero device: pointer-tracked tilt ----------
-  // Two independent springs (X and Y), critically damped — Apple's
-  // "damping 1.0, response 0.4". A single spring on 2D distance desyncs when
-  // the axes carry different velocities, so each axis gets its own.
-  // Integrated on rAF from the current on-screen value, which is what makes it
-  // interruptible: a new pointer position only moves the target.
+  // ---------- The plate: ingredients in, dinner out ----------
+  // Three dinners drawn from the same six ingredients. Each one lights up the
+  // things it uses, so the swap demonstrates the product rather than decorating
+  // it. Pauses when the tab is hidden; static under reduced motion.
   (function () {
-    var phone = document.querySelector('.phone');
-    var hero = document.querySelector('.hero');
-    if (!phone || !hero) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    var dish = document.getElementById('dish');
+    var meta = document.getElementById('dish-meta');
+    var ings = [].slice.call(document.querySelectorAll('.ing'));
+    if (!dish || !meta || !ings.length) return;
 
-    var RESPONSE = 0.4;                       // seconds to reach the target
-    var W = (2 * Math.PI) / RESPONSE;         // angular frequency
-    var K = W * W, C = 2 * W;                 // damping ratio exactly 1.0
+    var DISHES = [
+      { uses: [0, 1, 5] },   // spinach, feta, pasta
+      { uses: [2, 3] },      // eggs, cherry tomatoes
+      { uses: [4, 3, 1] }    // chicken, cherry tomatoes, feta
+    ];
+    var i = 0;
 
-    var axes = { x: { v: 0, p: 0, t: 0 }, y: { v: 0, p: 0, t: 0 } };
-    var running = false, last = 0;
+    function light(idx) {
+      ings.forEach(function (el, n) {
+        var on = DISHES[idx].uses.indexOf(n) !== -1;
+        // Stagger the lighting so the eye follows which things get used.
+        setTimeout(function () { el.classList.toggle('on', on); },
+                   on ? DISHES[idx].uses.indexOf(n) * 110 : 0);
+      });
+    }
 
-    function step(now) {
-      var dt = Math.min((now - last) / 1000, 1 / 30);   // clamp after a stall
-      last = now;
-      var settled = true;
-      for (var k in axes) {
-        var a = axes[k];
-        var d = a.p - a.t;
-        a.v += (-K * d - C * a.v) * dt;
-        a.p += a.v * dt;
-        if (Math.abs(d) > 0.0005 || Math.abs(a.v) > 0.0005) settled = false;
+    function paint(idx, animate) {
+      dish.textContent = t('stage.dish' + idx);
+      meta.innerHTML = t('stage.meta' + idx);
+      if (animate) {
+        dish.classList.remove('swap'); meta.classList.remove('swap');
+        void dish.offsetWidth;                       // restart the keyframes
+        dish.classList.add('swap'); meta.classList.add('swap');
       }
-      phone.style.setProperty('--ry', (-9 + axes.x.p * 7).toFixed(3) + 'deg');
-      phone.style.setProperty('--rx', (1.5 - axes.y.p * 5).toFixed(3) + 'deg');
-      phone.style.setProperty('--tx', (axes.x.p * 10).toFixed(2) + 'px');
-      phone.style.setProperty('--ty', (axes.y.p * 8).toFixed(2) + 'px');
-      if (settled) { running = false; return; }
-      requestAnimationFrame(step);
+      light(idx);
     }
 
-    function start() {
-      if (running) return;
-      running = true; last = performance.now();
-      requestAnimationFrame(step);
+    window.__paintDish = function () { paint(i, false); };   // language switch
+
+    light(0);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var timer = setInterval(tick, 4600);
+    function tick() {
+      if (document.hidden) return;                   // no work in a background tab
+      i = (i + 1) % DISHES.length;
+      paint(i, true);
     }
-
-    hero.addEventListener('pointermove', function (e) {
-      var r = hero.getBoundingClientRect();
-      axes.x.t = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
-      axes.y.t = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2));
-      start();
-    }, { passive: true });
-
-    hero.addEventListener('pointerleave', function () {
-      axes.x.t = 0; axes.y.t = 0;            // springs settle back to the rest pose
-      start();
+    document.addEventListener('visibilitychange', function () {
+      clearInterval(timer);
+      if (!document.hidden) timer = setInterval(tick, 4600);
     });
   })();
 
@@ -1623,8 +1665,21 @@
       "nav.tag": "What's for dinner?",
       "nav.cta": "Get early access",
       "hero.kicker": "Waste less · Cook more",
-      "hero.h1": 'Snap your shelves. <span class="uline">Cook what\'s on them' + UL + '</span>.',
-      "hero.sub": "Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight's dinner from it.",
+      "hero.h1": 'Dinner, from what\'s <span class="uline">already in your fridge' + UL + '</span>.',
+      "stage.have": "You have",
+      "stage.tonight": "Tonight",
+      "stage.ing0": "Baby spinach",
+      "stage.ing1": "Feta",
+      "stage.ing2": "Free-range eggs",
+      "stage.ing3": "Cherry tomatoes",
+      "stage.ing4": "Chicken breast",
+      "stage.ing5": "Pasta",
+      "stage.dish0": "Spinach & feta pasta",
+      "stage.meta0": "20 min · uses the spinach before it turns",
+      "stage.dish1": "Shakshuka",
+      "stage.meta1": "25 min · clears the tomatoes and three eggs",
+      "stage.dish2": "Chicken traybake",
+      "stage.meta2": "35 min · one tray, three things used up",
       "hero.formLabel": "Get early access",
       "hero.placeholder": "you@email.com",
       "hero.submit": "Join the waitlist",
@@ -1805,8 +1860,21 @@
       "nav.tag": "Šta ima za večeru?",
       "nav.cta": "Rani pristup",
       "hero.kicker": "Manje bacaj · Više kuvaj",
-      "hero.h1": 'Slikaj police. <span class="uline">Kuvaj ono što je na njima' + UL + '</span>.',
-      "hero.sub": "Slikaj frižider. leftovr napuni tvoju kuhinju, označi šta prvo propada i od toga napravi večeru.",
+      "hero.h1": 'Večera od onoga <span class="uline">što već imaš u frižideru' + UL + '</span>.',
+      "stage.have": "Imaš",
+      "stage.tonight": "Večeras",
+      "stage.ing0": "Mladi spanać",
+      "stage.ing1": "Feta",
+      "stage.ing2": "Jaja iz slob. uzgoja",
+      "stage.ing3": "\u010ceri paradajz",
+      "stage.ing4": "Pileća prsa",
+      "stage.ing5": "Pasta",
+      "stage.dish0": "Pasta sa spanaćem i fetom",
+      "stage.meta0": "20 min · potroši spanać pre nego što uvene",
+      "stage.dish1": "Šakšuka",
+      "stage.meta1": "25 min · rešava paradajz i tri jaja",
+      "stage.dish2": "Pileći tapsi",
+      "stage.meta2": "35 min · jedan pleh, tri stvari potrošene",
       "hero.formLabel": "Rani pristup",
       "hero.placeholder": "ti@primer.rs",
       "hero.submit": "Prijavi se na listu",
@@ -2042,6 +2110,7 @@
 
     // Period-dependent billing notes (resolved via dictionary).
     applyPeriod();
+    if (window.__paintDish) window.__paintDish();
 
     // Toggle button states
     document.querySelectorAll("[data-lang]").forEach(function (btn) {
