@@ -6,7 +6,7 @@ import { colors } from "../../theme";
  * The app's canonical "scan" mark (also the Scan tab icon): a receipt with
  * scan lines. Shared so scan CTAs across screens use one consistent glyph.
  */
-export function ScanIcon({ color = colors.surface, size = 24 }: { color?: string; size?: number }) {
+export function ScanIcon({ color = colors.onPrimary, size = 24 }: { color?: string; size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

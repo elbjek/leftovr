@@ -262,7 +262,7 @@ export function HouseholdSection({
             return (
               <View key={member.id} style={styles.memberRow}>
                 <View style={styles.avatar}>
-                  <Text variant="micro" color={colors.surface}>
+                  <Text variant="micro" color={colors.onPrimary}>
                     {member.avatar_initials ?? "?"}
                   </Text>
                 </View>

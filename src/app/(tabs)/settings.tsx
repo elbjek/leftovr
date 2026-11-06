@@ -713,7 +713,7 @@ export default function SettingsRoute() {
               >
                 <Text
                   variant="small"
-                  color={activeHousehold?.default_servings === count ? colors.surface : colors.primary}
+                  color={activeHousehold?.default_servings === count ? colors.onPrimary : colors.primary}
                   center
                 >
                   {count}
@@ -992,7 +992,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.onPrimary,
   },
   toggleThumbActive: {
     alignSelf: "flex-end",

@@ -55,11 +55,11 @@ export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIco
         style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
       >
         {loading ? (
-          <ActivityIndicator color={colors.surface} />
+          <ActivityIndicator color={colors.onPrimary} />
         ) : (
           <>
             {ctaIcon}
-            <Text variant="label" color={colors.surface} style={styles.bold}>
+            <Text variant="label" color={colors.onPrimary} style={styles.bold}>
               {ctaLabel}
             </Text>
           </>

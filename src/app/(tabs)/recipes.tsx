@@ -522,7 +522,7 @@ export default function RecipesRoute() {
                     : t("recipes.home.inKitchen", { count: inventoryGroups.length }))
               }
               ctaLabel={fridgeEmpty ? t("recipes.home.scanCta") : t("recipes.generateCta")}
-              ctaIcon={fridgeEmpty ? <ScanIcon color={colors.surface} size={20} /> : undefined}
+              ctaIcon={fridgeEmpty ? <ScanIcon color={colors.onPrimary} size={20} /> : undefined}
               loading={generating}
               onPress={fridgeEmpty ? () => router.push("/(tabs)/scan") : openCookPrompt}
             />
@@ -552,7 +552,7 @@ export default function RecipesRoute() {
               onPress={() => setShowPremium(true)}
               style={styles.upgradeChip}
             >
-              <Text variant="micro" color={colors.surface} style={styles.limitText}>{t("recipes.upgrade")}</Text>
+              <Text variant="micro" color={colors.onPrimary} style={styles.limitText}>{t("recipes.upgrade")}</Text>
             </Pressable>
           </View>
         ) : null}
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.bg,
   },
   weekWrap: {
     paddingHorizontal: spacing.screenX,

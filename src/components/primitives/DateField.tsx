@@ -248,7 +248,7 @@ export function DateField({ label, value, onChange, placeholder, onClear, clearL
                       <View style={[styles.dayDot, isToday && !selected && styles.todayDot, selected && styles.selectedDot]}>
                         <Text
                           style={[styles.dayText, (selected || isToday) && styles.dayTextStrong]}
-                          color={selected ? colors.surface : disabled ? colors.muted2 : colors.text}
+                          color={selected ? colors.onPrimary : disabled ? colors.muted2 : colors.text}
                         >
                           {date.getDate()}
                         </Text>
@@ -320,7 +320,7 @@ function JumpCell({
       style={({ pressed }) => [styles.jumpCell, { width }, disabled && styles.arrowDisabled, pressed && styles.pressed]}
     >
       <View style={[styles.jumpPill, selected && styles.selectedDot]}>
-        <Text style={[styles.jumpText, selected && styles.dayTextStrong]} color={selected ? colors.surface : colors.text}>
+        <Text style={[styles.jumpText, selected && styles.dayTextStrong]} color={selected ? colors.onPrimary : colors.text}>
           {label}
         </Text>
       </View>

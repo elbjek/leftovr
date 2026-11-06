@@ -113,7 +113,7 @@ export function TryNextCard({
             onPress={onPress}
             style={({ pressed }) => [styles.view, styles.actionPrimary, pressed && styles.pressed]}
           >
-            <Text variant="label" color={colors.surface} style={styles.viewLabel} numberOfLines={1}>
+            <Text variant="label" color={colors.onPrimary} style={styles.viewLabel} numberOfLines={1}>
               {ctaLabel}
             </Text>
           </Pressable>
@@ -254,7 +254,7 @@ export function IdeasResults({
           {best.description ? <Text variant="body">{best.description}</Text> : null}
           {best.pill ? <Pill label={best.pill} /> : null}
           <Pressable accessibilityRole="button" onPress={best.onPress} style={({ pressed }) => [styles.view, pressed && styles.pressed]}>
-            <Text variant="label" color={colors.surface} style={styles.viewLabel}>
+            <Text variant="label" color={colors.onPrimary} style={styles.viewLabel}>
               {viewLabel}
             </Text>
           </Pressable>

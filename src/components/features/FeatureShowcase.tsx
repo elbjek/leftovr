@@ -58,7 +58,7 @@ const light = (bg: string): ShowcaseTheme => ({
 });
 const dark: ShowcaseTheme = {
   bg: colors.primary,
-  ink: colors.surface,
+  ink: colors.onPrimary,
   muted: colors.sage,
   eyebrow: colors.accent,
   dark: true,
@@ -66,12 +66,12 @@ const dark: ShowcaseTheme = {
 
 export const showcaseThemes: Record<ShowcaseSceneKey, ShowcaseTheme> = {
   welcome: gold,
-  add: light(colors.surface),
+  add: light(colors.onPrimary),
   kitchen: light(colors.card),
   recipes: dark,
-  cook: light(colors.surface),
+  cook: light(colors.onPrimary),
   insights: light(colors.card),
-  household: light(colors.surface),
+  household: light(colors.onPrimary),
   start: gold,
 };
 
@@ -201,7 +201,7 @@ function WelcomeScene({ demo, active }: SceneProps<WelcomeDemo>) {
                 {demo.recipe.time}
               </Text>
             </View>
-            <Text variant="h2" color={colors.surface}>
+            <Text variant="h2" color={colors.onPrimary}>
               {demo.recipe.title}
             </Text>
           </View>
@@ -356,7 +356,7 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
       <Reveal active={active} style={styles.center}>
         <View style={styles.readingPill}>
           <View style={[styles.dot8, { backgroundColor: colors.accent }]} />
-          <Text variant="label" color={colors.surface}>
+          <Text variant="label" color={colors.onPrimary}>
             {demo.reading}
           </Text>
         </View>
@@ -372,7 +372,7 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
                 {demo.time}
               </Text>
             </View>
-            <Text variant="h2" color={colors.surface}>
+            <Text variant="h2" color={colors.onPrimary}>
               {demo.title}
             </Text>
             <View style={styles.ingredients}>
@@ -388,7 +388,7 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
                   />
                   <Text
                     variant="label"
-                    color={item.urgency ? colors.surface : colors.sage}
+                    color={item.urgency ? colors.onPrimary : colors.sage}
                     style={styles.flex1}
                   >
                     {item.name}
@@ -410,7 +410,7 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
       <Reveal active={active} delay={800} style={styles.chips}>
         {demo.chips.map((chip) => (
           <View key={chip} style={styles.darkChip}>
-            <Text variant="micro" color={colors.surface}>
+            <Text variant="micro" color={colors.onPrimary}>
               {chip}
             </Text>
           </View>
@@ -478,7 +478,7 @@ function CookScene({ demo, active }: SceneProps<CookDemo>) {
           <View style={styles.toastCheck}>
             <Check color={colors.white} size={12} />
           </View>
-          <Text variant="label" color={colors.surface}>
+          <Text variant="label" color={colors.onPrimary}>
             {demo.toast}
           </Text>
         </View>
@@ -581,7 +581,7 @@ function HouseholdScene({ demo, active }: SceneProps<HouseholdDemo>) {
               style={index > 0 && styles.avatarOverlap}
             >
               <View style={[styles.avatar, { backgroundColor: memberTint[index % memberTint.length] }]}>
-                <Text style={styles.avatarText} color={index === 0 ? colors.surface : colors.text}>
+                <Text style={styles.avatarText} color={index === 0 ? colors.onPrimary : colors.text}>
                   {initial}
                 </Text>
               </View>
@@ -605,7 +605,7 @@ function HouseholdScene({ demo, active }: SceneProps<HouseholdDemo>) {
               <Text variant="label">{demo.copy}</Text>
             </View>
             <View style={[styles.choice, { backgroundColor: colors.primary }]}>
-              <Text variant="label" color={colors.surface}>
+              <Text variant="label" color={colors.onPrimary}>
                 {demo.share}
               </Text>
             </View>
@@ -957,7 +957,7 @@ const styles = StyleSheet.create({
     height: 76,
     borderRadius: 38,
     borderWidth: 5,
-    borderColor: colors.surface,
+    borderColor: colors.onPrimary,
     alignItems: "center",
     justifyContent: "center",
   },

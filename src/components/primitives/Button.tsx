@@ -67,7 +67,7 @@ export function Button({
 }
 
 function getForeground(variant: ButtonVariant) {
-  if (variant === "primary") return colors.surface;
+  if (variant === "primary") return colors.onPrimary;
   if (variant === "accent") return colors.text;
   return colors.primary;
 }

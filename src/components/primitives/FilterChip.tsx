@@ -17,7 +17,7 @@ export function FilterChip({ label, active = false, count, onPress }: Props) {
       onPress={onPress}
       style={[styles.chip, active && styles.chipActive]}
     >
-      <Text variant="small" color={active ? colors.surface : colors.text} style={styles.chipText}>
+      <Text variant="small" color={active ? colors.onPrimary : colors.text} style={styles.chipText}>
         {label}
       </Text>
       {count ? (

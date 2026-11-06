@@ -12,7 +12,7 @@ type Props = {
 
 const inkByVariant = {
   primary: { word: colors.primary, r: colors.accentDeep },
-  inverse: { word: colors.surface, r: colors.accent },
+  inverse: { word: colors.onPrimary, r: colors.accent },
   onAccent: { word: colors.primary, r: colors.primary },
 } as const;
 

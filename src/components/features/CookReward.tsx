@@ -110,7 +110,7 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
           />
           <Animated.View style={[styles.check, { transform: [{ scale }] }]}>
             <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-              <Path d="M5 12l5 5 9-10" stroke={colors.surface} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+              <Path d="M5 12l5 5 9-10" stroke={colors.onPrimary} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           </Animated.View>
         </View>
@@ -153,7 +153,7 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
             {formatMoney(shown, money.currency)}
           </Text>
           {money.note ? (
-            <Text variant="small" color={colors.surface} style={styles.moneyNote}>
+            <Text variant="small" color={colors.onPrimary} style={styles.moneyNote}>
               {money.note}
             </Text>
           ) : null}

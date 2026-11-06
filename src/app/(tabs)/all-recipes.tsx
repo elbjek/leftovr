@@ -311,7 +311,7 @@ function ActiveFilterToken({ label, onRemove }: { label: string; onRemove: () =>
       hitSlop={{ top: 6, bottom: 6 }}
       style={styles.activeFilterToken}
     >
-      <Text variant="micro" color={colors.surface} style={styles.activeFilterText}>
+      <Text variant="micro" color={colors.onPrimary} style={styles.activeFilterText}>
         {label}
       </Text>
       <CloseIcon color="rgba(243,239,232,0.75)" />

@@ -914,7 +914,7 @@ export default function RecipeDetailRoute() {
                     <View style={[styles.checkbox, item.used && styles.checkboxActive]}>
                       {item.used ? (
                         <Svg width={13} height={13} viewBox="0 0 13 13">
-                          <Path d="M3 7L5.5 9.5L10 4" stroke={colors.surface} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                          <Path d="M3 7L5.5 9.5L10 4" stroke={colors.onPrimary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
                         </Svg>
                       ) : null}
                     </View>
@@ -980,7 +980,7 @@ export default function RecipeDetailRoute() {
                     >
                       <Text
                         variant="small"
-                        color={extraUnit === unit ? colors.surface : colors.primary}
+                        color={extraUnit === unit ? colors.onPrimary : colors.primary}
                       >
                         {unit}
                       </Text>
@@ -1087,7 +1087,7 @@ function ComplexityIcon() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.bg,
   },
   scrollArea: {
     flex: 1,

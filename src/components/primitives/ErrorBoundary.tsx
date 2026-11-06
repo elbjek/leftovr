@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: spacing.xl,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.bg,
   },
   body: {
     marginTop: spacing.sm,

@@ -74,7 +74,7 @@ function ReceiptPulse() {
           stroke={colors.primary}
           strokeWidth={2}
           strokeLinejoin="round"
-          fill={colors.surface}
+          fill={colors.onPrimary}
         />
         <Line x1={18} y1={16} x2={32} y2={16} stroke={colors.primary} strokeWidth={2} strokeLinecap="round" />
         <Line x1={18} y1={22} x2={28} y2={22} stroke={colors.primary} strokeWidth={2} strokeLinecap="round" />
@@ -94,7 +94,7 @@ function CheckDot() {
       <Svg width={11} height={11} viewBox="0 0 11 11">
         <Path
           d="M2 6L4.5 8.5L9 3"
-          stroke={colors.surface}
+          stroke={colors.onPrimary}
           strokeWidth={1.8}
           fill="none"
           strokeLinecap="round"

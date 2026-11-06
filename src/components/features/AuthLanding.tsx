@@ -108,7 +108,7 @@ export function AuthButtons({
       <AuthButton
         label={emailLabel}
         backgroundColor={colors.primary}
-        color={colors.surface}
+        color={colors.onPrimary}
         icon={<EmailIcon />}
         onPress={onEmail}
         disabled={disabled}
@@ -176,8 +176,8 @@ function GoogleIcon() {
 function EmailIcon() {
   return (
     <Svg width={18} height={14} viewBox="0 0 18 14" fill="none">
-      <Rect x={0.5} y={0.5} width={17} height={13} rx={2} stroke={colors.surface} strokeWidth={1.5} />
-      <Path d="M1 2L9 8L17 2" stroke={colors.surface} strokeWidth={1.5} strokeLinecap="round" />
+      <Rect x={0.5} y={0.5} width={17} height={13} rx={2} stroke={colors.onPrimary} strokeWidth={1.5} />
+      <Path d="M1 2L9 8L17 2" stroke={colors.onPrimary} strokeWidth={1.5} strokeLinecap="round" />
     </Svg>
   );
 }

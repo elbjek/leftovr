@@ -59,7 +59,7 @@ export default function TabsLayout() {
           title: t("tabs.scan"),
           tabBarIcon: () => (
             <View style={styles.scanButton}>
-              <PlusIcon color={colors.surface} size={26} />
+              <PlusIcon color={colors.onPrimary} size={26} />
             </View>
           ),
           tabBarLabelStyle: [styles.label, styles.scanLabel],
@@ -134,7 +134,7 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
                   pressed && styles.pressed,
                 ]}
               >
-                <PlusIcon color={colors.surface} size={26} />
+                <PlusIcon color={colors.onPrimary} size={26} />
               </Pressable>
               <Text style={styles.scanLabel}>{label}</Text>
             </View>
@@ -216,9 +216,9 @@ function SettingsIcon({ color }: { color: string }) {
   return (
     <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
       <Line x1={4} y1={8} x2={20} y2={8} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      <Circle cx={15} cy={8} r={2.6} fill={colors.surface} stroke={color} strokeWidth={1.8} />
+      <Circle cx={15} cy={8} r={2.6} fill={colors.onPrimary} stroke={color} strokeWidth={1.8} />
       <Line x1={4} y1={16} x2={20} y2={16} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      <Circle cx={9} cy={16} r={2.6} fill={colors.surface} stroke={color} strokeWidth={1.8} />
+      <Circle cx={9} cy={16} r={2.6} fill={colors.onPrimary} stroke={color} strokeWidth={1.8} />
     </Svg>
   );
 }

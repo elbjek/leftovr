@@ -92,6 +92,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     maxWidth: Platform.OS === "web" ? 430 : undefined,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.bg,
   },
 });

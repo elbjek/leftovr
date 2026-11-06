@@ -808,7 +808,7 @@ export default function ScanRoute() {
                 variant="text"
                 onPress={returnToChoice}
               />
-              <Text variant="label" color={colors.surface}>
+              <Text variant="label" color={colors.onPrimary}>
                 {t("scan.cameraTitle")}
               </Text>
             </View>
@@ -885,7 +885,7 @@ export default function ScanRoute() {
                 variant="text"
                 onPress={returnToChoice}
               />
-              <Text variant="label" color={colors.surface}>
+              <Text variant="label" color={colors.onPrimary}>
                 {t("scan.pantry.cameraTitle")}
               </Text>
             </View>
@@ -918,11 +918,11 @@ export default function ScanRoute() {
                         }
                         style={styles.pantryThumbRemove}
                       >
-                        <Text variant="micro" color={colors.surface}>✕</Text>
+                        <Text variant="micro" color={colors.onPrimary}>✕</Text>
                       </Pressable>
                     </View>
                   ))}
-                  <Text variant="small" color={colors.surface}>
+                  <Text variant="small" color={colors.onPrimary}>
                     {t("scan.pantry.photoCount", {
                       count: pantryPhotos.length,
                       max: MAX_PANTRY_PHOTOS,
@@ -998,7 +998,7 @@ export default function ScanRoute() {
                 variant="text"
                 onPress={returnToChoice}
               />
-              <Text variant="label" color={colors.surface}>
+              <Text variant="label" color={colors.onPrimary}>
                 {t("scan.barcodeCameraTitle")}
               </Text>
               <Button
@@ -1192,7 +1192,7 @@ export default function ScanRoute() {
                 >
                   <Text
                     variant="small"
-                    color={manualCategory === category ? colors.surface : colors.text}
+                    color={manualCategory === category ? colors.onPrimary : colors.text}
                   >
                     {t(`scan.categories.${category}`)}
                   </Text>
@@ -1506,7 +1506,7 @@ function AliveIcon() {
     <Svg width={180} height={180} viewBox="0 0 180 180" fill="none">
       <Circle cx={90} cy={90} r={76} fill={colors.primary50} />
       <Circle cx={90} cy={90} r={52} fill={colors.accentSoft} />
-      <Rect x={58} y={42} width={64} height={96} rx={10} fill={colors.surface} stroke={colors.primary} strokeOpacity={0.18} />
+      <Rect x={58} y={42} width={64} height={96} rx={10} fill={colors.onPrimary} stroke={colors.primary} strokeOpacity={0.18} />
       <Line x1={58} y1={80} x2={122} y2={80} stroke={colors.primary} strokeOpacity={0.18} />
       <Rect x={68} y={52} width={14} height={24} rx={3} fill={colors.green} />
       <Rect x={88} y={52} width={14} height={24} rx={3} fill={colors.accent} />

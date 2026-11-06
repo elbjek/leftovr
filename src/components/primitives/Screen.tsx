@@ -22,7 +22,7 @@ export function Screen({
   padded = true,
   topInset = true,
   bottomInset = true,
-  backgroundColor = colors.surface,
+  backgroundColor = colors.bg,
   contentContainerStyle,
   style,
   refreshControl,

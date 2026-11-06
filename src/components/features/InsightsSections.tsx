@@ -226,7 +226,7 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
           <View style={styles.dinnerTile}>
             <RecipeGlyph size={30} />
             <View style={styles.rank}>
-              <Text variant="small" color={colors.surface} style={styles.bold}>
+              <Text variant="small" color={colors.onPrimary} style={styles.bold}>
                 {index + 1}
               </Text>
             </View>

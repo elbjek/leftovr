@@ -81,7 +81,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
               <Text variant="micro" color={isToday ? colors.sage : colors.muted}>
                 {date.toLocaleDateString(undefined, { weekday: "narrow" })}
               </Text>
-              <Text variant="label" color={isToday ? colors.surface : colors.text} style={styles.bold}>
+              <Text variant="label" color={isToday ? colors.onPrimary : colors.text} style={styles.bold}>
                 {date.getDate()}
               </Text>
               {state === "frozen" ? (
@@ -94,7 +94,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
                     styles.dot,
                     {
                       backgroundColor: isToday
-                        ? state === "used" ? colors.surface : colors.inverseHairlineStrong
+                        ? state === "used" ? colors.onPrimary : colors.inverseHairlineStrong
                         : state === "used" ? colors.green : colors.surface3,
                     },
                   ]}

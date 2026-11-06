@@ -36,7 +36,7 @@ export function EmptyFridge({ title, body, ctaLabel, style }: Props) {
       </View>
       <Button
         title={ctaLabel ?? t("fridge.emptyCta")}
-        iconLeft={<ScanIcon color={colors.surface} size={20} />}
+        iconLeft={<ScanIcon color={colors.onPrimary} size={20} />}
         onPress={() => router.push("/(tabs)/scan")}
         style={styles.cta}
       />

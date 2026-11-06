@@ -486,7 +486,7 @@ function CloseIcon() {
 function ChevronRightIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Path d="M6.5 4L11.5 9L6.5 14" stroke={colors.surface} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M6.5 4L11.5 9L6.5 14" stroke={colors.onPrimary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }

@@ -60,7 +60,7 @@ function HeroButton({ label, onPress }: { label: string; onPress?: () => void })
       onPress={onPress}
       style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
     >
-      <Text variant="label" color={colors.surface} style={styles.ctaLabel}>
+      <Text variant="label" color={colors.onPrimary} style={styles.ctaLabel}>
         {label}
       </Text>
     </Pressable>

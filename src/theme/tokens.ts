@@ -3,7 +3,12 @@ export const colors = {
   primary700: "#1A3A28",
   primary50: "rgba(35, 75, 52, 0.06)",
   primary100: "rgba(35, 75, 52, 0.12)",
+  // Page background. The floor of the surface stack.
+  bg: "#F9F6F1",
+  // Cards and sheets: the layer that sits on top of bg.
   surface: "#F9F6F1",
+  // Text and icons on primary (dark green) fills.
+  onPrimary: "#F9F6F1",
   surface2: "#F3F3EB",
   surface3: "#E2DBCD",
   paper: "#FDF8F6",

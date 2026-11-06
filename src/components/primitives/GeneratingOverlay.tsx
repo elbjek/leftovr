@@ -295,7 +295,7 @@ function SkeletonCard({ index, reduceMotion }: { index: number; reduceMotion: bo
 function CheckMark() {
   return (
     <Svg width={13} height={13} viewBox="0 0 16 16" fill="none">
-      <Path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke={colors.surface} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke={colors.onPrimary} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }

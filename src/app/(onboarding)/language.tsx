@@ -134,12 +134,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   radioSelected: {
-    borderColor: colors.surface,
+    borderColor: colors.onPrimary,
   },
   radioDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.onPrimary,
   },
 });

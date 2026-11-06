@@ -285,9 +285,9 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
         ]}
       >
         {confirming ? (
-          <ActivityIndicator color={colors.surface} />
+          <ActivityIndicator color={colors.onPrimary} />
         ) : (
-          <Text variant="label" color={colors.surface}>
+          <Text variant="label" color={colors.onPrimary}>
             {t("scan.confirm.addCta", { count: itemCount })}
           </Text>
         )}

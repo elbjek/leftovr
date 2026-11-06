@@ -181,7 +181,7 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
           <View key={feat} style={styles.featureRow}>
             <View style={styles.checkCircle}>
               <Svg width={11} height={11} viewBox="0 0 11 11">
-                <Path d="M2 6L4.5 8.5L9 3" stroke={colors.surface} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                <Path d="M2 6L4.5 8.5L9 3" stroke={colors.onPrimary} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
             </View>
             <Text variant="label">{feat}</Text>

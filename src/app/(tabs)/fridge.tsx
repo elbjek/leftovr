@@ -783,7 +783,7 @@ function CheckTheseSheet({
 function CheckMarkIcon() {
   return (
     <Svg width={12} height={12} viewBox="0 0 12 12" fill="none">
-      <Path d="M2.5 6.5 5 9l4.5-6" stroke={colors.surface} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M2.5 6.5 5 9l4.5-6" stroke={colors.onPrimary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
