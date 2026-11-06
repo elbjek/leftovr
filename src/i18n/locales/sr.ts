@@ -1127,6 +1127,8 @@ export const sr = {
       title: "Stalno se kvari",
       caption: "Tvojih poslednjih nekoliko. Zeleno si potrošio/la, crveno je završilo u kanti.",
       detail: "{{tossed}} od poslednjih {{total}} bačeno",
+      watch: "Pazi",
+      better: "Bolje",
       none: "Ništa se ne kvari stalno. Tvoja hrana se jede.",
       empty: "Ovde se pojavljuje ono što stalno bacaš, da bi kupovao/la manje.",
     },

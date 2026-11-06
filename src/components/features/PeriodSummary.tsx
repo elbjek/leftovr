@@ -1,8 +1,18 @@
+import React from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, radii, spacing } from "../../theme";
 import { Card, Tappable, Text } from "../primitives";
+
+/** Each figure carries its own soft tint: rescue green, cooking gold, streak red. */
+export type StatTone = "green" | "gold" | "red";
+
+const TINTS: Record<StatTone, string> = {
+  green: colors.sageTint,
+  gold: colors.accentSoft,
+  red: colors.redSoft,
+};
 
 type Props = {
   /** Label over the big number, e.g. "Saved". */
@@ -12,7 +22,7 @@ type Props = {
   /** One quiet line under it: the trend or the household total. */
   sub?: string;
   /** Small figures in one row (items used, dinners cooked, streak). */
-  stats: { value: string; label: string }[];
+  stats: { value: string; label: string; tone: StatTone; icon: React.ReactNode }[];
   /** Shown instead of the figures when the period has nothing in it yet. */
   emptyText?: string;
   /** Spoken label of the share button ("Share this week"). */
@@ -69,6 +79,7 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
         <View style={styles.stats}>
           {stats.map((stat, index) => (
             <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
+              <View style={[styles.statTile, { backgroundColor: TINTS[stat.tone] }]}>{stat.icon}</View>
               <Text variant="h3" weight="extrabold">
                 {stat.value}
               </Text>
@@ -119,6 +130,14 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     gap: 2,
+  },
+  statTile: {
+    width: 28,
+    height: 28,
+    borderRadius: radii.xs,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.xs,
   },
   statDivider: {
     borderLeftWidth: StyleSheet.hairlineWidth,

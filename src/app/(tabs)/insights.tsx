@@ -128,7 +128,12 @@ export default function InsightsRoute() {
           <PeriodSummary
             label={t("insights.stats.saved")}
             value="••••"
-            stats={["used", "cooked", "streak"].map((key) => ({ value: "–", label: t(`insights.summary.${key}`, { count: 5 }) }))}
+            stats={(["used", "cooked", "streak"] as const).map((key) => ({
+              value: "–",
+              label: t(`insights.summary.${key}`, { count: 5 }),
+              tone: STAT_TONES[key],
+              icon: <StatGlyph kind={key} />,
+            }))}
             shareLabel={t(`insights.share.${period}Label`)}
             onShare={() => {}}
           />
@@ -235,8 +240,10 @@ export default function InsightsRoute() {
     used: kitchen.chart[index].used,
     tossed: kitchen.chart[index].tossed,
     current: loadedAt >= bucket.start.getTime() && loadedAt < bucket.end.getTime(),
+    best: false,
   }));
   const bestIndex = kitchen.chart.reduce((best, bar, index) => (bar.used > kitchen.chart[best].used ? index : best), 0);
+  if (kitchen.chart[bestIndex].used > 0) bars[bestIndex].best = true;
   const best = kitchen.chart[bestIndex].used
     ? period === "week"
       ? span.buckets[bestIndex].start.toLocaleDateString(undefined, { weekday: "long" })
@@ -256,7 +263,10 @@ export default function InsightsRoute() {
   const goingOffRows = goingOff.map((food) => {
     const name = capitalize(food.name);
     const detail = t("insights.goingOff.detail", { tossed: food.tossed, total: food.outcomes.length });
-    return { name, category: food.category, detail, outcomes: food.outcomes, label: `${name}: ${detail}` };
+    // The newest outcome decides the pill: still slipping, or turning around.
+    const improving = food.outcomes[food.outcomes.length - 1] !== "tossed";
+    const status = { label: t(improving ? "insights.goingOff.better" : "insights.goingOff.watch"), improving };
+    return { name, category: food.category, detail, outcomes: food.outcomes, label: `${name}: ${detail}`, status };
   });
   const dinners = summary.cookedRecipes.map((recipe) => ({ title: recipe.title, detail: t("insights.dinners.times", { count: recipe.count }) }));
 
@@ -347,9 +357,24 @@ export default function InsightsRoute() {
       value={money(summary.moneySaved)}
       sub={savedSub}
       stats={[
-        { value: String(kitchen.used), label: t("insights.summary.used", { count: kitchen.used }) },
-        { value: String(summary.cookedEvents), label: t("insights.summary.cooked", { count: summary.cookedEvents }) },
-        { value: String(streak), label: t("insights.summary.streak", { count: streak }) },
+        {
+          value: String(kitchen.used),
+          label: t("insights.summary.used", { count: kitchen.used }),
+          tone: "green" as const,
+          icon: <StatGlyph kind="used" />,
+        },
+        {
+          value: String(summary.cookedEvents),
+          label: t("insights.summary.cooked", { count: summary.cookedEvents }),
+          tone: "gold" as const,
+          icon: <StatGlyph kind="cooked" />,
+        },
+        {
+          value: String(streak),
+          label: t("insights.summary.streak", { count: streak }),
+          tone: "red" as const,
+          icon: <StatGlyph kind="streak" />,
+        },
       ]}
       emptyText={isEmpty ? t(`insights.summary.empty.${period}`) : undefined}
       shareLabel={t(`insights.share.${period}Label`)}
@@ -418,6 +443,25 @@ export default function InsightsRoute() {
       {shareSheet}
       {sheets}
     </Screen>
+  );
+}
+
+const STAT_TONES = { used: "green", cooked: "gold", streak: "red" } as const;
+
+const STAT_PATHS = {
+  // A leaf for what was rescued, a pot for what was cooked, a flame for the streak.
+  used: "M4 20c0-8 6-14 16-14 0 10-6 15-13 15-1 0-3 0-3-1zM4 20c2-5 6-8 11-9",
+  cooked: "M4 9h16l-1.3 9.2A2.5 2.5 0 0 1 16.2 20H7.8a2.5 2.5 0 0 1-2.5-1.8L4 9zM8.5 6c0-1.3 1.8-1.3 1.8-2.6M13.5 6c0-1.3 1.8-1.3 1.8-2.6",
+  streak: "M12 3c3 3.5 4.5 6 4.5 8.5a4.5 4.5 0 1 1-9 0C7.5 9 9 6.5 12 3z",
+} as const;
+
+const STAT_INK = { used: colors.primary, cooked: colors.accentInk, streak: colors.redInk } as const;
+
+function StatGlyph({ kind }: { kind: keyof typeof STAT_PATHS }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path d={STAT_PATHS[kind]} stroke={STAT_INK[kind]} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 

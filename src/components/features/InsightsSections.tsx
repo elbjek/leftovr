@@ -1,8 +1,8 @@
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, radii, shadows, spacing } from "../../theme";
-import { Card, Divider, GlyphTile, Tappable, Text } from "../primitives";
+import { categoryColors, colors, radii, shadows, spacing } from "../../theme";
+import { Card, Divider, GlyphTile, StatusPill, Tappable, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // The Insights tab's sections, TinyMeals-style: each answers one question
@@ -95,7 +95,7 @@ export function UsedTossedChart({
 }: {
   title: string;
   aside?: string;
-  bars: { label: string; used: number; tossed: number; current: boolean }[];
+  bars: { label: string; used: number; tossed: number; current: boolean; best?: boolean }[];
   legend: { used: string; tossed: string };
   /** Spoken summary of the chart. */
   label: string;
@@ -125,7 +125,14 @@ export function UsedTossedChart({
               <View style={[styles.barTrack, { height: HEIGHT }]}>
                 {bar.tossed > 0 ? <View style={[styles.barTossed, { height: (bar.tossed / max) * HEIGHT }]} /> : null}
                 {bar.used > 0 ? (
-                  <View style={[styles.barUsed, bar.current && styles.barCurrent, { height: (bar.used / max) * HEIGHT }]} />
+                  <View
+                    style={[
+                      styles.barUsed,
+                      bar.current && styles.barCurrent,
+                      bar.best && styles.barBest,
+                      { height: (bar.used / max) * HEIGHT },
+                    ]}
+                  />
                 ) : null}
                 {total === 0 ? <View style={styles.barEmpty} /> : null}
               </View>
@@ -214,7 +221,15 @@ export function FoodGroups({
 export function GoingOffList({
   rows,
 }: {
-  rows: { name: string; category: string; detail: string; outcomes: ("used" | "tossed")[]; label: string }[];
+  rows: {
+    name: string;
+    category: string;
+    detail: string;
+    outcomes: ("used" | "tossed")[];
+    label: string;
+    /** "Watch" when the most recent one was tossed, "Better" when it wasn't. */
+    status: { label: string; improving: boolean };
+  }[];
 }) {
   return (
     <View style={[styles.card, styles.listCard]}>
@@ -223,13 +238,14 @@ export function GoingOffList({
           <GlyphTile name={row.name} category={row.category} size="sm" />
           <View style={styles.groupBody}>
             <View style={styles.titleRow}>
-              <Text variant="label" weight="bold">
+              <Text variant="small" weight="bold">
                 {row.name}
               </Text>
-              <Text variant="small" color={colors.redInk}>
-                {row.detail}
-              </Text>
+              <StatusPill label={row.status.label} tone={row.status.improving ? "safe" : "urgent"} />
             </View>
+            <Text variant="small" color={colors.redInk}>
+              {row.detail}
+            </Text>
             <View style={styles.dots}>
               {row.outcomes.map((outcome, i) => (
                 <View key={i} style={[styles.dot, { backgroundColor: outcome === "tossed" ? colors.redInk : colors.sage }]} />
@@ -256,7 +272,7 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
             hitSlop={0}
             style={styles.dinner}
           >
-            <View style={styles.dinnerTile}>
+            <View style={[styles.dinnerTile, { backgroundColor: thumbColorFor(dinner.title) }]}>
               <RecipeGlyph size={26} />
             </View>
             <Text variant="small" weight="bold" numberOfLines={2} style={styles.dinnerTitle}>
@@ -270,6 +286,22 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
       ))}
     </Card>
   );
+}
+
+// Dinner thumbs borrow SavedRecipeRow's trick: a stable tint per title, so a
+// list of dishes carries the kitchen's warm colours instead of one flat sage.
+const THUMB_COLORS = [
+  categoryColors.vegetables.background,
+  categoryColors.meat.background,
+  categoryColors.dairy.background,
+  categoryColors.fruit.background,
+  categoryColors.bakery.background,
+];
+
+function thumbColorFor(title: string) {
+  let hash = 0;
+  for (let i = 0; i < title.length; i += 1) hash = (hash * 31 + title.charCodeAt(i)) % 9973;
+  return THUMB_COLORS[hash % THUMB_COLORS.length];
 }
 
 const styles = StyleSheet.create({
@@ -365,6 +397,10 @@ const styles = StyleSheet.create({
   barCurrent: {
     backgroundColor: colors.primary,
   },
+  // The period's best bucket is the one gold hit in the chart.
+  barBest: {
+    backgroundColor: colors.accent,
+  },
   barTossed: {
     borderRadius: 4,
     backgroundColor: colors.redInk,
@@ -456,7 +492,6 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: radii.md,
-    backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
   },

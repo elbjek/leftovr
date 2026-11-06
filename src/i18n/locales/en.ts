@@ -1093,6 +1093,8 @@ export const en = {
       title: "Keeps going off",
       caption: "Your last few of each. Green you used, red went in the bin.",
       detail: "{{tossed}} of last {{total}} tossed",
+      watch: "Watch",
+      better: "Better",
       none: "Nothing keeps going off. Your food is getting eaten.",
       empty: "Foods you keep tossing show up here, so you can buy less of them.",
     },
