@@ -14,6 +14,7 @@ export * from "./PlusIcon";
 export * from "./ScanIcon";
 export * from "./Screen";
 export * from "./ScreenHeader";
+export * from "./SectionHeader";
 export * from "./SegmentedControl";
 export * from "./StatusPill";
 export * from "./Tappable";

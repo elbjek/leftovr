@@ -12,6 +12,7 @@ import {
   PlusIcon,
   Screen,
   ScreenHeader,
+  SectionHeader,
   SegmentedControl,
   StatusPill,
   Tappable,
@@ -154,6 +155,35 @@ export default function Gallery() {
             <FilterChip key={c} label={c} active={chip === c} count="4" onPress={() => setChip(c)} />
           ))}
         </View>
+      </Section>
+
+      <Section title="SectionHeader">
+        <Row label="section · h3">
+          <SectionHeader title="In your fridge" />
+        </Row>
+        <Row label="section · subtitle and action">
+          <SectionHeader
+            title="Use first"
+            subtitle="Four items go off this week"
+            actions={<StatusPill label="4" />}
+          />
+        </Row>
+        <Row label="sheet · h2">
+          <SectionHeader title="Choose a language" level="sheet" />
+        </Row>
+        <Row label="sheet · subtitle">
+          <SectionHeader
+            title="Servings"
+            subtitle="How many people do you usually cook for?"
+            level="sheet"
+          />
+        </Row>
+        <Row label="long title truncates nothing, action keeps its place">
+          <SectionHeader
+            title="Everything in the freezer that is going off soon"
+            actions={<Text variant="small" muted>See all</Text>}
+          />
+        </Row>
       </Section>
 
       <Section title="SegmentedControl">
