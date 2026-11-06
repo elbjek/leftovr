@@ -196,53 +196,89 @@
   .uline svg { position: absolute; left: 0; right: 0; bottom: -0.14em; width: 100%; height: 0.19em; }
 
   /* The plate: your kitchen on the left, tonight on the right. */
+  /* Objects on a surface, not text in a box. One light source, top left,
+     and every shadow tinted warm so nothing reads as a floating sticker. */
   .plate {
-    display: grid; grid-template-columns: 1.05fr auto 1fr; align-items: center;
-    gap: 30px; text-align: left;
-    background: var(--surface-2); border: 1px solid var(--card-line);
-    border-radius: var(--r-lg); padding: 26px 30px;
+    display: grid; grid-template-columns: 1.02fr auto 0.98fr; align-items: center;
+    gap: 26px; text-align: left; padding: 10px 0 4px;
   }
-  .plate-side + .plate-arrow + .plate-side { padding-left: 32px; border-left: 1px solid var(--hairline); }
+  .plate-side + .plate-arrow + .plate-side { padding-left: 26px; }
   .plate-label {
     font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em;
     text-transform: uppercase; color: var(--accent-ink); margin-bottom: 12px;
   }
   .ings { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
   /* Dim by default, lit when tonight's dish uses it. That swap IS the product. */
-  /* Each one shows the food itself. Dimmed until tonight's dish claims it,
-     so the colour coming back IS the pick. */
+  /* Each ingredient is a thing sitting on the page. Unused ones lie flat and
+     colourless; the ones tonight's dish claims rise into the light. */
   .ing {
-    display: flex; align-items: center; gap: 9px;
+    display: flex; align-items: center; gap: 11px;
     font-size: 14.5px; font-weight: 500; line-height: 1.25;
     color: var(--muted);
-    transition: color 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: color 0.45s ease;
+  }
+  .ing i {
+    position: relative; flex-shrink: 0;
+    width: 46px; height: 46px; border-radius: 999px;
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 1px 2px rgba(120,80,40,0.10);
+    transition: background 0.45s ease, box-shadow 0.5s ease,
+                transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .ing img {
-    width: 32px; height: 32px; flex-shrink: 0; object-fit: contain;
-    opacity: 0.45; filter: saturate(0.35);
-    transition: opacity 0.45s ease, filter 0.45s ease,
-                transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 28px; height: 28px; object-fit: contain;
+    opacity: 0.5; filter: saturate(0.3);
+    transition: opacity 0.45s ease, filter 0.45s ease;
   }
   .ing em { font-style: normal; }
-  .ing.on { color: var(--text); font-weight: 700; transform: translateX(3px); }
-  .ing.on img { opacity: 1; filter: none; transform: scale(1.12); }
-
-  /* The three it uses, grouped: these become that. */
-  .dish-cluster { display: flex; margin-bottom: 14px; }
-  .dish-cluster span {
-    width: 46px; height: 46px; border-radius: 999px;
-    background: var(--paper); border: 1px solid var(--card-line);
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 6px 14px -8px rgba(35,75,52,0.35);
+  .ing.on { color: var(--text); font-weight: 700; }
+  .ing.on i {
+    background: var(--paper); transform: translateY(-4px);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset,
+                0 10px 18px -8px rgba(120,80,40,0.38),
+                0 2px 4px rgba(120,80,40,0.10);
   }
-  .dish-cluster span + span { margin-left: -12px; }
-  .dish-cluster img { width: 28px; height: 28px; object-fit: contain; }
-  .dish-cluster.swap span { animation: clusterIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .ing.on img { opacity: 1; filter: none; }
+
+  /* Tonight's dish arrives on a plate, the heaviest object on the page. */
+  .dish-plate {
+    position: relative; width: 152px; height: 152px; border-radius: 999px;
+    margin: 0 0 18px; display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(circle at 34% 28%, #FFFFFF 0%, var(--paper) 46%, #F1E9E2 100%);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.9) inset,
+      0 0 0 1px rgba(120,80,40,0.07),
+      0 26px 40px -22px rgba(120,80,40,0.55),
+      0 6px 12px -6px rgba(120,80,40,0.18);
+  }
+  /* The rim: a second ring just inside the edge, the way a real plate reads. */
+  .dish-plate::after {
+    content: ""; position: absolute; inset: 15px; border-radius: 999px;
+    border: 1px solid rgba(120,80,40,0.09);
+  }
+  .dish-cluster { display: flex; position: relative; z-index: 1; }
+  .dish-cluster span {
+    width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 6px 7px rgba(120,80,40,0.30));
+  }
+  .dish-cluster span[hidden] { display: none; }
+  .dish-cluster span + span { margin-left: -10px; }
+  .dish-cluster span:nth-child(2) { transform: translateY(-7px); }
+  .dish-cluster img { width: 40px; height: 40px; object-fit: contain; }
+  .dish-cluster.swap span { animation: clusterIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
   .dish-cluster.swap span:nth-child(2) { animation-delay: 0.07s; }
   .dish-cluster.swap span:nth-child(3) { animation-delay: 0.14s; }
   @keyframes clusterIn {
-    from { opacity: 0; transform: translateY(8px) scale(0.8); }
-    to   { opacity: 1; transform: none; }
+    from { opacity: 0; transform: translateY(-16px) scale(0.8); }
+    to   { opacity: 1; }
+  }
+  /* nth-child(2) keeps its lift once the keyframes hand back. */
+  .dish-cluster.swap span:nth-child(2) { animation-name: clusterInLifted; }
+  @keyframes clusterInLifted {
+    from { opacity: 0; transform: translateY(-24px) scale(0.8); }
+    to   { opacity: 1; transform: translateY(-7px); }
   }
   .plate-arrow { position: relative; color: var(--muted-2); width: 52px; }
   .plate-arrow svg { width: 52px; height: 14px; display: block; }
@@ -263,7 +299,7 @@
   .dish-wrap { position: relative; min-height: 4.6em; }
   @media (prefers-reduced-motion: reduce) {
     .arrow-pulse { animation: none !important; opacity: 0; }
-    .ing, .ing img { transition: none; }
+    .ing, .ing i, .ing img { transition: none; }
     .dish-cluster.swap span { animation: none; }
   }
   .dish {
@@ -319,11 +355,9 @@
   }
 
   @media (max-width: 860px) {
-    .plate { grid-template-columns: 1fr; gap: 18px; padding: 22px 20px; text-align: left; }
-    .plate-side + .plate-arrow + .plate-side {
-      padding-left: 0; padding-top: 18px;
-      border-left: 0; border-top: 1px solid var(--hairline);
-    }
+    .plate { grid-template-columns: 1fr; gap: 16px; padding: 4px 0; text-align: left; }
+    .plate-side + .plate-arrow + .plate-side { padding-left: 0; padding-top: 10px; }
+    .dish-plate { width: 132px; height: 132px; margin-bottom: 14px; }
     .plate-arrow { transform: rotate(90deg); margin: 0 auto; }
     .dish-wrap { min-height: 0; }
   }
@@ -1191,12 +1225,12 @@
         <div class="plate-side">
           <div class="plate-label" data-i18n="stage.have">You have</div>
           <div class="ings">
-            <span class="ing" data-ing="0"><img src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async"><em data-i18n="stage.ing0">Baby spinach</em></span>
-            <span class="ing" data-ing="1"><img src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async"><em data-i18n="stage.ing1">Feta</em></span>
-            <span class="ing" data-ing="2"><img src="/food/eggs.png" alt="" width="192" height="192" loading="lazy" decoding="async"><em data-i18n="stage.ing2">Free-range eggs</em></span>
-            <span class="ing" data-ing="3"><img src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async"><em data-i18n="stage.ing3">Cherry tomatoes</em></span>
-            <span class="ing" data-ing="4"><img src="/food/chicken_breast.png" alt="" width="192" height="192" loading="lazy" decoding="async"><em data-i18n="stage.ing4">Chicken breast</em></span>
-            <span class="ing" data-ing="5"><img src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async"><em data-i18n="stage.ing5">Pasta</em></span>
+            <span class="ing" data-ing="0"><i><img src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing0">Baby spinach</em></span>
+            <span class="ing" data-ing="1"><i><img src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing1">Feta</em></span>
+            <span class="ing" data-ing="2"><i><img src="/food/eggs.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing2">Free-range eggs</em></span>
+            <span class="ing" data-ing="3"><i><img src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing3">Cherry tomatoes</em></span>
+            <span class="ing" data-ing="4"><i><img src="/food/chicken_breast.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing4">Chicken breast</em></span>
+            <span class="ing" data-ing="5"><i><img src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing5">Pasta</em></span>
           </div>
         </div>
 
@@ -1207,10 +1241,12 @@
 
         <div class="plate-side plate-answer">
           <div class="plate-label" data-i18n="stage.tonight">Tonight</div>
-          <div class="dish-cluster" id="dish-cluster" aria-hidden="true">
-            <span><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"></span>
-            <span><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"></span>
-            <span><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"></span>
+          <div class="dish-plate" aria-hidden="true">
+            <div class="dish-cluster" id="dish-cluster">
+              <span><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"></span>
+              <span><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"></span>
+              <span><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"></span>
+            </div>
           </div>
           <div class="dish-wrap">
             <div class="dish" id="dish" data-i18n="stage.dish0">Spinach &amp; feta pasta</div>
