@@ -190,7 +190,7 @@
   }
 
   .stage-texture { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-  .stage-texture .tx { position: absolute; opacity: 0.085; filter: saturate(0.55); }
+  .stage-texture .tx { position: absolute; opacity: 0.07; filter: saturate(0.5); }
   .tx-1 { width: 320px; height: 320px; left: -108px; top: 9%;  transform: rotate(-14deg); }
   .tx-2 { width: 270px; height: 270px; right: -84px; bottom: 7%; transform: rotate(16deg); }
   .tx-3 { width: 230px; height: 230px; right: 13%;  top: -72px; transform: rotate(9deg); }
@@ -199,32 +199,26 @@
 
   .stage-grid {
     position: relative; z-index: 1;
-    /* The left column has to clear the nowrap underlined phrase at the
-       largest headline size, so it takes the wider share. */
-    display: grid; grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr);
+    display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
     gap: clamp(40px, 5.5vw, 80px); align-items: center;
     max-width: 1180px;
   }
   .stage-copy { max-width: 38rem; }
 
-  .kicker {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 7px 14px; border-radius: 999px;
-    background: var(--primary-50); color: var(--primary);
-    font-weight: 700; font-size: 12px; letter-spacing: 0.08em;
-    text-transform: uppercase; margin-bottom: 24px;
-  }
-  .kicker .seed { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-
   h1.stage-h1 {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     font-weight: 800;
-    font-size: clamp(33px, 4.1vw, 59px);
+    font-size: clamp(33px, 4.2vw, 60px);
     line-height: 1.04; letter-spacing: -0.036em;
-    color: var(--text); margin: 0 0 40px;
+    color: var(--text); margin: 0 0 20px;
   }
-  .uline { position: relative; white-space: nowrap; }
-  .uline svg { position: absolute; left: 0; right: 0; bottom: -0.13em; width: 100%; height: 0.17em; }
+  /* Emphasis is the same typeface in the brand colour, not a drawn mark. */
+  .stage-h1 em { font-style: normal; color: var(--primary); }
+
+  .stage-sub {
+    font-size: 18px; line-height: 1.55; color: var(--muted);
+    max-width: 30rem; margin: 0 0 36px;
+  }
 
   /* ── The demo card ───────────────────────────────────────────────── */
   .demo {
@@ -236,11 +230,14 @@
       0 4px 10px -6px rgba(120,80,40,0.12);
   }
   .demo-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
-  .demo-label {
+  /* The kitchen heading reads as a sentence; only Tonight keeps the small
+     caps, so the hero carries one label instead of three. */
+  .demo-label { font-size: 14px; font-weight: 700; color: var(--text); }
+  .demo-count { font-size: 12.5px; color: var(--muted-2); }
+  .demo-foot .demo-label {
     font-size: 10.5px; font-weight: 800; letter-spacing: 0.15em;
     text-transform: uppercase; color: var(--accent-ink);
   }
-  .demo-count { font-size: 12px; color: var(--muted-2); }
 
   .k-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
   /* Unused food sits back; the dish's own ingredients come forward. */
@@ -315,8 +312,8 @@
   /* Entrance: the message, then the card. */
   @keyframes riseIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
   .stage-copy > * { animation: riseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .stage-copy > .kicker   { animation-delay: 0.02s; }
-  .stage-copy > .stage-h1 { animation-delay: 0.08s; }
+  .stage-copy > .stage-h1 { animation-delay: 0.04s; }
+  .stage-copy > .stage-sub { animation-delay: 0.10s; }
   .stage-copy > .capture  { animation-delay: 0.16s; }
   .demo { animation: riseIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both; }
 
@@ -396,15 +393,9 @@
   .lo-urgent { animation-delay: 0.58s; }
   .lo-week   { animation-delay: 0.70s; }
   .lo-try    { animation-delay: 0.82s; }
-  .hero-copy > * { animation: riseIn 0.62s cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .hero-copy > .kicker { animation-delay: 0.02s; }
-  .hero-copy > .hero-h1 { animation-delay: 0.08s; }
-  .hero-copy > .hero-tagline { animation-delay: 0.14s; }
-  .hero-copy > .hero-sub { animation-delay: 0.20s; }
-  .hero-copy > .capture { animation-delay: 0.26s; }
   .phone-stage { animation: phoneIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
   @media (prefers-reduced-motion: reduce) {
-    .hero-copy > *, .phone-stage,
+    .phone-stage,
     .lo-head, .lo-urgent, .lo-week, .lo-try { animation: none; opacity: 1; filter: none; }
     .phone { --rx: 0deg; --ry: 0deg; }
   }
@@ -867,16 +858,9 @@
 
   /* ── Responsive ────────────────────────── */
   @media (max-width: 980px) {
-    .hero-grid { grid-template-columns: 1fr; gap: 44px; justify-items: center; text-align: center; }
-    .hero-copy { max-width: 620px; }
-    .hero-copy .hero-sub { margin-left: auto; margin-right: auto; }
-    .hero-copy .capture, .hero-copy .form-success { margin-left: auto; margin-right: auto; }
-    .hero-copy .capture-label { text-align: center; }
-    .hero-copy .privacy { justify-content: center; }
     /* Stacked layout has no pointer to track, so the device faces front. */
     .phone-stage { animation-name: riseIn; }
     .phone { --rx: 0deg; --ry: 0deg; --tx: 0px; --ty: 0px; }
-    h1.hero-h1 { font-size: 46px; }
     .steps { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr; }
     .feat, .feat-flip { grid-template-columns: 1fr; gap: 32px; }
@@ -888,11 +872,8 @@
   @media (max-width: 720px) {
     .wrap { padding: 0 20px; }
     .nav-sub { display: none; }
-    .hero { padding: 40px 0; }
-    h1.hero-h1 { font-size: 34px; }
-    .hero-tagline { font-size: 20px; }
     .phone { transform: scale(0.88); transform-origin: top center; }
-    .hero-sub { font-size: 15px; }
+    .stage-sub { font-size: 16px; }
     .sec-pad { padding-block: 60px; }
     h2.sec-title { font-size: 33px; }
     .final h2 { font-size: 34px; }
@@ -1208,13 +1189,11 @@
     <div class="wrap stage-grid">
 
       <div class="stage-copy">
-        <div class="kicker" data-i18n-kicker="hero.kicker">
-          <span class="seed" aria-hidden="true"></span><span>Waste less</span><span class="seed" aria-hidden="true"></span><span>Cook more</span><span class="seed" aria-hidden="true"></span>
-        </div>
-
         <h1 class="stage-h1" data-i18n-html="hero.h1">
-          Dinner, from what&#39;s <span class="uline">already in your fridge<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#F2C14E" stroke-width="4" stroke-linecap="round"/></svg></span>.
+          Dinner, from what&#39;s <em>already in your fridge</em>.
         </h1>
+
+        <p class="stage-sub" data-i18n="hero.sub">Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight&#39;s dinner from it.</p>
 
       <form class="capture" id="hero-form" novalidate>
         <label class="capture-label sr-only" for="hero-email" data-i18n="hero.formLabel">Get early access</label>
@@ -2010,7 +1989,6 @@
   })();
 
   // ---------- i18n ----------
-  var UL = '<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#D4A843" stroke-width="4" stroke-linecap="round"/></svg>';
 
   var I18N = {
     en: {
@@ -2018,8 +1996,8 @@
       "meta.desc": "leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start.",
       "nav.tag": "What's for dinner?",
       "nav.cta": "Get early access",
-      "hero.kicker": "Waste less · Cook more",
-      "hero.h1": 'Dinner, from what\'s <span class="uline">already in your fridge' + UL + '</span>.',
+      "hero.h1": "Dinner, from what's <em>already in your fridge</em>.",
+      "hero.sub": "Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight's dinner from it.",
       "stage.have": "Your kitchen",
       "stage.count": "6 items",
       "stage.next": "Show another dinner",
@@ -2224,8 +2202,8 @@
       "meta.desc": "leftovr pretvara sliku tvog frižidera ili ostave u recepte od hrane koju već imaš. Računi i bar-kodovi takođe pune kuhinju. iPhone, besplatno za početak.",
       "nav.tag": "Šta ima za večeru?",
       "nav.cta": "Rani pristup",
-      "hero.kicker": "Manje bacaj · Više kuvaj",
-      "hero.h1": 'Večera od onoga <span class="uline">što već imaš u frižideru' + UL + '</span>.',
+      "hero.h1": "Večera od onoga <em>što već imaš u frižideru</em>.",
+      "hero.sub": "Slikaj frižider. leftovr napuni tvoju kuhinju, označi šta prvo propada i od toga napravi večeru.",
       "stage.have": "Tvoja kuhinja",
       "stage.count": "6 stavki",
       "stage.next": "Prikaži drugu večeru",
@@ -2431,26 +2409,6 @@
   var ogTitle = document.querySelector('meta[property="og:title"]');
   var ogDesc = document.querySelector('meta[property="og:description"]');
 
-  function renderKicker(el, value) {
-    var parts = String(value || "").split("·").map(function (part) {
-      return part.trim();
-    }).filter(Boolean);
-    el.textContent = "";
-    parts.forEach(function (part) {
-      var dot = document.createElement("span");
-      dot.className = "seed";
-      dot.setAttribute("aria-hidden", "true");
-      el.appendChild(dot);
-
-      var text = document.createElement("span");
-      text.textContent = part;
-      el.appendChild(text);
-    });
-    var endDot = document.createElement("span");
-    endDot.className = "seed";
-    endDot.setAttribute("aria-hidden", "true");
-    el.appendChild(endDot);
-  }
 
   function applyLanguage(lang) {
     if (!I18N[lang]) lang = "en";
@@ -2473,10 +2431,6 @@
     document.querySelectorAll("[data-i18n-ph]").forEach(function (el) {
       var v = dict[el.dataset.i18nPh];
       if (v != null) el.placeholder = v;
-    });
-    document.querySelectorAll("[data-i18n-kicker]").forEach(function (el) {
-      var v = dict[el.dataset.i18nKicker];
-      if (v != null) renderKicker(el, v);
     });
 
     // Head metadata
