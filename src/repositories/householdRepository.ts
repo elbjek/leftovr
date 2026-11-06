@@ -135,6 +135,9 @@ export async function acceptHouseholdInvite(
   });
 
   if (error) throw error;
+  // The RPC returns null for a bad or expired code instead of raising, so its
+  // rate-limit bookkeeping survives the call.
+  if (!data) throw new Error("Invite code is invalid or expired");
   return data as string;
 }
 
