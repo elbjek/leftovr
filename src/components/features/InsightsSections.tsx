@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, radii, shadows, spacing } from "../../theme";
-import { Card, Divider, GlyphTile, SectionHeader, Tappable, Text } from "../primitives";
+import { Card, Divider, GlyphTile, Tappable, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // The Insights tab's sections, TinyMeals-style: each answers one question
@@ -12,16 +12,16 @@ import { RecipeGlyph } from "./RecipeGlyph";
 export function SectionTitle({ title, aside, caption }: { title: string; aside?: string; caption?: string }) {
   return (
     <View style={styles.sectionHead}>
-      <SectionHeader
-        title={title}
-        actions={
-          aside ? (
-            <Text variant="small" muted>
-              {aside}
-            </Text>
-          ) : null
-        }
-      />
+      <View style={styles.sectionRow}>
+        <Text variant="micro" muted uppercase weight="extrabold" accessibilityRole="header">
+          {title}
+        </Text>
+        {aside ? (
+          <Text variant="small" muted>
+            {aside}
+          </Text>
+        ) : null}
+      </View>
       {caption ? (
         <Text variant="small" muted>
           {caption}
@@ -44,10 +44,10 @@ export function StoryCard({
   return (
     <View style={styles.card}>
       <View style={styles.storyText}>
-        <Text variant="h3" accessibilityRole="header">
+        <Text variant="label" weight="bold" accessibilityRole="header">
           {title}
         </Text>
-        <Text variant="body" muted>
+        <Text variant="small" muted>
           {body}
         </Text>
       </View>
@@ -105,7 +105,7 @@ export function UsedTossedChart({
   return (
     <View style={styles.card} accessible accessibilityLabel={label}>
       <View style={styles.titleRow}>
-        <Text variant="label" weight="bold">
+        <Text variant="micro" muted uppercase weight="extrabold">
           {title}
         </Text>
         {aside ? (
@@ -174,7 +174,7 @@ export function FoodGroups({
           <View key={row.category} style={[styles.groupRow, index > 0 && styles.divider]}>
             <GlyphTile name="" category={row.category} size="sm" />
             <View style={styles.groupBody}>
-              <Text variant="label" weight="bold">
+              <Text variant="small" weight="bold">
                 {row.label}
               </Text>
               <Text variant="small" color={row.weak ? colors.redInk : colors.muted}>
@@ -184,7 +184,7 @@ export function FoodGroups({
                 <View style={[styles.progressFill, row.weak && styles.progressWeak, { width: `${Math.round(row.share * 100)}%` }]} />
               </View>
             </View>
-            <Text variant="label" weight="extrabold" color={row.weak ? colors.redInk : colors.primary}>
+            <Text variant="small" weight="extrabold" color={row.weak ? colors.redInk : colors.primary}>
               {`${Math.round(row.share * 100)}%`}
             </Text>
           </View>
@@ -259,7 +259,7 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
             <View style={styles.dinnerTile}>
               <RecipeGlyph size={26} />
             </View>
-            <Text variant="label" weight="bold" numberOfLines={2} style={styles.dinnerTitle}>
+            <Text variant="small" weight="bold" numberOfLines={2} style={styles.dinnerTitle}>
               {dinner.title}
             </Text>
             <Text variant="small" muted>
@@ -275,6 +275,12 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
 const styles = StyleSheet.create({
   sectionHead: {
     gap: 2,
+  },
+  sectionRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    gap: spacing.md,
   },
   titleRow: {
     flexDirection: "row",

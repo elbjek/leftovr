@@ -32,13 +32,13 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
             {label}
           </Text>
           {emptyText ? (
-            <Text variant="body" muted>
+            <Text variant="small" muted>
               {emptyText}
             </Text>
           ) : (
             <>
               {value ? (
-                <Text variant="numeral" color={colors.primary} style={styles.value}>
+                <Text variant="h1" color={colors.primary} style={styles.value}>
                   {value}
                 </Text>
               ) : null}
@@ -69,7 +69,7 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
         <View style={styles.stats}>
           {stats.map((stat, index) => (
             <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
-              <Text variant="h2" weight="extrabold">
+              <Text variant="h3" weight="extrabold">
                 {stat.value}
               </Text>
               <Text variant="small" muted>

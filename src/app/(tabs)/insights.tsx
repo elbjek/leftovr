@@ -145,8 +145,8 @@ export default function InsightsRoute() {
               />
             </Svg>
           </View>
-          <Text variant="h2">{t("insights.lock.title")}</Text>
-          <Text variant="body" muted>
+          <Text variant="h3">{t("insights.lock.title")}</Text>
+          <Text variant="small" muted>
             {t("insights.lock.body")}
           </Text>
           <View style={styles.lockPoints}>
@@ -157,7 +157,7 @@ export default function InsightsRoute() {
                     <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
                 </View>
-                <Text variant="label" style={styles.lockPointText}>
+                <Text variant="small" style={styles.lockPointText}>
                   {t(`insights.lock.points.${point}`)}
                 </Text>
               </View>
