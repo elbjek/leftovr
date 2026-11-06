@@ -959,7 +959,7 @@ export const sr = {
       codeCopied: "Kopirano!",
       shareInvite: "Podeli pozivnicu",
       shareMessage:
-        "Pridruzi se mom domacinstvu na Leftovr! Unesi invite code {{code}} pri registraciji, ili otvori {{link}} ako vec imas aplikaciju.",
+        "Pridruži se mojoj kuhinji na leftovr! Unesi pozivni kod {{code}} u aplikaciji, ili otvori {{link}}.",
       enterCode: "Unesi pozivni kod",
       enterCodeBody: "Nalepi kod od nekoga iz svog domacinstva.",
       codeLabel: "Pozivni kod",

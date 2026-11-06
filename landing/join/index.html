@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Join a kitchen - leftovr</title>
+<meta name="description" content="Open a leftovr kitchen invite: enter the code in the app to share a fridge, pantry and freezer with the people you cook with." />
+<meta name="robots" content="noindex, follow" />
+<meta property="og:title" content="Join a kitchen on leftovr" />
+<meta property="og:description" content="Someone shared their leftovr kitchen with you." />
+<meta property="og:type" content="website" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect width='36' height='36' rx='8' fill='%23F8F4EE'/%3E%3Cg fill='none'%3E%3Cpath d='M7 20 h22 a11 11 0 0 1 -22 0 Z' stroke='%231B4332' stroke-width='2.6' stroke-linejoin='round'/%3E%3Cpath d='M14 15 c0 -2 1.7 -2 1.7 -4' stroke='%23D4A843' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M21.3 15 c0 -2 1.7 -2 1.7 -4' stroke='%23D4A843' stroke-width='2.2' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E" />
+<meta name="theme-color" content="#1B4332" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #FFFEFB;
+    --surface: #F8F4EE;
+    --primary: #1B4332;
+    --accent: #D4A843;
+    --text: #21302a;
+    --muted: #5d6b63;
+    --line: rgba(27, 67, 50, 0.12);
+    --sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--sans); background: var(--surface); color: var(--text); line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 0 24px; }
+
+  header.bar { padding: 24px 0; border-bottom: 1px solid var(--line); background: var(--paper); }
+  .bar-inner { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: var(--primary); letter-spacing: -0.02em; text-decoration: none; }
+  .brand svg { width: 28px; height: 28px; flex: 0 0 auto; }
+  .back { font-size: 14px; font-weight: 600; color: var(--primary); text-decoration: none; opacity: 0.8; }
+  .back:hover { opacity: 1; }
+
+  main { padding: 64px 0 88px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.15; color: var(--primary); margin: 10px 0 10px; letter-spacing: -0.02em; }
+  .lede { color: var(--muted); margin-bottom: 28px; }
+
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 24px; text-align: center; }
+  .code-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .code { font-size: clamp(22px, 5vw, 30px); font-weight: 800; color: var(--primary); letter-spacing: 0.08em; margin: 8px 0 20px; word-break: break-all; }
+  .btn { display: inline-block; width: 100%; padding: 14px 20px; border-radius: 14px; font-weight: 700; font-size: 16px; text-decoration: none; border: 1px solid transparent; cursor: pointer; }
+  .btn-primary { background: var(--primary); color: var(--paper); }
+  .btn-ghost { background: transparent; color: var(--primary); border-color: var(--line); margin-top: 10px; }
+  .copied { font-size: 13px; color: var(--muted); min-height: 20px; margin-top: 12px; }
+
+  .steps { margin: 32px 0 0; padding: 22px 24px; background: rgba(255, 254, 251, 0.64); border: 1px solid var(--line); border-radius: 18px; }
+  .steps h2 { font-size: 15px; color: var(--primary); margin-bottom: 10px; }
+  .steps ol { margin-left: 18px; }
+  .steps li { margin-bottom: 6px; font-size: 15px; }
+  .steps a { color: var(--primary); }
+
+  footer { border-top: 1px solid var(--line); background: var(--paper); padding: 28px 0; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+  footer a { color: var(--muted); text-decoration: none; font-size: 14px; }
+  footer a:hover { color: var(--primary); }
+  .legal { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="wrap bar-inner">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" rx="8" fill="#F8F4EE"/><g fill="none"><path d="M7 20 h22 a11 11 0 0 1 -22 0 Z" stroke="#1B4332" stroke-width="2.6" stroke-linejoin="round"/><path d="M14 15 c0 -2 1.7 -2 1.7 -4" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/><path d="M21.3 15 c0 -2 1.7 -2 1.7 -4" stroke="#D4A843" stroke-width="2.2" stroke-linecap="round"/></g></svg>
+      leftovr
+    </a>
+    <a class="back" href="/">&lt; Back to leftovr</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <span class="eyebrow">Kitchen invite</span>
+    <h1>You've been invited to a kitchen</h1>
+    <p class="lede">A leftovr kitchen is one shared fridge, pantry and freezer — everyone sees what's in, what needs using, and what's for dinner.</p>
+
+    <div class="card">
+      <p class="code-label">Invite code</p>
+      <p class="code" id="code">-</p>
+      <a class="btn btn-primary" id="open" href="#">Open in leftovr</a>
+      <button class="btn btn-ghost" id="copy" type="button">Copy code</button>
+      <p class="copied" id="copied"></p>
+    </div>
+
+    <div class="steps">
+      <h2>Don't have the app yet?</h2>
+      <ol>
+        <li>Get on the <a href="/">leftovr waitlist</a>.</li>
+        <li>Install the app and sign in.</li>
+        <li>Enter the code above when it asks about an invite — or any time from Settings &rarr; Household.</li>
+      </ol>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="legal">&copy; 2026 leftovr. Made with leftovers in mind.</span>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;">
+      <a href="/blog/">Blog</a>
+      <a href="/">leftovr.co</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    // Codes are LEFTOVR-XXXXXXXX; anything else is a bad link, not a code to show.
+    var raw = (params.get("code") || "").trim().toUpperCase();
+    var code = /^[A-Z0-9-]{4,32}$/.test(raw) ? raw : "";
+    var codeEl = document.getElementById("code");
+    var openEl = document.getElementById("open");
+    var copyEl = document.getElementById("copy");
+    var copiedEl = document.getElementById("copied");
+
+    if (!code) {
+      codeEl.textContent = "No code in this link";
+      openEl.setAttribute("href", "/");
+      openEl.textContent = "Go to leftovr";
+      copyEl.style.display = "none";
+      return;
+    }
+
+    codeEl.textContent = code;
+    openEl.setAttribute("href", "leftovr://join?code=" + encodeURIComponent(code));
+
+    copyEl.addEventListener("click", function () {
+      navigator.clipboard.writeText(code).then(function () {
+        copiedEl.textContent = "Copied.";
+      }, function () {
+        copiedEl.textContent = "Couldn't copy — select the code above.";
+      });
+    });
+  })();
+</script>
+</body>
+</html>

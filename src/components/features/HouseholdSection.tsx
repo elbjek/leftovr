@@ -187,7 +187,10 @@ export function HouseholdSection({
     await Share.share({
       message: t("settings.household.shareMessage", {
         code,
-        link: `leftovr://join?code=${code}`,
+        // The web link works for everyone: it opens the app through the
+        // leftovr:// scheme when it's installed, and explains the code when
+        // it isn't. A bare leftovr:// link is dead for anyone without the app.
+        link: `https://leftovr.co/join?code=${code}`,
       }),
     });
   }

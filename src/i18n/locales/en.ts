@@ -938,7 +938,7 @@ export const en = {
       codeCopied: "Copied!",
       shareInvite: "Share invite",
       shareMessage:
-        "Join my household on Leftovr! Use invite code {{code}} during signup, or open {{link}} if you already have the app.",
+        "Join my kitchen on leftovr! Use invite code {{code}} in the app, or open {{link}}.",
       enterCode: "Enter invite code",
       enterCodeBody: "Paste a code from someone in your household.",
       codeLabel: "Invite code",
