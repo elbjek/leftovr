@@ -143,6 +143,16 @@ export default function Gallery() {
         <ChoiceCard title="Yearly" subtitle="Two months free" recommended recommendedLabel="Best value" onPress={() => {}} />
         <View style={styles.gap} />
         <ChoiceCard title="Compact row" compact onPress={() => {}} />
+        <View style={styles.gap} />
+        <ChoiceCard title="Compact row, selected" compact selected onPress={() => {}} />
+        <View style={styles.gap} />
+        <ChoiceCard
+          title="With an icon"
+          subtitle="And a trailing value"
+          icon={<PlusIcon size={20} color={colors.primary} />}
+          trailing={<Text variant="small" muted>12</Text>}
+          onPress={() => {}}
+        />
       </Section>
 
       <Section title="TextField">

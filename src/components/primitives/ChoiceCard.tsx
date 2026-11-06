@@ -1,6 +1,8 @@
 import React from "react";
-import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { colors, radii, spacing } from "../../theme";
+import { StatusPill } from "./StatusPill";
+import { Tappable } from "./Tappable";
 import { Text } from "./Text";
 
 type Props = {
@@ -17,6 +19,18 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
+/**
+ * One option in a list of options.
+ *
+ * The 1.5px outline is gone. Resting is a white surface on the grey page;
+ * selected flips the fill to sageTint, which is a stronger signal than the
+ * border ever was and does not depend on noticing a colour change in a
+ * 1.5px line.
+ *
+ * The fill is a tint rather than the solid primary the interaction spec
+ * uses for chips: a ChoiceCard carries a muted subtitle, and muted text on
+ * dark green is unreadable. The tint keeps both lines legible.
+ */
 export function ChoiceCard({
   title,
   subtitle,
@@ -32,45 +46,28 @@ export function ChoiceCard({
   const active = recommended || selected;
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Tappable
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-        compact && styles.cardCompact,
-        active && styles.active,
-        pressed && styles.pressed,
-        style,
-      ]}
+      feedback="scale"
+      selected={selected}
+      label={[title, subtitle].filter(Boolean).join(". ")}
+      hitSlop={0}
+      style={[styles.card, compact && styles.cardCompact, active && styles.active, style]}
     >
-      {icon ? (
-        <View style={[styles.icon, active && styles.activeIcon]}>{icon}</View>
-      ) : null}
+      {icon ? <View style={[styles.icon, active && styles.activeIcon]}>{icon}</View> : null}
       <View style={styles.copy}>
         <View style={styles.titleRow}>
-          <Text variant={compact ? "label" : "h3"} color={colors.text}>
-            {title}
-          </Text>
-          {recommended && recommendedLabel ? (
-            <View style={styles.badge}>
-              <Text variant="micro" color={colors.text}>
-                {recommendedLabel}
-              </Text>
-            </View>
-          ) : null}
+          <Text variant={compact ? "label" : "h3"}>{title}</Text>
+          {recommended && recommendedLabel ? <StatusPill label={recommendedLabel} tone="accent" /> : null}
         </View>
         {subtitle ? (
-          <Text
-            variant="small"
-            color={colors.muted}
-            style={styles.subtitle}
-          >
+          <Text variant="small" muted style={styles.subtitle}>
             {subtitle}
           </Text>
         ) : null}
       </View>
       {trailing ? <View>{trailing}</View> : null}
-    </Pressable>
+    </Tappable>
   );
 }
 
@@ -80,13 +77,11 @@ const styles = StyleSheet.create({
     minHeight: 76,
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
-    paddingHorizontal: 22,
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xl,
-    backgroundColor: colors.paper,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: colors.hairline,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
   },
   cardCompact: {
     minHeight: 48,
@@ -95,11 +90,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
   },
   active: {
-    backgroundColor: colors.sageSoft,
-    borderColor: colors.sage,
-  },
-  pressed: {
-    transform: [{ scale: 0.99 }],
+    backgroundColor: colors.sageTint,
   },
   icon: {
     width: 44,
@@ -110,22 +101,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   activeIcon: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
   },
   copy: {
     flex: 1,
+    minWidth: 0,
   },
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
     gap: spacing.sm,
-  },
-  badge: {
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: radii.pill,
-    backgroundColor: colors.accent,
   },
   subtitle: {
     marginTop: spacing.xxs,
