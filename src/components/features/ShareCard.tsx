@@ -1,43 +1,65 @@
 import type { ComponentRef, RefObject } from "react";
 import { StyleSheet, Text, View, type TextProps } from "react-native";
+import Svg, { Line, Path } from "react-native-svg";
 
 import {
-  BODY_GAP,
+  BLOCK_GAP,
+  bodyPlan,
   cardHeight,
+  DISH_HEIGHT,
   fitSize,
-  gridPlan,
+  FRAME,
+  INNER,
+  ITEM_COLUMNS,
   lineCount,
-  PAD,
-  STORY_SAFE,
-  TILE_GAP,
+  PAPER_X,
+  PAPER_Y,
+  paperInset,
+  ROW_GAP,
+  ROW_HEIGHT,
+  TEETH,
   type ShareFormat,
 } from "../../lib/shareCardLayout";
 import { colors, fonts } from "../../theme";
 import { FoodGlyph, Logo } from "../illustrations";
 
-// More than this and the chips crowd the card; the rest fold into "+N".
-const MAX_CHIPS = 6;
-/** Width the card is drawn at for export: 360pt = 1080px at @3x. */
-export const SHARE_CARD_WIDTH = 360;
-
 export { SHARE_IMAGE, type ShareFormat } from "../../lib/shareCardLayout";
 
-export type ShareCardProps = {
+/** Width the card is drawn at for export: 360pt = 1080px at @3x. */
+export const SHARE_CARD_WIDTH = 360;
+/** The ranked dishes a menu prints. */
+const MAX_DISHES = 3;
+/** Days the streak punches; past this it prints the number alone. */
+const MAX_MARKS = 14;
+/** The barcode's bar widths, in `u`, repeated across the foot. */
+const BARS = [0.8, 0.4, 1.4, 0.4, 0.6, 1.2, 0.4, 0.8, 0.4, 1.6, 0.6, 0.4, 1, 0.4, 0.8, 1.4, 0.4, 0.6];
+
+type Item = { name: string; category?: string | null };
+type Total = { label: string; value: string };
+
+type Common = {
   format?: ShareFormat;
-  /** Small line over the title, e.g. "Lemon pasta · cooked". */
-  eyebrow: string;
+  /** The line over the title, e.g. "Kitchen receipt". */
+  kicker: string;
+  /** "November 2026", or "Lemon pasta · cooked". */
   title: string;
-  /** Used foods shown as chips. */
-  chips?: string[];
-  /** Used foods shown as icon tiles (the rescued card). */
-  foods?: { name: string; category?: string | null }[];
-  /** The headline money figure, already formatted. */
-  money?: { label: string; value: string } | null;
-  /** A ranked list, e.g. the go-to dinners. */
-  list?: { title: string; detail: string }[];
-  /** Up to three figures along the bottom. */
-  figures?: { value: string; label: string }[];
+  /** The gold total at the foot of the receipt. */
+  hero: Total;
+  /** The thank-you line under the barcode. */
+  footnote: string;
 };
+
+/**
+ * Each card prints its own kind of receipt body: a list of rescued items, a
+ * column of totals, a punched streak, or a menu of dinners.
+ */
+export type ShareCardProps = Common &
+  (
+    | { kind: "items"; items: Item[]; more: (count: number) => string; totals?: Total[] }
+    | { kind: "totals"; totals: Total[] }
+    | { kind: "streak"; days: number; daysLabel: string; totals: Total[] }
+    | { kind: "menu"; dishes: { title: string; detail: string }[]; totals?: Total[] }
+  );
 
 /**
  * Text at a fixed size: the shared image must look the same whatever the
@@ -47,143 +69,198 @@ function CardText(props: TextProps) {
   return <Text allowFontScaling={false} {...props} />;
 }
 
+/** The torn edge at each end of the paper, drawn in the frame's colour. */
+function Teeth({ width, height, flip }: { width: number; height: number; flip?: boolean }) {
+  const teeth = 22;
+  const step = 100 / teeth;
+  let d = "M0 0 H100 V1 ";
+  for (let i = teeth; i > 0; i -= 1) d += `L${(i - 0.5) * step} 0 L${(i - 1) * step} 1 `;
+  return (
+    <Svg width={width} height={height} viewBox="0 0 100 1" preserveAspectRatio="none" style={flip ? styles.flip : undefined}>
+      <Path d={d} fill={colors.primary} />
+    </Svg>
+  );
+}
+
+/** A printed rule: dashed between blocks, solid above the total. */
+function Rule({ width, u, solid }: { width: number; u: number; solid?: boolean }) {
+  return (
+    <Svg width={width} height={1.4 * u}>
+      <Line
+        x1={0}
+        y1={0.7 * u}
+        x2={width}
+        y2={0.7 * u}
+        stroke={solid ? colors.primary : colors.muted2}
+        strokeWidth={solid ? 0.5 * u : 0.3 * u}
+        strokeDasharray={solid ? undefined : `${1.2 * u},${1.2 * u}`}
+      />
+    </Svg>
+  );
+}
+
+/** The barcode that signs the receipt off. */
+function Barcode({ width, u }: { width: number; u: number }) {
+  const bars: number[] = [];
+  for (let total = 0; total < width; ) {
+    const bar = BARS[bars.length % BARS.length] * u;
+    bars.push(bar);
+    total += bar + 0.45 * u;
+  }
+  return (
+    <View style={[styles.barcode, { gap: 0.45 * u, height: 5 * u }]}>
+      {bars.map((bar, index) => (
+        <View key={index} style={{ width: bar, height: index % 3 === 0 ? 5 * u : 4 * u, backgroundColor: colors.text }} />
+      ))}
+    </View>
+  );
+}
+
+/** "ITEMS USED ............ 62" — the receipt's plain line. */
+function TotalRow({ total, u, strong }: { total: Total; u: number; strong?: boolean }) {
+  return (
+    <View style={[styles.line, { height: ROW_HEIGHT * u }]}>
+      <CardText style={[styles.lineLabel, { fontSize: 3.4 * u, letterSpacing: 0.12 * u }]} numberOfLines={1}>
+        {total.label.toUpperCase()}
+      </CardText>
+      <CardText style={[strong ? styles.lineValueStrong : styles.lineValue, { fontSize: strong ? 5 * u : 4.2 * u }]} numberOfLines={1}>
+        {total.value}
+      </CardText>
+    </View>
+  );
+}
+
 /**
- * leftovr's branded share image. Every size is in `u` (1% of the width), so
- * the same card renders at any width, as a post (4:5) or a story (9:16).
- * Which blocks it shows is what makes it one card or another — the Insights
- * sheet passes a different set per look.
+ * leftovr's share image: a kitchen receipt, printed on paper in a green
+ * frame, torn at both ends. Every size is in `u` (1% of the width), so it
+ * renders the same at any width, as a post (4:5) or a story (9:16).
  */
-export function ShareCard({
-  width,
-  format = "post",
-  eyebrow,
-  title,
-  chips = [],
-  foods = [],
-  money,
-  list = [],
-  figures = [],
-}: ShareCardProps & { width: number }) {
+export function ShareCard(props: ShareCardProps & { width: number }) {
+  const { width, format = "post", kicker, title, hero, footnote } = props;
   const u = width / 100;
   // A fixed height, not an aspect ratio: drawn off screen for export, an
   // aspect ratio can let the card grow and the capture then cuts its bottom.
   const height = cardHeight(format) * u;
-  const padTop = format === "story" ? height * STORY_SAFE.top : PAD * u;
-  const padBottom = format === "story" ? height * STORY_SAFE.bottom : PAD * u;
+  const inset = paperInset(format);
+  const print = INNER * u;
 
-  const shownChips = chips.slice(0, MAX_CHIPS);
-  const moreChips = chips.length - shownChips.length;
-  const rows = list.slice(0, 3);
+  const titleSize = fitSize(title, 7, 2);
+  const titleLines = Math.min(2, lineCount(title, titleSize));
 
-  const titleSize = fitSize(title, 8, 3);
-  const titleHeight = Math.min(3, lineCount(title, titleSize)) * titleSize * 1.15;
-
-  // What's left after everything else decides how many food tiles fit.
-  const { tile, slots } = gridPlan(format, foods.length, {
-    titleHeight,
-    chipRows: shownChips.length > 0 ? Math.ceil((shownChips.length + (moreChips > 0 ? 1 : 0)) / 3) : 0,
-    money: Boolean(money),
-    listRows: rows.length,
-    figures: figures.length > 0,
+  // Everything in the body is budgeted, longest-lived first, so the print
+  // never overflows the paper and loses its barcode.
+  const plan = bodyPlan(format, titleLines * titleSize * 1.15, {
+    marks: props.kind === "streak",
+    dishes: props.kind === "menu" ? Math.min(props.dishes.length, MAX_DISHES) : 0,
+    totals: (props.kind === "items" || props.kind === "menu" ? props.totals?.length ?? 0 : props.totals.length),
+    items: props.kind === "items",
   });
-  const tiles = foods.length > slots ? foods.slice(0, Math.max(0, slots - 1)) : foods.slice(0, slots);
-  const moreFoods = foods.length - tiles.length;
+  const totals = (props.kind === "items" || props.kind === "menu" ? props.totals ?? [] : props.totals).slice(0, plan.totals);
+  const dishes = props.kind === "menu" ? props.dishes.slice(0, plan.dishes) : [];
+  const items = props.kind === "items" ? props.items : [];
+  const shown = items.length > plan.items ? items.slice(0, Math.max(0, plan.items - 1)) : items.slice(0, plan.items);
+  const hidden = items.length - shown.length;
+  const itemWidth = (print - 2 * u) / ITEM_COLUMNS;
 
   return (
-    <View style={[styles.card, { width, height, paddingHorizontal: PAD * u, paddingTop: padTop, paddingBottom: padBottom }]}>
-      {/* Inside the padding, so on a story the shapes follow the safe area
-          down instead of sitting over the profile row. */}
-      <View style={styles.content}>
-        <View style={[styles.shape, { right: -14 * u, top: -14 * u, width: 40 * u, height: 40 * u, borderRadius: 20 * u, backgroundColor: colors.sageTint }]} />
-        <View style={[styles.shape, { right: 12 * u, top: 24 * u, width: 3 * u, height: 3 * u, borderRadius: 1.5 * u, backgroundColor: colors.accent }]} />
+    <View style={[styles.card, { width, height, paddingHorizontal: FRAME * u, paddingTop: inset.top * u, paddingBottom: inset.bottom * u }]}>
+      <View style={styles.paper}>
+        <Teeth width={width - FRAME * 2 * u} height={TEETH * u} />
+        <View style={[styles.print, { paddingHorizontal: PAPER_X * u, paddingVertical: PAPER_Y * u, gap: BLOCK_GAP * u }]}>
+          <View>
+            <Logo size={6 * u} />
+            <CardText style={[styles.kicker, { fontSize: 3.2 * u, letterSpacing: 0.22 * u, marginTop: 1.5 * u }]} numberOfLines={1}>
+              {kicker.toUpperCase()}
+            </CardText>
+            <CardText
+              style={[styles.title, { fontSize: titleSize * u, lineHeight: titleSize * u * 1.15, marginTop: 1.5 * u }]}
+              numberOfLines={2}
+            >
+              {title}
+            </CardText>
+          </View>
 
-        <Logo size={6 * u} />
+          <Rule width={print} u={u} />
 
-        {/* Clipped: if an estimate is ever a line out, the card loses the
-            bottom of a block rather than painting it over its neighbours. */}
-        <View style={[styles.body, { gap: BODY_GAP * u }]}>
-          <CardText style={[styles.eyebrow, { fontSize: 3.2 * u, letterSpacing: 0.15 * u }]} numberOfLines={1}>
-            {eyebrow.toUpperCase()}
-          </CardText>
-          <CardText style={[styles.title, { fontSize: titleSize * u, lineHeight: titleSize * u * 1.15 }]} numberOfLines={3}>
-            {title}
-          </CardText>
-          {shownChips.length > 0 ? (
-            <View style={[styles.chips, { gap: 1.6 * u }]}>
-              {shownChips.map((name, index) => (
-                <View key={`${index}-${name}`} style={[styles.chip, { paddingHorizontal: 3 * u, paddingVertical: 1.2 * u, borderRadius: 5 * u }]}>
-                  <CardText style={[styles.chipText, { fontSize: 3.4 * u }]} numberOfLines={1}>
-                    {name}
-                  </CardText>
-                </View>
-              ))}
-              {moreChips > 0 ? (
-                <View style={[styles.chip, styles.chipMore, { paddingHorizontal: 3 * u, paddingVertical: 1.2 * u, borderRadius: 5 * u }]}>
-                  <CardText style={[styles.chipText, styles.muted, { fontSize: 3.4 * u }]}>{`+${moreChips}`}</CardText>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
-          {tiles.length > 0 ? (
-            <View style={[styles.grid, { gap: TILE_GAP * u }]}>
-              {tiles.map((food, index) => (
-                <View key={`${index}-${food.name}`} style={[styles.tile, { width: tile * u, height: tile * u, borderRadius: 2.4 * u }]}>
-                  <FoodGlyph name={food.name} category={food.category} size={tile * u * 0.6} />
-                </View>
-              ))}
-              {moreFoods > 0 ? (
-                <View style={[styles.tile, styles.tileMore, { width: tile * u, height: tile * u, borderRadius: 2.4 * u }]}>
-                  <CardText style={[styles.chipText, styles.muted, { fontSize: tile * u * 0.26 }]}>{`+${moreFoods}`}</CardText>
-                </View>
-              ) : null}
-            </View>
-          ) : null}
-          {rows.length > 0 ? (
-            <View style={{ gap: 2 * u }}>
-              {rows.map((row, index) => (
-                <View key={`${index}-${row.title}`} style={[styles.row, { gap: 3 * u, paddingVertical: 2 * u, borderRadius: 4 * u, paddingHorizontal: 3.5 * u }]}>
-                  <CardText style={[styles.rank, { fontSize: 5 * u }]}>{String(index + 1)}</CardText>
-                  <View style={styles.rowBody}>
-                    <CardText style={[styles.rowTitle, { fontSize: 4.6 * u }]} numberOfLines={1}>
-                      {row.title}
-                    </CardText>
-                    <CardText style={[styles.muted, styles.rowDetail, { fontSize: 3.2 * u }]} numberOfLines={1}>
-                      {row.detail}
+          <View style={[styles.body, { gap: ROW_GAP * u }]}>
+            {props.kind === "items" ? (
+              <View style={[styles.items, { gap: ROW_GAP * u, columnGap: 2 * u }]}>
+                {shown.map((item, index) => (
+                  <View key={`${index}-${item.name}`} style={[styles.item, { width: itemWidth, height: ROW_HEIGHT * u, gap: 1.4 * u }]}>
+                    <FoodGlyph name={item.name} category={item.category} size={4.6 * u} />
+                    <CardText style={[styles.itemName, { fontSize: 3.4 * u }]} numberOfLines={1}>
+                      {item.name.toUpperCase()}
                     </CardText>
                   </View>
+                ))}
+                {hidden > 0 ? (
+                  <View style={[styles.item, { width: itemWidth, height: ROW_HEIGHT * u }]}>
+                    <CardText style={[styles.itemMore, { fontSize: 3.4 * u }]} numberOfLines={1}>
+                      {props.more(hidden).toUpperCase()}
+                    </CardText>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+
+            {props.kind === "streak" && plan.marks ? (
+              <View style={{ gap: 2 * u }}>
+                <View style={[styles.marks, { gap: 1.2 * u }]}>
+                  {Array.from({ length: Math.min(props.days, MAX_MARKS) }, (_, index) => (
+                    <View key={index} style={[styles.mark, { width: 5.4 * u, height: 5.4 * u, borderRadius: 1.4 * u, borderWidth: 0.4 * u }]}>
+                      <Svg width={3 * u} height={3 * u} viewBox="0 0 24 24" fill="none">
+                        <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={3.4} strokeLinecap="round" strokeLinejoin="round" />
+                      </Svg>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
-          ) : null}
-        </View>
-
-        {money ? (
-          <View style={[styles.money, { padding: 5 * u, borderRadius: 5 * u, gap: 1 * u }]}>
-            <CardText style={[styles.moneyLabel, { fontSize: 3.2 * u, letterSpacing: 0.15 * u }]} numberOfLines={1}>
-              {money.label.toUpperCase()}
-            </CardText>
-            <CardText style={[styles.moneyValue, { fontSize: 10 * u, lineHeight: 11.5 * u }]} numberOfLines={1} adjustsFontSizeToFit>
-              {money.value}
-            </CardText>
-          </View>
-        ) : null}
-
-        {figures.length > 0 ? (
-          <View style={[styles.figures, { marginTop: 3.5 * u }]}>
-            {figures.slice(0, 3).map((figure) => (
-              <View key={figure.label} style={styles.figure}>
-                <CardText style={[styles.figureValue, { fontSize: 8 * u, lineHeight: 9 * u }]} numberOfLines={1}>
-                  {figure.value}
-                </CardText>
-                <CardText style={[styles.muted, styles.figureLabel, { fontSize: 3.2 * u }]} numberOfLines={2}>
-                  {figure.label}
+                <CardText style={[styles.kicker, { fontSize: 3.2 * u, letterSpacing: 0.22 * u }]} numberOfLines={1}>
+                  {props.daysLabel.toUpperCase()}
                 </CardText>
               </View>
+            ) : null}
+
+            {dishes.map((dish, index) => (
+              <View key={`${index}-${dish.title}`} style={[styles.dish, { height: DISH_HEIGHT * u, gap: 2.4 * u }]}>
+                <CardText style={[styles.rank, { fontSize: 4.6 * u }]}>{String(index + 1)}</CardText>
+                <View style={styles.dishBody}>
+                  <CardText style={[styles.dishTitle, { fontSize: 4.6 * u }]} numberOfLines={1}>
+                    {dish.title}
+                  </CardText>
+                  <CardText style={[styles.dishDetail, { fontSize: 3.2 * u }]} numberOfLines={1}>
+                    {dish.detail}
+                  </CardText>
+                </View>
+              </View>
+            ))}
+
+            {totals.map((total) => (
+              <TotalRow key={total.label} total={total} u={u} />
             ))}
           </View>
-        ) : null}
 
-        <CardText style={[styles.muted, styles.footer, { fontSize: 3.2 * u, marginTop: 4 * u }]}>leftovr.co</CardText>
+          <Rule width={print} u={u} solid />
+
+          <View style={[styles.hero, { paddingHorizontal: 4 * u, paddingVertical: 2.6 * u, borderRadius: 3 * u }]}>
+            <CardText style={[styles.heroLabel, { fontSize: 3.2 * u, letterSpacing: 0.22 * u }]} numberOfLines={1}>
+              {hero.label.toUpperCase()}
+            </CardText>
+            <CardText style={[styles.heroValue, { fontSize: 9 * u, lineHeight: 10.4 * u }]} numberOfLines={1} adjustsFontSizeToFit>
+              {hero.value}
+            </CardText>
+          </View>
+
+          <View style={{ gap: 2 * u }}>
+            <Barcode width={print} u={u} />
+            <View style={styles.foot}>
+              <CardText style={[styles.footText, { fontSize: 3.2 * u, letterSpacing: 0.12 * u }]} numberOfLines={1}>
+                {footnote.toUpperCase()}
+              </CardText>
+              <CardText style={[styles.footText, { fontSize: 3.2 * u }]}>leftovr.co</CardText>
+            </View>
+          </View>
+        </View>
+        <Teeth width={width - FRAME * 2 * u} height={TEETH * u} flip />
       </View>
     </View>
   );
@@ -208,23 +285,22 @@ export function ShareCardExport({ viewRef, ...card }: ShareCardProps & { viewRef
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.appBackground,
+    backgroundColor: colors.primary,
     overflow: "hidden",
   },
-  content: {
+  paper: {
     flex: 1,
+    backgroundColor: colors.paper,
   },
-  shape: {
-    position: "absolute",
-  },
-  // Takes the room left between the logo and the figures; shrinks first.
-  body: {
+  print: {
     flex: 1,
     minHeight: 0,
-    justifyContent: "center",
     overflow: "hidden",
   },
-  eyebrow: {
+  flip: {
+    transform: [{ scaleY: -1 }],
+  },
+  kicker: {
     fontFamily: fonts.bodyBold,
     color: colors.muted,
   },
@@ -232,84 +308,106 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyExtraBold,
     color: colors.text,
   },
-  chips: {
+  // Takes the room left between the header and the total; shrinks first.
+  body: {
+    flex: 1,
+    minHeight: 0,
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  items: {
     flexDirection: "row",
     flexWrap: "wrap",
   },
-  chip: {
-    backgroundColor: colors.sageTint,
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  chipMore: {
-    backgroundColor: colors.surface2,
-  },
-  chipText: {
+  itemName: {
+    flex: 1,
     fontFamily: fonts.bodySemiBold,
-    color: colors.primary,
+    color: colors.text,
   },
-  grid: {
+  itemMore: {
+    fontFamily: fonts.bodyBold,
+    color: colors.muted,
+  },
+  marks: {
     flexDirection: "row",
     flexWrap: "wrap",
   },
-  tile: {
+  mark: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.paper,
+    borderColor: colors.sage,
+    backgroundColor: colors.sageTint,
   },
-  tileMore: {
-    backgroundColor: colors.surface2,
-  },
-  row: {
+  line: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.paper,
+    justifyContent: "space-between",
+    gap: 2,
+  },
+  lineLabel: {
+    flex: 1,
+    fontFamily: fonts.bodyBold,
+    color: colors.muted,
+  },
+  lineValue: {
+    fontFamily: fonts.bodyExtraBold,
+    color: colors.text,
+    fontVariant: ["tabular-nums"],
+  },
+  lineValueStrong: {
+    fontFamily: fonts.bodyExtraBold,
+    color: colors.primary,
+    fontVariant: ["tabular-nums"],
+  },
+  dish: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   rank: {
     fontFamily: fonts.bodyExtraBold,
     color: colors.sage,
     fontVariant: ["tabular-nums"],
   },
-  rowBody: {
+  dishBody: {
     flex: 1,
     minWidth: 0,
   },
-  rowTitle: {
+  dishTitle: {
     fontFamily: fonts.bodyExtraBold,
     color: colors.text,
   },
-  rowDetail: {
+  dishDetail: {
     fontFamily: fonts.bodySemiBold,
+    color: colors.muted,
   },
-  money: {
+  hero: {
     backgroundColor: colors.primary,
   },
-  moneyLabel: {
+  heroLabel: {
     fontFamily: fonts.bodyBold,
     color: colors.sage,
   },
-  moneyValue: {
+  heroValue: {
     fontFamily: fonts.bodyExtraBold,
     color: colors.accent,
     fontVariant: ["tabular-nums"],
   },
-  figures: {
+  barcode: {
     flexDirection: "row",
+    alignItems: "flex-end",
   },
-  figure: {
-    flex: 1,
+  foot: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  figureValue: {
-    fontFamily: fonts.bodyExtraBold,
-    color: colors.primary,
-    fontVariant: ["tabular-nums"],
-  },
-  figureLabel: {
-    fontFamily: fonts.bodySemiBold,
-  },
-  muted: {
-    color: colors.muted,
-  },
-  footer: {
+  footText: {
     fontFamily: fonts.bodyBold,
+    color: colors.muted,
   },
   offscreen: {
     position: "absolute",

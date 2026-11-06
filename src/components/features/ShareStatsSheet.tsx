@@ -10,7 +10,7 @@ import { ShareCard, ShareCardExport, type ShareCardProps, type ShareFormat } fro
 export type ShareLook = {
   id: string;
   label: string;
-  card: Omit<ShareCardProps, "format">;
+  card: ShareCardProps;
   caption: string;
 };
 

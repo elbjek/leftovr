@@ -271,14 +271,16 @@ export default function InsightsRoute() {
   });
   const dinners = summary.cookedRecipes.map((recipe) => ({ title: recipe.title, detail: t("insights.dinners.times", { count: recipe.count }) }));
 
-  // Each card is offered only when it has something to show; the first one
-  // opens. Same figures as the screen, branded (see Share images).
-  const periodLabel = t(`insights.share.card.${period}`, { month: monthName, year: span.start.getFullYear() });
+  // Each card is a receipt of its own kind — a list of what was rescued, a
+  // column of totals, a punched streak, a menu — and is offered only when it
+  // has something to print. The first one opens.
+  const receiptTitle = t(`insights.share.receipt.${period}`, { month: monthName, year: span.start.getFullYear() });
   const captionCounts = { month: monthName, year: span.start.getFullYear(), items: kitchen.used, dinners: summary.cookedEvents };
   const caption = t(`insights.share.${period}${summary.moneySaved > 0 ? "Money" : ""}`, { ...captionCounts, amount: money(summary.moneySaved) });
-  const usedFigure = { value: String(kitchen.used), label: t("insights.summary.used", { count: kitchen.used }) };
-  const cookedFigure = { value: String(summary.cookedEvents), label: t("insights.summary.cooked", { count: summary.cookedEvents }) };
-  const streakFigure = { value: String(streak), label: t("insights.summary.streak", { count: streak }) };
+  const receiptHead = { kicker: t("insights.share.receipt.kicker"), title: receiptTitle, footnote: t("insights.share.receipt.footnote") };
+  const usedTotal = { label: t("insights.share.receipt.itemsUsed"), value: String(kitchen.used) };
+  const cookedTotal = { label: t("insights.share.receipt.dinners"), value: String(summary.cookedEvents) };
+  const streakTotal = { label: t("insights.share.receipt.streak"), value: String(streak) };
   const looks: (ShareLook | null)[] = [
     kitchen.used > 0
       ? {
@@ -286,10 +288,11 @@ export default function InsightsRoute() {
           label: t("insights.share.looks.rescued"),
           caption,
           card: {
-            eyebrow: periodLabel,
-            title: t("insights.share.card.title", { count: kitchen.used }),
-            foods: data.usedFoods,
-            figures: [cookedFigure, streakFigure],
+            ...receiptHead,
+            kind: "items",
+            items: data.usedFoods,
+            more: (count: number) => t("insights.share.receipt.more", { count }),
+            hero: { label: t("insights.share.receipt.rescued"), value: String(kitchen.used) },
           },
         }
       : null,
@@ -299,10 +302,10 @@ export default function InsightsRoute() {
           label: t("insights.share.looks.saved"),
           caption,
           card: {
-            eyebrow: periodLabel,
-            title: t("insights.share.card.savedTitle"),
-            money: { label: t("insights.stats.saved"), value: money(summary.moneySaved) },
-            figures: [usedFigure, cookedFigure],
+            ...receiptHead,
+            kind: "totals",
+            totals: [usedTotal, cookedTotal, streakTotal],
+            hero: { label: t("insights.share.receipt.totalSaved"), value: money(summary.moneySaved) },
           },
         }
       : null,
@@ -312,9 +315,12 @@ export default function InsightsRoute() {
           label: t("insights.share.looks.streak"),
           caption,
           card: {
-            eyebrow: periodLabel,
-            title: t("insights.share.card.streakTitle", { count: streak }),
-            figures: [usedFigure, cookedFigure],
+            ...receiptHead,
+            kind: "streak",
+            days: streak,
+            daysLabel: t("insights.share.receipt.daysLabel"),
+            totals: [usedTotal, cookedTotal],
+            hero: { label: t("insights.share.receipt.streak"), value: String(streak) },
           },
         }
       : null,
@@ -324,10 +330,11 @@ export default function InsightsRoute() {
           label: t("insights.share.looks.dinners"),
           caption,
           card: {
-            eyebrow: periodLabel,
-            title: t("insights.share.card.dinnersTitle", { count: summary.cookedEvents }),
-            list: dinners,
-            figures: [usedFigure, streakFigure],
+            ...receiptHead,
+            kind: "menu",
+            dishes: dinners,
+            totals: [usedTotal, streakTotal],
+            hero: { label: t("insights.share.receipt.dinners"), value: String(summary.cookedEvents) },
           },
         }
       : null,

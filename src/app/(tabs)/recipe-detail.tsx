@@ -786,11 +786,18 @@ export default function RecipeDetailRoute() {
               <ShareCardExport
                 viewRef={rewardImage.ref}
                 format={rewardFormat}
-                eyebrow={t("recipes.reward.eyebrow", { title })}
-                title={t("recipes.reward.title", { count: reward.items.length })}
-                chips={reward.items}
-                money={rewardMoney ? { label: rewardMoney.label, value: formatMoney(rewardMoney.value, rewardMoney.currency) } : null}
-                figures={reward.streak ? [{ value: String(reward.streak.streak), label: t("recipes.reward.streak", { count: reward.streak.streak }) }] : []}
+                kind="items"
+                kicker={t("recipes.reward.receiptKicker")}
+                title={title}
+                items={reward.items.map((name) => ({ name }))}
+                more={(count) => t("insights.share.receipt.more", { count })}
+                totals={reward.streak ? [{ label: t("insights.share.receipt.streak"), value: String(reward.streak.streak) }] : []}
+                hero={
+                  rewardMoney
+                    ? { label: rewardMoney.label, value: formatMoney(rewardMoney.value, rewardMoney.currency) }
+                    : { label: t("insights.share.receipt.rescued"), value: String(reward.items.length) }
+                }
+                footnote={t("insights.share.receipt.footnote")}
               />
             ) : null}
           </>
