@@ -4,15 +4,18 @@ export const colors = {
   primary50: "rgba(35, 75, 52, 0.06)",
   primary100: "rgba(35, 75, 52, 0.12)",
   // Page background. The floor of the surface stack.
-  bg: "#F9F6F1",
+  bg: "#EDEDEB",
   // Cards and sheets: the layer that sits on top of bg.
-  surface: "#F9F6F1",
+  surface: "#FFFFFF",
   // Text and icons on primary (dark green) fills.
-  onPrimary: "#F9F6F1",
-  surface2: "#F3F3EB",
-  surface3: "#E2DBCD",
-  paper: "#FDF8F6",
-  appBackground: "#F9F6F1",
+  onPrimary: "#FFFFFF",
+  // Inset wells: the layer that sits below bg.
+  surface2: "#E3E3E0",
+  surface3: "#D6D6D2",
+  // Alias for surface, kept so existing call sites keep working.
+  paper: "#FFFFFF",
+  // Alias for bg, kept so existing call sites keep working.
+  appBackground: "#EDEDEB",
   // Flat neutral hairline for card outlines (no shadows).
   cardLine: "#E6E4D8",
   accent: "#F2C14E",
@@ -37,8 +40,8 @@ export const colors = {
   hairline: "rgba(35, 75, 52, 0.10)",
   hairlineStrong: "rgba(35, 75, 52, 0.18)",
   // Hairlines on primary (dark green) surfaces.
-  inverseHairline: "rgba(249, 246, 241, 0.12)",
-  inverseHairlineStrong: "rgba(249, 246, 241, 0.24)",
+  inverseHairline: "rgba(255, 255, 255, 0.12)",
+  inverseHairlineStrong: "rgba(255, 255, 255, 0.24)",
   // Kitchen home (TinyMeals-style): white cards on cream, warm tints.
   card: "#FFFFFF",
   accentInk: "#8A5A0B",
@@ -143,11 +146,11 @@ export const spacing = {
 } as const;
 
 export const radii = {
-  xs: 6,
-  sm: 10,
+  xs: 8,
+  sm: 12,
   md: 12,
-  lg: 14,
-  xl: 18,
+  lg: 16,
+  xl: 20,
   xxl: 24,
   pill: 999,
 } as const;
