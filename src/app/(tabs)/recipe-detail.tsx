@@ -6,6 +6,7 @@ import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
 import { BottomSheet, Button, Card, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Text, TextField } from "@/components";
+import type { ShareFormat } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
 import { foodIconKey, formatMoney, newClientId } from "@/lib";
@@ -249,6 +250,7 @@ export default function RecipeDetailRoute() {
   const [cooking, setCooking] = useState(false);
   const cookIdRef = useRef<string | null>(null);
   const rewardImage = useShareImage();
+  const [rewardFormat, setRewardFormat] = useState<ShareFormat>("post");
   // The after-cook reward: what this cook used up, plus the figures it
   // moved (null when they couldn't be loaded).
   const [reward, setReward] = useState<{
@@ -479,7 +481,7 @@ export default function RecipeDetailRoute() {
 
   function shareReward() {
     if (!reward) return;
-    void rewardImage.share(t("recipes.reward.shareMessage", { count: reward.items.length, title }));
+    void rewardImage.share(t("recipes.reward.shareMessage", { count: reward.items.length, title }), rewardFormat);
   }
 
   // This dinner's saving leads; the all-time total sits under it. A cook of
@@ -774,12 +776,16 @@ export default function RecipeDetailRoute() {
               money={rewardMoney}
               doneLabel={t("recipes.reward.done")}
               shareLabel={t("recipes.reward.share")}
+              format={rewardFormat}
+              formatLabels={{ post: t("insights.share.post"), story: t("insights.share.story") }}
+              onFormat={setRewardFormat}
               onDone={finishReward}
               onShare={shareReward}
             />
             {reward ? (
               <ShareCardExport
                 viewRef={rewardImage.ref}
+                format={rewardFormat}
                 eyebrow={t("recipes.reward.eyebrow", { title })}
                 title={t("recipes.reward.title", { count: reward.items.length })}
                 chips={reward.items}

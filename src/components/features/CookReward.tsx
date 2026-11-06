@@ -5,7 +5,8 @@ import Svg, { Path } from "react-native-svg";
 
 import { formatMoney } from "../../lib/money";
 import { colors, fonts, radii, spacing, typography } from "../../theme";
-import { Button, Text } from "../primitives";
+import { Button, SegmentedControl, Text } from "../primitives";
+import type { ShareFormat } from "./ShareCard";
 import { FlameIcon, GoalRing } from "./WeekStrip";
 
 // More than this and the chips crowd the screen; the rest fold into "+N".
@@ -27,6 +28,10 @@ type Props = {
   streak: { value: number; label: string } | null;
   doneLabel: string;
   shareLabel: string;
+  /** The shape the share image is drawn in: Instagram post or story. */
+  format: ShareFormat;
+  formatLabels: { post: string; story: string };
+  onFormat: (format: ShareFormat) => void;
   onDone: () => void;
   onShare: () => void;
 };
@@ -36,7 +41,7 @@ type Props = {
 // cards follow in a short stagger and the money counts up once. Reduce Motion
 // shows the end state. A full-screen layer, not a Modal: it rides in the cook
 // sheet's Modal (BottomSheet `overlay`) so iOS never has to stack two.
-export function CookReward({ visible, eyebrow, title, items, money, goal, streak, doneLabel, shareLabel, onDone, onShare }: Props) {
+export function CookReward({ visible, eyebrow, title, items, money, goal, streak, doneLabel, shareLabel, format, formatLabels, onFormat, onDone, onShare }: Props) {
   const insets = useSafeAreaInsets();
   const [pop] = useState(() => new Animated.Value(0));
   const [burst] = useState(() => new Animated.Value(0));
@@ -187,6 +192,16 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
 
       <View style={styles.actions}>
         <Button title={doneLabel} onPress={onDone} />
+        <View style={styles.format}>
+          <SegmentedControl<ShareFormat>
+            value={format}
+            onChange={onFormat}
+            options={[
+              { value: "post", label: formatLabels.post },
+              { value: "story", label: formatLabels.story },
+            ]}
+          />
+        </View>
         <Pressable
           accessibilityRole="button"
           onPress={onShare}
@@ -305,6 +320,11 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: spacing.xs,
+  },
+  // The share shape sits with the share action, not with the figures.
+  format: {
+    alignSelf: "center",
+    marginTop: spacing.xs,
   },
   share: {
     minHeight: 44,

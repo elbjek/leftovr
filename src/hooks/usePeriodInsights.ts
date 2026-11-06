@@ -5,6 +5,7 @@ import { computeInsightsSummary, InsightsSummary } from "@/services/insightsServ
 import {
   buildKitchenInsights,
   foodsGoingOff,
+  FoodHistoryRow,
   GoingOffFood,
   KitchenInsights,
   Period,
@@ -19,7 +20,27 @@ type State = {
   kitchen: KitchenInsights;
   prevKitchen: KitchenInsights;
   goingOff: GoingOffFood[];
+  /** Foods used up in the window, newest first, one tile per food. */
+  usedFoods: { name: string; category: string }[];
 };
+
+/**
+ * The distinct foods used up inside the window, newest first. Taken from the
+ * history already fetched, so no extra query; it only reaches back 120 days,
+ * so a Year can show fewer foods than it counted.
+ */
+function usedFoodsIn(history: FoodHistoryRow[], span: PeriodWindow) {
+  const seen = new Set<string>();
+  const foods: { name: string; category: string }[] = [];
+  for (const row of history) {
+    const at = new Date(row.at).getTime();
+    if (row.outcome !== "used" || at < span.start.getTime() || at >= span.until.getTime()) continue;
+    if (seen.has(row.name)) continue;
+    seen.add(row.name);
+    foods.push({ name: row.name, category: row.category });
+  }
+  return foods;
+}
 
 /**
  * Everything Insights shows for one period and scope: money and cooks
@@ -58,6 +79,7 @@ export function usePeriodInsights(
         kitchen: buildKitchenInsights(kitchen, span.buckets),
         prevKitchen: buildKitchenInsights(prevKitchen, span.buckets),
         goingOff: foodsGoingOff(history),
+        usedFoods: usedFoodsIn(history, span),
       });
       setLoadedKey(`${period}:${scope}`);
     } catch {

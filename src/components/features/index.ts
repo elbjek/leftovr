@@ -24,6 +24,7 @@ export * from "./RecipeIdeas";
 export * from "./RetentionCard";
 export * from "./SavedRecipeRow";
 export * from "./ShareCard";
+export * from "./ShareStatsSheet";
 export * from "./ScanMethodCard";
 export * from "./ShelfRow";
 export * from "./WeekStrip";

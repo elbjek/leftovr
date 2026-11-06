@@ -15,14 +15,15 @@ import {
   PremiumSheet,
   Screen,
   SectionTitle,
-  ShareCardExport,
+  ShareStatsSheet,
   Text,
   TopDinners,
   UsedTossedChart,
   WinsList,
 } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import { useDaySheet, usePeriodInsights, useShareImage, useStreak, useWins } from "@/hooks";
+import type { ShareLook } from "@/components";
+import { useDaySheet, usePeriodInsights, useStreak, useWins } from "@/hooks";
 import { InventoryCategory, Period, toUiCategory } from "@/services";
 import { formatMoney } from "@/lib/money";
 import { colors, fonts, radii, spacing } from "@/theme";
@@ -44,7 +45,7 @@ export default function InsightsRoute() {
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<Period>("month");
   const [menuOpen, setMenuOpen] = useState(false);
-  const summaryImage = useShareImage();
+  const [showShare, setShowShare] = useState(false);
   const scope = "household" as const;
   const currency = activeHousehold?.currency_code ?? "USD";
   const money = (value: number) => formatMoney(value, currency);
@@ -270,24 +271,79 @@ export default function InsightsRoute() {
   });
   const dinners = summary.cookedRecipes.map((recipe) => ({ title: recipe.title, detail: t("insights.dinners.times", { count: recipe.count }) }));
 
-  const share = () => {
-    const counts = { month: monthName, year: span.start.getFullYear(), items: kitchen.used, dinners: summary.cookedEvents };
-    const key = `insights.share.${period}${summary.moneySaved > 0 ? "Money" : ""}`;
-    void summaryImage.share(t(key, { ...counts, amount: money(summary.moneySaved) }));
-  };
-  // The image behind Share: the same figures as the summary card, branded.
-  const shareCard = (
-    <ShareCardExport
-      viewRef={summaryImage.ref}
-      eyebrow={t(`insights.share.card.${period}`, { month: monthName, year: span.start.getFullYear() })}
-      title={t("insights.share.card.title", { count: kitchen.used })}
-      money={summary.moneySaved > 0 ? { label: t("insights.stats.saved"), value: money(summary.moneySaved) } : null}
-      figures={[
-        { value: String(summary.cookedEvents), label: t("insights.summary.cooked", { count: summary.cookedEvents }) },
-        { value: String(streak), label: t("insights.summary.streak", { count: streak }) },
-      ]}
-    />
-  );
+  // Each card is offered only when it has something to show; the first one
+  // opens. Same figures as the screen, branded (see Share images).
+  const periodLabel = t(`insights.share.card.${period}`, { month: monthName, year: span.start.getFullYear() });
+  const captionCounts = { month: monthName, year: span.start.getFullYear(), items: kitchen.used, dinners: summary.cookedEvents };
+  const caption = t(`insights.share.${period}${summary.moneySaved > 0 ? "Money" : ""}`, { ...captionCounts, amount: money(summary.moneySaved) });
+  const usedFigure = { value: String(kitchen.used), label: t("insights.summary.used", { count: kitchen.used }) };
+  const cookedFigure = { value: String(summary.cookedEvents), label: t("insights.summary.cooked", { count: summary.cookedEvents }) };
+  const streakFigure = { value: String(streak), label: t("insights.summary.streak", { count: streak }) };
+  const looks: (ShareLook | null)[] = [
+    kitchen.used > 0
+      ? {
+          id: "rescued",
+          label: t("insights.share.looks.rescued"),
+          caption,
+          card: {
+            eyebrow: periodLabel,
+            title: t("insights.share.card.title", { count: kitchen.used }),
+            foods: data.usedFoods,
+            figures: [cookedFigure, streakFigure],
+          },
+        }
+      : null,
+    summary.moneySaved > 0
+      ? {
+          id: "saved",
+          label: t("insights.share.looks.saved"),
+          caption,
+          card: {
+            eyebrow: periodLabel,
+            title: t("insights.share.card.savedTitle"),
+            money: { label: t("insights.stats.saved"), value: money(summary.moneySaved) },
+            figures: [usedFigure, cookedFigure],
+          },
+        }
+      : null,
+    streak > 0
+      ? {
+          id: "streak",
+          label: t("insights.share.looks.streak"),
+          caption,
+          card: {
+            eyebrow: periodLabel,
+            title: t("insights.share.card.streakTitle", { count: streak }),
+            figures: [usedFigure, cookedFigure],
+          },
+        }
+      : null,
+    dinners.length > 0
+      ? {
+          id: "dinners",
+          label: t("insights.share.looks.dinners"),
+          caption,
+          card: {
+            eyebrow: periodLabel,
+            title: t("insights.share.card.dinnersTitle", { count: summary.cookedEvents }),
+            list: dinners,
+            figures: [usedFigure, streakFigure],
+          },
+        }
+      : null,
+  ];
+  const shownLooks = looks.filter((look): look is ShareLook => look !== null);
+
+  const shareSheet =
+    shownLooks.length > 0 ? (
+      <ShareStatsSheet
+        visible={showShare}
+        onDismiss={() => setShowShare(false)}
+        title={t("insights.share.sheetTitle")}
+        looks={shownLooks}
+        labels={{ post: t("insights.share.post"), story: t("insights.share.story"), share: t("insights.share.action") }}
+      />
+    ) : null;
 
   const summaryCard = (
     <PeriodSummary
@@ -301,7 +357,7 @@ export default function InsightsRoute() {
       ]}
       emptyText={isEmpty ? t(`insights.summary.empty.${period}`) : undefined}
       shareLabel={t(`insights.share.${period}Label`)}
-      onShare={share}
+      onShare={() => setShowShare(true)}
     />
   );
 
@@ -370,7 +426,7 @@ export default function InsightsRoute() {
         }))}
       />
 
-      {shareCard}
+      {shareSheet}
       {sheets}
     </Screen>
   );
