@@ -18,6 +18,7 @@ export * from "./Screen";
 export * from "./ScreenHeader";
 export * from "./SectionHeader";
 export * from "./SegmentedControl";
+export * from "./Skeleton";
 export * from "./StatusPill";
 export * from "./Tappable";
 export * from "./Text";

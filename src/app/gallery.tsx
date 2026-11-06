@@ -16,6 +16,7 @@ import {
   ScreenHeader,
   SectionHeader,
   SegmentedControl,
+  Skeleton,
   StatusPill,
   Tappable,
   Text,
@@ -285,6 +286,30 @@ export default function Gallery() {
         </Row>
       </Section>
 
+      <Section title="Skeleton">
+        <Row label="in the shape of a ListRow">
+          <Card padded={false} style={styles.listCard}>
+            {[0, 1, 2].map((i) => (
+              <View key={i} style={styles.skelRow}>
+                <Skeleton width={44} height={44} radius={12} />
+                <View style={styles.skelCopy}>
+                  <Skeleton width="60%" height={14} />
+                  <Skeleton width="35%" height={11} />
+                </View>
+                <Skeleton width={56} height={24} radius={12} />
+              </View>
+            ))}
+          </Card>
+        </Row>
+        <Row label="shapes">
+          <View style={styles.rowWrap}>
+            <Skeleton width={120} height={16} />
+            <Skeleton width={44} height={44} circle />
+            <Skeleton width={90} height={90} radius={20} />
+          </View>
+        </Row>
+      </Section>
+
       <Section title="StatusPill">
         <Row label="urgency · tone names match the Urgency keys">
           <View style={styles.rowWrap}>
@@ -421,6 +446,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
     padding: spacing.lg,
+  },
+  skelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  skelCopy: {
+    flex: 1,
+    gap: spacing.sm,
   },
   chipColor: {
     width: 56,

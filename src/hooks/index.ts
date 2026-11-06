@@ -10,3 +10,4 @@ export * from "./useStreak";
 export * from "./useStreakMilestone";
 export * from "./useWins";
 export * from "./useShareImage";
+export * from "./useReducedMotion";
