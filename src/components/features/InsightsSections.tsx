@@ -1,29 +1,27 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "../../theme";
-import { FoodGlyph } from "../illustrations";
-import { Text } from "../primitives";
+import { colors, radii, shadows, spacing } from "../../theme";
+import { GlyphTile, SectionHeader, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // The Insights tab's sections, TinyMeals-style: each answers one question
 // about your kitchen; with no data yet, the screen shows an EmptyNote instead.
 
-const tone = (category: string) => categoryColors[category.replace("_", "-") as CategoryTone] ?? categoryColors.other;
 
 export function SectionTitle({ title, aside, caption }: { title: string; aside?: string; caption?: string }) {
   return (
     <View style={styles.sectionHead}>
-      <View style={styles.titleRow}>
-        <Text variant="micro" muted uppercase>
-          {title}
-        </Text>
-        {aside ? (
-          <Text variant="small" muted>
-            {aside}
-          </Text>
-        ) : null}
-      </View>
+      <SectionHeader
+        title={title}
+        actions={
+          aside ? (
+            <Text variant="small" muted>
+              {aside}
+            </Text>
+          ) : null
+        }
+      />
       {caption ? (
         <Text variant="small" muted>
           {caption}
@@ -44,7 +42,7 @@ export function EmptyNote({ text, good }: { text: string; good?: boolean }) {
           </Svg>
         </View>
       ) : null}
-      <Text variant="small" color={good ? colors.primary : colors.muted} style={[styles.noteText, good && styles.bold]}>
+      <Text variant="small" color={good ? colors.primary : colors.muted} weight={good ? "bold" : undefined} style={styles.noteText}>
         {text}
       </Text>
     </View>
@@ -71,7 +69,7 @@ export function UsedTossedChart({
   return (
     <View style={styles.card} accessible accessibilityLabel={label}>
       <View style={styles.titleRow}>
-        <Text variant="label" style={styles.bold}>
+        <Text variant="label" weight="bold">
           {title}
         </Text>
         {aside ? (
@@ -85,7 +83,7 @@ export function UsedTossedChart({
           const total = bar.used + bar.tossed;
           return (
             <View key={index} style={styles.barColumn}>
-              <Text variant="small" style={[styles.barCount, total === 0 && styles.hidden]}>
+              <Text variant="small" weight="bold" style={total === 0 ? styles.hidden : undefined}>
                 {total}
               </Text>
               <View style={[styles.barTrack, { height: HEIGHT }]}>
@@ -101,7 +99,7 @@ export function UsedTossedChart({
       </View>
       <View style={styles.barLabels}>
         {bars.map((bar, index) => (
-          <Text key={index} variant="small" muted center style={[styles.barLabel, bar.current && styles.bold]}>
+          <Text key={index} variant="small" muted center weight={bar.current ? "bold" : undefined} style={styles.barLabel}>
             {bar.label}
           </Text>
         ))}
@@ -138,12 +136,10 @@ export function FoodGroups({
       <View style={[styles.card, styles.listCard]}>
         {rows.map((row, index) => (
           <View key={row.category} style={[styles.groupRow, index > 0 && styles.divider]}>
-            <View style={[styles.foodTile, { backgroundColor: tone(row.category).background }]}>
-              <FoodGlyph name="" category={row.category} size={22} color={tone(row.category).mark} />
-            </View>
+            <GlyphTile name="" category={row.category} size="sm" />
             <View style={styles.groupBody}>
               <View style={styles.titleRow}>
-                <Text variant="label" style={styles.bold}>
+                <Text variant="label" weight="bold">
                   {row.label}
                 </Text>
                 <Text variant="small" color={row.weak ? colors.redInk : colors.muted}>
@@ -187,12 +183,10 @@ export function GoingOffList({
     <View style={[styles.card, styles.listCard]}>
       {rows.map((row, index) => (
         <View key={row.name} style={[styles.groupRow, index > 0 && styles.divider]} accessible accessibilityLabel={row.label}>
-          <View style={[styles.foodTile, { backgroundColor: tone(row.category).background }]}>
-            <FoodGlyph name={row.name} category={row.category} size={22} color={tone(row.category).mark} />
-          </View>
+          <GlyphTile name={row.name} category={row.category} size="sm" />
           <View style={styles.groupBody}>
             <View style={styles.titleRow}>
-              <Text variant="label" style={styles.bold}>
+              <Text variant="label" weight="bold">
                 {row.name}
               </Text>
               <Text variant="small" color={colors.redInk}>
@@ -226,12 +220,12 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
           <View style={styles.dinnerTile}>
             <RecipeGlyph size={30} />
             <View style={styles.rank}>
-              <Text variant="small" color={colors.onPrimary} style={styles.bold}>
+              <Text variant="small" weight="bold" color={colors.onPrimary}>
                 {index + 1}
               </Text>
             </View>
           </View>
-          <Text variant="label" numberOfLines={2} style={styles.bold}>
+          <Text variant="label" weight="bold" numberOfLines={2}>
             {dinner.title}
           </Text>
           <Text variant="small" muted>
@@ -254,10 +248,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   card: {
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    backgroundColor: colors.surface,
     borderRadius: radii.xl,
+    ...shadows.soft,
     padding: spacing.lg,
     gap: spacing.md,
   },
@@ -274,7 +267,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -294,10 +287,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     gap: 4,
-  },
-  barCount: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
   },
   hidden: {
     opacity: 0,
@@ -353,15 +342,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   divider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.cardLine,
-  },
-  foodTile: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.md,
-    alignItems: "center",
-    justifyContent: "center",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
   },
   groupBody: {
     flex: 1,
@@ -380,7 +362,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   progressWeak: {
-    backgroundColor: colors.red,
+    backgroundColor: colors.redInk,
   },
   tip: {
     flexDirection: "row",
@@ -388,8 +370,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     padding: spacing.md,
     borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.accent,
     backgroundColor: colors.accentSoft,
   },
   tipText: {
@@ -411,10 +391,9 @@ const styles = StyleSheet.create({
   dinner: {
     flex: 1,
     minWidth: 0,
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    backgroundColor: colors.surface,
     borderRadius: radii.lg,
+    ...shadows.soft,
     padding: spacing.md,
     gap: spacing.xs,
   },
@@ -436,10 +415,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-  },
-  bold: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
   },
   pressed: {
     opacity: 0.6,
