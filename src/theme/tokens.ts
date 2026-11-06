@@ -62,68 +62,58 @@ export const fonts = {
   fallback: "System",
 } as const;
 
-const fontWeights = {
-  regular: "400",
-  medium: "500",
-  semibold: "600",
-  bold: "700",
-} as const;
-
 export const typography = {
   display: {
     fontFamily: fonts.bodyExtraBold,
     fontSize: 40,
-    lineHeight: 42,
-    fontWeight: fontWeights.bold,
-  },
-  hero: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 38,
-    lineHeight: 38,
-    fontWeight: fontWeights.bold,
+    lineHeight: 44,
+    letterSpacing: -0.8,
   },
   h1: {
     fontFamily: fonts.bodyExtraBold,
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: fontWeights.bold,
+    fontSize: 30,
+    lineHeight: 36,
+    letterSpacing: -0.6,
   },
   h2: {
     fontFamily: fonts.bodyExtraBold,
-    fontSize: 22,
-    lineHeight: 26,
-    fontWeight: fontWeights.bold,
+    fontSize: 24,
+    lineHeight: 30,
+    letterSpacing: -0.2,
   },
   h3: {
     fontFamily: fonts.bodyBold,
-    fontSize: 17,
-    lineHeight: 22,
-    fontWeight: fontWeights.bold,
+    fontSize: 19,
+    lineHeight: 24,
   },
   body: {
     fontFamily: fonts.body,
-    fontSize: 15,
-    lineHeight: 22,
-    fontWeight: fontWeights.regular,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  label: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 16,
+    lineHeight: 20,
   },
   small: {
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
     lineHeight: 18,
-    fontWeight: fontWeights.medium,
-  },
-  label: {
-    fontFamily: fonts.bodySemiBold,
-    fontSize: 14,
-    lineHeight: 18,
-    fontWeight: fontWeights.semibold,
   },
   micro: {
-    fontFamily: fonts.bodySemiBold,
+    fontFamily: fonts.bodyBold,
     fontSize: 11,
-    lineHeight: 13,
-    fontWeight: fontWeights.semibold,
-    letterSpacing: 0.44,
+    lineHeight: 14,
+    letterSpacing: 0.66,
+  },
+  // Big figures: counts, money, streaks.
+  numeral: {
+    fontFamily: fonts.bodyExtraBold,
+    fontSize: 44,
+    lineHeight: 48,
+    letterSpacing: -1,
+    fontVariant: ["tabular-nums"] as const,
   },
 } as const;
 
