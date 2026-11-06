@@ -10,17 +10,30 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, radii, spacing, typography } from "../../theme";
 import { Text } from "./Text";
 
 type Props = TextInputProps & {
   label: string;
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
-  /** Overrides the field box (e.g. white card fields in the item sheet). */
+  /** Overrides the field box. */
   boxStyle?: StyleProp<ViewStyle>;
 };
 
+/**
+ * A text input in an inset well.
+ *
+ * The outline is gone; the field is now a step down from the surface it
+ * sits on, which is the shape of an input rather than a decoration around
+ * it. Focus keeps a ring — that is the one place a border is not a last
+ * resort, because an invisible focus state fails WCAG 2.4.11 outright.
+ *
+ * The error line moved from red to redInk. Red measures 2.9:1 on a light
+ * surface and failed the 4.5:1 bar for body text, and an error that cannot
+ * be read is not an error message. The well tints with it, so the failure
+ * is carried by more than the text colour.
+ */
 export function TextField({
   label,
   error,
@@ -29,6 +42,7 @@ export function TextField({
   style,
   onFocus,
   onBlur,
+  editable = true,
   ...props
 }: Props) {
   const inputRef = useRef<TextInputInstance>(null);
@@ -38,7 +52,13 @@ export function TextField({
     <View style={[styles.wrap, containerStyle]}>
       <Pressable
         accessible={false}
-        style={[styles.box, boxStyle, focused && styles.boxFocused, error ? styles.boxError : null]}
+        style={[
+          styles.box,
+          boxStyle,
+          !editable && styles.boxDisabled,
+          focused && styles.boxFocused,
+          error ? styles.boxError : null,
+        ]}
         onPress={() => inputRef.current?.focus()}
       >
         <Text variant="micro" muted uppercase>
@@ -46,9 +66,11 @@ export function TextField({
         </Text>
         <TextInput
           ref={inputRef}
+          accessibilityLabel={label}
           placeholderTextColor={colors.muted2}
           autoCapitalize="none"
           autoCorrect={false}
+          editable={editable}
           style={[styles.input, style]}
           onFocus={(event) => {
             setFocused(true);
@@ -62,7 +84,7 @@ export function TextField({
         />
       </Pressable>
       {error ? (
-        <Text variant="small" color={colors.red} style={styles.error}>
+        <Text variant="small" color={colors.redInk} style={styles.error}>
           {error}
         </Text>
       ) : null}
@@ -75,27 +97,31 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   box: {
-    borderWidth: 1,
-    borderColor: colors.cardLine,
     borderRadius: radii.lg,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface2,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    gap: spacing.xs,
+    gap: spacing.xxs,
   },
+  boxDisabled: {
+    opacity: 0.45,
+  },
+  // The one legitimate border: an invisible focus state fails WCAG 2.4.11.
   boxFocused: {
-    borderColor: colors.sage,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    paddingHorizontal: spacing.md - 1.5,
+    paddingVertical: spacing.sm - 1.5,
   },
   boxError: {
-    borderColor: colors.red,
+    backgroundColor: colors.redSoft,
   },
   input: {
-    height: 36,
+    minHeight: 28,
     padding: 0,
     color: colors.text,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    lineHeight: 20,
+    ...typography.body,
   },
   error: {
     paddingLeft: spacing.xs,
