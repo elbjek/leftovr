@@ -795,7 +795,7 @@ export const sr = {
       niceToHave: "dobro bi doslo",
       missing: "nedostaje",
       saveCta: "Sacuvaj recept",
-      savedCta: "Sacuvano ★",
+      savedCta: "Sacuvano",
       bestToday: "najbolje danas",
       have: "Imaš {{amount}}",
       servings: "{{count}} porcija",

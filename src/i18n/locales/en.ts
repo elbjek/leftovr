@@ -779,7 +779,7 @@ export const en = {
       niceToHave: "nice to have",
       missing: "missing",
       saveCta: "Save recipe",
-      savedCta: "Saved ★",
+      savedCta: "Saved",
       bestToday: "best today",
       have: "You have {{amount}}",
       servings: "{{count}} servings",

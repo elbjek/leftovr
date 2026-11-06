@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Animated, Pressable, ScrollView, ScrollViewInstance, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
@@ -17,9 +18,10 @@ import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
 import { colors, radii, spacing } from "@/theme";
 
-const HERO_MAX_HEIGHT = 168;
-const HERO_MIN_HEIGHT = 84;
-const HERO_SCROLL_DISTANCE = HERO_MAX_HEIGHT - HERO_MIN_HEIGHT;
+// The cover band, and how far the content sheet rides up over it.
+const HERO_HEIGHT = 260;
+const SHEET_OVERLAP = 28;
+const SHEET_TOP = HERO_HEIGHT - SHEET_OVERLAP;
 
 type IngredientItem = {
   name: string;
@@ -37,6 +39,7 @@ const ingredientKey = (ing: { name: string; matchKey?: string | null }) =>
 
 export default function RecipeDetailRoute() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{
     title: string;
     description: string;
@@ -533,31 +536,30 @@ export default function RecipeDetailRoute() {
   const [stepsY, setStepsY] = useState(0);
   const jumpToSteps = () =>
     scrollRef.current?.scrollTo({
-      y: HERO_MAX_HEIGHT + stepsY - HERO_MIN_HEIGHT - spacing.md,
+      // Clear the floating back button, which stays over the content.
+      y: SHEET_TOP + stepsY - insets.top - 56,
       animated: true,
     });
+  // The cover drifts up at a third of the scroll speed; the content sheet
+  // slides over it.
   const heroTranslate = scrollY.interpolate({
-    inputRange: [0, HERO_SCROLL_DISTANCE],
-    outputRange: [0, -HERO_SCROLL_DISTANCE],
-    extrapolate: "clamp",
-  });
-  const glyphScale = scrollY.interpolate({
-    inputRange: [0, HERO_SCROLL_DISTANCE],
-    outputRange: [1, 0.6],
-    extrapolate: "clamp",
-  });
-  // Counter-translate so the shrinking glyph stays centered in what remains
-  // visible of the hero after it slides up.
-  const glyphTranslate = scrollY.interpolate({
-    inputRange: [0, HERO_SCROLL_DISTANCE],
-    outputRange: [0, HERO_SCROLL_DISTANCE / 2],
+    inputRange: [0, HERO_HEIGHT],
+    outputRange: [0, -HERO_HEIGHT / 3],
     extrapolate: "clamp",
   });
 
   return (
     <View style={styles.screen}>
-      {/* Single scroll surface: title through steps move together; the hero
-          collapses with scroll while back/save and the cook CTA stay fixed. */}
+      {/* The cover band sits behind the content sheet, which scrolls up over
+          it; back/save and the cook CTA stay fixed. */}
+      <Animated.View style={[styles.hero, { transform: [{ translateY: heroTranslate }] }]}>
+        {coverUri ? (
+          <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} />
+        ) : (
+          <IngredientIcons names={heroNames} />
+        )}
+      </Animated.View>
+
       <Animated.ScrollView
         ref={scrollRef}
         style={styles.scrollArea}
@@ -570,6 +572,24 @@ export default function RecipeDetailRoute() {
         )}
       >
       <View style={styles.body}>
+        {urgentBadge || hasCooked ? (
+          <View style={styles.badges}>
+            {urgentBadge ? (
+              <View style={[styles.badge, styles.badgeUrgent]}>
+                <Text variant="micro" uppercase color={colors.accentInk}>
+                  {t("recipes.saves", { item: urgentBadge })}
+                </Text>
+              </View>
+            ) : null}
+            {hasCooked ? (
+              <View style={styles.badge}>
+                <Text variant="micro" uppercase muted>
+                  {t("recipes.cooked.count", { count: cookedCount })}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
         <Text variant="h1">{title}</Text>
         {description ? (
           <Text variant="body" muted style={styles.description}>
@@ -577,11 +597,9 @@ export default function RecipeDetailRoute() {
           </Text>
         ) : null}
         <View style={styles.metaRow}>
-          <Text variant="small" muted>⏱ {formatTimeLabel(timeMinutes)}</Text>
-          <Text variant="small" muted>·</Text>
-          <Text variant="small" muted>{t("recipes.detail.servings", { count: servings })}</Text>
-          <Text variant="small" muted>·</Text>
-          <Text variant="small" muted>{complexityLabel}</Text>
+          <MetaChip icon={<ClockIcon />} label={formatTimeLabel(timeMinutes)} />
+          <MetaChip icon={<ServingsIcon />} label={t("recipes.detail.servings", { count: servings })} />
+          <MetaChip icon={<ComplexityIcon />} label={complexityLabel} />
         </View>
 
         {ingredients.length > 0 ? (
@@ -677,9 +695,9 @@ export default function RecipeDetailRoute() {
             </>
           ) : (
             steps.map((step, i) => (
-              <View key={i} style={styles.stepRow}>
+              <View key={i} style={[styles.stepRow, i > 0 && styles.stepRowDivider]}>
                 <View style={styles.stepNumber}>
-                  <Text variant="small" color={colors.surface} style={styles.stepNumberText}>{i + 1}</Text>
+                  <Text variant="micro" color={colors.primary}>{i + 1}</Text>
                 </View>
                 <Text variant="body" style={styles.stepText}>{step}</Text>
               </View>
@@ -688,22 +706,6 @@ export default function RecipeDetailRoute() {
         </View>
       </View>
       </Animated.ScrollView>
-
-      <Animated.View style={[styles.hero, { transform: [{ translateY: heroTranslate }] }]}>
-        <Animated.View
-          style={{ transform: [{ translateY: glyphTranslate }, { scale: glyphScale }] }}
-        >
-          <IngredientIcons names={heroNames} />
-        </Animated.View>
-        {coverUri ? <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} /> : null}
-        {urgentBadge ? (
-          <View style={styles.urgentChip}>
-            <Text variant="small" color={colors.primary}>
-              {t("recipes.saves", { item: urgentBadge })}
-            </Text>
-          </View>
-        ) : null}
-      </Animated.View>
 
       <Pressable
         accessibilityRole="button"
@@ -714,9 +716,9 @@ export default function RecipeDetailRoute() {
         onPress={() =>
           router.replace(params.returnTo === "all-recipes" ? "/(tabs)/all-recipes" : "/(tabs)/recipes")
         }
-        style={styles.backButton}
+        style={[styles.roundButton, { top: insets.top + spacing.sm, left: spacing.xl }]}
       >
-        <Svg width={14} height={14} viewBox="0 0 14 14">
+        <Svg width={15} height={15} viewBox="0 0 14 14">
           <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
       </Pressable>
@@ -724,10 +726,18 @@ export default function RecipeDetailRoute() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
+          accessibilityState={{ selected: favorite }}
           onPress={handleFavoriteToggle}
-          style={styles.favoriteButton}
+          style={[styles.roundButton, { top: insets.top + spacing.sm, right: spacing.xl }]}
         >
-          <Text variant="body">{favorite ? "★" : "☆"}</Text>
+          <Svg width={19} height={19} viewBox="0 0 24 24" fill={favorite ? colors.accent : "none"}>
+            <Path
+              d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"
+              stroke={favorite ? colors.accentDeep : colors.primary}
+              strokeWidth={2}
+              strokeLinejoin="round"
+            />
+          </Svg>
         </Pressable>
       ) : null}
 
@@ -1003,6 +1013,44 @@ export default function RecipeDetailRoute() {
   );
 }
 
+/** One fact about the dish (time, servings, effort) as a sage chip. */
+function MetaChip({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <View style={styles.metaChip}>
+      {icon}
+      <Text variant="small" color={colors.primary} style={styles.metaChipLabel}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" stroke={colors.primary} strokeWidth={1.8} />
+      <Path d="M12 7.5V12l3 2" stroke={colors.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function ServingsIcon() {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+      <Path d="M4 14a8 8 0 0 1 16 0z" stroke={colors.primary} strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M3 17.5h18" stroke={colors.primary} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function ComplexityIcon() {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
+      <Path d="M4 18V11M12 18V5M20 18v-4" stroke={colors.primary} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -1012,7 +1060,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: HERO_MAX_HEIGHT,
+    flexGrow: 1,
+    paddingTop: SHEET_TOP,
     paddingBottom: 140,
   },
   hero: {
@@ -1020,54 +1069,65 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: HERO_MAX_HEIGHT,
-    backgroundColor: "#C8D5C2",
+    height: HERO_HEIGHT,
+    backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 10,
   },
-  backButton: {
+  roundButton: {
     position: "absolute",
     zIndex: 20,
-    top: 60,
-    left: 20,
-    width: 38,
-    height: 38,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.85)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  favoriteButton: {
-    position: "absolute",
-    zIndex: 20,
-    top: 56,
-    right: 20,
-    width: 44,
-    height: 44,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.85)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  urgentChip: {
-    position: "absolute",
-    bottom: 20,
-    left: 24,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    backgroundColor: "rgba(243,239,232,0.85)",
+    width: 40,
+    height: 40,
     borderRadius: radii.pill,
+    backgroundColor: colors.paper,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairlineStrong,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  // The content rides up over the cover as a sheet of paper.
   body: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radii.xxl,
+    borderTopRightRadius: radii.xxl,
     paddingHorizontal: spacing.xxl,
     paddingTop: spacing.xxl,
   },
+  badges: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  badge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+  },
+  badgeUrgent: {
+    backgroundColor: colors.accentSoft,
+  },
   metaRow: {
     flexDirection: "row",
-    gap: spacing.md,
-    marginTop: spacing.sm,
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginTop: spacing.lg,
     marginBottom: spacing.xxl,
+  },
+  metaChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    minHeight: 30,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.pill,
+    backgroundColor: colors.sageTint,
+  },
+  metaChipLabel: {
+    fontWeight: "600",
   },
   description: {
     marginTop: spacing.sm,
@@ -1079,9 +1139,9 @@ const styles = StyleSheet.create({
   },
   fridgeCard: {
     borderWidth: 1,
-    borderColor: colors.hairline,
-    borderRadius: radii.lg,
-    backgroundColor: colors.paper,
+    borderColor: colors.cardLine,
+    borderRadius: radii.xl,
+    backgroundColor: colors.card,
     overflow: "hidden",
     marginBottom: spacing.md,
   },
@@ -1141,7 +1201,7 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: colors.paper,
+    borderColor: colors.card,
   },
   ingredientText: {
     flex: 1,
@@ -1155,7 +1215,7 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   steps: {
-    gap: spacing.lg,
+    gap: 0,
   },
   stepsPending: {
     flexDirection: "row",
@@ -1165,23 +1225,25 @@ const styles = StyleSheet.create({
   stepRow: {
     flexDirection: "row",
     gap: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  stepRowDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
   },
   stepNumber: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: colors.primary,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 2,
-  },
-  stepNumberText: {
-    fontWeight: "700",
-    fontSize: 13,
+    marginTop: 1,
   },
   stepText: {
     flex: 1,
   },
+  // Sits over the content, so it needs its own ground.
   bottomGradient: {
     position: "absolute",
     bottom: 0,
@@ -1192,6 +1254,9 @@ const styles = StyleSheet.create({
     // The tab dock sits below this bar now — no home-indicator clearance needed.
     paddingBottom: spacing.md,
     gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
   },
   coachMark: {
     backgroundColor: colors.primary50,
