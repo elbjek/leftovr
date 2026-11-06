@@ -393,6 +393,13 @@ export const en = {
     },
   },
   scan: {
+    aiDisclosure: {
+      title: "Your photo is read by AI",
+      body: "To turn a receipt or a shelf photo into a list, Leftovr sends the photo to Anthropic, the AI provider that reads it and sends back the items. Recipe ideas are written the same way, from the names of what is in your kitchen.",
+      retention: "The photo is deleted as soon as it has been read. It is never stored, never used to train anything, and never shown to anyone else.",
+      accept: "Got it, continue",
+      decline: "Not now",
+    },
     barcodeOffline: "Couldn't reach the product database. Check your connection and try again.",
     title: "Add to your kitchen",
     body: "Pick whatever fits what you just bought.",

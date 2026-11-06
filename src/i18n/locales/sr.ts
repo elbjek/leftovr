@@ -397,6 +397,13 @@ export const sr = {
     },
   },
   scan: {
+    aiDisclosure: {
+      title: "Tvoju fotografiju čita veštačka inteligencija",
+      body: "Da bi od računa ili fotografije police napravio listu, Leftovr šalje fotografiju Anthropic-u, AI partneru koji je čita i vraća stavke. Predlozi recepata nastaju na isti način, od naziva onoga što imaš u kuhinji.",
+      retention: "Fotografija se briše čim je pročitana. Nikada se ne čuva, ne koristi se za obučavanje modela i niko je drugi ne vidi.",
+      accept: "Razumem, nastavi",
+      decline: "Ne sada",
+    },
     barcodeOffline: "Nije moguće povezati se sa bazom proizvoda. Proveri vezu i pokušaj ponovo.",
     title: "Dodaj u kuhinju",
     body: "Izaberi šta odgovara onome što si upravo kupio/la.",

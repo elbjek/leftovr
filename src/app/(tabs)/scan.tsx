@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
 import { BackButton, BottomSheet, Button, Card, DateField, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Text, TextField, UnitPicker } from "@/components";
-import { isPremium as resolvePremium, useAuth } from "@/features";
+import { acceptAiDisclosure, hasAcceptedAiDisclosure, isPremium as resolvePremium, useAuth } from "@/features";
 import { useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import {
@@ -149,6 +149,9 @@ export default function ScanRoute() {
     (paramChoice === "receipt" || paramChoice === "pantry") && !canScanReceipt,
   );
   const [barcodeLocked, setBarcodeLocked] = useState(false);
+  // Shown once per install, before the first flow that sends a photo or PDF to
+  // the AI (guideline 5.1.2(i)).
+  const [aiDisclosureVisible, setAiDisclosureVisible] = useState(false);
   // Captured pantry shots waiting for analysis (uri for the thumbnail strip,
   // base64 for upload). Capturing is client-side only; the single paid AI call
   // happens when the user taps analyze.
@@ -308,15 +311,29 @@ export default function ScanRoute() {
     }
   }, [activeHousehold?.id, t]);
 
-  const openSelectedChoice = useCallback(async (nextChoice = choice, options?: { skipGate?: boolean }) => {
+  const openSelectedChoice = useCallback(async (
+    nextChoice = choice,
+    options?: { skipGate?: boolean; skipDisclosure?: boolean },
+  ) => {
     consumedModeRef.current = nextChoice;
     router.setParams({ mode: nextChoice });
     setChoice(nextChoice);
     setError(null);
 
+    // These three send a photo or PDF to Anthropic to be read; barcode and
+    // manual entry never leave Open Food Facts / the device.
+    const sendsToAi = nextChoice === "receipt" || nextChoice === "ereceipt" || nextChoice === "pantry";
+
+    // Tell the user what leaves the phone and get a yes, once per install,
+    // before the paywall: consent is about the data, not the money.
+    if (sendsToAi && !options?.skipDisclosure && !(await hasAcceptedAiDisclosure())) {
+      setAiDisclosureVisible(true);
+      return;
+    }
+
     // AI scanning (receipt photo, PDF, or pantry photos): free once, then
     // premium (per-scan AI cost); barcode and manual are free.
-    if ((nextChoice === "receipt" || nextChoice === "ereceipt" || nextChoice === "pantry") && !canScanReceipt && !options?.skipGate) {
+    if (sendsToAi && !canScanReceipt && !options?.skipGate) {
       setScanPremiumVisible(true);
       return;
     }
@@ -350,6 +367,12 @@ export default function ScanRoute() {
 
     setMode(nextChoice === "barcode" ? "barcodeCamera" : "camera");
   }, [canScanReceipt, choice, importEReceipt, permission?.granted, requestPermission, t]);
+
+  const acceptDisclosure = useCallback(async () => {
+    await acceptAiDisclosure();
+    setAiDisclosureVisible(false);
+    void openSelectedChoice(choice, { skipDisclosure: true });
+  }, [choice, openSelectedChoice]);
 
   useEffect(() => {
     const paramMode = params.mode;
@@ -1441,6 +1464,27 @@ export default function ScanRoute() {
         </Text>
       ) : null}
 
+      <BottomSheet
+        visible={aiDisclosureVisible}
+        onDismiss={() => setAiDisclosureVisible(false)}
+      >
+        <View style={styles.disclosureCard}>
+          <Text variant="h3">{t("scan.aiDisclosure.title")}</Text>
+          <Text variant="small" muted>
+            {t("scan.aiDisclosure.body")}
+          </Text>
+          <Text variant="small" muted>
+            {t("scan.aiDisclosure.retention")}
+          </Text>
+          <Button title={t("scan.aiDisclosure.accept")} onPress={() => void acceptDisclosure()} />
+          <Button
+            title={t("scan.aiDisclosure.decline")}
+            variant="ghost"
+            onPress={() => setAiDisclosureVisible(false)}
+          />
+        </View>
+      </BottomSheet>
+
       <PremiumSheet
         visible={scanPremiumVisible}
         onPurchased={async () => {
@@ -1688,6 +1732,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   customAddCard: {
+    gap: spacing.md,
+  },
+  disclosureCard: {
     gap: spacing.md,
   },
   searchingRow: {
