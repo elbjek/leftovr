@@ -197,39 +197,38 @@
 
   /* The plate: your kitchen on the left, tonight on the right. */
   .plate {
-    display: grid; grid-template-columns: 1.1fr auto 1fr; align-items: center;
-    gap: 34px; text-align: left;
-    background: var(--primary); color: var(--surface);
-    border-radius: var(--r-lg); padding: 34px 36px;
-    box-shadow: 0 30px 70px -34px rgba(35,75,52,0.55), 0 4px 14px rgba(31,31,31,0.06);
+    display: grid; grid-template-columns: 1.05fr auto 1fr; align-items: center;
+    gap: 32px; text-align: left;
+    padding: 6px 0 2px;
   }
+  .plate-side + .plate-arrow + .plate-side { padding-left: 32px; border-left: 1px solid var(--hairline); }
   .plate-label {
     font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 12px;
+    text-transform: uppercase; color: var(--accent-ink); margin-bottom: 12px;
   }
   .ings { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 18px; }
   /* Dim by default, lit when tonight's dish uses it. That swap IS the product. */
   .ing {
     position: relative; padding-left: 15px;
-    font-size: 15px; font-weight: 600; line-height: 1.3;
-    color: rgba(249,246,241,0.40);
+    font-size: 15px; font-weight: 500; line-height: 1.3;
+    color: var(--muted);
     transition: color 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
   /* A tick that fills in when tonight's dish claims the ingredient. */
   .ing::before {
     content: ""; position: absolute; left: 0; top: 0.52em;
     width: 7px; height: 7px; border-radius: 2px;
-    background: rgba(249,246,241,0.18);
+    background: var(--surface-3); border: 1px solid var(--hairline);
     transition: background 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
   /* Picked: the tick fills with a little overshoot and the row steps forward,
      so you can see the dish claiming it. */
-  .ing.on { color: var(--surface); transform: translateX(3px); }
+  .ing.on { color: var(--text); font-weight: 700; transform: translateX(3px); }
   .ing.on::before {
     background: var(--accent); transform: scale(1.3);
     transition: background 0.3s ease, transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .plate-arrow { position: relative; color: rgba(249,246,241,0.30); width: 52px; }
+  .plate-arrow { position: relative; color: var(--muted-2); width: 52px; }
   .plate-arrow svg { width: 52px; height: 14px; display: block; }
   /* A gold pulse runs the arrow on every swap: these become that. */
   .arrow-pulse {
@@ -252,10 +251,10 @@
   }
   .dish {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
-    font-weight: 800; font-size: clamp(24px, 2.9vw, 34px);
-    line-height: 1.1; letter-spacing: -0.025em; color: var(--accent);
+    font-weight: 800; font-size: clamp(26px, 3.1vw, 38px);
+    line-height: 1.08; letter-spacing: -0.03em; color: var(--primary);
   }
-  .dish-meta { font-size: 14px; line-height: 1.45; color: rgba(249,246,241,0.74); margin-top: 8px; }
+  .dish-meta { font-size: 14px; line-height: 1.45; color: var(--muted); margin-top: 8px; }
   /* The dish materializes rather than fades, and the meta follows a beat later. */
   .dish.swap { animation: dishIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
   .dish-meta.swap { animation: dishIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both; }
@@ -267,13 +266,13 @@
   .dish-next {
     position: absolute; right: 0; bottom: 0;
     width: 30px; height: 30px; border-radius: 999px; padding: 0;
-    background: rgba(249,246,241,0.10); color: var(--surface);
-    border: 1px solid var(--inverse-hairline-strong);
+    background: transparent; color: var(--primary);
+    border: 1px solid var(--hairline-strong);
     display: flex; align-items: center; justify-content: center; cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
   }
   .dish-next svg { width: 16px; height: 16px; }
-  .dish-next:hover { background: rgba(249,246,241,0.18); }
+  .dish-next:hover { background: var(--primary-50); border-color: var(--primary); }
   .dish-next:active { transform: scale(0.94); }
   .dish-next:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .plate-answer { position: relative; padding-right: 40px; }
@@ -303,7 +302,11 @@
   }
 
   @media (max-width: 860px) {
-    .plate { grid-template-columns: 1fr; gap: 20px; padding: 26px 24px; text-align: left; }
+    .plate { grid-template-columns: 1fr; gap: 18px; padding: 4px 0; text-align: left; }
+    .plate-side + .plate-arrow + .plate-side {
+      padding-left: 0; padding-top: 18px;
+      border-left: 0; border-top: 1px solid var(--hairline);
+    }
     .plate-arrow { transform: rotate(90deg); margin: 0 auto; }
     .dish-wrap { min-height: 0; }
   }
