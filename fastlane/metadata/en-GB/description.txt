@@ -1,0 +1,34 @@
+Photograph a grocery receipt, or just your shelves, and leftovr turns it into a kitchen that keeps track of itself. Everything lands sorted, dated and ranked by what should be eaten first — then leftovr writes recipes from the food you already own.
+
+No typing in a hundred items. No spreadsheet. No guessing what is still good.
+
+GET FOOD IN, FOUR WAYS
+- Scan a paper receipt — every line read and filed in seconds
+- Import an e-receipt PDF straight from your supermarket
+- Photograph a shelf, a fridge or a whole pantry
+- Scan a barcode, or add something by hand
+
+KNOW WHAT TO USE
+Your kitchen is sorted into shelves and ranked by what needs eating soonest, with a shelf-life estimate on every item. A separate Check these shelf collects anything probably past its best, so nothing quietly rots at the back.
+
+DINNER FROM WHAT YOU HAVE
+Ask for ideas and you get recipes built from your actual ingredients, leaning on whatever needs using first. Set the servings, the time you have and the kind of meal you want. Tell leftovr what your household avoids and it stays away from it.
+
+COOK AND IT UPDATES ITSELF
+Mark a meal cooked and the ingredients come out of your kitchen automatically. No second pass, no manual subtraction.
+
+SHARE A KITCHEN
+Invite the people you live with. One inventory, one list of what to eat first, everyone in sync. Up to three people per household.
+
+SEE WHAT IT SAVED
+Insights adds up what you used in time, what you cooked, and what you kept out of the bin.
+
+IN YOUR POCKET, NOT IN YOUR WAY
+Gentle reminders when something needs eating, not alarms. Warm, plain language. No calorie counting, no guilt, no lectures about waste.
+
+English and Serbian throughout.
+
+A NOTE ON PHOTOS AND AI
+Receipt and shelf photos are sent to Anthropic to be read, then deleted immediately — they are never stored and never used to train anything. Recipes are written from the names of what is in your kitchen. leftovr asks you once, before the first photo, and the privacy notice spells all of it out.
+
+Dates shown are estimates from shelf-life rules, not printed best-before dates. Trust your eyes and nose, and check ingredients yourself for allergens.
