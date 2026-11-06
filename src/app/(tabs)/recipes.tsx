@@ -4,9 +4,9 @@ import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "exp
 import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 
-import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, Text, TryNextCard, WeekStrip } from "@/components";
+import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Text, TryNextCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
-import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak } from "@/hooks";
+import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { formatMoney } from "@/lib";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
 import {
@@ -17,7 +17,7 @@ import {
   parseRecipeIngredients,
   RecipeMatch,
 } from "@/services/recipeService";
-import { availableBaseOptions, DAILY_GOAL, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory } from "@/services";
+import { availableBaseOptions, dailyGoal, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory } from "@/services";
 import { colors, fonts, radii, spacing } from "@/theme";
 
 type ListFilter = "all" | "soon" | "quick" | "saved" | "cooked";
@@ -91,6 +91,7 @@ export default function RecipesRoute() {
   const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, profile?.id);
 
   const { streak, freezes, today: usedToday, days: week, refresh: refreshStreak } = useStreak(activeHousehold?.id);
+  const { milestone, dismiss: dismissMilestone } = useStreakMilestone(activeHousehold?.id, streak);
 
   // Tapping Recipes in the dock always lands on the home, out of the ideas view.
   const navigation = useNavigation<BottomTabNavigationProp<Record<string, undefined>>>();
@@ -263,15 +264,19 @@ export default function RecipesRoute() {
         new Date(lastCookedAt) >= week[0].date ? { weekday: "short" } : { day: "numeric", month: "short" },
       )
     : "";
-  // Today's goal line: what the next item used up does for you.
+  // Today's goal is set by the fridge: rescue what is actually going off.
+  // With nothing at risk it falls back to the one item that keeps the streak.
+  const goalTotal = dailyGoal(urgentGroups.length);
   const goalTitle =
-    usedToday >= DAILY_GOAL
+    usedToday >= goalTotal
       ? t("recipes.week.goalDone")
-      : usedToday > 0
-        ? t("recipes.week.goalMore", { count: DAILY_GOAL - usedToday })
-        : streak > 0
-          ? t("recipes.week.goalKeep", { count: streak })
-          : t("recipes.week.goalStart");
+      : urgentGroups.length > 0
+        ? t("recipes.week.goalRescue", { count: goalTotal - usedToday })
+        : usedToday > 0
+          ? t("recipes.week.goalMore", { count: goalTotal - usedToday })
+          : streak > 0
+            ? t("recipes.week.goalKeep", { count: streak })
+            : t("recipes.week.goalStart");
   const lastFrozen = [...week].reverse().find((day) => day.state === "frozen");
   // Foods worth using now (today or soon), by normalized name — they lead the
   // hero's chips and the list's "Uses: …" badges.
@@ -447,7 +452,7 @@ export default function RecipesRoute() {
         <View style={styles.weekWrap}>
           <WeekStrip
             days={week}
-            goal={{ done: usedToday, total: DAILY_GOAL, eyebrow: t("recipes.week.goalEyebrow"), title: goalTitle }}
+            goal={{ done: usedToday, total: goalTotal, eyebrow: t("recipes.week.goalEyebrow"), title: goalTitle }}
             streak={streak >= 2 ? t("recipes.week.streak", { count: streak }) : undefined}
             freezes={{ count: freezes, label: t("recipes.week.freezes", { count: freezes }) }}
             note={
@@ -746,6 +751,16 @@ export default function RecipesRoute() {
         visible={householdOpen}
         onClose={() => setHouseholdOpen(false)}
         itemCount={inventory.length}
+      />
+      {/* Waits for the screen to be clear: iOS won't stack two Modals. */}
+      <StreakMilestone
+        visible={milestone != null && openDay == null && !showPremium && !householdOpen && !showCookPrompt}
+        onDismiss={dismissMilestone}
+        days={milestone ?? 0}
+        title={t("recipes.milestone.title", { count: milestone ?? 0 })}
+        body={t(`recipes.milestone.body${milestone ?? 3}` as "recipes.milestone.body3")}
+        freezeNote={milestone != null && milestone % 7 === 0 ? t("recipes.milestone.freeze") : undefined}
+        doneLabel={t("recipes.milestone.done")}
       />
     </Screen>
   );

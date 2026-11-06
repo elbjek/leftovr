@@ -11,7 +11,7 @@ import type { ShareFormat } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
 import { foodIconKey, formatMoney, newClientId } from "@/lib";
-import { addAmounts, canonicalFoodName, DAILY_GOAL, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
+import { addAmounts, canonicalFoodName, dailyGoal, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
@@ -509,14 +509,17 @@ export default function RecipeDetailRoute() {
         }
       : { value: reward.savings.total, currency, label: t("recipes.reward.savedSince"), note: null }
     : null;
+  // Same fridge-driven target as the home: what is still going off after this
+  // cook, so clearing the lot reads as the goal done.
+  const rewardGoalTotal = dailyGoal(inventoryGroups.filter((group) => group.urgency === "urgent").length);
   const rewardGoal = reward?.streak
     ? {
-        done: Math.min(reward.streak.today, DAILY_GOAL),
-        total: DAILY_GOAL,
+        done: Math.min(reward.streak.today, rewardGoalTotal),
+        total: rewardGoalTotal,
         label:
-          reward.streak.today >= DAILY_GOAL
+          reward.streak.today >= rewardGoalTotal
             ? t("recipes.week.goalDone")
-            : t("recipes.week.goalMore", { count: DAILY_GOAL - reward.streak.today }),
+            : t("recipes.week.goalMore", { count: rewardGoalTotal - reward.streak.today }),
       }
     : null;
 

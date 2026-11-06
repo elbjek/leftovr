@@ -86,5 +86,14 @@ export function groupWinsByDay(raw: WinsRaw): WinDay[] {
   return [...days.values()].sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
-/** Items to use up per day for the home's daily goal; 1 already keeps the streak. */
-export const DAILY_GOAL = 3;
+/** Most items today's goal ever asks for, however much is going off. */
+export const MAX_DAILY_GOAL = 3;
+
+/**
+ * Today's goal, set by the fridge rather than a constant: rescue what is
+ * actually going off today, capped so a big clear-out stays achievable. With
+ * nothing at risk the goal is a single item, which is also what keeps a streak.
+ */
+export function dailyGoal(atRiskCount: number): number {
+  return Math.max(1, Math.min(atRiskCount, MAX_DAILY_GOAL));
+}

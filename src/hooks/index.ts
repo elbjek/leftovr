@@ -8,5 +8,6 @@ export * from "./usePeriodInsights";
 export * from "./useRecipes";
 export * from "./useRetention";
 export * from "./useStreak";
+export * from "./useStreakMilestone";
 export * from "./useWins";
 export * from "./useShareImage";
