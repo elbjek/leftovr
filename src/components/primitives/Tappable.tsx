@@ -1,5 +1,5 @@
 import React from "react";
-import { AccessibilityRole, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { AccessibilityRole, AccessibilityState, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 
 type Feedback = "opacity" | "scale" | "none";
 
@@ -15,6 +15,8 @@ type Props = {
   feedback?: Feedback;
   selected?: boolean;
   disabled?: boolean;
+  /** The rest of the state: expanded, checked, busy. */
+  state?: AccessibilityState;
   /** 8 by default: the value 19 of the app's 32 hand-written targets already used. */
   hitSlop?: number;
   style?: StyleProp<ViewStyle>;
@@ -38,6 +40,7 @@ export function Tappable({
   feedback = "opacity",
   selected,
   disabled = false,
+  state,
   hitSlop = 8,
   style,
 }: Props) {
@@ -46,7 +49,7 @@ export function Tappable({
       accessibilityRole={role}
       accessibilityLabel={label}
       accessibilityHint={hint}
-      accessibilityState={{ disabled, selected }}
+      accessibilityState={{ disabled, selected, ...state }}
       disabled={disabled}
       hitSlop={hitSlop}
       onPress={onPress}

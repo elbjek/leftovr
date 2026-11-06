@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Animated, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, ScrollView, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
-import { BottomSheet, Button, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Text, TextField, useToast } from "@/components";
+import { BottomSheet, Button, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
 import type { ShareFormat } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
@@ -613,11 +613,10 @@ export default function RecipeDetailRoute() {
                   ? t("recipes.detail.fromFridgeCount", { count: fridgeCount })
                   : t("recipes.detail.ingredients")}
               </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ expanded: ingredientsOpen }}
+              <Tappable
+                state={{ expanded: ingredientsOpen }}
                 onPress={() => setIngredientsOpen((open) => !open)}
-                style={({ pressed }) => [styles.foldButton, pressed && { opacity: 0.6 }]}
+                style={[styles.foldButton]}
               >
                 <Text variant="small" color={colors.primary}>
                   {ingredientsOpen
@@ -625,7 +624,7 @@ export default function RecipeDetailRoute() {
                     : t("recipes.detail.showIngredients", { count: ingredients.length })}
                 </Text>
                 <Chevron up={ingredientsOpen} />
-              </Pressable>
+              </Tappable>
             </View>
             <View style={[styles.fridgeCard, !ingredientsOpen && styles.fridgeCardFolded]}>
               {!ingredientsOpen ? (
@@ -642,7 +641,7 @@ export default function RecipeDetailRoute() {
                 const inFridge = isOwned(ing);
                 const isUrgent = matchedUrgentItems.includes(ing.name);
                 const missingRequired = !inFridge && ing.required;
-                const dotColor = isUrgent || missingRequired ? colors.red : inFridge ? colors.green : colors.muted2;
+                const dotColor = isUrgent || missingRequired ? colors.redInk : inFridge ? colors.green : colors.muted2;
                 const meta = isUrgent
                   ? t("recipes.detail.bestToday")
                   : missingRequired
@@ -650,7 +649,7 @@ export default function RecipeDetailRoute() {
                     : !ing.required && !inFridge
                       ? t("recipes.detail.niceToHave")
                       : ing.amount;
-                const metaColor = isUrgent || missingRequired ? colors.red : colors.muted;
+                const metaColor = isUrgent || missingRequired ? colors.redInk : colors.muted;
                 const have = haveLabel(ing);
                 const iconId = foodIconKey(ing.name);
                 const hasIcon = iconId != null && !iconId.startsWith("category_");
@@ -666,8 +665,8 @@ export default function RecipeDetailRoute() {
                       <View style={styles.ingredientText}>
                         <Text
                           variant="body"
-                          color={missingRequired ? colors.red : colors.text}
-                          style={styles.ingredientName}
+                          color={missingRequired ? colors.redInk : colors.text}
+                          weight="semibold"
                         >
                           {ing.name}
                         </Text>
@@ -734,9 +733,8 @@ export default function RecipeDetailRoute() {
       </View>
       </Animated.ScrollView>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t("recipes.detail.backLabel")}
+      <Tappable
+        label={t("recipes.detail.backLabel")}
         // Return to the list the recipe was opened from — inside the tab
         // group, router.back() can land on whichever tab was visited before.
         // Tab screens stay mounted, so All recipes keeps its search and scroll.
@@ -748,12 +746,11 @@ export default function RecipeDetailRoute() {
         <Svg width={15} height={15} viewBox="0 0 14 14">
           <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
-      </Pressable>
+      </Tappable>
       {recipeId ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
-          accessibilityState={{ selected: favorite }}
+        <Tappable
+          label={favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
+          selected={favorite}
           onPress={handleFavoriteToggle}
           style={[styles.roundButton, { top: insets.top + spacing.sm, right: spacing.xl }]}
         >
@@ -765,7 +762,7 @@ export default function RecipeDetailRoute() {
               strokeLinejoin="round"
             />
           </Svg>
-        </Pressable>
+        </Tappable>
       ) : null}
 
       <View style={styles.bottomGradient}>
@@ -874,40 +871,32 @@ export default function RecipeDetailRoute() {
                         </Text>
                       </View>
                       <View style={styles.missingActions}>
-                        <Pressable
-                          accessibilityRole="button"
+                        <Tappable
                           onPress={() => confirmHaveItem(i)}
-                          style={({ pressed }) => [
-                            styles.missingActionButton,
-                            pressed && styles.swapRowPressed,
-                          ]}
+                          style={[styles.missingActionButton]}
                         >
                           <Text variant="small" color={colors.primary}>
                             {t("recipes.cooked.iHaveThis")}
                           </Text>
-                        </Pressable>
-                        <Pressable
-                          accessibilityRole="button"
+                        </Tappable>
+                        <Tappable
                           onPress={() => setSwapIndex(i)}
-                          style={({ pressed }) => [
-                            styles.missingActionButton,
-                            pressed && styles.swapRowPressed,
-                          ]}
+                          style={[styles.missingActionButton]}
                         >
                           <Text variant="small" color={colors.primary}>
                             {t("recipes.cooked.useSomethingElse")}
                           </Text>
-                        </Pressable>
+                        </Tappable>
                       </View>
                     </View>
                   );
                 }
 
                 return (
-                  <Pressable
+                  <Tappable
                     key={i}
-                    accessibilityRole="checkbox"
-                    accessibilityState={{ checked: item.used }}
+                    role="checkbox"
+                    state={{ checked: item.used }}
                     onPress={() => toggleCookedItem(i)}
                     style={[styles.cookedItem, item.used && styles.cookedItemActive]}
                   >
@@ -930,19 +919,18 @@ export default function RecipeDetailRoute() {
                             : item.amount}
                       </Text>
                     </View>
-                  </Pressable>
+                  </Tappable>
                 );
               })}
 
-              <Pressable
-                accessibilityRole="button"
+              <Tappable
                 onPress={() => setSwapIndex("add")}
-                style={({ pressed }) => [styles.addExtraRow, pressed && styles.swapRowPressed]}
+                style={[styles.addExtraRow]}
               >
                 <Text variant="label" color={colors.primary}>
                   + {t("recipes.cooked.addExtra")}
                 </Text>
-              </Pressable>
+              </Tappable>
             </ScrollView>
 
             <Button
@@ -972,9 +960,8 @@ export default function RecipeDetailRoute() {
                   .filter((unit): unit is string => Boolean(unit))
                   .filter((unit, index, all) => all.indexOf(unit) === index)
                   .map((unit) => (
-                    <Pressable
+                    <Tappable
                       key={unit}
-                      accessibilityRole="button"
                       onPress={() => setExtraUnit(unit)}
                       style={[styles.unitChip, extraUnit === unit && styles.unitChipActive]}
                     >
@@ -984,7 +971,7 @@ export default function RecipeDetailRoute() {
                       >
                         {unit}
                       </Text>
-                    </Pressable>
+                    </Tappable>
                   ))}
               </View>
             </View>
@@ -1008,15 +995,14 @@ export default function RecipeDetailRoute() {
             </Text>
             <ScrollView style={styles.swapList}>
               {inventoryGroups.map((group) => (
-                <Pressable
+                <Tappable
                   key={group.key}
-                  accessibilityRole="button"
                   onPress={() => (swapIndex === "add" ? startExtraAmount(group) : applySwap(swapIndex, group))}
-                  style={({ pressed }) => [styles.swapRow, pressed && styles.swapRowPressed]}
+                  style={[styles.swapRow]}
                 >
                   <Text variant="body">{group.name}</Text>
                   <Text variant="small" muted>{group.meta}</Text>
-                </Pressable>
+                </Tappable>
               ))}
             </ScrollView>
             <Button
@@ -1036,7 +1022,7 @@ function MetaChip({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <View style={styles.metaChip}>
       {icon}
-      <Text variant="small" color={colors.primary} style={styles.metaChipLabel}>
+      <Text variant="small" weight="semibold" color={colors.primary}>
         {label}
       </Text>
     </View>
@@ -1113,7 +1099,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radii.pill,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.hairlineStrong,
     alignItems: "center",
@@ -1159,9 +1145,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     backgroundColor: colors.sageTint,
   },
-  metaChipLabel: {
-    fontWeight: "600",
-  },
   description: {
     marginTop: spacing.sm,
   },
@@ -1171,8 +1154,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   fridgeCard: {
-    borderWidth: 1,
-    borderColor: colors.cardLine,
     borderRadius: radii.xl,
     backgroundColor: colors.card,
     overflow: "hidden",
@@ -1252,11 +1233,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
-  ingredientName: {
-    fontWeight: "600",
-  },
   fridgeMeta: {
-    fontWeight: "600",
     textAlign: "right",
   },
   steps: {
@@ -1331,7 +1308,7 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
     borderColor: colors.hairline,
     borderRadius: radii.lg,
@@ -1391,9 +1368,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
-    borderWidth: 1.5,
-    borderColor: colors.primary100,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.primary50,
     borderRadius: radii.pill,
   },
   addExtraRow: {
@@ -1411,7 +1386,7 @@ const styles = StyleSheet.create({
   swapRow: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
-    borderBottomWidth: 1,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.hairline,
     gap: spacing.xxs,
   },
@@ -1435,8 +1410,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radii.pill,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
+    backgroundColor: colors.primary50,
   },
   unitChipActive: {
     backgroundColor: colors.primary,

@@ -389,6 +389,16 @@ export default function Gallery() {
             <Text>Disabled</Text>
           </Tappable>
         </Row>
+        <Row label="accessibility state · expanded, checked, busy">
+          <Tappable
+            label="Ingredients"
+            state={{ expanded: true }}
+            onPress={() => {}}
+            style={styles.tapRow}
+          >
+            <Text>Announces itself as expanded</Text>
+          </Tappable>
+        </Row>
         <Row label="none · when the child animates itself">
           <Tappable label="A row" feedback="none" onPress={() => {}} style={styles.tapRow}>
             <Text>No feedback</Text>
