@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
 import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 
-import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Text, TryNextCard, WeekStrip } from "@/components";
+import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -18,7 +18,7 @@ import {
   RecipeMatch,
 } from "@/services/recipeService";
 import { availableBaseOptions, dailyGoal, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory } from "@/services";
-import { colors, fonts, radii, spacing } from "@/theme";
+import { colors, radii, shadows, spacing } from "@/theme";
 
 type ListFilter = "all" | "soon" | "quick" | "saved" | "cooked";
 const LIST_FILTERS: ListFilter[] = ["all", "soon", "quick", "saved", "cooked"];
@@ -416,37 +416,35 @@ export default function RecipesRoute() {
             {isPremium ? <View style={styles.premiumDot} /> : null}
           </View>
           {activeHousehold ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("settings.household.openSheet", { name: activeHousehold.name })}
+            <Tappable
+              label={t("settings.household.openSheet", { name: activeHousehold.name })}
               onPress={() => setHouseholdOpen(true)}
-              style={({ pressed }) => [styles.householdPill, pressed && styles.savedRowPressed]}
+              style={[styles.householdPill]}
             >
               <View style={styles.householdAvatar}>
-                <Text variant="micro" color={colors.primary} style={styles.metaStrong}>
+                <Text variant="micro" color={colors.primary} weight="bold">
                   {(firstName || activeHousehold.name).charAt(0).toUpperCase()}
                 </Text>
               </View>
-              <Text variant="small" numberOfLines={1} style={styles.metaStrong}>
+              <Text variant="small" numberOfLines={1} weight="bold">
                 {activeHousehold.name}
               </Text>
-            </Pressable>
+            </Tappable>
           ) : null}
         </View>
 
         {useFirstText ? (
-          <Pressable
-            accessibilityRole="button"
+          <Tappable
             onPress={() => router.push("/(tabs)/fridge")}
-            style={({ pressed }) => [styles.useFirst, pressed && styles.savedRowPressed]}
+            style={[styles.useFirst]}
           >
             <Text variant="small" color={colors.accentInk}>
-              <Text variant="small" color={colors.accentInk} style={styles.metaStrong}>
+              <Text variant="small" color={colors.accentInk} weight="bold">
                 {t("recipes.home.useFirst")} ·{" "}
               </Text>
               {useFirstText}
             </Text>
-          </Pressable>
+          </Tappable>
         ) : null}
 
         <View style={styles.weekWrap}>
@@ -495,18 +493,17 @@ export default function RecipesRoute() {
                 onSecondary={openCookPrompt}
               />
               {hasTonight ? (
-                <Pressable
-                  accessibilityRole="button"
+                <Tappable
                   onPress={() => setIdeasOpen(true)}
-                  style={({ pressed }) => [styles.moreIdeas, pressed && styles.savedRowPressed]}
+                  style={[styles.moreIdeas]}
                 >
                   <Text variant="small" muted>
                     {t("recipes.home.notFeelingIt")}{" "}
-                    <Text variant="small" color={colors.primary} style={styles.metaStrong}>
+                    <Text variant="small" color={colors.primary} weight="bold">
                       {t("recipes.tryNext.seeIdeas")}
                     </Text>
                   </Text>
-                </Pressable>
+                </Tappable>
               ) : null}
             </>
           ) : (
@@ -531,7 +528,7 @@ export default function RecipesRoute() {
 
         {recipeError ? (
           <View style={styles.errorBanner}>
-            <Text variant="small" color={colors.redInk} style={styles.limitText}>
+            <Text variant="small" color={colors.redInk} weight="bold">
               {recipeError}
             </Text>
           </View>
@@ -540,27 +537,26 @@ export default function RecipesRoute() {
         {!isPremium ? (
           <View style={styles.limitBanner}>
             <View>
-              <Text variant="small" color={colors.accentInk} style={styles.limitText}>
+              <Text variant="small" color={colors.accentInk} weight="bold">
                 {canGenerate
                   ? t("recipes.freeGenerationLeft")
                   : t("recipes.freeGenerationUsed")}
               </Text>
               <Text variant="small" muted style={styles.limitSub}>{t("recipes.freePlan")}</Text>
             </View>
-            <Pressable
-              accessibilityRole="button"
+            <Tappable
               onPress={() => setShowPremium(true)}
               style={styles.upgradeChip}
             >
-              <Text variant="micro" color={colors.onPrimary} style={styles.limitText}>{t("recipes.upgrade")}</Text>
-            </Pressable>
+              <Text variant="micro" color={colors.onPrimary} weight="bold">{t("recipes.upgrade")}</Text>
+            </Tappable>
           </View>
         ) : null}
 
         {listRecipes.length > 0 ? (
           <View style={styles.sectionBlock}>
             <View style={styles.listHead}>
-              <Text variant="micro" muted uppercase style={styles.eyebrow}>
+              <Text variant="micro" muted uppercase weight="extrabold">
                 {t("recipes.list.title")}
               </Text>
               <Text variant="small" muted>
@@ -603,15 +599,14 @@ export default function RecipesRoute() {
               })}
             </View>
             {filteredList.length > LIST_LIMIT ? (
-              <Pressable
-                accessibilityRole="button"
+              <Tappable
                 onPress={() => router.push("/(tabs)/all-recipes")}
-                style={({ pressed }) => [styles.browseAll, styles.listMore, pressed && styles.savedRowPressed]}
+                style={[styles.browseAll, styles.listMore]}
               >
-                <Text variant="label" color={colors.primary} style={styles.browseAllLabel}>
+                <Text variant="label" color={colors.primary} weight="bold">
                   {t("recipes.shelves.browseAll")}
                 </Text>
-              </Pressable>
+              </Tappable>
             ) : null}
           </View>
         ) : null}
@@ -771,15 +766,10 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.screenX,
     minHeight: 48,
     borderRadius: radii.lg,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-  },
-  browseAllLabel: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
+    ...shadows.soft,
   },
   center: {
     flex: 1,
@@ -831,8 +821,6 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
   },
   householdAvatar: {
     width: 22,
@@ -870,9 +858,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.redSoft,
     borderRadius: radii.xl,
   },
-  limitText: {
-    fontWeight: "700",
-  },
   limitSub: {
     marginTop: 2,
   },
@@ -906,17 +891,5 @@ const styles = StyleSheet.create({
   listMore: {
     marginHorizontal: 0,
     marginTop: spacing.md,
-  },
-  savedRowPressed: {
-    transform: [{ scale: 0.98 }],
-  },
-  eyebrow: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    letterSpacing: 0.66,
-  },
-  metaStrong: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
   },
 });
