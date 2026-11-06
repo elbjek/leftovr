@@ -2,6 +2,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import { valueOfAmount, lotRemainingValue } from "@/lib/money";
 import {
   insertValueEvent,
+  insertValueEvents,
   fetchPricedLots,
   categoryAverageUnitPrice,
 } from "./valueEventRepository";
@@ -205,8 +206,8 @@ export async function removeInventoryGroup(
   }
 
   const kind = reason === "discarded" ? "wasted" : "saved";
-  for (const lot of lots) {
-    await insertValueEvent({
+  await insertValueEvents(
+    lots.map((lot) => ({
       householdId,
       kind,
       value: lotRemainingValue(lot),
@@ -214,8 +215,8 @@ export async function removeInventoryGroup(
       category: lot.category,
       // Valued at the lot's price, so it's in the lot's currency (C16).
       currency: lot.purchase_currency,
-    });
-  }
+    })),
+  );
 }
 
 async function markInventoryPartialState(itemId: string, partialState: PartialState) {
