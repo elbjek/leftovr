@@ -452,31 +452,49 @@
   }
   .fi { width: 56px; height: 56px; object-fit: contain; display: block; }
 
-  /* 1. The shot you just took: a photo of the shelf, with the other two
-     behind it. Three cards because the step says up to three shots. */
-  .ill-shots { background: var(--primary); }
-  .shot-stack { position: relative; width: 196px; height: 126px; }
-  .shot {
-    position: absolute; inset: 0;
+  /* 1. Taking the photo: an open fridge on the left, the phone held up to it
+     on the right, screen showing the same shelf it is pointed at. */
+  .ill-capture { background: var(--primary); gap: 0; }
+  .fridge {
+    width: 112px; height: 126px; flex-shrink: 0;
     border-radius: 10px; background: var(--paper);
-    box-shadow: 0 12px 24px -12px rgba(11,22,16,0.55);
+    border: 1px solid rgba(35,75,52,0.14);
+    padding: 11px 9px; display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 14px 26px -14px rgba(11,22,16,0.6);
   }
-  .shot-back-2 { background: #E6E0D3; transform: rotate(-7deg) translate(-11px, 5px); }
-  .shot-back-1 { background: #F2EDE3; transform: rotate(3.5deg) translate(9px, 2px); }
-  .shot-front {
-    transform: rotate(-1.5deg);
-    display: flex; flex-direction: column; justify-content: flex-end;
-    gap: 13px; padding: 0 14px 13px;
+  .fridge-shelf {
+    display: flex; align-items: flex-end; justify-content: center; gap: 6px;
+    padding-bottom: 5px; border-bottom: 2px solid rgba(35,75,52,0.24);
   }
-  /* Two shelves: the empty one above gives the photo its fridge reading. */
-  .shot-shelf {
-    display: flex; align-items: flex-end; justify-content: center; gap: 11px;
-    width: 100%; padding-bottom: 7px;
-    border-bottom: 2px solid rgba(35,75,52,0.26);
+  .fridge .fi { width: 31px; height: 31px; }
+
+  .snap-phone {
+    position: relative; z-index: 2;
+    width: 78px; height: 134px; flex-shrink: 0;
+    margin-left: -13px; transform: rotate(5deg);
+    border-radius: 15px; background: #11231A; padding: 5px;
+    display: flex; flex-direction: column;
+    box-shadow: 0 18px 32px -14px rgba(11,22,16,0.75), inset 0 0 0 1px rgba(249,246,241,0.07);
   }
-  .shot-shelf-empty { height: 18px; width: 72%; margin: 0 auto; }
-  .ill-shots .fi { width: 44px; height: 44px; }
-  .ill-shots .fi:nth-child(2) { width: 48px; height: 48px; }
+  .snap-screen {
+    flex: 1; position: relative; overflow: hidden;
+    border-radius: 11px; background: var(--paper);
+    display: flex; align-items: flex-end; justify-content: center; padding: 0 8px 10px;
+  }
+  .snap-shelf {
+    display: flex; align-items: flex-end; justify-content: center; gap: 5px;
+    width: 100%; padding-bottom: 5px; border-bottom: 2px solid rgba(35,75,52,0.24);
+  }
+  .snap-screen .fi { width: 24px; height: 24px; }
+  /* The app's scan guide, which is what tells you it is a camera. */
+  .snap-guide {
+    position: absolute; inset: 6px; border-radius: 7px;
+    border: 1.5px solid var(--accent); opacity: 0.9;
+  }
+  .snap-shutter {
+    width: 15px; height: 15px; border-radius: 999px; margin: 5px auto 0;
+    background: var(--surface); box-shadow: 0 0 0 2px rgba(249,246,241,0.32);
+  }
 
   /* 2. Two shelves, the item due first pulled forward with its label. */
   .ill-shelf { background: var(--sage-tint); flex-direction: column; gap: 12px; padding: 20px 18px; }
@@ -510,18 +528,21 @@
   @keyframes foodIn { from { opacity: 0; transform: translateY(14px) scale(0.92); } to { opacity: 1; } }
   /* Shots fade only: each one carries its own rotation, which a transform
      keyframe would wipe out. */
+  /* Fade only: both carry their own transform, which a transform keyframe
+     would wipe out. */
   @keyframes shotIn { from { opacity: 0; } to { opacity: 1; } }
-  .step-card.seen .shot { animation: shotIn 0.45s ease both; }
-  .step-card.seen .shot-back-2 { animation-delay: 0s; }
-  .step-card.seen .shot-back-1 { animation-delay: 0.1s; }
-  .step-card.seen .shot-front  { animation-delay: 0.2s; }
-  .step-card:not(.seen) .shot { opacity: 0; }
-  .ill-shots .fi { animation-delay: calc(0.3s + var(--i) * 90ms) !important; }
+  .step-card.seen .fridge,
+  .step-card.seen .snap-phone { animation: shotIn 0.45s ease both; }
+  .step-card.seen .snap-phone { animation-delay: 0.14s; }
+  .step-card:not(.seen) .fridge,
+  .step-card:not(.seen) .snap-phone { opacity: 0; }
+  .ill-capture .fi { animation-delay: calc(0.28s + var(--i) * 80ms) !important; }
   .step-card.seen .fi { animation: foodIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 90ms); }
   .step-card:not(.seen) .fi { opacity: 0; }
   @media (prefers-reduced-motion: reduce) {
     .step-card .fi, .step-card.seen .fi,
-    .step-card .shot, .step-card.seen .shot { animation: none; opacity: 1; }
+    .step-card .fridge, .step-card.seen .fridge,
+    .step-card .snap-phone, .step-card.seen .snap-phone { animation: none; opacity: 1; }
   }
   .step-card h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 8px; }
   .step-card p { font-size: 15px; color: var(--muted); line-height: 1.5; }
@@ -1218,21 +1239,28 @@
       <div class="steps">
         <div class="step-card">
           <div class="step-num">1</div>
-          <!-- Step 1: what you end up with is a photo of your shelf, and you
-               get up to three of them. Icons are the app's own food
-               illustrations (assets/food-icons), not stand-ins. -->
-          <div class="step-ill ill-shots">
-            <div class="shot-stack">
-              <div class="shot shot-back-2" aria-hidden="true"></div>
-              <div class="shot shot-back-1" aria-hidden="true"></div>
-              <div class="shot shot-front">
-                <div class="shot-shelf shot-shelf-empty" aria-hidden="true"></div>
-                <div class="shot-shelf">
-                  <img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0">
-                  <img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1">
-                  <img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2">
-                </div>
+          <!-- Step 1: a phone held up to an open fridge. What the camera sees
+               on the screen is the same shelf it is pointed at. Food icons are
+               the app's own illustrations (assets/food-icons). -->
+          <div class="step-ill ill-capture">
+            <div class="fridge">
+              <div class="fridge-shelf">
+                <img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0">
+                <img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1">
               </div>
+              <div class="fridge-shelf">
+                <img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2">
+              </div>
+            </div>
+            <div class="snap-phone">
+              <div class="snap-screen">
+                <div class="snap-shelf">
+                  <img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:3">
+                  <img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:4">
+                </div>
+                <span class="snap-guide" aria-hidden="true"></span>
+              </div>
+              <span class="snap-shutter" aria-hidden="true"></span>
             </div>
           </div>
           <h3 data-i18n="step1.title">Snap your shelves</h3>
