@@ -303,7 +303,7 @@ export default function ScanRoute() {
         setMode("choice");
         return;
       }
-      setError(errorMessage(scanError, t("auth.genericError")));
+      setError(errorMessage(scanError, t("auth.genericError"), t("common.offline")));
       setMode("choice");
     }
   }, [activeHousehold?.id, t]);
@@ -481,7 +481,7 @@ export default function ScanRoute() {
         setMode("camera");
         return;
       }
-      setError(errorMessage(scanError, t("auth.genericError")));
+      setError(errorMessage(scanError, t("auth.genericError"), t("common.offline")));
       setMode("camera");
     }
   }
@@ -509,7 +509,7 @@ export default function ScanRoute() {
       }
       setPantryPhotos((current) => [...current, { uri: resized.uri, base64: resized.base64! }]);
     } catch (captureError) {
-      setError(errorMessage(captureError, t("auth.genericError")));
+      setError(errorMessage(captureError, t("auth.genericError"), t("common.offline")));
     } finally {
       setPantryCapturing(false);
     }
@@ -566,7 +566,7 @@ export default function ScanRoute() {
         setMode("pantryCamera");
         return;
       }
-      setError(errorMessage(scanError, t("auth.genericError")));
+      setError(errorMessage(scanError, t("auth.genericError"), t("common.offline")));
       setMode("pantryCamera");
     }
   }
@@ -619,7 +619,7 @@ export default function ScanRoute() {
         setMode("duplicate");
         return;
       }
-      setError(errorMessage(scanError, t("auth.genericError")));
+      setError(errorMessage(scanError, t("auth.genericError"), t("common.offline")));
     } finally {
       setConfirming(false);
     }
@@ -723,7 +723,7 @@ export default function ScanRoute() {
       setDraftProduct(null);
       setMode("addSuccess");
     } catch (addError) {
-      setError(errorMessage(addError, t("auth.genericError")));
+      setError(errorMessage(addError, t("auth.genericError"), t("common.offline")));
     }
   }
 

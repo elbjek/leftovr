@@ -7,6 +7,7 @@ export const sr = {
     year: "Godina",
   },
   common: {
+    offline: "Nema veze sa internetom. Proveri mrezu i pokusaj ponovo.",
     continue: "Nastavi",
     loading: "Ucitavanje",
     cancel: "Otkazi",

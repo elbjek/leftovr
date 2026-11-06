@@ -43,8 +43,6 @@ type RecipesState = {
   cookedSummaries: Record<string, CookedSummary>;
   /** True once a session was created this app session (free taste consumed). */
   consumedFreeGeneration: boolean;
-  /** Server said 402 (free generation spent) — the screen opens the paywall.
-   *  Server verdict is authoritative over cached entitlement state. */
   error: string | null;
 };
 
@@ -160,7 +158,7 @@ export function useRecipes(
       setState((s) => ({
         ...s,
         loading: false,
-        error: friendlyMessage(err, t("auth.genericError")),
+        error: friendlyMessage(err, t("auth.genericError"), t("common.offline")),
       }));
     }
   }, [householdId, userId, t]);
@@ -397,7 +395,7 @@ export function useRecipes(
           setState((s) => ({
             ...s,
             generating: false,
-            error: friendlyMessage(err, t("auth.genericError")),
+            error: friendlyMessage(err, t("auth.genericError"), t("common.offline")),
           }));
           return null;
         } finally {

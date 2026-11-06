@@ -3,16 +3,28 @@
 const NOISY_MESSAGE =
   /non-2xx|failed to fetch|network request failed|fetch failed|failed to send a request/i;
 
+// The subset of the noise above that means "the request never reached the
+// server" — worth saying out loud, because retrying later actually helps.
+const OFFLINE_MESSAGE =
+  /failed to fetch|network request failed|fetch failed|failed to send a request/i;
+
+/** True when the request never left the device (no connection, DNS, timeout). */
+export function isOfflineError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : null;
+  return msg !== null && OFFLINE_MESSAGE.test(msg);
+}
+
 /** A user-showable message: the error's own message when it's meaningful,
- *  else the localized fallback. */
-export function friendlyMessage(err: unknown, fallback: string): string {
+ *  else `offlineFallback` for a dead connection, else the localized fallback. */
+export function friendlyMessage(err: unknown, fallback: string, offlineFallback?: string): string {
   const msg =
     err instanceof Error
       ? err.message
       : typeof (err as { message?: unknown } | null)?.message === "string"
         ? (err as { message: string }).message
         : null;
-  return msg && msg.length > 0 && !NOISY_MESSAGE.test(msg) ? msg : fallback;
+  if (msg && msg.length > 0 && !NOISY_MESSAGE.test(msg)) return msg;
+  return offlineFallback && isOfflineError(err) ? offlineFallback : fallback;
 }
 
 // Reads the `error` code from a Supabase FunctionsHttpError. supabase-js exposes

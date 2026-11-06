@@ -39,3 +39,21 @@ describe("readEdgeErrorCode", () => {
     expect(await readEdgeErrorCode(err)).toBeNull();
   });
 });
+
+describe("offline errors", () => {
+  it("prefers the offline fallback when the request never reached the server", () => {
+    expect(friendlyMessage(new Error("Network request failed"), "generic", "offline")).toBe("offline");
+    expect(friendlyMessage(new Error("TypeError: Failed to fetch"), "generic", "offline")).toBe("offline");
+  });
+
+  it("keeps the generic fallback for a server-side failure", () => {
+    expect(
+      friendlyMessage(new Error("Edge Function returned a non-2xx status code"), "generic", "offline"),
+    ).toBe("generic");
+  });
+
+  it("still returns a meaningful message untouched", () => {
+    expect(friendlyMessage(new Error("Monthly limit reached"), "generic", "offline"))
+      .toBe("Monthly limit reached");
+  });
+});

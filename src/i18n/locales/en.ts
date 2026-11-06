@@ -7,6 +7,7 @@ export const en = {
     year: "Year",
   },
   common: {
+    offline: "No connection. Check your network and try again.",
     continue: "Continue",
     loading: "Loading",
     cancel: "Cancel",
