@@ -210,6 +210,12 @@ export default function FridgeRoute() {
     useCallback(() => {
       void refresh();
       void refreshInsights();
+      // Leaving the tab drops back to the overview, so the Kitchen never
+      // reopens on a category the user left behind.
+      return () => {
+        setView(null);
+        setSearch("");
+      };
     }, [refresh, refreshInsights]),
   );
 
