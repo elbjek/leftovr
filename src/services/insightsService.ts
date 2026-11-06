@@ -49,22 +49,6 @@ export function computeInsightsSummary(raw: InsightsRawData): InsightsSummary {
   };
 }
 
-export function formatCategoryLabel(category: string): string {
-  const labels: Record<string, string> = {
-    dairy_eggs: "Dairy & eggs",
-    meat: "Meat",
-    fish: "Fish",
-    vegetables: "Vegetables",
-    fruit: "Fruit",
-    bakery: "Bakery",
-    pantry: "Pantry",
-    frozen: "Frozen",
-    drinks: "Drinks",
-    snacks: "Snacks",
-    other: "Other",
-  };
-  return labels[category] ?? category;
-}
 
 export type WinDay = {
   /** Local midnight of the day. */

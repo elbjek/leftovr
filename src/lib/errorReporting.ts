@@ -33,10 +33,6 @@ function randomEventId() {
   return id;
 }
 
-export function isErrorReportingEnabled() {
-  return dsn !== null;
-}
-
 /**
  * Fire-and-forget: never throws, never blocks the caller. Dropped in dev and
  * when EXPO_PUBLIC_SENTRY_DSN is unset.
