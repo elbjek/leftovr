@@ -87,10 +87,10 @@ const styles = StyleSheet.create({
   accent: {
     backgroundColor: colors.accent,
   },
+  // A tinted fill, not an outline: the secondary action is still a surface,
+  // one step quieter than primary.
   ghost: {
-    backgroundColor: "transparent",
-    borderWidth: 1.5,
-    borderColor: colors.hairlineStrong,
+    backgroundColor: colors.primary50,
   },
   text: {
     backgroundColor: "transparent",
