@@ -20,8 +20,11 @@ Deno.serve(async (req) => {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
 
-  const { household_id, actor_id, count } = await req.json();
+  const { household_id, actor_id, count, kind, dish } = await req.json();
   if (!household_id || !actor_id) return Response.json({ ok: false }, { status: 400 });
+  // 'added' (the inventory trigger, which sends no kind) or 'cooked'.
+  const cooked = kind === "cooked";
+  const sendType = cooked ? "member_cooked" : "member_activity";
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -40,7 +43,7 @@ Deno.serve(async (req) => {
   // folded together.
   const { data: recent } = await supabase
     .from("notification_sends").select("sent_at")
-    .eq("household_id", household_id).eq("type", "member_activity").eq("actor_id", actor_id)
+    .eq("household_id", household_id).eq("type", sendType).eq("actor_id", actor_id)
     .order("sent_at", { ascending: false }).limit(1);
   if (!coalesceOpen(recent?.[0]?.sent_at ?? null, now, COALESCE_MIN)) {
     return Response.json({ ok: true, skipped: "coalesced" });
@@ -69,15 +72,18 @@ Deno.serve(async (req) => {
   // Record before sending: a near-simultaneous call (separate inserts seconds
   // apart) then sees this row in its coalesce check instead of also pushing.
   await supabase.from("notification_sends").insert(
-    userIds.map((user_id) => ({ user_id, household_id, actor_id, type: "member_activity", sent_at: now.toISOString() })),
+    userIds.map((user_id) => ({ user_id, household_id, actor_id, type: sendType, sent_at: now.toISOString() })),
   );
 
   const n = Number(count) || 1;
   // One send per language — housemates can run the app in different ones.
   for (const lang of new Set(targets.map((target) => target.lang))) {
+    const text = cooked
+      ? copy(lang).memberCooked(name, typeof dish === "string" && dish ? dish : null)
+      : copy(lang).memberActivity(name, n);
     const dead = await sendPush(
       targets.filter((target) => target.lang === lang).map((target) => target.token),
-      { ...copy(lang).memberActivity(name, n), data: { type: "member_activity", household_id } },
+      { ...text, data: { type: sendType, household_id } },
     );
     for (const token of dead) {
       await supabase.from("notification_preferences").update({ push_token: null }).eq("push_token", token);

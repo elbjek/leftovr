@@ -1249,7 +1249,7 @@ export const sr = {
     recap: "Nedeljni pregled",
     recapBody: "Nedeljni rezime sta si iskoristio i ustedeo.",
     memberActivity: "Aktivnost domacinstva",
-    memberActivityBody: "Dobij obavestenje kad neko doda namirnice u kuhinju.",
+    memberActivityBody: "Dobij obaveštenje kad neko doda namirnice u kuhinju ili skuva večeru.",
     tips: "Saveti i podsetnici",
     tipsBody: "Povremeni podsetnici da se lakse snadjes.",
     reengagement: "Nedostajes nam",

@@ -30,6 +30,7 @@ type Copy = {
   topUp: () => { title: string; body: string };
   reengagement: () => { title: string; body: string };
   memberActivity: (name: string, count: number) => { title: string; body: string };
+  memberCooked: (name: string, dish: string | null) => { title: string; body: string };
 };
 
 const en: Copy = {
@@ -68,6 +69,10 @@ const en: Copy = {
   memberActivity: (name, count) => ({
     title: "Kitchen updated",
     body: `${name} added ${count} item${count === 1 ? "" : "s"} to your kitchen.`,
+  }),
+  memberCooked: (name, dish) => ({
+    title: "Dinner's handled",
+    body: dish ? `${name} cooked ${dish}.` : `${name} cooked from your kitchen.`,
   }),
 };
 
@@ -110,6 +115,10 @@ const sr: Copy = {
   memberActivity: (name, count) => ({
     title: "Kuhinja je ažurirana",
     body: `${name} je dodao/la ${count} ${plural("sr", count, "namirnicu", "namirnice", "namirnica")} u tvoju kuhinju.`,
+  }),
+  memberCooked: (name, dish) => ({
+    title: "Večera je rešena",
+    body: dish ? `${name} je skuvao/la ${dish}.` : `${name} je kuvao/la od onoga što je u kuhinji.`,
   }),
 };
 

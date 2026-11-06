@@ -1214,7 +1214,7 @@ export const en = {
     recap: "Weekly recap",
     recapBody: "A Sunday summary of what you used and saved.",
     memberActivity: "Household activity",
-    memberActivityBody: "Get notified when someone adds items to your kitchen.",
+    memberActivityBody: "Get notified when someone adds food to your kitchen or cooks dinner.",
     tips: "Tips & reminders",
     tipsBody: "Occasional nudges to help you get set up.",
     reengagement: "We miss you",
