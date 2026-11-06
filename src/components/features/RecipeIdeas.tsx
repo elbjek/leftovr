@@ -364,7 +364,7 @@ function Chevron() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderRadius: radii.xxl,
     borderWidth: 1,
     borderColor: colors.cardLine,
@@ -402,12 +402,10 @@ const styles = StyleSheet.create({
   },
   eyebrow: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
     letterSpacing: 0.66,
   },
   heroTitle: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
     fontSize: 20,
     lineHeight: 25,
     color: colors.text,
@@ -415,7 +413,6 @@ const styles = StyleSheet.create({
   },
   listTitle: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
     fontSize: 16,
     lineHeight: 21,
     color: colors.text,
@@ -535,7 +532,6 @@ const styles = StyleSheet.create({
   },
   viewLabel: {
     fontFamily: fonts.bodyBold,
-    fontWeight: "700",
     fontSize: 16,
   },
   section: {
@@ -553,11 +549,10 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.cardLine,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
   },
   bold: {
     fontFamily: fonts.bodyBold,
-    fontWeight: "700",
   },
   pressed: {
     opacity: 0.7,

@@ -61,7 +61,7 @@ function Legend({ color, label, count }: { color: string; label: string; count: 
     <View style={styles.legendItem}>
       <View style={[styles.dot, { backgroundColor: color }]} />
       <Text variant="small" color={colors.text}>
-        <Text variant="small" color={colors.text} style={styles.count}>{count}</Text> {label}
+        <Text variant="small" color={colors.text} weight="bold">{count}</Text> {label}
       </Text>
     </View>
   );
@@ -101,9 +101,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-  },
-  count: {
-    fontWeight: "700",
   },
   dot: {
     width: 7,

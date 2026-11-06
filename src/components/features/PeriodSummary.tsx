@@ -80,7 +80,7 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.cardLine,
     borderRadius: radii.xl,

@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   paper: {
     flex: 1,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
   },
   print: {
     flex: 1,

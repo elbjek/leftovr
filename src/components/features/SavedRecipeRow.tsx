@@ -62,14 +62,14 @@ export function SavedRecipeRow({ recipe, onPress, onFavorite, cookedSummary, mem
           {coverageLabel ? (
             <View style={styles.coverageWrap}>
               {haveAll ? <View style={styles.coverageDot} /> : null}
-              <Text variant="micro" color={haveAll ? colors.green : colors.muted} style={styles.coverageText}>
+              <Text variant="micro" color={haveAll ? colors.green : colors.muted} weight="semibold">
                 {coverageLabel}
               </Text>
             </View>
           ) : null}
           {tagLabel ? (
             <View style={styles.tagPill}>
-              <Text variant="micro" color={colors.primary} style={styles.tagPillText}>{tagLabel}</Text>
+              <Text variant="micro" color={colors.primary} weight="bold">{tagLabel}</Text>
             </View>
           ) : null}
           {cookedLabel ? (
@@ -145,7 +145,7 @@ function Chevron() {
 
 const styles = StyleSheet.create({
   savedRow: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderRadius: radii.xxl,
     padding: 14,
     flexDirection: "row",
@@ -171,7 +171,6 @@ const styles = StyleSheet.create({
   },
   savedRowTitle: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
     fontSize: 16,
     lineHeight: 20,
   },
@@ -198,17 +197,11 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: colors.green,
   },
-  coverageText: {
-    fontWeight: "600",
-  },
   tagPill: {
     paddingHorizontal: 7,
     paddingVertical: 2,
     backgroundColor: colors.accentSoft,
     borderRadius: radii.pill,
-  },
-  tagPillText: {
-    fontWeight: "700",
   },
   cookedBadge: {
     paddingHorizontal: spacing.sm,

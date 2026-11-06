@@ -87,13 +87,11 @@ const styles = StyleSheet.create({
   },
   days: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "700",
   },
   title: {
     marginTop: spacing.md,
     textAlign: "center",
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "700",
   },
   body: {
     marginTop: spacing.xs,
@@ -102,7 +100,6 @@ const styles = StyleSheet.create({
   freeze: {
     marginTop: spacing.sm,
     fontFamily: fonts.bodyBold,
-    fontWeight: "700",
   },
   cta: {
     marginTop: spacing.lg,

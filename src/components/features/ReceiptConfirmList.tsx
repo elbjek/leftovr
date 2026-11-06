@@ -415,7 +415,6 @@ const styles = StyleSheet.create({
   },
   quickLookTitle: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
     fontSize: 27,
     lineHeight: 33,
     marginBottom: spacing.xs,
@@ -430,7 +429,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radii.md,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -447,13 +446,11 @@ const styles = StyleSheet.create({
   },
   checkBadgeText: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
     letterSpacing: 0.8,
   },
   quickLookQuestion: {
     flexShrink: 1,
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
     fontSize: 16,
     lineHeight: 20,
   },
@@ -474,14 +471,13 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: spacing.lg,
     borderRadius: radii.pill,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     justifyContent: "center",
     borderWidth: 1,
     borderColor: colors.cardLine,
   },
   suggestionLabel: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
     fontSize: 15,
   },
   categorySheet: {

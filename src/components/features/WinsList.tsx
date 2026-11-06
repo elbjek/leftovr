@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   card: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.cardLine,
     borderRadius: radii.xl,
@@ -101,7 +101,6 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: fonts.bodyBold,
-    fontWeight: "700",
   },
   pressed: {
     opacity: 0.6,

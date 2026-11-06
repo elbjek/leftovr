@@ -153,7 +153,7 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
   return (
     <BottomSheet visible={visible} onDismiss={handleDismiss}>
       <View style={styles.badge}>
-        <Text variant="micro" color={colors.primary} style={styles.badgeText}>
+        <Text variant="micro" color={colors.primary} weight="bold">
           ★ {t("premium.title")}
         </Text>
       </View>
@@ -299,7 +299,7 @@ function PlanCard({
     >
       {badge ? (
         <View style={styles.planBadge}>
-          <Text variant="micro" color={colors.text} style={styles.planBadgeText}>{badge}</Text>
+          <Text variant="micro" color={colors.text} weight="bold">{badge}</Text>
         </View>
       ) : null}
       <Text variant="micro" color={colors.muted} style={styles.planPeriod}>
@@ -321,11 +321,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
     borderRadius: radii.pill,
     marginBottom: spacing.lg,
-  },
-  badgeText: {
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
   },
   headline: {
     marginBottom: spacing.sm,
@@ -361,7 +356,7 @@ const styles = StyleSheet.create({
   planCard: {
     flex: 1,
     padding: spacing.lg,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
     borderColor: colors.cardLine,
     borderRadius: radii.lg,
@@ -379,9 +374,6 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     backgroundColor: colors.accent,
     borderRadius: radii.pill,
-  },
-  planBadgeText: {
-    fontWeight: "700",
   },
   planPeriod: {
     textTransform: "uppercase",

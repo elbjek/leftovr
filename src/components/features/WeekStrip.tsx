@@ -210,7 +210,7 @@ function ClockIcon() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderRadius: radii.xl,
     borderWidth: 1,
     borderColor: colors.cardLine,
@@ -328,7 +328,6 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: fonts.bodyBold,
-    fontWeight: "700",
   },
   pressed: {
     opacity: 0.6,

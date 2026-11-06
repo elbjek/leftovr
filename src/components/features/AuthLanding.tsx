@@ -98,7 +98,7 @@ export function AuthButtons({
       />
       <AuthButton
         label={googleLabel}
-        backgroundColor={colors.paper}
+        backgroundColor={colors.surface}
         color={colors.text}
         borderColor={colors.hairlineStrong}
         icon={<GoogleIcon />}

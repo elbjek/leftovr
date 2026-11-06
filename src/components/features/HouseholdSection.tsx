@@ -368,7 +368,7 @@ export function HouseholdSection({
 
             {showJoinChoice && currentItemCount > 0 ? (
               <View style={styles.joinChoices}>
-                <Text variant="small" style={styles.choiceTitle}>
+                <Text variant="small" weight="semibold">
                   {t("settings.household.joinChoiceTitle")}
                 </Text>
                 <Text variant="small" muted>
@@ -466,8 +466,5 @@ const styles = StyleSheet.create({
   },
   joinChoices: {
     gap: spacing.md,
-  },
-  choiceTitle: {
-    fontWeight: "600",
   },
 });

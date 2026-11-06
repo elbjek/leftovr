@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xl,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderColor: colors.hairline,
     borderWidth: 1.5,
     borderRadius: radii.xl,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconBoxActive: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
   },
   copy: {
     flex: 1,

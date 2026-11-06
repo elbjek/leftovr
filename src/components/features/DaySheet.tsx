@@ -110,7 +110,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "700",
   },
   loading: {
     marginVertical: spacing.xl,
@@ -124,7 +123,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: fonts.bodyExtraBold,
-    fontWeight: "700",
     letterSpacing: 0.66,
   },
   recipe: {
@@ -133,7 +131,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.sm,
     borderRadius: radii.lg,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.cardLine,
   },
@@ -164,7 +162,6 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontFamily: fonts.bodyBold,
-    fontWeight: "700",
   },
   pressed: {
     opacity: 0.7,

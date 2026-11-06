@@ -203,7 +203,7 @@ export function CookPromptSheet({
           <View style={styles.stepperRow}>
             <View style={styles.stepperLabel}>
               <PeopleIcon />
-              <Text variant="body" style={styles.stepperValue}>
+              <Text variant="body" weight="semibold">
                 {labels.peopleCount(servings)}
               </Text>
             </View>
@@ -366,7 +366,7 @@ function Chip({
       style={({ pressed }) => [styles.chip, active && styles.chipActive, pressed && styles.pressed]}
     >
       {active ? <CheckIcon /> : null}
-      <Text variant="small" color={colors.text} style={styles.chipText}>
+      <Text variant="small" color={colors.text} weight="semibold">
         {label}
       </Text>
     </Pressable>
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.hairline,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
   },
   // Inline 3-up variant (time): icon stacked over centered label.
   timeRow: {
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.hairline,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
@@ -602,9 +602,6 @@ const styles = StyleSheet.create({
   chipActive: {
     backgroundColor: colors.sageSoft,
     borderColor: colors.sage,
-  },
-  chipText: {
-    fontWeight: "600",
   },
   stepperRow: {
     flexDirection: "row",
@@ -615,15 +612,12 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.hairline,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
   },
   stepperLabel: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  stepperValue: {
-    fontWeight: "600",
   },
   stepperControls: {
     flexDirection: "row",
