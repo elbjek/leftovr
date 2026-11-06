@@ -11,10 +11,7 @@ import {
   toggleRecipeFavorite,
   updateRecipeDetail,
 } from "@/repositories/recipeRepository";
-import {
-  matchRecipes,
-  RecipeMatch,
-} from "@/services/recipeService";
+import { RecipeMatch } from "@/services/recipeService";
 import {
   expandRecipeShared,
   generateRecipeMatches,
@@ -406,12 +403,6 @@ export function useRecipes(
         } finally {
           generationInFlightRef.current = false;
         }
-      },
-
-      generateFromInventory: (cookingMode: CookingMode) => {
-        const matches = matchRecipes({ inventory, avoidances, isPremium, servings });
-        setState((s) => ({ ...s, suggestions: matches.slice(0, 3) }));
-        return matches.slice(0, 3);
       },
 
       toggleFavorite: async (recipeId: string, current: boolean) => {

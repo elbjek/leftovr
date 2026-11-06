@@ -1,3 +1,7 @@
+// Despite living under `mocks/`, RECIPE_LIBRARY ships and is used in
+// production: `generateRecipeMatches` falls back to it whenever the AI call
+// returns nothing (offline, missing config, edge-function failure), and the
+// caller sees `source: "mock"`. It is not test data.
 type MockIngredient = {
   name: string;
   amount: string;

@@ -386,6 +386,8 @@ export async function generateRecipeMatches(input: RecipeGenerationInput): Promi
     };
   }
 
+  // AI unavailable: match against the bundled fallback library so Generate is
+  // never a dead button. Callers branch on `source: "mock"`.
   const scored = matchRecipes(input);
   const makeable = selectMakeableRecipes(scored, { isPremium: input.isPremium });
   // Prefer recipes you can mostly cook; if none clear the bar, fall back to any
