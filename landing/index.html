@@ -452,20 +452,31 @@
   }
   .fi { width: 56px; height: 56px; object-fit: contain; display: block; }
 
-  /* 1. Through the camera: food cropped by the frame, gold brackets over it. */
-  .ill-scan { background: var(--primary); }
-  .ill-scan .ill-row { display: flex; align-items: flex-end; gap: 10px; transform: translateY(14px); }
-  .ill-scan .fi { width: 60px; height: 60px; }
-  .ill-scan .fi:nth-child(odd) { margin-bottom: 10px; }
-  .ill-frame { position: absolute; inset: 18px 20px; pointer-events: none; }
-  .ill-frame i {
-    position: absolute; width: 18px; height: 18px;
-    border: 2px solid var(--accent); border-radius: 3px;
+  /* 1. The shot you just took: a photo of the shelf, with the other two
+     behind it. Three cards because the step says up to three shots. */
+  .ill-shots { background: var(--primary); }
+  .shot-stack { position: relative; width: 196px; height: 126px; }
+  .shot {
+    position: absolute; inset: 0;
+    border-radius: 10px; background: var(--paper);
+    box-shadow: 0 12px 24px -12px rgba(11,22,16,0.55);
   }
-  .ill-frame i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; }
-  .ill-frame i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; }
-  .ill-frame i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; }
-  .ill-frame i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+  .shot-back-2 { background: #E6E0D3; transform: rotate(-7deg) translate(-11px, 5px); }
+  .shot-back-1 { background: #F2EDE3; transform: rotate(3.5deg) translate(9px, 2px); }
+  .shot-front {
+    transform: rotate(-1.5deg);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    gap: 13px; padding: 0 14px 13px;
+  }
+  /* Two shelves: the empty one above gives the photo its fridge reading. */
+  .shot-shelf {
+    display: flex; align-items: flex-end; justify-content: center; gap: 11px;
+    width: 100%; padding-bottom: 7px;
+    border-bottom: 2px solid rgba(35,75,52,0.26);
+  }
+  .shot-shelf-empty { height: 18px; width: 72%; margin: 0 auto; }
+  .ill-shots .fi { width: 44px; height: 44px; }
+  .ill-shots .fi:nth-child(2) { width: 48px; height: 48px; }
 
   /* 2. Two shelves, the item due first pulled forward with its label. */
   .ill-shelf { background: var(--sage-tint); flex-direction: column; gap: 12px; padding: 20px 18px; }
@@ -497,10 +508,20 @@
   /* The food settles in when the step scrolls into view: sequence matches
      the step it illustrates. */
   @keyframes foodIn { from { opacity: 0; transform: translateY(14px) scale(0.92); } to { opacity: 1; } }
+  /* Shots fade only: each one carries its own rotation, which a transform
+     keyframe would wipe out. */
+  @keyframes shotIn { from { opacity: 0; } to { opacity: 1; } }
+  .step-card.seen .shot { animation: shotIn 0.45s ease both; }
+  .step-card.seen .shot-back-2 { animation-delay: 0s; }
+  .step-card.seen .shot-back-1 { animation-delay: 0.1s; }
+  .step-card.seen .shot-front  { animation-delay: 0.2s; }
+  .step-card:not(.seen) .shot { opacity: 0; }
+  .ill-shots .fi { animation-delay: calc(0.3s + var(--i) * 90ms) !important; }
   .step-card.seen .fi { animation: foodIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 90ms); }
   .step-card:not(.seen) .fi { opacity: 0; }
   @media (prefers-reduced-motion: reduce) {
-    .step-card .fi, .step-card.seen .fi { animation: none; opacity: 1; }
+    .step-card .fi, .step-card.seen .fi,
+    .step-card .shot, .step-card.seen .shot { animation: none; opacity: 1; }
   }
   .step-card h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 8px; }
   .step-card p { font-size: 15px; color: var(--muted); line-height: 1.5; }
@@ -1197,16 +1218,22 @@
       <div class="steps">
         <div class="step-card">
           <div class="step-num">1</div>
-          <!-- Step 1: the shelf as the camera sees it. Icons are the app's own
-               food illustrations (assets/food-icons), not stand-ins. -->
-          <div class="step-ill ill-scan">
-            <div class="ill-row">
-              <img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0">
-              <img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1">
-              <img class="fi" src="/food/eggs.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2">
-              <img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:3">
+          <!-- Step 1: what you end up with is a photo of your shelf, and you
+               get up to three of them. Icons are the app's own food
+               illustrations (assets/food-icons), not stand-ins. -->
+          <div class="step-ill ill-shots">
+            <div class="shot-stack">
+              <div class="shot shot-back-2" aria-hidden="true"></div>
+              <div class="shot shot-back-1" aria-hidden="true"></div>
+              <div class="shot shot-front">
+                <div class="shot-shelf shot-shelf-empty" aria-hidden="true"></div>
+                <div class="shot-shelf">
+                  <img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0">
+                  <img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1">
+                  <img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2">
+                </div>
+              </div>
             </div>
-            <div class="ill-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           </div>
           <h3 data-i18n="step1.title">Snap your shelves</h3>
           <p data-i18n="step1.body">Photograph your fridge, a shelf or the counter, up to three shots. A receipt or PDF e-receipt works too, adding 20 to 30 items at once.</p>
