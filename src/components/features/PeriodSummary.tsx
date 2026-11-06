@@ -64,7 +64,7 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
         <View style={styles.stats}>
           {stats.map((stat, index) => (
             <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
-              <Text variant="h2" style={styles.statValue}>
+              <Text variant="h2" weight="extrabold">
                 {stat.value}
               </Text>
               <Text variant="small" muted>
@@ -126,9 +126,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderLeftColor: colors.cardLine,
     paddingLeft: spacing.md,
-  },
-  statValue: {
-    fontFamily: fonts.bodyExtraBold,
   },
   pressed: {
     opacity: 0.6,

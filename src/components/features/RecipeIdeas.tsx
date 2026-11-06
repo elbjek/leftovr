@@ -67,7 +67,7 @@ export function TryNextCard({
       {why ? (
         <View style={styles.why}>
           <SparkIcon />
-          <Text variant="small" color={colors.primary} style={[styles.copy, styles.bold]}>
+          <Text variant="small" color={colors.primary} weight="bold" style={styles.copy}>
             {why}
           </Text>
         </View>
@@ -84,7 +84,7 @@ export function TryNextCard({
               {ingredientsLabel}
             </Text>
             {stepsLabel ? (
-              <Text variant="small" color={colors.accentInk} style={styles.bold}>
+              <Text variant="small" color={colors.accentInk} weight="bold">
                 {stepsLabel}
               </Text>
             ) : null}
@@ -92,11 +92,11 @@ export function TryNextCard({
           <View style={styles.chips}>
             {ingredients.map((chip) => (
               <View key={chip.label} style={styles.chip}>
-                <Text variant="small" color={colors.primary} style={styles.bold}>
+                <Text variant="small" color={colors.primary} weight="bold">
                   {chip.label}
                 </Text>
                 {chip.tag ? (
-                  <Text variant="micro" color={colors.accentInk} style={styles.bold}>
+                  <Text variant="micro" color={colors.accentInk} weight="bold">
                     {chip.tag}
                   </Text>
                 ) : null}
@@ -123,7 +123,7 @@ export function TryNextCard({
               onPress={onSecondary}
               style={({ pressed }) => [styles.more, styles.actionSecondary, pressed && styles.pressed]}
             >
-              <Text variant="label" style={styles.bold} numberOfLines={1}>
+              <Text variant="label" weight="bold" numberOfLines={1}>
                 {secondaryLabel}
               </Text>
             </Pressable>
@@ -220,7 +220,7 @@ export function IdeasResults({
         <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
           <Path d="M15 5l-7 7 7 7" stroke={colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
-        <Text variant="label" style={styles.bold}>
+        <Text variant="label" weight="bold">
           {backLabel}
         </Text>
       </Pressable>
@@ -295,7 +295,7 @@ export function IdeasResults({
         <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
           <Path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4.5h-4.5" stroke={colors.accentInk} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
-        <Text variant="label" style={styles.bold}>
+        <Text variant="label" weight="bold">
           {moreLabel}
         </Text>
       </Pressable>
@@ -307,7 +307,7 @@ function MetaLine({ text }: { text: string }) {
   return (
     <View style={styles.meta}>
       <View style={styles.metaDot} />
-      <Text variant="small" color={colors.primary} numberOfLines={1} style={[styles.bold, styles.copy]}>
+      <Text variant="small" color={colors.primary} numberOfLines={1} weight="bold" style={styles.copy}>
         {text}
       </Text>
     </View>
@@ -317,7 +317,7 @@ function MetaLine({ text }: { text: string }) {
 function Pill({ label }: { label: string }) {
   return (
     <View style={styles.pill}>
-      <Text variant="small" color={colors.primary} style={styles.bold}>
+      <Text variant="small" color={colors.primary} weight="bold">
         {label}
       </Text>
     </View>
@@ -545,9 +545,6 @@ const styles = StyleSheet.create({
     minHeight: 52,
     borderRadius: radii.lg,
     backgroundColor: colors.surface,
-  },
-  bold: {
-    fontFamily: fonts.bodyBold,
   },
   pressed: {
     opacity: 0.7,

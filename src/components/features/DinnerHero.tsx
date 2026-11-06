@@ -59,7 +59,7 @@ export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIco
         ) : (
           <>
             {ctaIcon}
-            <Text variant="label" color={colors.onPrimary} style={styles.bold}>
+            <Text variant="label" color={colors.onPrimary} weight="bold">
               {ctaLabel}
             </Text>
           </>
@@ -79,7 +79,7 @@ export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIco
             hitSlop={8}
             style={({ pressed }) => pressed && styles.pressed}
           >
-            <Text variant="small" color={colors.primary} style={styles.bold}>
+            <Text variant="small" color={colors.primary} weight="bold">
               {secondary.label}
             </Text>
           </Pressable>
@@ -143,9 +143,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     marginTop: spacing.md,
-  },
-  bold: {
-    fontFamily: fonts.bodyBold,
   },
   pressed: {
     opacity: 0.8,

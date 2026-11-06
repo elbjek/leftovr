@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { colors, fonts, radii, shadows, spacing } from "../../theme";
+import { colors, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 const COLLAPSED_ROWS = 7;
@@ -37,7 +37,7 @@ export function WinsList({ eyebrow, days, showAllLabel }: Props) {
               {day.date}
             </Text>
             <View style={styles.body}>
-              <Text variant="label" style={styles.bold}>
+              <Text variant="label" weight="bold">
                 {day.title}
               </Text>
               {day.detail ? (
@@ -47,7 +47,7 @@ export function WinsList({ eyebrow, days, showAllLabel }: Props) {
               ) : null}
             </View>
             {day.money ? (
-              <Text variant="label" color={colors.green} style={styles.bold}>
+              <Text variant="label" color={colors.green} weight="bold">
                 {day.money}
               </Text>
             ) : null}
@@ -56,7 +56,7 @@ export function WinsList({ eyebrow, days, showAllLabel }: Props) {
       </View>
       {!expanded && days.length > COLLAPSED_ROWS ? (
         <Pressable accessibilityRole="button" onPress={() => setExpanded(true)} hitSlop={8} style={styles.more}>
-          <Text variant="label" color={colors.primary} style={styles.bold}>
+          <Text variant="label" color={colors.primary} weight="bold">
             {showAllLabel}
           </Text>
         </Pressable>
@@ -97,9 +97,6 @@ const styles = StyleSheet.create({
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
-  },
-  bold: {
-    fontFamily: fonts.bodyBold,
   },
   pressed: {
     opacity: 0.6,

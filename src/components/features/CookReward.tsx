@@ -124,14 +124,14 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
           <View style={styles.chips}>
             {chips.map((name, index) => (
               <Animated.View key={`${index}-${name}`} style={[styles.chip, slice(0.1 + index * 0.06, 0.4 + index * 0.06)]}>
-                <Text variant="small" color={colors.primary} style={styles.semibold} numberOfLines={1}>
+                <Text variant="small" color={colors.primary} weight="semibold" numberOfLines={1}>
                   {name}
                 </Text>
               </Animated.View>
             ))}
             {more > 0 ? (
               <Animated.View style={[styles.chip, styles.chipMore, slice(0.1 + chips.length * 0.06, 0.4 + chips.length * 0.06)]}>
-                <Text variant="small" muted style={styles.semibold}>
+                <Text variant="small" muted weight="semibold">
                   {`+${more}`}
                 </Text>
               </Animated.View>
@@ -208,7 +208,7 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
           hitSlop={8}
           style={({ pressed }) => [styles.share, pressed && styles.pressed]}
         >
-          <Text variant="label" color={colors.primary} style={styles.bold}>
+          <Text variant="label" color={colors.primary} weight="bold">
             {shareLabel}
           </Text>
         </Pressable>
@@ -329,12 +329,6 @@ const styles = StyleSheet.create({
     minHeight: 44,
     alignItems: "center",
     justifyContent: "center",
-  },
-  semibold: {
-    fontFamily: fonts.bodySemiBold,
-  },
-  bold: {
-    fontFamily: fonts.bodyBold,
   },
   pressed: {
     opacity: 0.6,

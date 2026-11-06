@@ -28,11 +28,11 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, labels, o
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text variant="h2" style={styles.title}>
+        <Text variant="h2" weight="extrabold">
           {title}
         </Text>
         {saved ? (
-          <Text variant="small" color={colors.green} style={styles.bold}>
+          <Text variant="small" color={colors.green} weight="bold">
             {saved}
           </Text>
         ) : null}
@@ -61,7 +61,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, labels, o
                     <View style={styles.recipeTile}>
                       <RecipeGlyph size={30} />
                     </View>
-                    <Text variant="label" numberOfLines={2} style={[styles.recipeTitle, styles.bold]}>
+                    <Text variant="label" numberOfLines={2} weight="bold" style={styles.recipeTitle}>
                       {recipe.title}
                     </Text>
                     {onOpenRecipe ? (
@@ -85,7 +85,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, labels, o
                     return (
                       <View key={food.name} style={[styles.food, { backgroundColor: tone.background }]}>
                         <FoodGlyph name={food.name} category={food.category} color={tone.mark} size={18} />
-                        <Text variant="small" style={styles.bold}>
+                        <Text variant="small" weight="bold">
                           {food.name.charAt(0).toUpperCase() + food.name.slice(1)}
                         </Text>
                       </View>
@@ -107,9 +107,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xl,
     gap: spacing.xs,
-  },
-  title: {
-    fontFamily: fonts.bodyExtraBold,
   },
   loading: {
     marginVertical: spacing.xl,
@@ -158,9 +155,6 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.sm,
     paddingRight: spacing.md,
     borderRadius: radii.pill,
-  },
-  bold: {
-    fontFamily: fonts.bodyBold,
   },
   pressed: {
     opacity: 0.7,

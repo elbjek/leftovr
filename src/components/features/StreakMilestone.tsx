@@ -46,7 +46,7 @@ export function StreakMilestone({ visible, onDismiss, days, title, body, freezeN
       <View style={styles.content}>
         <Animated.View style={[styles.badge, { transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }] }]}>
           <FlameIcon size={30} />
-          <Text variant="h1" color={colors.accentInk} style={styles.days}>
+          <Text variant="h1" color={colors.accentInk} weight="extrabold">
             {days}
           </Text>
         </Animated.View>
@@ -84,9 +84,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radii.pill,
     backgroundColor: colors.accentSoft,
-  },
-  days: {
-    fontFamily: fonts.bodyExtraBold,
   },
   title: {
     marginTop: spacing.md,

@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { colors, fonts, radii, shadows, spacing } from "../../theme";
+import { colors, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
@@ -43,14 +43,14 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
       </View>
 
       <View style={styles.head}>
-        <Text variant="small" muted style={styles.month}>
+        <Text variant="small" muted weight="semibold">
           {month}
         </Text>
         <View style={styles.badges}>
           {streak ? (
             <View style={styles.streak}>
               <FlameIcon />
-              <Text variant="micro" color={colors.accentInk} style={styles.bold}>
+              <Text variant="micro" color={colors.accentInk} weight="bold">
                 {streak}
               </Text>
             </View>
@@ -58,7 +58,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
           {freezes && freezes.count > 0 ? (
             <View style={styles.streak} accessible accessibilityLabel={freezes.label}>
               <SnowflakeIcon size={13} color={colors.primary} />
-              <Text variant="micro" color={colors.primary} style={styles.bold}>
+              <Text variant="micro" color={colors.primary} weight="bold">
                 {freezes.count}
               </Text>
             </View>
@@ -81,7 +81,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
               <Text variant="micro" color={isToday ? colors.sage : colors.muted}>
                 {date.toLocaleDateString(undefined, { weekday: "narrow" })}
               </Text>
-              <Text variant="label" color={isToday ? colors.onPrimary : colors.text} style={styles.bold}>
+              <Text variant="label" color={isToday ? colors.onPrimary : colors.text} weight="bold">
                 {date.getDate()}
               </Text>
               {state === "frozen" ? (
@@ -123,7 +123,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
           style={({ pressed }) => [styles.last, pressed && styles.pressed]}
         >
           <Text variant="small" numberOfLines={1} muted style={styles.lastText}>
-            <Text variant="small" style={styles.bold}>
+            <Text variant="small" weight="bold">
               {lastLabel}
             </Text>
             {"  "}
@@ -137,7 +137,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
           style={({ pressed }) => [styles.history, pressed && styles.pressed]}
         >
           <ClockIcon />
-          <Text variant="micro" color={colors.accentInk} style={styles.bold}>
+          <Text variant="micro" color={colors.accentInk} weight="bold">
             {historyLabel}
           </Text>
         </Pressable>
@@ -171,7 +171,7 @@ export function GoalRing({ done, total }: { done: number; total: number }) {
           />
         ) : null}
       </Svg>
-      <Text variant="micro" style={[styles.ringLabel, styles.bold]}>
+      <Text variant="micro" weight="bold" style={styles.ringLabel}>
         {`${Math.min(done, total)}/${total}`}
       </Text>
     </View>
@@ -252,9 +252,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: spacing.sm,
   },
-  month: {
-    fontFamily: fonts.bodySemiBold,
-  },
   streak: {
     flexDirection: "row",
     alignItems: "center",
@@ -324,9 +321,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 13,
     backgroundColor: colors.surface2,
-  },
-  bold: {
-    fontFamily: fonts.bodyBold,
   },
   pressed: {
     opacity: 0.6,
