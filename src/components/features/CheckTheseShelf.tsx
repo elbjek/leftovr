@@ -1,8 +1,8 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, fonts, radii, spacing } from "../../theme";
-import { Text } from "../primitives";
+import { colors, radii, spacing } from "../../theme";
+import { ListRow } from "../primitives";
 
 export type CheckItem = {
   id: string;
@@ -23,30 +23,26 @@ type Props = {
   onPress: () => void;
 };
 
-// Items past their (known or estimated) date. They left the category shelves
-// and everything that cooks — this warm note exists to be emptied: it opens
-// the triage sheet where food gets vouched for ("still good") or tossed.
+/**
+ * Items past their (known or estimated) date. They left the category shelves
+ * and everything that cooks — this warm note exists to be emptied: it opens
+ * the triage sheet where food gets vouched for ("still good") or tossed.
+ */
 export function CheckTheseShelf({ count, labels, onPress }: Props) {
   return (
     <View style={styles.wrap}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onPress}
-        style={({ pressed }) => [styles.card, pressed && styles.pressed]}
-      >
-        <View style={styles.icon}>
-          <AlertIcon />
-        </View>
-        <View style={styles.copy}>
-          <Text variant="label" color={colors.text} style={styles.kicker}>
-            {labels.kicker} · {count}
-          </Text>
-          <Text variant="small" muted numberOfLines={2} style={styles.subtitle}>
-            {labels.subtitle}
-          </Text>
-        </View>
-        <ChevronIcon />
-      </Pressable>
+      <View style={styles.card}>
+        <ListRow
+          title={`${labels.kicker} · ${count}`}
+          subtitle={labels.subtitle}
+          leading={
+            <View style={styles.icon}>
+              <AlertIcon />
+            </View>
+          }
+          onPress={onPress}
+        />
+      </View>
     </View>
   );
 }
@@ -66,49 +62,21 @@ function AlertIcon() {
   );
 }
 
-function ChevronIcon() {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-      <Path d="M5 2.5 9.5 7 5 11.5" stroke={colors.muted2} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
 const styles = StyleSheet.create({
   wrap: {
     paddingHorizontal: spacing.screenX,
   },
   card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
     backgroundColor: colors.accentSoft,
-    borderWidth: 1,
-    borderColor: colors.accent,
     borderRadius: radii.xl,
-    paddingVertical: spacing.md + 2,
     paddingHorizontal: spacing.lg,
   },
   icon: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
-  },
-  copy: {
-    flex: 1,
-    gap: 2,
-  },
-  kicker: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-  },
-  subtitle: {
-    opacity: 0.85,
-  },
-  pressed: {
-    opacity: 0.75,
   },
 });

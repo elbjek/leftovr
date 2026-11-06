@@ -1,8 +1,8 @@
 import React from "react";
-import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
-import { CategoryTone, categoryColors, colors, fonts, radii, spacing, Urgency, urgencyColors } from "../../theme";
+import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { CategoryTone, colors, radii, spacing, Urgency, urgencyColors } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { Text } from "../primitives";
+import { Card, Tappable, Text, toneFor } from "../primitives";
 
 type Props = {
   name: string;
@@ -17,6 +17,7 @@ type Props = {
   style?: StyleProp<ViewStyle>;
 };
 
+/** One food as a tile, for the horizontal shelves. */
 export function FoodCard({
   name,
   category = "other",
@@ -30,72 +31,61 @@ export function FoodCard({
   style,
 }: Props) {
   const isLarge = size === "large";
-  const tone = categoryColors[(category as CategoryTone)] ?? categoryColors.other;
-  const visibleMetaLines = metaLines?.length ? metaLines : [meta];
-  const displayMeta = visibleMetaLines.join(" · ");
+  const tone = toneFor(category);
+  const displayMeta = (metaLines?.length ? metaLines : [meta]).join(" · ");
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <Tappable
+      feedback="scale"
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.card,
-        isLarge && styles.largeCard,
-        pressed && styles.pressed,
-        style,
-      ]}
+      label={[name, displayMeta, bestBy, addedBy].filter(Boolean).join(". ")}
+      hitSlop={0}
+      style={style}
     >
-      <View style={[styles.image, isLarge && styles.largeImage]}>
-        <FoodGlyph name={name} category={category} color={tone.mark} size={isLarge ? 46 : 36} />
-        <View style={[styles.dot, { backgroundColor: urgencyColors[urgency] }]} />
-      </View>
-      <View style={styles.copy}>
-        <View>
-          <Text variant="label" numberOfLines={2} style={[styles.title, isLarge && styles.largeTitle]}>
+      <Card padded={false} style={[styles.card, isLarge && styles.largeCard]}>
+        <View style={[styles.image, isLarge && styles.largeImage]}>
+          <FoodGlyph name={name} category={category} color={tone.mark} size={isLarge ? 46 : 36} />
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={[styles.dot, { backgroundColor: urgencyColors[urgency] }]}
+          />
+        </View>
+        <View style={styles.copy}>
+          <Text variant="label" numberOfLines={2}>
             {name}
           </Text>
           {bestBy ? null : (
-            <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
+            <Text variant="small" muted numberOfLines={1}>
               {displayMeta}
             </Text>
           )}
-        </View>
-        {bestBy || addedBy ? (
-          <View style={styles.bottomMeta}>
-            {bestBy ? (
-            <Text variant="micro" color={urgencyColors[urgency]} style={styles.meta} numberOfLines={1}>
+          {bestBy ? (
+            <Text variant="small" color={colors.muted} numberOfLines={1}>
               {bestBy}
             </Text>
-            ) : null}
-            {addedBy ? (
-              <Text variant="micro" muted style={styles.meta} numberOfLines={1}>
-                {addedBy}
-              </Text>
-            ) : null}
-          </View>
-        ) : null}
-      </View>
-    </Pressable>
+          ) : null}
+          {addedBy ? (
+            <Text variant="small" muted numberOfLines={1}>
+              {addedBy}
+            </Text>
+          ) : null}
+        </View>
+      </Card>
+    </Tappable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     width: 118,
-    backgroundColor: colors.paper,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    padding: spacing.sm + 2,
+    padding: spacing.sm,
     gap: spacing.sm,
   },
   largeCard: {
     width: 168,
     padding: spacing.md,
     gap: spacing.md,
-  },
-  pressed: {
-    transform: [{ scale: 0.99 }],
   },
   image: {
     aspectRatio: 1,
@@ -122,19 +112,6 @@ const styles = StyleSheet.create({
   copy: {
     paddingHorizontal: spacing.xxs,
     paddingBottom: spacing.xxs,
-  },
-  title: {
-    fontFamily: fonts.bodyBold,
-  },
-  largeTitle: {
-    fontSize: 14,
-  },
-  bottomMeta: {
-    marginTop: spacing.xs,
-  },
-  meta: {
-    marginTop: 2,
-    textTransform: "none",
-    letterSpacing: 0,
+    gap: 2,
   },
 });

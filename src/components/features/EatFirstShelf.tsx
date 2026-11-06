@@ -1,8 +1,8 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, fonts, radii, spacing } from "../../theme";
-import { Text } from "../primitives";
+import { colors, radii, spacing } from "../../theme";
+import { Button, Card, Text } from "../primitives";
 
 type Props = {
   /** How many items need eating first (shown on the tile). */
@@ -16,54 +16,38 @@ type Props = {
   onUpgradePress?: () => void;
 };
 
-// The free account's eat-first upsell on Kitchen. Premium sees the "Use soon"
-// list (FoodListCard) instead.
+/**
+ * The free account's eat-first upsell on Kitchen. Premium sees the "Use soon"
+ * list (FoodListCard) instead.
+ */
 export function EatFirstShelf({ count, labels, onUpgradePress }: Props) {
   return (
     <View style={styles.wrap}>
-      <View style={styles.card}>
+      <Card style={styles.card}>
         <View style={styles.top}>
           <View style={styles.copy}>
-            <Eyebrow label={labels.kicker} />
-            <Text style={styles.title}>{labels.previewTitle}</Text>
+            <View style={styles.eyebrowRow}>
+              <LeafIcon />
+              <Text variant="micro" uppercase color={colors.accentInk}>
+                {labels.kicker}
+              </Text>
+            </View>
+            <Text variant="h2" style={styles.title}>
+              {labels.previewTitle}
+            </Text>
             <Text variant="small" muted style={styles.body}>
               {labels.previewBody}
             </Text>
           </View>
-          <View style={[styles.media, { backgroundColor: colors.accentSoft }]}>
-            <Text style={styles.mediaCount} color={colors.accentInk}>
+          <View style={styles.media}>
+            <Text variant="h1" color={colors.accentInk}>
               {count || 3}
             </Text>
           </View>
         </View>
-        <HeroButton label={labels.unlockAction} onPress={onUpgradePress} />
-      </View>
+        <Button title={labels.unlockAction} onPress={onUpgradePress} style={styles.cta} />
+      </Card>
     </View>
-  );
-}
-
-function Eyebrow({ label }: { label: string }) {
-  return (
-    <View style={styles.eyebrowRow}>
-      <LeafIcon />
-      <Text variant="micro" uppercase color={colors.accentInk} style={styles.eyebrow}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function HeroButton({ label, onPress }: { label: string; onPress?: () => void }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
-    >
-      <Text variant="label" color={colors.onPrimary} style={styles.ctaLabel}>
-        {label}
-      </Text>
-    </Pressable>
   );
 }
 
@@ -87,15 +71,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
   },
   card: {
-    backgroundColor: colors.paper,
     borderRadius: radii.xxl,
-    padding: spacing.lg + 2,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
   },
   top: {
     flexDirection: "row",
-    gap: spacing.md + 2,
+    gap: spacing.md,
   },
   copy: {
     flex: 1,
@@ -104,51 +84,23 @@ const styles = StyleSheet.create({
   eyebrowRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-  },
-  eyebrow: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    letterSpacing: 0.66,
+    gap: spacing.xxs,
   },
   title: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 22,
-    lineHeight: 26,
-    marginTop: 7,
+    marginTop: spacing.xs,
   },
   body: {
-    marginTop: 5,
-    lineHeight: 20,
+    marginTop: spacing.xxs,
   },
   media: {
     width: 76,
     height: 76,
     borderRadius: radii.xl,
+    backgroundColor: colors.accentSoft,
     alignItems: "center",
     justifyContent: "center",
-  },
-  mediaCount: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 30,
-    lineHeight: 34,
   },
   cta: {
     marginTop: spacing.md,
-    minHeight: 50,
-    borderRadius: radii.lg,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ctaLabel: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-    fontSize: 16,
-  },
-  pressed: {
-    opacity: 0.7,
   },
 });
