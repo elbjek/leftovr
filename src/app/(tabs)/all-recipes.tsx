@@ -8,7 +8,7 @@ import { BottomSheet, Button, FilterChip, SavedRecipeRow, Screen, Text } from "@
 import { isPremium as resolvePremium, openSavedRecipe, useAuth } from "@/features";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
 import { formatCategory, parseRecipeIngredients } from "@/services/recipeService";
-import { colors, fonts, radii, spacing } from "@/theme";
+import { colors, radii, shadows, spacing, typography } from "@/theme";
 
 type RecipeTab = "all" | "saved" | "cooked" | "household";
 
@@ -122,7 +122,7 @@ export default function AllRecipesRoute() {
           >
             <BackIcon />
           </Pressable>
-          <Text style={styles.title}>{t("recipes.all.title")}</Text>
+          <Text variant="h3" style={styles.title}>{t("recipes.all.title")}</Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("recipes.filterSheet.title")}
@@ -180,7 +180,7 @@ export default function AllRecipesRoute() {
               <Text
                 variant="label"
                 color={tab === t_ ? colors.text : colors.muted}
-                style={styles.tabLabel}
+                weight="extrabold"
                 numberOfLines={1}
               >
                 {label}
@@ -311,7 +311,7 @@ function ActiveFilterToken({ label, onRemove }: { label: string; onRemove: () =>
       hitSlop={{ top: 6, bottom: 6 }}
       style={styles.activeFilterToken}
     >
-      <Text variant="micro" color={colors.onPrimary} style={styles.activeFilterText}>
+      <Text variant="micro" color={colors.onPrimary}>
         {label}
       </Text>
       <CloseIcon color="rgba(243,239,232,0.75)" />
@@ -360,10 +360,6 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     textAlign: "center",
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 20,
-    lineHeight: 26,
   },
   listContent: {
     paddingBottom: spacing.tabBarClearance,
@@ -389,11 +385,9 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.cardLine,
   },
   filterDot: {
     position: "absolute",
@@ -409,25 +403,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.paper,
-    borderRadius: radii.xl,
+    backgroundColor: colors.surface2,
+    borderRadius: radii.lg,
     minHeight: 50,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
   },
   searchInput: {
     flex: 1,
-    fontFamily: fonts.body,
-    fontSize: 15,
     color: colors.text,
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
+    ...typography.body,
   },
   tabBar: {
     flexDirection: "row",
     marginHorizontal: spacing.screenX,
     marginBottom: spacing.xs,
-    padding: 3,
-    borderRadius: 13,
+    padding: spacing.xxs,
+    borderRadius: radii.md,
     backgroundColor: colors.surface2,
   },
   tabItem: {
@@ -436,17 +427,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xs,
-    borderRadius: 11,
+    borderRadius: radii.sm,
   },
   tabItemActive: {
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-  },
-  tabLabel: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 13,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
   },
   activeFilterRow: {
     flexDirection: "row",
@@ -463,9 +448,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     backgroundColor: colors.primary,
     borderRadius: radii.pill,
-  },
-  activeFilterText: {
-    fontWeight: "600",
   },
   filterEmpty: {
     paddingVertical: spacing.lg,
