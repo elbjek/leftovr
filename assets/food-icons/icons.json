@@ -1,6 +1,6 @@
 {
-  "count": 130,
-  "format": "PNG, 1024x1024, transparent background",
+  "count": 136,
+  "format": "App copies: PNG 192x192, transparent, drawing cropped and centred at 84% (originals are 1024x1024)",
   "saveTo": "assets/food-icons/<id>.png (lowercase id, exactly as below)",
   "how": "Generate the first icon (apple) with the prompt alone. When you like it, attach that apple image as the style reference for every other icon, so all of them match.",
   "prompt": "Flat illustration of {draw}, a single food icon for a grocery app. Centered, seen from a slight three-quarter front angle, filling about 75% of a square canvas, on a fully transparent background. Simple rounded shapes, flat natural colours, slightly warm and muted, one soft lighter highlight per shape, no outlines, no gradients, no drop shadow, no plate or surface, no text, no labels, no brand logos, no faces. Match the style of the reference icon exactly.",
@@ -837,6 +837,48 @@
       "sr": "Krekeri",
       "category": "snacks",
       "draw": "a few square crackers"
+    },
+    {
+      "id": "sauce",
+      "name": "Sauce",
+      "sr": "Sos",
+      "category": "pantry",
+      "draw": "a red condiment squeeze bottle with a pointed cap"
+    },
+    {
+      "id": "pickles",
+      "name": "Pickles",
+      "sr": "Kiseli krastavci",
+      "category": "pantry",
+      "draw": "a glass jar of pickled gherkins with a muted green lid"
+    },
+    {
+      "id": "plant_milk",
+      "name": "Plant milk",
+      "sr": "Biljno mleko",
+      "category": "drinks",
+      "draw": "a carton of oat milk with a muted beige top and a small oat sprig beside it"
+    },
+    {
+      "id": "hummus",
+      "name": "Hummus",
+      "sr": "Humus",
+      "category": "snacks",
+      "draw": "a small bowl of hummus with a swirl on top and a drizzle of olive oil"
+    },
+    {
+      "id": "noodles",
+      "name": "Noodles",
+      "sr": "Rezanci",
+      "category": "pantry",
+      "draw": "a nest of dried wavy noodles"
+    },
+    {
+      "id": "fish",
+      "name": "Fish",
+      "sr": "Riba",
+      "category": "fish",
+      "draw": "a whole silver-blue fish"
     }
   ],
   "categories": [

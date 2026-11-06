@@ -19,7 +19,7 @@ import {
 } from "@/services";
 import { categoryColors, CategoryTone, colors, fonts, radii, spacing, Urgency } from "@/theme";
 import { router, useFocusEffect } from "expo-router";
-import { CATEGORY_GLYPH, FoodGlyph, Logo } from "@/components/illustrations";
+import { FoodGlyph, Logo } from "@/components/illustrations";
 
 const CATEGORY_ORDER = [
   "dairy_eggs",
@@ -480,7 +480,7 @@ export default function FridgeRoute() {
                       style={({ pressed }) => [styles.tile, pressed && styles.savedRowPressed]}
                     >
                       <View style={[styles.tileIcon, { backgroundColor: tone.background }]}>
-                        <FoodGlyph name={CATEGORY_GLYPH[tile.category] ?? "egg"} color={tone.mark} size={22} />
+                        <FoodGlyph name="" category={tile.category} color={tone.mark} size={22} />
                       </View>
                       <View style={styles.tileCopy}>
                         <Text variant="label" numberOfLines={1} style={styles.strong}>
@@ -892,7 +892,7 @@ function ItemActionSheet({
       <View style={styles.sheetContent}>
         <View style={styles.itemHead}>
           <View style={[styles.itemTile, { backgroundColor: tone.background }]}>
-            <FoodGlyph name={group?.name ?? ""} color={tone.mark} size={34} />
+            <FoodGlyph name={group?.name ?? ""} category={group?.category} color={tone.mark} size={34} />
           </View>
           <View style={styles.itemHeadCopy}>
             <Text style={styles.itemTitle} numberOfLines={2}>

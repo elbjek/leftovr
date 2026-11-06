@@ -4,3 +4,4 @@ export * from "./money";
 export * from "./recipeSignature";
 export * from "./units";
 export * from "./ids";
+export * from "./foodIcons";

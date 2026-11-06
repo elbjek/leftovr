@@ -146,7 +146,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
                   pressed && styles.iconBoxPressed,
                 ]}
               >
-                <FoodGlyph name={row.name} color={tone.mark} size={26} />
+                <FoodGlyph name={row.name} category={row.category} color={tone.mark} size={26} />
               </Pressable>
               <View style={styles.scannedCol}>
                 <Text variant="micro" muted uppercase>
@@ -315,7 +315,7 @@ function QuickLookCard({
     <View style={styles.quickLook}>
       <View style={styles.header}>
         <View style={styles.quickLookIcon}>
-          <FoodGlyph name={lead?.name ?? row.name} color={tone.mark} size={24} />
+          <FoodGlyph name={lead?.name ?? row.name} category={lead?.category ?? row.category} color={tone.mark} size={24} />
         </View>
         <View style={styles.scannedCol}>
           <View style={styles.quickLookHeadRow}>

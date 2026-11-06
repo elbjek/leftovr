@@ -84,7 +84,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, labels, o
                     const tone = categoryColors[food.category as CategoryTone] ?? categoryColors.other;
                     return (
                       <View key={food.name} style={[styles.food, { backgroundColor: tone.background }]}>
-                        <FoodGlyph name={food.name} color={tone.mark} size={18} />
+                        <FoodGlyph name={food.name} category={food.category} color={tone.mark} size={18} />
                         <Text variant="small" style={styles.bold}>
                           {food.name.charAt(0).toUpperCase() + food.name.slice(1)}
                         </Text>

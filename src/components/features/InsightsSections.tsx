@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { categoryColors, CategoryTone, colors, fonts, radii, spacing } from "../../theme";
-import { CATEGORY_GLYPH, FoodGlyph } from "../illustrations";
+import { FoodGlyph } from "../illustrations";
 import { Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
@@ -139,7 +139,7 @@ export function FoodGroups({
         {rows.map((row, index) => (
           <View key={row.category} style={[styles.groupRow, index > 0 && styles.divider]}>
             <View style={[styles.foodTile, { backgroundColor: tone(row.category).background }]}>
-              <FoodGlyph name={CATEGORY_GLYPH[row.category] ?? "egg"} size={22} color={tone(row.category).mark} />
+              <FoodGlyph name="" category={row.category} size={22} color={tone(row.category).mark} />
             </View>
             <View style={styles.groupBody}>
               <View style={styles.titleRow}>
@@ -188,7 +188,7 @@ export function GoingOffList({
       {rows.map((row, index) => (
         <View key={row.name} style={[styles.groupRow, index > 0 && styles.divider]} accessible accessibilityLabel={row.label}>
           <View style={[styles.foodTile, { backgroundColor: tone(row.category).background }]}>
-            <FoodGlyph name={row.name} size={22} color={tone(row.category).mark} />
+            <FoodGlyph name={row.name} category={row.category} size={22} color={tone(row.category).mark} />
           </View>
           <View style={styles.groupBody}>
             <View style={styles.titleRow}>

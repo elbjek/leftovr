@@ -1,29 +1,31 @@
 import React from "react";
+import { Image } from "expo-image";
 import Svg, { Circle, Ellipse, Line, Path, Rect } from "react-native-svg";
+import { foodIconKey } from "@/lib/foodIcons";
 import { colors } from "../../theme";
+import { FOOD_ICON_IMAGES } from "./foodIconImages";
 
 type Props = {
+  /** A food name, or an icon id ("category_meat"). */
   name: string;
+  /** The item's category: its icon stands in when no food icon matches. */
+  category?: string | null;
+  /** Line colour of the drawn fallback (the icons are full colour). */
   color?: string;
   size?: number;
 };
 
-/** A food that stands for each inventory category, for category tiles. */
-export const CATEGORY_GLYPH: Record<string, string> = {
-  dairy_eggs: "milk",
-  meat: "meat",
-  fish: "fish",
-  vegetables: "carrot",
-  fruit: "apple",
-  bakery: "bread",
-  pantry: "rice",
-  frozen: "peas",
-  drinks: "milk",
-  snacks: "cheese",
-  other: "egg",
-};
+// The icons fill 84% of their square, the line glyphs less; this keeps the
+// two the same visual weight in the same tile.
+const ICON_SCALE = 1.2;
 
-export function FoodGlyph({ name, color = colors.primary, size = 36 }: Props) {
+export function FoodGlyph({ name, category, color = colors.primary, size = 36 }: Props) {
+  const icon = FOOD_ICON_IMAGES[foodIconKey(name, category) ?? ""];
+  if (icon) {
+    const side = Math.round(size * ICON_SCALE);
+    return <Image source={icon} style={{ width: side, height: side }} contentFit="contain" />;
+  }
+
   const n = name.toLowerCase();
   const common = {
     stroke: color,

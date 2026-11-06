@@ -90,7 +90,7 @@ export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, 
                 </View>
               ) : (
                 <View style={[styles.thumb, { backgroundColor: tone.background }]}>
-                  <FoodGlyph name={item.name} color={tone.mark} size={24} />
+                  <FoodGlyph name={item.name} category={item.category} color={tone.mark} size={24} />
                 </View>
               )}
               <View style={styles.copy}>

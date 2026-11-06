@@ -46,7 +46,7 @@ export function FoodCard({
       ]}
     >
       <View style={[styles.image, isLarge && styles.largeImage]}>
-        <FoodGlyph name={name} color={tone.mark} size={isLarge ? 46 : 36} />
+        <FoodGlyph name={name} category={category} color={tone.mark} size={isLarge ? 46 : 36} />
         <View style={[styles.dot, { backgroundColor: urgencyColors[urgency] }]} />
       </View>
       <View style={styles.copy}>
