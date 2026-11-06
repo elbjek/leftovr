@@ -28,7 +28,7 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
     <View style={styles.card}>
       <View style={styles.top}>
         <View style={styles.headline}>
-          <Text variant="micro" color={colors.accent} uppercase>
+          <Text variant="micro" color={colors.onPrimary} uppercase style={styles.kicker}>
             {label}
           </Text>
           {emptyText ? (
@@ -101,6 +101,9 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     gap: spacing.xs,
+  },
+  kicker: {
+    opacity: 0.8,
   },
   value: {
     marginTop: 2,

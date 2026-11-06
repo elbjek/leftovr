@@ -267,7 +267,7 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
           <Text variant="label" weight="bold" color={colors.onPrimary} numberOfLines={2} style={styles.dinnerTitle}>
             {dinner.title}
           </Text>
-          <Text variant="label" weight="extrabold" color={colors.accent}>
+          <Text variant="label" weight="extrabold" color={colors.onPrimary}>
             {dinner.detail}
           </Text>
         </Tappable>
