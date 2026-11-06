@@ -261,8 +261,4 @@ const styles = StyleSheet.create({
     marginTop: 39,
     letterSpacing: 0.1,
   },
-  pressed: {
-    opacity: 0.72,
-    transform: [{ scale: 0.98 }],
-  },
 });

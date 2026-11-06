@@ -1,5 +1,5 @@
 import React from "react";
-import { AccessibilityRole, AccessibilityState, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { AccessibilityRole, AccessibilityState, Insets, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 
 type Feedback = "opacity" | "scale" | "none";
 
@@ -19,7 +19,7 @@ type Props = {
   /** The rest of the state: expanded, checked, busy. */
   state?: AccessibilityState;
   /** 8 by default: the value 19 of the app's 32 hand-written targets already used. */
-  hitSlop?: number;
+  hitSlop?: number | Insets;
   style?: StyleProp<ViewStyle>;
 };
 

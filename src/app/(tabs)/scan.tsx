@@ -1551,9 +1551,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: spacing.md,
   },
-  pressed: {
-    transform: [{ scale: 0.99 }],
-  },
   cameraWrap: {
     flex: 1,
     backgroundColor: colors.black,

@@ -1,23 +1,10 @@
 import React, { useState } from "react";
-import { Alert, Linking, Platform, Pressable, StyleSheet, View } from "react-native";
+import { Alert, Linking, Platform, StyleSheet, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import {
-  BottomSheet,
-  Button,
-  Card,
-  ChoiceCard,
-  Divider,
-  HouseholdSheet,
-  ListRow,
-  PremiumSheet,
-  Screen,
-  ScreenHeader,
-  Text,
-  TextField,
-} from "@/components";
+import { BottomSheet, Button, Card, ChoiceCard, Divider, HouseholdSheet, ListRow, PremiumSheet, Screen, ScreenHeader, Tappable, Text, TextField } from "@/components";
 import { useAuth, useMeasurementSystem } from "@/features";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { deleteAccount, exportAccountData, presentCodeRedemptionSheet, registerDevice } from "@/services";
@@ -270,9 +257,8 @@ export default function SettingsRoute() {
         <ScreenHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
         {/* Profile */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("settings.displayNameLabel")}
+        <Tappable
+          label={t("settings.displayNameLabel")}
           onPress={() => {
             setNameValue(profile?.display_name ?? "");
             setEditingName(true);
@@ -302,7 +288,7 @@ export default function SettingsRoute() {
                   : `★ ${t("settings.tierHouseholdPremium")}`}
             </Text>
           </View>
-        </Pressable>
+        </Tappable>
 
         {/* Language + units */}
         <SettingsGroup label={t("settings.preferencesTitle")}>
@@ -421,27 +407,25 @@ export default function SettingsRoute() {
               <View style={styles.settingRow}>
                 <Text variant="small">{t("notifications.sendWindow")}</Text>
                 <View style={styles.windowPills}>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t("notifications.sendWindowStart")}
+                  <Tappable
+                    label={t("notifications.sendWindowStart")}
                     onPress={() => setWindowPicker("start")}
-                    style={({ pressed }) => [styles.windowPill, pressed && styles.filterChoicePressed]}
+                    style={[styles.windowPill]}
                   >
                     <Text variant="small" color={colors.primary}>
                       {notifHouseholdSettings.send_window_start?.slice(0, 5) ?? "13:00"}
                     </Text>
-                  </Pressable>
+                  </Tappable>
                   <Text variant="small" muted>–</Text>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t("notifications.sendWindowEnd")}
+                  <Tappable
+                    label={t("notifications.sendWindowEnd")}
                     onPress={() => setWindowPicker("end")}
-                    style={({ pressed }) => [styles.windowPill, pressed && styles.filterChoicePressed]}
+                    style={[styles.windowPill]}
                   >
                     <Text variant="small" color={colors.primary}>
                       {notifHouseholdSettings.send_window_end?.slice(0, 5) ?? "14:00"}
                     </Text>
-                  </Pressable>
+                  </Tappable>
                 </View>
               </View>
             ) : null}
@@ -702,10 +686,9 @@ export default function SettingsRoute() {
           <Text variant="small" muted>{t("settings.servingsBody")}</Text>
           <View style={styles.servingsGrid}>
             {SERVINGS_OPTIONS.map((count) => (
-              <Pressable
+              <Tappable
                 key={count}
-                accessibilityRole="button"
-                accessibilityState={{ selected: activeHousehold?.default_servings === count }}
+                selected={activeHousehold?.default_servings === count}
                 onPress={() => saveServings(count)}
                 style={[
                   styles.servingsOption,
@@ -719,7 +702,7 @@ export default function SettingsRoute() {
                 >
                   {count}
                 </Text>
-              </Pressable>
+              </Tappable>
             ))}
           </View>
         </View>
@@ -785,15 +768,15 @@ function ToggleRow({
         <Text variant="small">{title}</Text>
         {body ? <Text variant="micro" muted>{body}</Text> : null}
       </View>
-      <Pressable
-        accessibilityRole="switch"
-        accessibilityState={{ checked: value, disabled }}
+      <Tappable
+        role="switch"
+        state={{ checked: value, disabled }}
         disabled={disabled}
         onPress={() => onToggle(!value)}
         style={[styles.toggle, value && styles.toggleActive]}
       >
         <View style={[styles.toggleThumb, value && styles.toggleThumbActive]} />
-      </Pressable>
+      </Tappable>
     </View>
   );
 }

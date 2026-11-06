@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
-import { FlatList, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
+import { FlatList, RefreshControl, StyleSheet, TextInput, View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomSheet, Button, FilterChip, SavedRecipeRow, Screen, Text } from "@/components";
+import { BottomSheet, Button, FilterChip, SavedRecipeRow, Screen, Tappable, Text } from "@/components";
 import { isPremium as resolvePremium, openSavedRecipe, useAuth } from "@/features";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
 import { formatCategory, parseRecipeIngredients } from "@/services/recipeService";
@@ -114,24 +114,22 @@ export default function AllRecipesRoute() {
     <View style={styles.headerBlock}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("recipes.detail.backLabel")}
+          <Tappable
+            label={t("recipes.detail.backLabel")}
             onPress={() => router.replace("/(tabs)/recipes")}
-            style={({ pressed }) => [styles.filterButton, pressed && styles.savedRowPressed]}
+            style={[styles.filterButton]}
           >
             <BackIcon />
-          </Pressable>
+          </Tappable>
           <Text variant="h3" style={styles.title}>{t("recipes.all.title")}</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("recipes.filterSheet.title")}
+          <Tappable
+            label={t("recipes.filterSheet.title")}
             onPress={() => setShowFilters(true)}
-            style={({ pressed }) => [styles.filterButton, pressed && styles.savedRowPressed]}
+            style={[styles.filterButton]}
           >
             <FilterIcon />
             {hasActiveFilters ? <View style={styles.filterDot} /> : null}
-          </Pressable>
+          </Tappable>
         </View>
 
         <View style={styles.searchField}>
@@ -147,14 +145,13 @@ export default function AllRecipesRoute() {
             accessibilityLabel={t("recipes.searchPlaceholder")}
           />
           {search.length > 0 ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("common.cancel")}
+            <Tappable
+              label={t("common.cancel")}
               onPress={() => setSearch("")}
               hitSlop={10}
             >
               <CloseIcon color={colors.muted} />
-            </Pressable>
+            </Tappable>
           ) : null}
         </View>
       </View>
@@ -170,10 +167,10 @@ export default function AllRecipesRoute() {
                   ? `${t("recipes.tabs.cooked")} · ${cookedEventCount}`
                   : t("recipes.tabs.household");
           return (
-            <Pressable
+            <Tappable
               key={t_}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: tab === t_ }}
+              role="tab"
+              selected={tab === t_}
               onPress={() => setTab(t_)}
               style={[styles.tabItem, tab === t_ && styles.tabItemActive]}
             >
@@ -185,7 +182,7 @@ export default function AllRecipesRoute() {
               >
                 {label}
               </Text>
-            </Pressable>
+            </Tappable>
           );
         })}
       </View>
@@ -304,9 +301,8 @@ export default function AllRecipesRoute() {
 function ActiveFilterToken({ label, onRemove }: { label: string; onRemove: () => void }) {
   const { t } = useTranslation();
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t("recipes.filterSheet.remove", { label })}
+    <Tappable
+      label={t("recipes.filterSheet.remove", { label })}
       onPress={onRemove}
       hitSlop={{ top: 6, bottom: 6 }}
       style={styles.activeFilterToken}
@@ -315,7 +311,7 @@ function ActiveFilterToken({ label, onRemove }: { label: string; onRemove: () =>
         {label}
       </Text>
       <CloseIcon color="rgba(243,239,232,0.75)" />
-    </Pressable>
+    </Tappable>
   );
 }
 
