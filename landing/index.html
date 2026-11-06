@@ -115,7 +115,7 @@
     background: var(--primary); color: var(--surface);
   }
   .btn-primary:hover { background: var(--primary-700); }
-  .btn-primary:active { transform: scale(0.98); }
+  .btn:active { transform: scale(0.97); transition: transform 100ms ease-out; }
   .btn-accent { background: var(--accent); color: var(--text); }
   .btn-accent:hover { background: var(--accent-soft); }
   .btn-ghost {
@@ -129,8 +129,14 @@
   header {
     position: sticky; top: 0; z-index: 50;
     background: rgba(239, 233, 221, 0.82);
-    backdrop-filter: saturate(140%) blur(12px);
-    border-bottom: 1px solid var(--hairline);
+    backdrop-filter: saturate(140%) blur(14px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  /* The hairline only appears once content is actually underneath the bar. */
+  header.scrolled { border-bottom-color: var(--hairline); }
+  @media (prefers-reduced-transparency: reduce) {
+    header { background: var(--surface); backdrop-filter: none; }
   }
   .nav { display: flex; align-items: center; justify-content: space-between; height: 70px; }
   .nav-brand { display: flex; flex-direction: column; gap: 1px; line-height: 1; }
@@ -181,10 +187,14 @@
     mask-image: radial-gradient(ellipse 58% 56% at 50% 44%, transparent 38%, #000 80%);
     opacity: 0.5;
   }
+  /* One warm light source behind the device. Large surfaces read as thicker,
+     so this is wide and soft rather than a tight corner blob. */
   .hg-glow-gold {
-    position: absolute; width: 640px; height: 640px; border-radius: 50%;
-    right: -180px; top: -240px;
-    background: radial-gradient(circle, rgba(212,168,67,0.34), transparent 62%);
+    position: absolute; width: 1000px; height: 1000px; border-radius: 50%;
+    right: -220px; top: -180px;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(242,193,78,0.38), transparent 56%),
+      radial-gradient(circle at 38% 62%, rgba(167,195,163,0.26), transparent 58%);
   }
   .hg-ring {
     position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%);
@@ -195,46 +205,6 @@
     content: ""; position: absolute; inset: 160px; border-radius: 50%;
     border: 1px solid rgba(27,67,50,0.06);
   }
-
-  /* Floating ingredient chips */
-  .float-chip {
-    position: absolute; z-index: 3;
-    display: flex; align-items: center; gap: 11px;
-    background: var(--paper); border: 1px solid var(--card-line);
-    border-radius: var(--r-lg); padding: 10px 15px 10px 10px;
-    box-shadow: 0 22px 46px -20px rgba(27,67,50,0.30), 0 2px 6px rgba(0,0,0,0.04);
-  }
-  .fc-thumb {
-    width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .fc-meta { display: flex; flex-direction: column; gap: 3px; text-align: left; line-height: 1; }
-  .fc-meta b { font-weight: 700; font-size: 13.5px; letter-spacing: -0.01em; color: var(--text); }
-  .fc-tag { font-size: 10.5px; font-weight: 700; letter-spacing: 0.01em; font-style: normal; }
-  .fc-tag.today { color: var(--red); }
-  .fc-tag.soon { color: #9A7B1F; }
-  .float-chip.dinner {
-    background: linear-gradient(135deg, var(--primary) 0%, #1F4E39 100%);
-    border-color: transparent;
-  }
-  .float-chip.dinner .fc-thumb { background: rgba(248,244,238,0.14); color: var(--accent); }
-  .float-chip.dinner .fc-meta b { color: var(--surface); }
-  .float-chip.dinner .fc-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
-
-  /* Pinned to the phone, so the first thing you see is the app doing its job. */
-  .fc-1 { left: -38px; top: 96px; transform: rotate(-4deg); animation-delay: -0.5s; }
-  .fc-2 { right: -56px; top: 232px; transform: rotate(3deg); animation-delay: -3.2s; }
-  .fc-3 { left: -50px; bottom: 206px; transform: rotate(3deg); animation-delay: -1.8s; }
-  .fc-4 { right: -46px; bottom: 112px; transform: rotate(-3deg); animation-delay: -4.6s; }
-
-  @keyframes chipFloat {
-    0%, 100% { translate: 0 0; }
-    50% { translate: 0 -12px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .float-chip { animation: none; }
-  }
-  @media (max-width: 1080px) { .float-chip { display: none; } }
 
   .kicker {
     display: inline-flex; align-items: center; gap: 8px;
@@ -247,9 +217,9 @@
   h1.hero-h1 {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     font-weight: 800;
-    font-size: 58px;
-    line-height: 1.04;
-    letter-spacing: -0.03em;
+    font-size: clamp(38px, 4.6vw, 62px);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
     color: var(--text);
     margin-bottom: 20px;
   }
@@ -263,8 +233,8 @@
   }
 
   .hero-sub {
-    font-size: 19px; line-height: 1.5; color: var(--muted);
-    max-width: 480px; margin-bottom: 30px;
+    font-size: 19px; line-height: 1.55; letter-spacing: 0; color: var(--muted);
+    max-width: 30rem; margin: 0 0 32px;
   }
 
   /* Inline email capture */
@@ -299,57 +269,57 @@
   .form-success.show { display: flex; }
   .form-success .tick { width: 34px; height: 34px; border-radius: 999px; background: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-  /* 3-step strip */
-  .steps-strip {
-    display: flex; align-items: center; gap: 4px;
-    margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--hairline);
-    flex-wrap: wrap;
-  }
-  .strip-step { display: flex; align-items: center; gap: 11px; }
-  .strip-ico {
-    width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
-    background: var(--card); border: 1px solid var(--hairline);
-    display: flex; align-items: center; justify-content: center; color: var(--primary);
-  }
-  .strip-step .lab { font-size: 13px; }
-  .strip-step .lab b { display: block; font-weight: 700; font-size: 14px; color: var(--text); }
-  .strip-step .lab span { color: var(--muted); }
-  .strip-arrow { color: var(--muted-2); margin: 0 1px; }
-
   /* Entrance: the hero assembles itself once, on load. */
   @keyframes riseIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-  @keyframes phoneIn { from { opacity: 0; transform: perspective(1500px) rotateY(-16deg) translateY(28px); }
-                       to { opacity: 1; transform: perspective(1500px) rotateY(-9deg) rotateX(1.5deg) translateZ(0); } }
+  /* The device materializes: blur and scale together, so it reads as a real
+     object arriving rather than an opacity fade. */
+  @keyframes phoneIn {
+    from { opacity: 0; transform: translateY(26px) scale(0.965); filter: blur(10px); }
+    to   { opacity: 1; transform: none; filter: blur(0); }
+  }
+  /* The app assembles itself once, top down, after the device lands. */
+  .lo-head, .lo-urgent, .lo-week, .lo-try { animation: riseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .lo-head   { animation-delay: 0.46s; }
+  .lo-urgent { animation-delay: 0.58s; }
+  .lo-week   { animation-delay: 0.70s; }
+  .lo-try    { animation-delay: 0.82s; }
   .hero-copy > * { animation: riseIn 0.62s cubic-bezier(0.22, 1, 0.36, 1) both; }
   .hero-copy > .kicker { animation-delay: 0.02s; }
   .hero-copy > .hero-h1 { animation-delay: 0.08s; }
   .hero-copy > .hero-tagline { animation-delay: 0.14s; }
   .hero-copy > .hero-sub { animation-delay: 0.20s; }
   .hero-copy > .capture { animation-delay: 0.26s; }
-  .hero-copy > .steps-strip { animation-delay: 0.32s; }
   .phone-stage { animation: phoneIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  /* opacity only: the chips keep their own rotate(), chipFloat moves them with `translate`. */
-  .float-chip { opacity: 0; animation: fadeIn 0.5s ease both, chipFloat 7s ease-in-out infinite; }
-  .fc-1 { animation-delay: 0.62s, 0.9s; }
-  .fc-2 { animation-delay: 0.74s, 1.2s; }
-  .fc-3 { animation-delay: 0.86s, 1.5s; }
-  .fc-4 { animation-delay: 0.98s, 1.8s; }
   @media (prefers-reduced-motion: reduce) {
-    .hero-copy > *, .phone-stage, .float-chip { animation: none; opacity: 1; }
+    .hero-copy > *, .phone-stage,
+    .lo-head, .lo-urgent, .lo-week, .lo-try { animation: none; opacity: 1; filter: none; }
+    .phone { --rx: 0deg; --ry: 0deg; }
   }
 
   /* ── Phone mockup ──────────────────────── */
   .phone-stage {
     position: relative; display: flex; align-items: center; justify-content: center;
-    transform: perspective(1500px) rotateY(-9deg) rotateX(1.5deg) translateZ(0);
-    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    perspective: 1500px;
   }
-  .phone-stage:hover { transform: perspective(1500px) rotateY(-3deg) rotateX(0deg); }
+  /* Rest pose. JS writes --rx/--ry/--tx/--ty from two critically damped
+     springs (Apple: damping 1.0, response 0.4), so the device keeps following
+     the pointer and can be redirected at any frame. */
+  .phone {
+    --rx: 1.5deg; --ry: -9deg; --tx: 0px; --ty: 0px;
+    transform: rotateX(var(--rx)) rotateY(var(--ry)) translate3d(var(--tx), var(--ty), 0);
+  }
   .phone-glow {
-    position: absolute; width: 440px; height: 440px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(212,168,67,0.2), transparent 70%);
+    position: absolute; width: 520px; height: 520px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(242,193,78,0.26), transparent 68%);
     top: 44%; left: 50%; transform: translate(-50%,-50%); z-index: 0;
+  }
+  /* Contact shadow: the device sits on the page rather than hovering over it. */
+  .phone-stage::after {
+    content: ""; position: absolute; z-index: 0;
+    left: 50%; bottom: -26px; width: 300px; height: 52px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(35,75,52,0.26), transparent 70%);
+    filter: blur(14px); pointer-events: none;
   }
   .phone {
     position: relative; z-index: 1;
@@ -636,9 +606,10 @@
     .hero-copy .hero-sub { margin-left: auto; margin-right: auto; }
     .hero-copy .capture, .hero-copy .form-success { margin-left: auto; margin-right: auto; }
     .hero-copy .capture-label { text-align: center; }
-    .hero-copy .steps-strip { justify-content: center; }
     .hero-copy .privacy { justify-content: center; }
-    .phone-stage, .phone-stage:hover { transform: none; animation-name: riseIn; }
+    /* Stacked layout has no pointer to track, so the device faces front. */
+    .phone-stage { animation-name: riseIn; }
+    .phone { --rx: 0deg; --ry: 0deg; --tx: 0px; --ty: 0px; }
     h1.hero-h1 { font-size: 46px; }
     .steps { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr; }
@@ -666,9 +637,6 @@
     .nav .btn { height: 44px; padding: 0 18px; font-size: 14px; }
     .sticky-cta { display: block; }
     body { padding-bottom: 84px; }
-    .steps-strip { flex-direction: column; align-items: center; gap: 16px; }
-    .strip-step { width: 100%; max-width: 240px; }
-    .strip-arrow { display: none; }
   }
   @media (max-width: 360px) {
     /* Header CTA overflows on ≤350px; the sticky bottom bar already carries it. */
@@ -970,15 +938,14 @@
     <div class="wrap hero-grid">
       <div class="hero-copy">
         <div class="kicker" data-i18n-kicker="hero.kicker">
-          <span class="seed" aria-hidden="true"></span><span>iPhone app</span><span class="seed" aria-hidden="true"></span><span>Free to start</span><span class="seed" aria-hidden="true"></span>
+          <span class="seed" aria-hidden="true"></span><span>Waste less</span><span class="seed" aria-hidden="true"></span><span>Cook more</span><span class="seed" aria-hidden="true"></span>
         </div>
 
         <h1 class="hero-h1" data-i18n-html="hero.h1">
           Snap your shelves. <span class="uline">Cook what's on them<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#D4A843" stroke-width="4" stroke-linecap="round"/></svg></span>.
         </h1>
 
-        <p class="hero-tagline" data-i18n="hero.lead">Waste less. Cook more.</p>
-        <p class="hero-sub" data-i18n="hero.sub">leftovr turns a photo of your fridge or pantry into a kitchen it keeps track of, then builds tonight's dinner from what is actually in there. Receipts, barcodes and manual add fill it too.</p>
+        <p class="hero-sub" data-i18n="hero.sub">Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight's dinner from it.</p>
 
         <!-- Inline email capture -->
         <form class="capture" id="hero-form" novalidate>
@@ -997,53 +964,14 @@
         </form>
         <div class="form-success" id="hero-success">
           <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#F8F4EE" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <div><b style="font-weight:700;" data-i18n="hero.successTitle">You're on the list.</b><br><span style="color:var(--muted);font-size:14px;" data-i18n="hero.successBody">We'll email your invite as soon as a spot opens — usually within a few days.</span></div>
+          <div><b style="font-weight:700;" data-i18n="hero.successTitle">You're on the list.</b><br><span style="color:var(--muted);font-size:14px;" data-i18n="hero.successBody">We'll email your invite as soon as a spot opens, usually within a few days.</span></div>
         </div>
 
-        <!-- 3-step strip -->
-        <div class="steps-strip">
-          <div class="strip-step">
-            <div class="strip-ico">
-              <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M4 3h14v16l-2-2-2 2-2-2-2 2-2-2-2 2-2-2V3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="7" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="7" y1="12" x2="13" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            </div>
-            <div class="lab"><b data-i18n="hero.step1Title">Snap your shelves</b><span data-i18n="hero.step1Meta">up to 3 photos</span></div>
-          </div>
-          <svg class="strip-arrow" width="18" height="18" viewBox="0 0 18 18"><path d="M5 4l6 5-6 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <div class="strip-step">
-            <div class="strip-ico">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v14H4z"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="12" y1="11" x2="12" y2="19.5"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
-            </div>
-            <div class="lab"><b data-i18n="hero.step2Title">Kitchen keeps track</b><span data-i18n="hero.step2Meta">sorted for you</span></div>
-          </div>
-          <svg class="strip-arrow" width="18" height="18" viewBox="0 0 18 18"><path d="M5 4l6 5-6 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <div class="strip-step">
-            <div class="strip-ico">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg>
-            </div>
-            <div class="lab"><b data-i18n="hero.step3Title">Dinner, sorted</b><span data-i18n="hero.step3Meta">from what you have</span></div>
-          </div>
-        </div>
       </div>
 
       <!-- Phone mockup -->
       <div class="phone-stage">
         <div class="phone-glow"></div>
-      <div class="float-chip fc-1">
-        <span class="fc-thumb" style="background:rgba(79,138,91,0.16);color:#4F8A5B"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4 0-8-3-8-8 4 0 8 3 8 8z"/><path d="M12 21c0-6 4-12 9-14-1 7-4 12-9 14z"/></svg></span>
-        <span class="fc-meta"><b data-i18n="hero.chip1Name">Baby spinach</b><i class="fc-tag today" data-i18n="hero.chip1Tag">Use today</i></span>
-      </div>
-      <div class="float-chip fc-2">
-        <span class="fc-thumb" style="background:rgba(212,168,67,0.20);color:#9A7B1F"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9h10l-1 11H8L7 9z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></span>
-        <span class="fc-meta"><b data-i18n="hero.chip2Name">Greek yogurt</b><i class="fc-tag soon" data-i18n="hero.chip2Tag">2 days left</i></span>
-      </div>
-      <div class="float-chip fc-3">
-        <span class="fc-thumb" style="background:rgba(199,104,69,0.16);color:#C76845"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="6"/><path d="M12 8c0-2 1.5-3.5 3.5-3.5"/></svg></span>
-        <span class="fc-meta"><b data-i18n="hero.chip3Name">Cherry tomatoes</b><i class="fc-tag soon" data-i18n="hero.chip3Tag">Use soon</i></span>
-      </div>
-      <div class="float-chip fc-4 dinner">
-        <span class="fc-thumb"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18"/><path d="M5 11a7 7 0 0 1 14 0"/><path d="M4 15h16"/></svg></span>
-        <span class="fc-meta"><span class="fc-lbl" data-i18n="hero.chip4Lbl">Tonight</span><b data-i18n="hero.chip4Name">Shakshuka</b></span>
-      </div>
         <div class="phone">
           <div class="phone-screen">
             <div class="island"></div>
@@ -1549,7 +1477,7 @@
             <span data-i18n="hero.privacy">Early-access updates only. Unsubscribe anytime.</span>
           </div>
           <p class="form-msg" id="final-msg" role="status" aria-live="polite"></p>
-          <p class="post" data-i18n="final.post">We'll email your invite as soon as a spot opens — usually within a few days.</p>
+          <p class="post" data-i18n="final.post">We'll email your invite as soon as a spot opens, usually within a few days.</p>
         </form>
         <div class="form-success" id="final-success">
           <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#1B4332" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -1613,6 +1541,78 @@
     });
   }
 
+
+  // ---------- Hero device: pointer-tracked tilt ----------
+  // Two independent springs (X and Y), critically damped — Apple's
+  // "damping 1.0, response 0.4". A single spring on 2D distance desyncs when
+  // the axes carry different velocities, so each axis gets its own.
+  // Integrated on rAF from the current on-screen value, which is what makes it
+  // interruptible: a new pointer position only moves the target.
+  (function () {
+    var phone = document.querySelector('.phone');
+    var hero = document.querySelector('.hero');
+    if (!phone || !hero) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    var RESPONSE = 0.4;                       // seconds to reach the target
+    var W = (2 * Math.PI) / RESPONSE;         // angular frequency
+    var K = W * W, C = 2 * W;                 // damping ratio exactly 1.0
+
+    var axes = { x: { v: 0, p: 0, t: 0 }, y: { v: 0, p: 0, t: 0 } };
+    var running = false, last = 0;
+
+    function step(now) {
+      var dt = Math.min((now - last) / 1000, 1 / 30);   // clamp after a stall
+      last = now;
+      var settled = true;
+      for (var k in axes) {
+        var a = axes[k];
+        var d = a.p - a.t;
+        a.v += (-K * d - C * a.v) * dt;
+        a.p += a.v * dt;
+        if (Math.abs(d) > 0.0005 || Math.abs(a.v) > 0.0005) settled = false;
+      }
+      phone.style.setProperty('--ry', (-9 + axes.x.p * 7).toFixed(3) + 'deg');
+      phone.style.setProperty('--rx', (1.5 - axes.y.p * 5).toFixed(3) + 'deg');
+      phone.style.setProperty('--tx', (axes.x.p * 10).toFixed(2) + 'px');
+      phone.style.setProperty('--ty', (axes.y.p * 8).toFixed(2) + 'px');
+      if (settled) { running = false; return; }
+      requestAnimationFrame(step);
+    }
+
+    function start() {
+      if (running) return;
+      running = true; last = performance.now();
+      requestAnimationFrame(step);
+    }
+
+    hero.addEventListener('pointermove', function (e) {
+      var r = hero.getBoundingClientRect();
+      axes.x.t = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
+      axes.y.t = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2));
+      start();
+    }, { passive: true });
+
+    hero.addEventListener('pointerleave', function () {
+      axes.x.t = 0; axes.y.t = 0;            // springs settle back to the rest pose
+      start();
+    });
+  })();
+
+  // ---------- Header: show its hairline only once content is under it ----------
+  (function () {
+    var header = document.querySelector('header');
+    var top = document.querySelector('.hero');
+    if (!header || !top || !('IntersectionObserver' in window)) return;
+    var sentinel = document.createElement('div');
+    sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;';
+    top.appendChild(sentinel);
+    new IntersectionObserver(function (entries) {
+      header.classList.toggle('scrolled', !entries[0].isIntersecting);
+    }, { rootMargin: '-70px 0px 0px 0px' }).observe(sentinel);
+  })();
+
   // ---------- i18n ----------
   var UL = '<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#D4A843" stroke-width="4" stroke-linecap="round"/></svg>';
 
@@ -1622,30 +1622,15 @@
       "meta.desc": "leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start.",
       "nav.tag": "What's for dinner?",
       "nav.cta": "Get early access",
-      "hero.kicker": "iPhone app · Free to start",
+      "hero.kicker": "Waste less · Cook more",
       "hero.h1": 'Snap your shelves. <span class="uline">Cook what\'s on them' + UL + '</span>.',
-      "hero.lead": "Waste less. Cook more.",
-      "hero.chip1Name": "Baby spinach",
-      "hero.chip1Tag": "Use today",
-      "hero.chip2Name": "Greek yogurt",
-      "hero.chip2Tag": "2 days left",
-      "hero.chip3Name": "Cherry tomatoes",
-      "hero.chip3Tag": "Use soon",
-      "hero.chip4Lbl": "Tonight",
-      "hero.chip4Name": "Shakshuka",
-      "hero.sub": "leftovr turns a photo of your fridge or pantry into a kitchen it keeps track of, then builds tonight's dinner from what is actually in there. Receipts, barcodes and manual add fill it too.",
+      "hero.sub": "Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight's dinner from it.",
       "hero.formLabel": "Get early access",
       "hero.placeholder": "you@email.com",
       "hero.submit": "Join the waitlist",
       "hero.privacy": "Early-access updates only. Unsubscribe anytime.",
       "hero.successTitle": "You're on the list.",
-      "hero.successBody": "We'll email your invite as soon as a spot opens — usually within a few days.",
-      "hero.step1Title": "Snap your shelves",
-      "hero.step1Meta": "up to 3 photos",
-      "hero.step2Title": "Kitchen keeps track",
-      "hero.step2Meta": "sorted for you",
-      "hero.step3Title": "Dinner, sorted",
-      "hero.step3Meta": "from what you have",
+      "hero.successBody": "We'll email your invite as soon as a spot opens, usually within a few days.",
       "phone.household": "Lena's kitchen",
       "phone.urgent": "Spinach, eggs & chicken — use today",
       "phone.goal": "1 thing goes off today — use it",
@@ -1798,7 +1783,7 @@
       "foot.compare": "How it compares",
       "final.title": 'Tonight\'s dinner is <span class="mark">already in your kitchen.</span>',
       "final.lead": "Join the early access list and be first in when your spot opens.",
-      "final.post": "We'll email your invite as soon as a spot opens — usually within a few days.",
+      "final.post": "We'll email your invite as soon as a spot opens, usually within a few days.",
       "final.successTitle": "You're on the list.",
       "final.successBody": "Check your inbox — we'll send your invite as soon as a spot opens.",
       "foot.how": "How it works",
@@ -1819,30 +1804,15 @@
       "meta.desc": "leftovr pretvara sliku tvog frižidera ili ostave u recepte od hrane koju već imaš. Računi i bar-kodovi takođe pune kuhinju. iPhone, besplatno za početak.",
       "nav.tag": "Šta ima za večeru?",
       "nav.cta": "Rani pristup",
-      "hero.kicker": "iPhone aplikacija · Besplatno za početak",
+      "hero.kicker": "Manje bacaj · Više kuvaj",
       "hero.h1": 'Slikaj police. <span class="uline">Kuvaj ono što je na njima' + UL + '</span>.',
-      "hero.lead": "Manje bacaj. Više kuvaj.",
-      "hero.chip1Name": "Mladi spanać",
-      "hero.chip1Tag": "Za danas",
-      "hero.chip2Name": "Grčki jogurt",
-      "hero.chip2Tag": "Još 2 dana",
-      "hero.chip3Name": "Čeri paradajz",
-      "hero.chip3Tag": "Uskoro",
-      "hero.chip4Lbl": "Večeras",
-      "hero.chip4Name": "Šakšuka",
-      "hero.sub": "leftovr pretvara sliku tvog frižidera ili ostave u kuhinju koja vodi računa, pa pravi večeru od onoga što je zaista unutra. Računi, bar-kodovi i ručni unos je takođe pune.",
+      "hero.sub": "Slikaj frižider. leftovr napuni tvoju kuhinju, označi šta prvo propada i od toga napravi večeru.",
       "hero.formLabel": "Rani pristup",
       "hero.placeholder": "ti@primer.rs",
       "hero.submit": "Prijavi se na listu",
       "hero.privacy": "Samo obaveštenja o ranom pristupu. Odjava bilo kada.",
       "hero.successTitle": "Na listi si.",
-      "hero.successBody": "Poslaćemo ti pozivnicu čim se oslobodi mesto — obično za nekoliko dana.",
-      "hero.step1Title": "Slikaj police",
-      "hero.step1Meta": "do 3 slike",
-      "hero.step2Title": "Kuhinja vodi računa",
-      "hero.step2Meta": "sređeno za tebe",
-      "hero.step3Title": "Večera, rešena",
-      "hero.step3Meta": "od onoga što imaš",
+      "hero.successBody": "Poslaćemo ti pozivnicu čim se oslobodi mesto, obično za nekoliko dana.",
       "phone.household": "Lenina kuhinja",
       "phone.urgent": "Spanać, jaja i piletina — za danas",
       "phone.goal": "1 stvar ti propada danas — iskoristi je",
@@ -1991,7 +1961,7 @@
       "foot.compare": "Kako se poredi",
       "final.title": 'Večera je <span class="mark">već u tvojoj kuhinji.</span>',
       "final.lead": "Prijavi se na listu za rani pristup i uđi prvi čim se oslobodi tvoje mesto.",
-      "final.post": "Poslaćemo ti pozivnicu čim se oslobodi mesto — obično za nekoliko dana.",
+      "final.post": "Poslaćemo ti pozivnicu čim se oslobodi mesto, obično za nekoliko dana.",
       "final.successTitle": "Na listi si.",
       "final.successBody": "Proveri sanduče — poslaćemo ti pozivnicu čim se oslobodi mesto.",
       "foot.how": "Kako radi",
