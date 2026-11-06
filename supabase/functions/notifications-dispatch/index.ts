@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 import { sendPush } from "../_shared/sendPush.ts";
 import { secretsMatch } from "../_shared/secrets.ts";
+import { copy, Lang, Payload, toLang } from "../_shared/pushCopy.ts";
 import {
   isWithinSendWindow, isRecapDay, sentToday, buildDailySuggestion, toUrgencyGroups,
   isStreakReminderHour, buildStreakReminder,
@@ -44,7 +45,7 @@ Deno.serve(async (req) => {
 
     const { data: members } = await supabase
       .from("household_members")
-      .select("user_id, profiles!inner(primary_goal, tier), notification_preferences!inner(push_token, notifications_enabled)")
+      .select("user_id, profiles!inner(primary_goal, tier, language), notification_preferences!inner(push_token, notifications_enabled)")
       .eq("household_id", h.household_id)
       .eq("status", "active");
     // Premium feature: a member qualifies through the household plan or their
@@ -62,13 +63,8 @@ Deno.serve(async (req) => {
       .is("removed_at", null);
     const groups = toUrgencyGroups(inv ?? [], now);
     const goal = (eligible[0] as any)?.profiles?.primary_goal ?? null;
-    const payload = recap
-      ? { title: "Your week with leftovr", body: "See what you used and saved this week.", data: { type } }
-      : buildDailyPayload(groups, goal);
-    if (!payload) continue;
 
-    const tokens: string[] = [];
-    const sendUserIds: string[] = [];
+    const recipients: Recipient[] = [];
     for (const m of eligible) {
       const prefs = (m as any).notification_preferences;
       if (!prefs?.push_token || !prefs?.notifications_enabled) continue;
@@ -79,15 +75,22 @@ Deno.serve(async (req) => {
         .in("type", CAPPED_TYPES)
         .gte("sent_at", startOfDayUtcFloor(now));
       if (sentToday(rows ?? [], now, h.timezone)) continue; // 1/user/day cap
-      tokens.push(prefs.push_token);
-      sendUserIds.push(m.user_id);
+      recipients.push({ token: prefs.push_token, userId: m.user_id, lang: toLang((m as any).profiles?.language) });
     }
-    if (tokens.length === 0) continue;
+    if (recipients.length === 0) continue;
 
-    const dead = await sendPush(tokens, payload);
-    await recordSends(supabase, sendUserIds, h.household_id, type, now);
-    await nullDeadTokens(supabase, dead);
-    results[type] += tokens.length;
+    // One send per language: the suggestion is the household's, the wording
+    // is each member's.
+    for (const [lang, group] of byLanguage(recipients)) {
+      const payload = recap
+        ? { ...copy(lang).recap(), data: { type } }
+        : buildDailyPayload(groups, goal, lang);
+      if (!payload) continue;
+      const dead = await sendPush(group.map((r) => r.token), payload);
+      await recordSends(supabase, group.map((r) => r.userId), h.household_id, type, now);
+      await nullDeadTokens(supabase, dead);
+      results[type] += group.length;
+    }
   }
 
   // --- Smart "eat first" pushes (per-user opt-in) ---
@@ -112,9 +115,22 @@ function isPremiumTier(tier: string | null | undefined) {
   return tier === "premium" || tier === "household_premium";
 }
 
-function buildDailyPayload(groups: { name: string; urgency: string }[], goal: string | null) {
-  const s = buildDailySuggestion(groups, goal);
+function buildDailyPayload(groups: { name: string; urgency: string }[], goal: string | null, lang: Lang) {
+  const s = buildDailySuggestion(groups, goal, lang);
   return s ? { title: s.title, body: s.body, data: { type: "daily", items: s.items } } : null;
+}
+
+type Recipient = { token: string; userId: string; lang: Lang };
+
+/** Push payloads are per-language, so a mixed household sends once per language. */
+function byLanguage(recipients: Recipient[]): Map<Lang, Recipient[]> {
+  const out = new Map<Lang, Recipient[]>();
+  for (const r of recipients) {
+    const group = out.get(r.lang);
+    if (group) group.push(r);
+    else out.set(r.lang, [r]);
+  }
+  return out;
 }
 
 // Coarse UTC floor for the notification_sends query; sentToday filters precisely by tz.
@@ -144,7 +160,7 @@ async function nullDeadTokens(supabase: any, dead: string[]) {
 async function runEatFirst(supabase: any, now: Date): Promise<number> {
   const { data: prefs } = await supabase
     .from("notification_preferences")
-    .select("user_id, push_token, profiles!inner(active_household_id, tier)")
+    .select("user_id, push_token, profiles!inner(active_household_id, tier, language)")
     .eq("smart_suggestions_enabled", true)
     .eq("notifications_enabled", true)
     .not("push_token", "is", null);
@@ -183,8 +199,7 @@ async function runEatFirst(supabase: any, now: Date): Promise<number> {
 
     const names = urgent.slice(0, 3).map((g) => g.name);
     const dead = await sendPush([p.push_token], {
-      title: "Eat these first",
-      body: `${names.join(", ")} ${urgent.length > 1 ? "need" : "needs"} using today.`,
+      ...copy(toLang((p as any).profiles?.language)).eatFirst(names),
       data: { type: "eatfirst", items: names },
     });
     await recordSends(supabase, [p.user_id], householdId, "eatfirst", now);
@@ -200,7 +215,7 @@ async function runEatFirst(supabase: any, now: Date): Promise<number> {
 async function runStreak(supabase: any, now: Date): Promise<number> {
   const { data: prefs } = await supabase
     .from("notification_preferences")
-    .select("user_id, push_token, profiles!inner(active_household_id)")
+    .select("user_id, push_token, profiles!inner(active_household_id, language)")
     .eq("streak_reminders_enabled", true)
     .eq("notifications_enabled", true)
     .not("push_token", "is", null);
@@ -243,7 +258,10 @@ async function runStreak(supabase: any, now: Date): Promise<number> {
       .is("removed_at", null);
     const urgent = toUrgencyGroups(inv ?? [], now).find((g) => g.urgency === "urgent");
 
-    const dead = await sendPush([p.push_token], buildStreakReminder(state.streak, state.freezes, urgent?.name ?? null));
+    const dead = await sendPush(
+      [p.push_token],
+      buildStreakReminder(state.streak, state.freezes, urgent?.name ?? null, toLang((p as any).profiles?.language)),
+    );
     await recordSends(supabase, [p.user_id], householdId, "streak", now);
     await nullDeadTokens(supabase, dead);
     count += 1;
@@ -271,7 +289,7 @@ async function runTopUp(supabase: any, now: Date): Promise<number> {
     if ((already ?? []).length > 0) continue;
     if (!(await householdWindowOpen(supabase, h.id, now))) continue;
     count += await pushToHousehold(supabase, h.id, now, "topup",
-      { title: "Keep your suggestions sharp", body: "Scan a receipt so leftovr knows what you have.", data: { type: "topup" } });
+      (lang) => ({ ...copy(lang).topUp(), data: { type: "topup" } }));
   }
   return count;
 }
@@ -280,7 +298,7 @@ async function runReengagement(supabase: any, now: Date): Promise<number> {
   const cutoff = new Date(now.getTime() - 5 * 86400000).toISOString();
   const { data: users } = await supabase
     .from("profiles")
-    .select("id, active_household_id, notification_preferences!inner(push_token, notifications_enabled, reengagement_enabled)")
+    .select("id, active_household_id, language, notification_preferences!inner(push_token, notifications_enabled, reengagement_enabled)")
     .lt("last_active_at", cutoff);
   let count = 0;
   for (const u of users ?? []) {
@@ -292,7 +310,7 @@ async function runReengagement(supabase: any, now: Date): Promise<number> {
       .eq("user_id", u.id).eq("type", "reengagement").gte("sent_at", cutoff).limit(1);
     if ((recent ?? []).length > 0) continue;
     if (u.active_household_id && !(await householdWindowOpen(supabase, u.active_household_id, now))) continue;
-    const dead = await sendPush([token], { title: "What's for dinner?", body: "Open leftovr for a quick idea from what you have.", data: { type: "reengagement" } });
+    const dead = await sendPush([token], { ...copy(toLang(u.language)).reengagement(), data: { type: "reengagement" } });
     await recordSends(supabase, [u.id], null, "reengagement", now);
     await nullDeadTokens(supabase, dead);
     count += 1;
@@ -313,19 +331,29 @@ async function householdWindowOpen(supabase: any, householdId: string, now: Date
 }
 
 // Only used by top-up — gate by the master switch + the per-user tips opt-out.
-async function pushToHousehold(supabase: any, householdId: string, now: Date, type: string, payload: any): Promise<number> {
+async function pushToHousehold(
+  supabase: any,
+  householdId: string,
+  now: Date,
+  type: string,
+  payloadFor: (lang: Lang) => Payload,
+): Promise<number> {
   const { data: members } = await supabase
     .from("household_members")
-    .select("user_id, notification_preferences!inner(push_token, notifications_enabled, tips_enabled)")
+    .select("user_id, profiles!inner(language), notification_preferences!inner(push_token, notifications_enabled, tips_enabled)")
     .eq("household_id", householdId).eq("status", "active");
-  const tokens: string[] = [], userIds: string[] = [];
+  const recipients: Recipient[] = [];
   for (const m of members ?? []) {
     const p = (m as any).notification_preferences;
-    if (p?.push_token && p?.notifications_enabled && p?.tips_enabled) { tokens.push(p.push_token); userIds.push(m.user_id); }
+    if (p?.push_token && p?.notifications_enabled && p?.tips_enabled) {
+      recipients.push({ token: p.push_token, userId: m.user_id, lang: toLang((m as any).profiles?.language) });
+    }
   }
-  if (tokens.length === 0) return 0;
-  const dead = await sendPush(tokens, payload);
-  await recordSends(supabase, userIds, householdId, type, now);
-  await nullDeadTokens(supabase, dead);
-  return tokens.length;
+  if (recipients.length === 0) return 0;
+  for (const [lang, group] of byLanguage(recipients)) {
+    const dead = await sendPush(group.map((r) => r.token), payloadFor(lang));
+    await recordSends(supabase, group.map((r) => r.userId), householdId, type, now);
+    await nullDeadTokens(supabase, dead);
+  }
+  return recipients.length;
 }

@@ -1,3 +1,5 @@
+import { copy, Lang } from "./pushCopy.ts";
+
 export type InventoryGroup = { name: string; urgency: string };
 export type DailySuggestion = { title: string; body: string; items: string[] };
 
@@ -44,13 +46,13 @@ export function isStreakReminderHour(now: Date, tz: string): boolean {
 }
 
 // Honest copy: with a freeze banked the streak survives tonight anyway.
-export function buildStreakReminder(streak: number, freezes: number, urgentName: string | null) {
-  const title = freezes > 0 ? `Keep your ${streak}-day streak going` : `Your ${streak}-day streak ends at midnight`;
-  const body = urgentName
-    ? `${urgentName} needs using today. Use it tonight to keep your streak growing.`
-    : freezes > 0
-      ? "A freeze will cover today, but using up one thing tonight keeps it growing."
-      : "Use up one thing from your kitchen tonight to keep it.";
+export function buildStreakReminder(
+  streak: number,
+  freezes: number,
+  urgentName: string | null,
+  lang: Lang = "en",
+) {
+  const { title, body } = copy(lang).streak(streak, freezes, urgentName);
   return { title, body, data: { type: "streak" } };
 }
 
@@ -95,6 +97,7 @@ export function toUrgencyGroups(
 export function buildDailySuggestion(
   groups: InventoryGroup[],
   primaryGoal: string | null,
+  lang: Lang = "en",
 ): DailySuggestion | null {
   const urgent = groups.filter((g) => g.urgency === "urgent").map((g) => g.name);
   const useSoon = groups.filter((g) => g.urgency === "use_soon").map((g) => g.name);
@@ -102,14 +105,11 @@ export function buildDailySuggestion(
   if (priority.length === 0) return null;
 
   const top = priority.slice(0, 3);
-  const title =
-    primaryGoal === "money" ? "Save money tonight"
-    : primaryGoal === "quick" ? "Quick dinner idea"
-    : "Use it before it goes";
+  const c = copy(lang);
 
   return {
-    title,
-    body: `Tonight: cook with ${top.join(", ")}${priority.length > 3 ? ` and ${priority.length - 3} more` : ""}.`,
+    title: c.dailyTitle(primaryGoal),
+    body: c.dailyBody(top, priority.length - top.length),
     items: top,
   };
 }

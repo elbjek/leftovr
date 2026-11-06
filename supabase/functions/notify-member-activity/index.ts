@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 import { sendPush } from "../_shared/sendPush.ts";
 import { secretsMatch } from "../_shared/secrets.ts";
 import { coalesceOpen } from "../_shared/notificationRules.ts";
+import { copy, Lang, toLang } from "../_shared/pushCopy.ts";
 
 const COALESCE_MIN = 10;
 
@@ -50,15 +51,18 @@ Deno.serve(async (req) => {
   // Other members with a token + not muted.
   const { data: members } = await supabase
     .from("household_members")
-    .select("user_id, notification_preferences!inner(push_token, notifications_enabled, member_activity_enabled)")
+    .select("user_id, profiles!inner(language), notification_preferences!inner(push_token, notifications_enabled, member_activity_enabled)")
     .eq("household_id", household_id).eq("status", "active").neq("user_id", actor_id);
 
-  const tokens: string[] = [], userIds: string[] = [];
+  const targets: { token: string; userId: string; lang: Lang }[] = [];
   for (const m of members ?? []) {
     const p = (m as any).notification_preferences;
-    if (p?.push_token && p?.notifications_enabled && p?.member_activity_enabled) { tokens.push(p.push_token); userIds.push(m.user_id); }
+    if (p?.push_token && p?.notifications_enabled && p?.member_activity_enabled) {
+      targets.push({ token: p.push_token, userId: m.user_id, lang: toLang((m as any).profiles?.language) });
+    }
   }
-  if (tokens.length === 0) return Response.json({ ok: true, skipped: "no_targets" });
+  if (targets.length === 0) return Response.json({ ok: true, skipped: "no_targets" });
+  const userIds = targets.map((target) => target.userId);
 
   // Record before sending: a near-simultaneous call (separate inserts seconds
   // apart) then sees this row in its coalesce check instead of also pushing.
@@ -67,13 +71,15 @@ Deno.serve(async (req) => {
   );
 
   const n = Number(count) || 1;
-  const dead = await sendPush(tokens, {
-    title: "Kitchen updated",
-    body: `${name} added ${n} item${n === 1 ? "" : "s"} to your kitchen.`,
-    data: { type: "member_activity", household_id },
-  });
-  for (const token of dead) {
-    await supabase.from("notification_preferences").update({ push_token: null }).eq("push_token", token);
+  // One send per language — housemates can run the app in different ones.
+  for (const lang of new Set(targets.map((target) => target.lang))) {
+    const dead = await sendPush(
+      targets.filter((target) => target.lang === lang).map((target) => target.token),
+      { ...copy(lang).memberActivity(name, n), data: { type: "member_activity", household_id } },
+    );
+    for (const token of dead) {
+      await supabase.from("notification_preferences").update({ push_token: null }).eq("push_token", token);
+    }
   }
-  return Response.json({ ok: true, sent: tokens.length });
+  return Response.json({ ok: true, sent: targets.length });
 });
