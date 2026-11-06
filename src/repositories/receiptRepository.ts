@@ -1,7 +1,7 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import { valueOfAmount } from "@/lib/money";
 import {
-  insertValueEvent,
+  insertValueEvents,
   fetchPricedLots,
   categoryAverageUnitPrice,
 } from "./valueEventRepository";
@@ -309,22 +309,21 @@ export async function confirmNormalizedReceiptScan(input: {
     const pricedLots = inventoryRows.some((r) => r.purchase_price == null)
       ? await fetchPricedLots(input.householdId)
       : [];
-    for (const row of inventoryRows) {
-      // Same basis as purchase_amount: net g/ml when known, else the count.
-      const spend = row.purchase_price ??
-        valueOfAmount(
-          row.net_amount ?? row.quantity,
-          categoryAverageUnitPrice(pricedLots, row.category, row.net_amount != null ? row.net_unit : null),
-        );
-      await insertValueEvent({
+    await insertValueEvents(
+      inventoryRows.map((row) => ({
         householdId: input.householdId,
-        kind: "spend",
-        value: spend,
+        kind: "spend" as const,
+        // Same basis as purchase_amount: net g/ml when known, else the count.
+        value: row.purchase_price ??
+          valueOfAmount(
+            row.net_amount ?? row.quantity,
+            categoryAverageUnitPrice(pricedLots, row.category, row.net_amount != null ? row.net_unit : null),
+          ),
         normalizedName: row.normalized_name,
         category: row.category,
         createdBy: userId,
-      });
-    }
+      })),
+    );
   }
 
   return { scanId: input.scanId, addedCount: kept.length };

@@ -7,7 +7,7 @@ export type ValueEventKind = "spend" | "saved" | "wasted";
 // the event writer. Pure math lives in @/lib/money (testable without RN).
 export { categoryAverageUnitPrice };
 
-export async function insertValueEvent(input: {
+export type ValueEventInput = {
   householdId: string;
   kind: ValueEventKind;
   value: number;
@@ -16,17 +16,29 @@ export async function insertValueEvent(input: {
   createdBy?: string | null;
   /** Omit for "today's household currency" (a DB trigger stamps it). */
   currency?: string | null;
-}) {
-  if (input.value <= 0) return; // skip unpriced/zero — keeps insight totals clean
-  const { error } = await getSupabaseClient().from("value_events").insert({
-    household_id: input.householdId,
-    kind: input.kind,
-    value: input.value,
-    normalized_name: input.normalizedName,
-    category: input.category,
-    created_by: input.createdBy ?? null,
-    ...(input.currency ? { currency: input.currency } : {}),
-  });
+};
+
+export async function insertValueEvent(input: ValueEventInput) {
+  await insertValueEvents([input]);
+}
+
+/** One round-trip for a whole batch: confirming a receipt or clearing a
+ *  category writes one event per line, and a row each was a request each. */
+export async function insertValueEvents(inputs: ValueEventInput[]) {
+  const rows = inputs
+    .filter((input) => input.value > 0) // skip unpriced/zero — keeps insight totals clean
+    .map((input) => ({
+      household_id: input.householdId,
+      kind: input.kind,
+      value: input.value,
+      normalized_name: input.normalizedName,
+      category: input.category,
+      created_by: input.createdBy ?? null,
+      ...(input.currency ? { currency: input.currency } : {}),
+    }));
+  if (rows.length === 0) return;
+
+  const { error } = await getSupabaseClient().from("value_events").insert(rows);
   if (error) throw error;
 }
 
