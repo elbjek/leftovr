@@ -496,21 +496,30 @@
     background: var(--surface); box-shadow: 0 0 0 2px rgba(249,246,241,0.32);
   }
 
-  /* 2. Two shelves, the item due first pulled forward with its label. */
-  .ill-shelf { background: var(--sage-tint); flex-direction: column; gap: 12px; padding: 20px 18px; }
-  .ill-tier {
-    display: flex; align-items: flex-end; justify-content: center; gap: 16px;
-    width: 100%; padding-bottom: 14px; border-bottom: 1.5px solid rgba(35,75,52,0.20);
+  /* 2. The kitchen list: what you have, in the order it should be eaten,
+     each with a window rather than a countdown. */
+  .ill-kitchen { background: var(--sage-tint); padding: 12px 20px; }
+  .k-card {
+    width: 100%; background: var(--card); border: 1px solid var(--card-line);
+    border-radius: var(--r-card); overflow: hidden;
+    box-shadow: 0 10px 20px -14px rgba(35,75,52,0.35);
   }
-  .ill-shelf .fi { width: 44px; height: 44px; }
-  .fi-first { position: relative; display: block; }
-  .fi-first .fi { width: 52px; height: 52px; }
-  .fi-first em {
-    position: absolute; left: 50%; transform: translateX(-50%); bottom: -3px;
-    background: var(--accent); color: var(--text);
-    font-size: 8.5px; font-weight: 800; font-style: normal;
-    letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px; white-space: nowrap;
+  .k-row { display: flex; align-items: center; gap: 10px; padding: 7px 11px; }
+  .k-row + .k-row { border-top: 1px solid var(--card-line); }
+  .k-thumb {
+    width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
   }
+  .ill-kitchen .fi { width: 22px; height: 22px; }
+  .k-name { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; color: var(--text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .k-tag {
+    flex-shrink: 0; font-size: 9px; font-weight: 800; letter-spacing: 0.03em;
+    padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+  }
+  .k-tag.today { background: var(--red-soft); color: var(--red-ink); }
+  .k-tag.soon  { background: var(--accent-soft); color: var(--accent-ink); }
+  .k-tag.fresh { background: rgba(94,154,100,0.16); color: #3E6B45; }
 
   /* 3. The three it uses, arcing down into the plate. */
   .ill-cook { background: var(--accent-soft); flex-direction: column; justify-content: flex-end; padding-bottom: 20px; }
@@ -537,12 +546,17 @@
   .step-card:not(.seen) .fridge,
   .step-card:not(.seen) .snap-phone { opacity: 0; }
   .ill-capture .fi { animation-delay: calc(0.28s + var(--i) * 80ms) !important; }
+  .step-card.seen .k-row { animation: shotIn 0.45s ease both; animation-delay: calc(var(--r, 0) * 110ms); }
+  .step-card:not(.seen) .k-row { opacity: 0; }
+  .k-row:nth-child(2) { --r: 1; }
+  .k-row:nth-child(3) { --r: 2; }
   .step-card.seen .fi { animation: foodIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 90ms); }
   .step-card:not(.seen) .fi { opacity: 0; }
   @media (prefers-reduced-motion: reduce) {
     .step-card .fi, .step-card.seen .fi,
     .step-card .fridge, .step-card.seen .fridge,
-    .step-card .snap-phone, .step-card.seen .snap-phone { animation: none; opacity: 1; }
+    .step-card .snap-phone, .step-card.seen .snap-phone,
+    .step-card .k-row, .step-card.seen .k-row { animation: none; opacity: 1; }
   }
   .step-card h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 8px; }
   .step-card p { font-size: 15px; color: var(--muted); line-height: 1.5; }
@@ -1269,16 +1283,26 @@
 
         <div class="step-card">
           <div class="step-num">2</div>
-          <!-- Step 2: two shelves, the item due first pulled forward. -->
-          <div class="step-ill ill-shelf">
-            <div class="ill-tier">
-              <span class="fi-first"><img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0"><em data-i18n="step2.first">Use first</em></span>
-              <img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1">
-              <img class="fi" src="/food/carrot.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2">
-            </div>
-            <div class="ill-tier">
-              <img class="fi" src="/food/lemon.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:3">
-              <img class="fi" src="/food/eggs.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:4">
+          <!-- Step 2: the kitchen itself, ranked by what to eat first, with the
+               gentle windows the copy promises instead of a countdown.
+               Thumb tints come from categoryColors in src/theme/tokens.ts. -->
+          <div class="step-ill ill-kitchen">
+            <div class="k-card">
+              <div class="k-row">
+                <span class="k-thumb" style="background:#C8D5C2"><img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0"></span>
+                <span class="k-name" data-i18n="step2.n1">Baby spinach</span>
+                <span class="k-tag today" data-i18n="step2.w1">Best today</span>
+              </div>
+              <div class="k-row">
+                <span class="k-thumb" style="background:#E8B59E"><img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1"></span>
+                <span class="k-name" data-i18n="step2.n2">Cherry tomatoes</span>
+                <span class="k-tag soon" data-i18n="step2.w2">This week</span>
+              </div>
+              <div class="k-row">
+                <span class="k-thumb" style="background:#F0DDA8"><img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2"></span>
+                <span class="k-name" data-i18n="step2.n3">Cheese</span>
+                <span class="k-tag fresh" data-i18n="step2.w3">Fresh</span>
+              </div>
             </div>
           </div>
           <h3 data-i18n="step2.title">Your kitchen keeps track</h3>
@@ -1842,8 +1866,13 @@
       "how.title": 'Shelves in. <span class="mark">Dinner out.</span>',
       "how.sub": "Three steps, one of which you already do every time you shop.",
       "step1.title": "Snap your shelves",
-      "step2.first": "Use first",
       "step1.body": "Photograph your fridge, a shelf or the counter, up to three shots. A receipt or PDF e-receipt works too, adding 20 to 30 items at once.",
+      "step2.n1": "Baby spinach",
+      "step2.w1": "Best today",
+      "step2.n2": "Cherry tomatoes",
+      "step2.w2": "This week",
+      "step2.n3": "Cheese",
+      "step2.w3": "Fresh",
       "step2.title": "Your kitchen keeps track",
       "step2.body": 'Everything lands on shelves with gentle freshness windows, "best today", "this week", never scary expiration countdowns.',
       "step3.title": "Cook what you have",
@@ -2038,8 +2067,13 @@
       "how.title": 'Police unutra. <span class="mark">Večera napolje.</span>',
       "how.sub": "Tri koraka, a jedan već radiš svaki put kad kupuješ.",
       "step1.title": "Slikaj police",
-      "step2.first": "Pojedi prvo",
       "step1.body": "Slikaj frižider, policu ili pult, do tri slike. Slika računa ili PDF e-račun takođe radi i doda 20 do 30 stavki odjednom.",
+      "step2.n1": "Mladi spanać",
+      "step2.w1": "Najbolje danas",
+      "step2.n2": "Čeri paradajz",
+      "step2.w2": "Ove nedelje",
+      "step2.n3": "Sir",
+      "step2.w3": "Sveže",
       "step2.title": "Tvoja kuhinja vodi računa",
       "step2.body": "Sve sleće na virtuelne police, sređeno po kategoriji i poređano po tome šta prvo treba pojesti, da se ništa ne krije pozadi.",
       "step3.title": "Kuvaj od onoga što već imaš",
