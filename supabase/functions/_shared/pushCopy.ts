@@ -31,6 +31,7 @@ type Copy = {
   reengagement: () => { title: string; body: string };
   memberActivity: (name: string, count: number) => { title: string; body: string };
   memberCooked: (name: string, dish: string | null) => { title: string; body: string };
+  memberChange: (name: string, kind: "joined" | "left" | "removed") => { title: string; body: string };
 };
 
 const en: Copy = {
@@ -73,6 +74,14 @@ const en: Copy = {
   memberCooked: (name, dish) => ({
     title: "Dinner's handled",
     body: dish ? `${name} cooked ${dish}.` : `${name} cooked from your kitchen.`,
+  }),
+  memberChange: (name, kind) => ({
+    title: kind === "joined" ? "New housemate" : "Your kitchen changed",
+    body: kind === "joined"
+      ? `${name} joined your kitchen.`
+      : kind === "removed"
+        ? `${name} was removed from your kitchen.`
+        : `${name} left your kitchen.`,
   }),
 };
 
@@ -119,6 +128,14 @@ const sr: Copy = {
   memberCooked: (name, dish) => ({
     title: "Večera je rešena",
     body: dish ? `${name} je skuvao/la ${dish}.` : `${name} je kuvao/la od onoga što je u kuhinji.`,
+  }),
+  memberChange: (name, kind) => ({
+    title: kind === "joined" ? "Novi ukućanin" : "Promena u kuhinji",
+    body: kind === "joined"
+      ? `${name} se pridružio/la tvojoj kuhinji.`
+      : kind === "removed"
+        ? `${name} je uklonjen/a iz tvoje kuhinje.`
+        : `${name} je napustio/la tvoju kuhinju.`,
   }),
 };
 

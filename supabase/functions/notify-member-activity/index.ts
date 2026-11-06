@@ -22,9 +22,11 @@ Deno.serve(async (req) => {
 
   const { household_id, actor_id, count, kind, dish } = await req.json();
   if (!household_id || !actor_id) return Response.json({ ok: false }, { status: 400 });
-  // 'added' (the inventory trigger, which sends no kind) or 'cooked'.
+  // 'added' (the inventory trigger, which sends no kind), 'cooked', or a
+  // membership change ('joined' / 'left' / 'removed').
   const cooked = kind === "cooked";
-  const sendType = cooked ? "member_cooked" : "member_activity";
+  const change = kind === "joined" || kind === "left" || kind === "removed";
+  const sendType = change ? "member_change" : cooked ? "member_cooked" : "member_activity";
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -33,20 +35,26 @@ Deno.serve(async (req) => {
   );
   const now = new Date();
 
-  // Only shared (household_premium) households have an "other member" to notify.
-  const { data: household } = await supabase
-    .from("households").select("plan_tier").eq("id", household_id).single();
-  if (household?.plan_tier !== "household_premium") return Response.json({ ok: true, skipped: "not_shared" });
+  // Only shared (household_premium) households have an "other member" to
+  // notify — except for membership changes, where the most important one (the
+  // payer leaving) fires right after the plan has dropped to free.
+  if (!change) {
+    const { data: household } = await supabase
+      .from("households").select("plan_tier").eq("id", household_id).single();
+    if (household?.plan_tier !== "household_premium") return Response.json({ ok: true, skipped: "not_shared" });
+  }
 
   // Coalesce per actor: two housemates unpacking shopping at the same time are
   // two different pieces of news, so only the same person's repeat adds are
-  // folded together.
-  const { data: recent } = await supabase
-    .from("notification_sends").select("sent_at")
-    .eq("household_id", household_id).eq("type", sendType).eq("actor_id", actor_id)
-    .order("sent_at", { ascending: false }).limit(1);
-  if (!coalesceOpen(recent?.[0]?.sent_at ?? null, now, COALESCE_MIN)) {
-    return Response.json({ ok: true, skipped: "coalesced" });
+  // folded together. Membership changes are one-offs — never coalesced.
+  if (!change) {
+    const { data: recent } = await supabase
+      .from("notification_sends").select("sent_at")
+      .eq("household_id", household_id).eq("type", sendType).eq("actor_id", actor_id)
+      .order("sent_at", { ascending: false }).limit(1);
+    if (!coalesceOpen(recent?.[0]?.sent_at ?? null, now, COALESCE_MIN)) {
+      return Response.json({ ok: true, skipped: "coalesced" });
+    }
   }
 
   const { data: actor } = await supabase
@@ -78,9 +86,11 @@ Deno.serve(async (req) => {
   const n = Number(count) || 1;
   // One send per language — housemates can run the app in different ones.
   for (const lang of new Set(targets.map((target) => target.lang))) {
-    const text = cooked
-      ? copy(lang).memberCooked(name, typeof dish === "string" && dish ? dish : null)
-      : copy(lang).memberActivity(name, n);
+    const text = change
+      ? copy(lang).memberChange(name, kind)
+      : cooked
+        ? copy(lang).memberCooked(name, typeof dish === "string" && dish ? dish : null)
+        : copy(lang).memberActivity(name, n);
     const dead = await sendPush(
       targets.filter((target) => target.lang === lang).map((target) => target.token),
       { ...text, data: { type: sendType, household_id } },

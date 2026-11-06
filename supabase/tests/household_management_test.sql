@@ -115,7 +115,7 @@ begin
   raise notice 'CASE8 PASS: owner hand-over on join';
 
   -- CASE9: internal helpers are not callable by clients.
-  assert not has_function_privilege('authenticated', 'public.exit_household(uuid,uuid)', 'execute'), 'CASE9 FAIL: exit_household exposed';
+  assert not has_function_privilege('authenticated', 'public.exit_household(uuid,uuid,text)', 'execute'), 'CASE9 FAIL: exit_household exposed';
   assert not has_function_privilege('authenticated', 'public.create_solo_household(uuid,uuid)', 'execute'), 'CASE9 FAIL: create_solo_household exposed';
   assert not has_function_privilege('authenticated', 'public.recompute_household_plan(uuid)', 'execute'), 'CASE9 FAIL: recompute_household_plan exposed';
   raise notice 'CASE9 PASS: helpers private';
