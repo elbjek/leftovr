@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -26,7 +26,16 @@ type Props = {
 export function HouseholdSheet({ visible, onClose, itemCount, initialJoinCode }: Props) {
   const { t } = useTranslation();
   const { profile, activeHousehold, refresh } = useAuth();
-  const household = useHousehold(activeHousehold?.id);
+  // The sheet is mounted on Kitchen, Recipes and Settings, so loading members
+  // and the invite eagerly would cost six queries per tab visit. Wait for the
+  // first open, then re-read on every open: membership changes server-side.
+  const [everVisible, setEverVisible] = useState(visible);
+  if (visible && !everVisible) setEverVisible(true);
+  const household = useHousehold(everVisible ? activeHousehold?.id : null);
+  const refreshHousehold = household.refresh;
+  useEffect(() => {
+    if (visible) void refreshHousehold();
+  }, [visible, refreshHousehold]);
   const [name, setName] = useState(activeHousehold?.name ?? "");
   const [prevName, setPrevName] = useState(activeHousehold?.name);
   if (activeHousehold?.name !== prevName) {
