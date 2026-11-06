@@ -61,6 +61,27 @@ export default function Gallery() {
         </Card>
       </Section>
 
+      <Section title="Text weight">
+        <Card>
+          {(["regular", "medium", "semibold", "bold", "extrabold"] as const).map((w) => (
+            <View key={w} style={styles.typeRow}>
+              <Text variant="micro" muted style={styles.typeName}>
+                {w}
+              </Text>
+              <Text weight={w}>What&apos;s for dinner</Text>
+            </View>
+          ))}
+          <View style={styles.typeRow}>
+            <Text variant="micro" muted style={styles.typeName}>
+              small + bold, the emphasis case
+            </Text>
+            <Text variant="small" weight="bold">
+              Four items go off this week
+            </Text>
+          </View>
+        </Card>
+      </Section>
+
       <Section title="Colour">
         <View style={styles.swatches}>
           {(
