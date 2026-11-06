@@ -9,6 +9,7 @@ export type HouseholdMember = {
   display_name: string;
   avatar_initials: string | null;
   avoidances: string[];
+  tier: "free" | "premium" | "household_premium";
 };
 
 export type HouseholdInvite = {
@@ -36,7 +37,7 @@ export async function listHouseholdMembers(householdId: string): Promise<Househo
   const { data, error } = await supabase
     .from("household_members")
     .select(
-      "id, user_id, role, status, joined_at, profiles!inner(display_name, avatar_initials, avoidances)",
+      "id, user_id, role, status, joined_at, profiles!inner(display_name, avatar_initials, avoidances, tier)",
     )
     .eq("household_id", householdId)
     .eq("status", "active")
@@ -53,6 +54,7 @@ export async function listHouseholdMembers(householdId: string): Promise<Househo
     display_name: row.profiles.display_name,
     avatar_initials: row.profiles.avatar_initials,
     avoidances: row.profiles.avoidances ?? [],
+    tier: row.profiles.tier ?? "free",
   }));
 }
 

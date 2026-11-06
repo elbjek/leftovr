@@ -100,7 +100,11 @@ export function HouseholdSheet({ visible, onClose, itemCount, initialJoinCode }:
             isPremium={canShareHousehold(profile, activeHousehold)}
             hasOwnPaidSub={(profile.tier ?? "free") !== "free"}
             paysForHousehold={
-              profile.tier === "household_premium" && activeHousehold.plan_tier === "household_premium"
+              profile.tier === "household_premium" &&
+              activeHousehold.plan_tier === "household_premium" &&
+              // Only warn that the others lose premium when nobody else pays:
+              // the kitchen stays household_premium while any member does.
+              !household.members.some((m) => m.user_id !== profile.id && m.tier === "household_premium")
             }
             currentItemCount={itemCount}
             onCreateInvite={household.createInvite}
