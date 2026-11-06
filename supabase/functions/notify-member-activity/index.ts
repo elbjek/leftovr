@@ -35,10 +35,12 @@ Deno.serve(async (req) => {
     .from("households").select("plan_tier").eq("id", household_id).single();
   if (household?.plan_tier !== "household_premium") return Response.json({ ok: true, skipped: "not_shared" });
 
-  // Coalesce: skip if this household already triggered a member_activity push recently.
+  // Coalesce per actor: two housemates unpacking shopping at the same time are
+  // two different pieces of news, so only the same person's repeat adds are
+  // folded together.
   const { data: recent } = await supabase
     .from("notification_sends").select("sent_at")
-    .eq("household_id", household_id).eq("type", "member_activity")
+    .eq("household_id", household_id).eq("type", "member_activity").eq("actor_id", actor_id)
     .order("sent_at", { ascending: false }).limit(1);
   if (!coalesceOpen(recent?.[0]?.sent_at ?? null, now, COALESCE_MIN)) {
     return Response.json({ ok: true, skipped: "coalesced" });
@@ -67,7 +69,7 @@ Deno.serve(async (req) => {
   // Record before sending: a near-simultaneous call (separate inserts seconds
   // apart) then sees this row in its coalesce check instead of also pushing.
   await supabase.from("notification_sends").insert(
-    userIds.map((user_id) => ({ user_id, household_id, type: "member_activity", sent_at: now.toISOString() })),
+    userIds.map((user_id) => ({ user_id, household_id, actor_id, type: "member_activity", sent_at: now.toISOString() })),
   );
 
   const n = Number(count) || 1;
