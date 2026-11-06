@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Alert, Linking, Platform, Pressable, StyleSheet, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import Svg, { Path } from "react-native-svg";
 import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
@@ -10,7 +9,9 @@ import {
   Button,
   Card,
   ChoiceCard,
+  Divider,
   HouseholdSheet,
+  ListRow,
   PremiumSheet,
   Screen,
   ScreenHeader,
@@ -27,7 +28,7 @@ import {
   updateProfileAvoidances,
   updateProfileField,
 } from "@/repositories";
-import { colors, fonts, radii, spacing } from "@/theme";
+import { colors, radii, shadows, spacing } from "@/theme";
 
 const PRIMARY_GOAL_OPTIONS = ["waste", "money", "quick", "all"] as const;
 const SHOPPING_STYLE_OPTIONS = ["weekly", "few", "asneed"] as const;
@@ -279,7 +280,7 @@ export default function SettingsRoute() {
           style={styles.profileHeader}
         >
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
+            <Text variant="h3" weight="bold" color={colors.accent}>
               {profile?.avatar_initials ?? (profile?.display_name ?? "?").slice(0, 1).toUpperCase()}
             </Text>
           </View>
@@ -824,34 +825,22 @@ function SettingsRow({
   last?: boolean;
 }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.groupRow,
-        !last && styles.groupRowDivider,
-        pressed && styles.groupRowPressed,
-      ]}
-    >
-      <Text variant="label" color={danger ? colors.red : colors.text} style={styles.groupRowLabel}>
-        {label}
-      </Text>
-      {value ? (
-        <Text variant="small" muted numberOfLines={1} style={styles.groupRowValue}>
-          {value}
-        </Text>
-      ) : null}
-      <Svg width={14} height={14} viewBox="0 0 14 14">
-        <Path
-          d="M5 3L9 7L5 11"
-          stroke={colors.muted2}
-          strokeWidth={1.6}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
-    </Pressable>
+    <>
+      <ListRow
+        title={label}
+        danger={danger}
+        onPress={onPress}
+        trailing={
+          value ? (
+            <Text variant="small" muted numberOfLines={1} style={styles.groupRowValue}>
+              {value}
+            </Text>
+          ) : null
+        }
+        style={styles.groupRow}
+      />
+      {last ? null : <Divider />}
+    </>
   );
 }
 
@@ -912,12 +901,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 18,
-    lineHeight: 22,
-    color: colors.accent,
-  },
   profileNameWrap: {
     flex: 1,
     minWidth: 0,
@@ -928,11 +911,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxs,
   },
   groupCard: {
-    backgroundColor: colors.paper,
-    borderWidth: 1,
-    borderColor: colors.hairline,
+    backgroundColor: colors.surface,
     borderRadius: radii.lg,
-    overflow: "hidden",
+    paddingHorizontal: spacing.lg,
+    ...shadows.soft,
   },
   groupRow: {
     flexDirection: "row",
@@ -1012,13 +994,11 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    borderWidth: 1,
-    borderColor: colors.hairlineStrong,
+    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
   },
   servingsOptionActive: {
     backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
 });
