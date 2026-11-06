@@ -1,0 +1,51 @@
+# leftovr
+
+> leftovr is an iPhone app that tracks the food a household already owns and turns it into
+> dinner. Scan one grocery receipt and 20–30 items land in your kitchen, ranked by what should
+> be eaten first; leftovr then generates recipes using only those ingredients and removes them
+> from your kitchen when you cook. Made by Two Brick Labs. Last updated 2026-11-06.
+
+## What it does
+
+- **Five ways to add food**: receipt photo, PDF e-receipt, pantry photo (up to three shelves at
+  once), barcode scan, manual add. Barcode and manual add are free and unlimited.
+- **Eat-first ranking**: every item carries an estimated freshness window ("best today", "this
+  week"). The items closest to spoiling sit on top.
+- **Recipes from your kitchen only**: required ingredients come from what the household already
+  has, led by the food that needs using. No "buy nine more things" recipes.
+- **Automatic depletion**: tapping "I cooked this" removes or reduces those ingredients. No
+  re-tracking by hand.
+- **Shared household**: up to three people share one synced kitchen (Household plan).
+- **Insights**: money saved, items used vs. tossed, go-to dinners, per week / month / year.
+- **Languages**: English and Serbian, including generated recipes.
+- **Platform**: iPhone only. No smart fridge, sensors or scales needed.
+
+## What it is not
+
+- Not a meal planner that plans first and sends you shopping.
+- Not a recipe search engine you type ingredients into each time.
+- Not an expiry list you maintain by hand, one barcode at a time.
+- Freshness dates are estimates by item type, not guarantees, and are editable.
+
+## Status
+
+In early access. The waitlist at https://leftovr.co/#get is the way in.
+
+## Pricing
+
+Free to start: first receipt scan and first recipe generation, plus unlimited manual and
+barcode add. Premium $7.99/month or $54.99/year. Household (up to 3 people) $14.99/month or
+$99.99/year. Full detail: https://leftovr.co/pricing.md
+
+## Pages
+
+- [Home](https://leftovr.co/): what it is, how it works, pricing, FAQ
+- [Pricing as data](https://leftovr.co/pricing.md): plans, limits, prices
+- [Blog](https://leftovr.co/blog/): food waste, meal planning and pantry guides
+- [Privacy](https://leftovr.co/privacy/): receipt data is never sold; deletable any time
+- [Terms](https://leftovr.co/terms/)
+- [Refunds](https://leftovr.co/refund/)
+
+## Contact
+
+support@twobricklabs.com
