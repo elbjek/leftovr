@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
-import { BottomSheet, Button, Card, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Text, TextField } from "@/components";
+import { BottomSheet, Button, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Text, TextField } from "@/components";
 import type { ShareFormat } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
@@ -14,7 +14,6 @@ import { foodIconKey, formatMoney, newClientId } from "@/lib";
 import { addAmounts, canonicalFoodName, dailyGoal, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
-import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
 import { toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
 import { colors, radii, spacing } from "@/theme";
 
@@ -55,7 +54,7 @@ export default function RecipeDetailRoute() {
     returnTo?: string;
   }>();
 
-  const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
+  const { profile, activeHousehold } = useAuth();
   const { groups: inventoryGroups, lots, loading: inventoryLoading } = useInventory(activeHousehold?.id);
   // Recipe id still waiting for its phase-2 expand (set by the seeding effect,
   // consumed once inventory has loaded).
@@ -272,19 +271,6 @@ export default function RecipeDetailRoute() {
   // Fold the ingredients away to bring the steps up while cooking.
   const [ingredientsOpen, setIngredientsOpen] = useState(true);
 
-  const showCookCoachMark =
-    (profile?.prototype_day ?? 1) >= 3 && !profile?.cooked_coachmark_seen_at;
-  const [coachVisible, setCoachVisible] = useState(showCookCoachMark);
-
-  async function dismissCoachMark() {
-    setCoachVisible(false);
-    try {
-      await markCookedCoachmarkSeen();
-      await refreshAuth();
-    } catch {
-      // Non-critical
-    }
-  }
 
   const complexityLabel = formatComplexity(complexity);
   const liveFridgeNames = new Set(inventoryGroups.map((group) => group.normalizedName));
@@ -749,15 +735,6 @@ export default function RecipeDetailRoute() {
       ) : null}
 
       <View style={styles.bottomGradient}>
-        {coachVisible ? (
-          <Card style={styles.coachMark}>
-            <View style={styles.coachContent}>
-              <Text variant="label">{t("retention.day3CoachTitle")}</Text>
-              <Text variant="small" muted>{t("retention.day3CoachBody")}</Text>
-              <Button title={t("retention.day3Dismiss")} variant="text" onPress={dismissCoachMark} />
-            </View>
-          </Card>
-        ) : null}
         <Button
           title={hasCooked ? t("recipes.detail.cookAgainCta") : t("recipes.detail.cookCta")}
           variant="accent"
@@ -1291,14 +1268,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.hairline,
-  },
-  coachMark: {
-    backgroundColor: colors.primary50,
-    borderColor: colors.primary,
-    borderWidth: 1,
-  },
-  coachContent: {
-    gap: spacing.xs,
   },
   cookedEyebrow: {
     marginBottom: spacing.sm,

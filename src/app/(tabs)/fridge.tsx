@@ -3,10 +3,10 @@ import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, Vi
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, KitchenPulse, PlusIcon, PremiumSheet, RetentionCard, ScanIcon, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, KitchenPulse, PlusIcon, PremiumSheet, Screen, SegmentedControl, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
-import { useHousehold, useInsights, useInventory, useRetention } from "@/hooks";
+import { useHousehold, useInsights, useInventory } from "@/hooks";
 import {
   daysLeft,
   PartialState,
@@ -53,13 +53,6 @@ export default function FridgeRoute() {
     removeGroups,
     refresh,
   } = useInventory(activeHousehold?.id);
-  const prototypeDay = profile?.prototype_day ?? 1;
-  const { showDay5Nudge, day7Recap } = useRetention(
-    prototypeDay,
-    activeHousehold?.id,
-    groups,
-    profile?.primary_goal ?? null,
-  );
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   const [view, setView] = useState<KitchenView>(null);
   const [search, setSearch] = useState("");
@@ -417,17 +410,6 @@ export default function FridgeRoute() {
             />
           ) : null}
 
-          {showDay5Nudge && !day7Recap ? (
-            <View style={styles.retentionWrap}>
-              <RetentionCard
-                title={t("retention.day5Title")}
-                body={t("retention.day5Body")}
-                actionLabel={t("retention.day5Action")}
-                actionIcon={<ScanIcon color={colors.primary} size={18} />}
-                onAction={() => router.push({ pathname: "/(tabs)/scan", params: { mode: "receipt" } })}
-              />
-            </View>
-          ) : null}
 
           {loading ? (
             <View style={styles.centerState}>
@@ -1140,9 +1122,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.screenTop,
     paddingBottom: spacing.tabBarClearance,
     gap: spacing.xl,
-  },
-  retentionWrap: {
-    paddingHorizontal: spacing.screenX,
   },
   pulseWrap: {
     paddingHorizontal: spacing.screenX,

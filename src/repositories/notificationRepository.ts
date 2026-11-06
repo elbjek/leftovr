@@ -110,30 +110,4 @@ export async function updateHouseholdNotificationSettings(
   if (error) throw error;
 }
 
-export async function getSuccessfulReceiptScanCount(householdId: string): Promise<number> {
-  const supabase = getSupabaseClient();
 
-  const { count, error } = await supabase
-    .from("receipt_scans")
-    .select("id", { count: "exact", head: true })
-    .eq("household_id", householdId)
-    .eq("status", "completed")
-    // Shared table: the receipt-adoption nudge counts receipt scans only.
-    .eq("scan_type", "receipt");
-
-  if (error) throw error;
-  return count ?? 0;
-}
-
-export async function markCookedCoachmarkSeen(): Promise<void> {
-  const supabase = getSupabaseClient();
-  const { data: userResult, error: userError } = await supabase.auth.getUser();
-  if (userError) throw userError;
-
-  const { error } = await supabase
-    .from("profiles")
-    .update({ cooked_coachmark_seen_at: new Date().toISOString() })
-    .eq("id", userResult.user.id);
-
-  if (error) throw error;
-}

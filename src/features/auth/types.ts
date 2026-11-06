@@ -13,8 +13,6 @@ export type Profile = {
   tier: "free" | "premium" | "household_premium";
   active_household_id: string | null;
   onboarding_completed_at: string | null;
-  cooked_coachmark_seen_at: string | null;
-  prototype_day: number;
   free_receipt_scan_used_at: string | null;
   free_recipe_generation_used_at: string | null;
 };

@@ -20,7 +20,6 @@ export * from "./RecipeGlyph";
 export * from "./RecipeCover";
 export * from "./IngredientIcons";
 export * from "./RecipeIdeas";
-export * from "./RetentionCard";
 export * from "./SavedRecipeRow";
 export * from "./ShareCard";
 export * from "./ShareStatsSheet";
