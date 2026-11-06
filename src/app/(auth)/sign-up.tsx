@@ -1,6 +1,6 @@
 import { Redirect, router } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { AuthLanding, Screen, Text } from "@/components";
@@ -41,7 +41,7 @@ export default function SignUpRoute() {
   if (onboardingGateLoading) {
     return (
       <Screen>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.lg }}>
+        <View style={styles.center}>
           <ActivityIndicator color={colors.primary} />
           <Text variant="small" muted>
             {t("common.loading")}
@@ -74,8 +74,8 @@ export default function SignUpRoute() {
         onEmail={() => router.push({ pathname: "/(auth)/otp", params: { mode: "sign-up" } })}
       />
       {formError || error ? (
-        <View style={{ paddingHorizontal: spacing.screenX, paddingBottom: spacing.md }}>
-          <Text variant="small" color={colors.red} center>
+        <View style={styles.errorWrap}>
+          <Text variant="small" color={colors.redInk} center>
             {formError ?? error}
           </Text>
         </View>
@@ -83,3 +83,16 @@ export default function SignUpRoute() {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.lg,
+  },
+  errorWrap: {
+    paddingHorizontal: spacing.screenX,
+    paddingBottom: spacing.md,
+  },
+});

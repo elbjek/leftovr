@@ -1,6 +1,6 @@
 import { Redirect, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 import { Screen } from "@/components";
 import { setPendingInviteCode, useAuth } from "@/features";
@@ -23,7 +23,7 @@ export default function JoinRoute() {
   if (loading || (shouldStash && !stashed)) {
     return (
       <Screen>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <View style={styles.center}>
           <ActivityIndicator color={colors.primary} />
         </View>
       </Screen>
@@ -36,3 +36,11 @@ export default function JoinRoute() {
 
   return <Redirect href="/" />;
 }
+
+const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

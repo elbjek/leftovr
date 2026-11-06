@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Button, GeneratingLoader, Screen, Text } from "@/components";
@@ -16,7 +16,7 @@ export default function IndexRoute() {
   if (loading || onboardingGateLoading) {
     return (
       <Screen>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.lg }}>
+        <View style={styles.center}>
           <GeneratingLoader size={110} />
           <Text variant="small" muted>
             {t("common.loading")}
@@ -29,13 +29,13 @@ export default function IndexRoute() {
   if (!configured) {
     return (
       <Screen>
-        <View style={{ flex: 1, justifyContent: "center", gap: spacing.lg }}>
+        <View style={styles.block}>
           <Text variant="display">{t("auth.configTitle")}</Text>
           <Text variant="body" muted>
             {t("auth.configBody")}
           </Text>
           {error ? (
-            <Text variant="small" color={colors.red}>
+            <Text variant="small" color={colors.redInk}>
               {error}
             </Text>
           ) : null}
@@ -63,3 +63,17 @@ export default function IndexRoute() {
 
   return <Redirect href="/(tabs)/recipes" />;
 }
+
+const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.lg,
+  },
+  block: {
+    flex: 1,
+    justifyContent: "center",
+    gap: spacing.lg,
+  },
+});
