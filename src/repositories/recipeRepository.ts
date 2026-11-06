@@ -96,7 +96,10 @@ export async function createRecipeSession(input: CreateRecipeSessionInput) {
   return data;
 }
 
-export async function createRecipe(input: CreateRecipeInput) {
+/** One request for a whole generation: a run saves 3-5 recipes and a row each
+ *  was a request each. Postgres returns a multi-row INSERT's rows in the order
+ *  they were given, so the results line up with `inputs`. */
+export async function createRecipes(inputs: CreateRecipeInput[]) {
   const supabase = getSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
@@ -105,28 +108,30 @@ export async function createRecipe(input: CreateRecipeInput) {
 
   const { data, error } = await supabase
     .from("recipes")
-    .insert({
-      household_id: input.householdId,
-      session_id: input.sessionId,
-      title: input.title,
-      description: input.description,
-      time_minutes: input.timeMinutes,
-      complexity: input.complexity,
-      servings: input.servings,
-      ingredients: input.ingredients,
-      steps: input.steps,
-      used_inventory_item_ids: input.usedInventoryItemIds,
-      tags: input.tags,
-      avoidance_tags: input.avoidanceTags,
-      dish_key: input.dishKey?.slice(0, 60) ?? null,
-      generated_by: userId,
-    })
+    .insert(
+      inputs.map((input) => ({
+        household_id: input.householdId,
+        session_id: input.sessionId,
+        title: input.title,
+        description: input.description,
+        time_minutes: input.timeMinutes,
+        complexity: input.complexity,
+        servings: input.servings,
+        ingredients: input.ingredients,
+        steps: input.steps,
+        used_inventory_item_ids: input.usedInventoryItemIds,
+        tags: input.tags,
+        avoidance_tags: input.avoidanceTags,
+        dish_key: input.dishKey?.slice(0, 60) ?? null,
+        generated_by: userId,
+      })),
+    )
     .select("*")
-    .single<RecipeRow>();
+    .returns<RecipeRow[]>();
 
   if (error) throw error;
   // is_favorite lives in recipe_favorites; a fresh recipe is never a favorite.
-  return { ...data, is_favorite: false };
+  return (data ?? []).map((row) => ({ ...row, is_favorite: false }));
 }
 
 export type UpdateRecipeDetailInput = {

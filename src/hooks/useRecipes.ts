@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
-  createRecipe,
+  createRecipes,
   createRecipeSession,
   CookingMode,
   listCookedEventRows,
@@ -274,13 +274,8 @@ export function useRecipes(
             isPremiumOptimized: isPremium,
           });
 
-          const savedRecipes: RecipeRow[] = [];
-          for (const match of top) {
-            const usedIds = match.matchedItems
-              .filter((m) => m.inFridge && m.inventoryLot)
-              .map((m) => m.inventoryLot!.id);
-
-            const recipe = await createRecipe({
+          const savedRecipes = await createRecipes(
+            top.map((match) => ({
               householdId,
               sessionId: session.id,
               title: match.title,
@@ -290,13 +285,14 @@ export function useRecipes(
               servings: match.servingsBaseline,
               ingredients: match.ingredients,
               steps: match.steps,
-              usedInventoryItemIds: usedIds,
+              usedInventoryItemIds: match.matchedItems
+                .filter((m) => m.inFridge && m.inventoryLot)
+                .map((m) => m.inventoryLot!.id),
               tags: match.tags,
               avoidanceTags: match.avoidanceTags,
               dishKey: match.dish,
-            });
-            savedRecipes.push(recipe);
-          }
+            })),
+          );
 
           setState((s) => ({
             ...s,
