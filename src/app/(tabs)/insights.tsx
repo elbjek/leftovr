@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from "react-native";
+import { ActivityIndicator, RefreshControl, StyleSheet, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
@@ -16,6 +16,7 @@ import {
   Screen,
   SectionTitle,
   ShareStatsSheet,
+  Tappable,
   Text,
   TopDinners,
   UsedTossedChart,
@@ -26,7 +27,7 @@ import type { ShareLook } from "@/components";
 import { useDaySheet, usePeriodInsights, useStreak, useWins } from "@/hooks";
 import { InventoryCategory, Period, toUiCategory } from "@/services";
 import { formatMoney } from "@/lib/money";
-import { colors, fonts, radii, spacing } from "@/theme";
+import { colors, radii, shadows, spacing } from "@/theme";
 
 const PERIODS: Period[] = ["week", "month", "year"];
 
@@ -83,38 +84,36 @@ export default function InsightsRoute() {
           {isPremium ? <View style={styles.premiumDot} /> : null}
         </View>
         {isPremium ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ expanded: menuOpen }}
-            accessibilityLabel={t("insights.period.change", { period: label })}
+          <Tappable
+            label={t("insights.period.change", { period: label })}
             onPress={() => setMenuOpen((open) => !open)}
-            hitSlop={4}
-            style={({ pressed }) => [styles.pill, pressed && styles.pressed]}
+            style={styles.pill}
           >
             <View style={styles.pillDot} />
-            <Text variant="small" style={styles.bold}>
+            <Text variant="small" weight="bold">
               {label}
             </Text>
             <Svg width={12} height={12} viewBox="0 0 24 24" fill="none" style={menuOpen ? styles.chevronOpen : undefined}>
               <Path d="M6 9l6 6 6-6" stroke={colors.muted} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
-          </Pressable>
+          </Tappable>
         ) : null}
       </View>
       {menuOpen ? (
         <View style={styles.menu}>
           {PERIODS.map((option, index) => (
-            <Pressable
+            <Tappable
               key={option}
-              accessibilityRole="menuitem"
-              accessibilityState={{ selected: option === period }}
+              role="menuitem"
+              selected={option === period}
               onPress={() => {
                 setPeriod(option);
                 setMenuOpen(false);
               }}
-              style={({ pressed }) => [styles.menuRow, index > 0 && styles.menuDivider, pressed && styles.pressed]}
+              hitSlop={0}
+              style={[styles.menuRow, index > 0 && styles.menuDivider]}
             >
-              <Text variant="body" style={option === period ? styles.bold : undefined}>
+              <Text variant="body" weight={option === period ? "bold" : undefined}>
                 {t(`insights.period.${option}`)}
               </Text>
               {option === period ? (
@@ -122,7 +121,7 @@ export default function InsightsRoute() {
                   <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
                 </Svg>
               ) : null}
-            </Pressable>
+            </Tappable>
           ))}
         </View>
       ) : null}
@@ -373,7 +372,7 @@ export default function InsightsRoute() {
       {header(t(`insights.period.this.${period}`))}
 
       <View style={styles.story}>
-        <Text variant="h2" accessibilityRole="header" style={styles.headline}>
+        <Text variant="h2" accessibilityRole="header">
           {headline}
         </Text>
         <Text variant="body" muted>
@@ -478,8 +477,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
   },
   pillDot: {
     width: 7,
@@ -491,9 +488,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginTop: -spacing.md,
   },
-  headline: {
-    fontFamily: fonts.bodyExtraBold,
-  },
   chevronOpen: {
     transform: [{ rotate: "180deg" }],
   },
@@ -504,13 +498,8 @@ const styles = StyleSheet.create({
     right: 0,
     minWidth: 180,
     borderRadius: radii.xl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    backgroundColor: colors.paper,
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
+    backgroundColor: colors.surface,
+    ...shadows.elevated,
   },
   menuRow: {
     flexDirection: "row",
@@ -520,8 +509,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   menuDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.cardLine,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
   },
   section: {
     gap: spacing.sm,
@@ -539,15 +528,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.xl,
     borderRadius: radii.xl,
-    borderWidth: 1,
-    borderColor: colors.accent,
     backgroundColor: colors.accentSoft,
-  },
-  bold: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-  },
-  pressed: {
-    opacity: 0.6,
   },
 });
