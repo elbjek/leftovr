@@ -1,14 +1,17 @@
 # leftovr
 
-> leftovr is an iPhone app that tracks the food a household already owns and turns it into
-> dinner. Scan one grocery receipt and 20–30 items land in your kitchen, ranked by what should
-> be eaten first; leftovr then generates recipes using only those ingredients and removes them
-> from your kitchen when you cook. Made by Two Brick Labs. Last updated 2026-11-06.
+> leftovr is an iPhone app that turns the food a household already owns into dinner.
+> Photograph your fridge or pantry — up to three shots — or scan a grocery receipt, and
+> leftovr fills your kitchen, ranks everything by what should be eaten first, generates
+> recipes using only those ingredients, and removes them when you cook. Made by Two Brick
+> Labs. Last updated 2026-11-06.
 
 ## What it does
 
-- **Five ways to add food**: receipt photo, PDF e-receipt, pantry photo (up to three shelves at
-  once), barcode scan, manual add. Barcode and manual add are free and unlimited.
+- **Pantry photo** (the main way in): up to three photos of a shelf, the fridge or the
+  counter; leftovr reads what it can see and you confirm the list.
+- **Four more ways to add food**: receipt photo, PDF e-receipt, barcode scan, manual add.
+  Barcode and manual add are free and unlimited.
 - **Eat-first ranking**: every item carries an estimated freshness window ("best today", "this
   week"). The items closest to spoiling sit on top.
 - **Recipes from your kitchen only**: required ingredients come from what the household already
@@ -33,8 +36,8 @@ In early access. The waitlist at https://leftovr.co/#get is the way in.
 
 ## Pricing
 
-Free to start: first receipt scan and first recipe generation, plus unlimited manual and
-barcode add. Premium $7.99/month or $54.99/year. Household (up to 3 people) $14.99/month or
+Free to start: first scan (pantry photo or receipt) and first recipe generation, plus
+unlimited manual and barcode add. Premium $7.99/month or $54.99/year. Household (up to 3 people) $14.99/month or
 $99.99/year. Full detail: https://leftovr.co/pricing.md
 
 ## Pages

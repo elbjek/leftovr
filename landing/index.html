@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pantry tracker that turns your receipt into dinner | leftovr</title>
-<meta name="description" content="leftovr is an iPhone pantry tracker: scan one grocery receipt, see what to eat first, and get recipes built only from the food you already own. Free to start." />
+<title>Scan your pantry, get recipes from it | leftovr</title>
+<meta name="description" content="leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start." />
 <meta property="og:title" content="leftovr — What's for dinner?" />
-<meta property="og:description" content="leftovr is an iPhone pantry tracker: scan one grocery receipt, see what to eat first, and get recipes built only from the food you already own. Free to start." />
+<meta property="og:description" content="leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://leftovr.co/" />
 <meta property="og:site_name" content="leftovr" />
@@ -17,7 +17,7 @@
 <meta property="og:image:alt" content="leftovr — waste less, cook more. Turn forgotten ingredients into today's meal." />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="leftovr — What's for dinner?" />
-<meta name="twitter:description" content="leftovr is an iPhone pantry tracker: scan one grocery receipt, see what to eat first, and get recipes built only from the food you already own. Free to start." />
+<meta name="twitter:description" content="leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start." />
 <meta name="twitter:image" content="https://leftovr.co/og-image-2.png" />
 <meta name="twitter:image:alt" content="leftovr — waste less, cook more. Turn forgotten ingredients into today's meal." />
 <link rel="canonical" href="https://leftovr.co/" />
@@ -32,27 +32,39 @@
 <meta name="theme-color" content="#1B4332" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700;6..12,800&family=Plus+Jakarta+Sans:wght@800&display=swap" rel="stylesheet">
 <style>
+  /* Mirrors src/theme/tokens.ts. Keep them in step: the app is the source. */
   :root {
-    --primary: #1B4332;
-    --primary-700: #163829;
-    --primary-50: rgba(27, 67, 50, 0.06);
-    --primary-100: rgba(27, 67, 50, 0.12);
-    --surface: #F8F4EE;
-    --surface-2: #F1ECE2;
-    --surface-3: #E8E1D3;
-    --accent: #D4A843;
-    --accent-soft: #F0DDA8;
-    --text: #1C1C1A;
-    --muted: #6B7A6D;
+    --primary: #234B34;
+    --primary-700: #1A3A28;
+    --primary-50: rgba(35, 75, 52, 0.06);
+    --primary-100: rgba(35, 75, 52, 0.12);
+    --surface: #F9F6F1;
+    --surface-2: #F3F3EB;
+    --surface-3: #E2DBCD;
+    --accent: #F2C14E;
+    --accent-soft: #FBE7B4;
+    --accent-deep: #B8861A;
+    --accent-ink: #8A5A0B;
+    --text: #1F1F1F;
+    --muted: #55655A;
     --muted-2: #9AA59C;
-    --green: #4F8A5B;
-    --red: #C76845;
-    --page: #EFE9DD;
-    --card: #FFFEFB;
-    --hairline: rgba(27, 67, 50, 0.10);
-    --hairline-strong: rgba(27, 67, 50, 0.18);
+    --green: #5E9A64;
+    --sage: #A7C3A3;
+    --sage-tint: #D8E4D1;
+    --red: #E76F51;
+    --red-soft: #F9E4DC;
+    --page: #F9F6F1;
+    --card: #FFFFFF;
+    --paper: #FDF8F6;
+    --card-line: #E6E4D8;
+    --hairline: rgba(35, 75, 52, 0.10);
+    --hairline-strong: rgba(35, 75, 52, 0.18);
+    /* radii.lg / xl / xxl from tokens.ts */
+    --r-btn: 14px;
+    --r-card: 18px;
+    --r-lg: 24px;
   }
 
   * { box-sizing: border-box; }
@@ -61,7 +73,7 @@
 
   body {
     margin: 0;
-    font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
+    font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     background: var(--page);
     color: var(--text);
     -webkit-font-smoothing: antialiased;
@@ -75,7 +87,7 @@
 
   .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 28px; }
 
-  .serif { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; }
+  .serif { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; }
   .italic { font-style: italic; }
 
   .micro {
@@ -92,8 +104,8 @@
   /* ── Buttons ───────────────────────────── */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    height: 52px; padding: 0 24px;
-    border-radius: 999px; border: none; cursor: pointer;
+    height: 52px; padding: 0 26px;
+    border-radius: var(--r-btn); border: none; cursor: pointer;
     font-family: inherit; font-weight: 600; font-size: 15px;
     letter-spacing: -0.005em;
     transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
@@ -123,12 +135,12 @@
   .nav { display: flex; align-items: center; justify-content: space-between; height: 70px; }
   .nav-brand { display: flex; flex-direction: column; gap: 1px; line-height: 1; }
   .nav-logo {
-    font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-size: 25px; font-weight: 700;
+    font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-size: 25px; font-weight: 800;
     letter-spacing: -0.01em; color: var(--primary);
     display: inline-flex; align-items: baseline; line-height: 1;
   }
   .nav-logo .logo-r {
-    color: var(--accent); display: inline-block;
+    color: var(--accent-deep); display: inline-block;
     transform: rotate(9deg) translateY(0.03em); transform-origin: 50% 60%;
   }
   .nav-sub { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); }
@@ -188,8 +200,8 @@
   .float-chip {
     position: absolute; z-index: 3;
     display: flex; align-items: center; gap: 11px;
-    background: var(--card); border: 1px solid var(--hairline);
-    border-radius: 15px; padding: 10px 15px 10px 10px;
+    background: var(--paper); border: 1px solid var(--card-line);
+    border-radius: var(--r-lg); padding: 10px 15px 10px 10px;
     box-shadow: 0 22px 46px -20px rgba(27,67,50,0.30), 0 2px 6px rgba(0,0,0,0.04);
   }
   .fc-thumb {
@@ -211,9 +223,9 @@
 
   /* Pinned to the phone, so the first thing you see is the app doing its job. */
   .fc-1 { left: -38px; top: 96px; transform: rotate(-4deg); animation-delay: -0.5s; }
-  .fc-2 { right: -10px; top: 232px; transform: rotate(3deg); animation-delay: -3.2s; }
+  .fc-2 { right: -56px; top: 232px; transform: rotate(3deg); animation-delay: -3.2s; }
   .fc-3 { left: -50px; bottom: 206px; transform: rotate(3deg); animation-delay: -1.8s; }
-  .fc-4 { right: -16px; bottom: 112px; transform: rotate(-3deg); animation-delay: -4.6s; }
+  .fc-4 { right: -46px; bottom: 112px; transform: rotate(-3deg); animation-delay: -4.6s; }
 
   @keyframes chipFloat {
     0%, 100% { translate: 0 0; }
@@ -233,8 +245,8 @@
   .kicker .seed { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
   h1.hero-h1 {
-    font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
-    font-weight: 700;
+    font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
+    font-weight: 800;
     font-size: 58px;
     line-height: 1.04;
     letter-spacing: -0.03em;
@@ -262,7 +274,7 @@
   .field {
     flex: 1; height: 52px; padding: 0 18px;
     background: var(--card); color: var(--text);
-    border: 1.5px solid var(--hairline-strong); border-radius: 999px;
+    border: 1.5px solid var(--hairline-strong); border-radius: var(--r-btn);
     font-family: inherit; font-size: 15px; outline: none;
     transition: border 0.15s ease, box-shadow 0.15s ease;
   }
@@ -359,32 +371,60 @@
   .sb { display: flex; align-items: center; justify-content: space-between; padding: 15px 24px 0; }
   .sb .t { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
   .sb .ic { display: flex; align-items: center; gap: 6px; color: var(--text); }
-  .lo-body { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 0; overflow: hidden; }
-  .lo-head { display: flex; align-items: center; justify-content: space-between; margin: 6px 2px 18px; }
-  .lo-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-2); }
-  .lo-h { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 25px; letter-spacing: -0.02em; margin-top: 3px; }
-  .lo-avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--primary); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-style: italic; font-weight: 700; font-size: 17px; }
-  .lo-sect { display: flex; align-items: baseline; justify-content: space-between; margin: 0 2px 9px; }
-  .lo-sect .t { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
-  .lo-sect .c { font-size: 12px; color: var(--muted); }
-  .lo-card { background: var(--card); border: 1px solid var(--hairline); border-radius: 18px; overflow: hidden; }
-  .lo-row { display: flex; align-items: center; gap: 12px; padding: 11px 13px; }
-  .lo-row + .lo-row, .lo-more { border-top: 1px solid var(--hairline); }
-  .lo-thumb { width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-  .lo-meta { flex: 1; min-width: 0; }
-  .lo-meta .n { font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
-  .lo-meta .s { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
-  .lo-tag { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
-  .lo-tag.today { background: rgba(199,104,69,0.14); color: var(--red); }
-  .lo-tag.soon { background: rgba(212,168,67,0.22); color: #9A7B1F; }
-  .lo-more { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
-  .lo-tonight { margin-top: 14px; background: linear-gradient(135deg, var(--primary) 0%, #1F4E39 100%); border-radius: 18px; padding: 13px; display: flex; align-items: center; gap: 12px; color: var(--surface); }
-  .lo-tonight .ic { width: 46px; height: 46px; border-radius: 13px; background: rgba(248,244,238,0.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .lo-tonight .lbl { font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
-  .lo-tonight .ttl { font-weight: 700; font-size: 15px; margin-top: 2px; }
-  .lo-tonight .sub { font-size: 11.5px; opacity: 0.82; margin-top: 2px; }
-  .lo-tabbar { margin-top: auto; height: 64px; border-top: 1px solid var(--hairline); background: var(--surface); display: flex; align-items: center; justify-content: space-around; color: var(--muted-2); }
-  .lo-scan { width: 50px; height: 50px; border-radius: 999px; background: var(--primary); border: 4px solid var(--surface); color: var(--surface); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 18px rgba(27,67,50,0.32); transform: translateY(-14px); }
+  /* ── Phone screen: the app's Recipes tab (the home), slot for slot.
+     Source: src/app/(tabs)/recipes.tsx — header, Use-first strip, WeekStrip,
+     TryNextCard, dock (Recipes · Kitchen · Add · Insights · Settings). ── */
+  .lo-body { flex: 1; display: flex; flex-direction: column; padding: 10px 14px 0; overflow: hidden; gap: 10px; }
+  .lo-head { display: flex; align-items: center; justify-content: space-between; }
+  .lo-logo { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; color: var(--primary); display: inline-flex; align-items: baseline; }
+  .lo-logo i { font-style: normal; color: var(--accent-deep); display: inline-block; transform: rotate(9deg) translateY(0.03em); }
+  .lo-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); margin-left: 5px; align-self: flex-start; margin-top: 2px; }
+  .lo-hh { display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--card-line); font-size: 10.5px; font-weight: 600; color: var(--muted); }
+  .lo-hh b { width: 20px; height: 20px; border-radius: 999px; background: var(--primary); color: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+  /* Use-first strip (yellow tint, only when something is urgent) */
+  .lo-urgent { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: var(--r-card); background: var(--accent-soft); color: var(--accent-ink); font-size: 11.5px; font-weight: 700; }
+  .lo-urgent span { flex: 1; min-width: 0; }
+
+  /* WeekStrip: today's goal ring, streak, last seven days */
+  .lo-week { background: var(--paper); border: 1px solid var(--card-line); border-radius: var(--r-card); padding: 11px 12px; }
+  .lo-goal { display: flex; align-items: center; gap: 10px; }
+  .lo-ring { width: 36px; height: 36px; flex-shrink: 0; position: relative; }
+  .lo-ring span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; color: var(--primary); }
+  .lo-goal .gl { font-size: 11.5px; font-weight: 600; color: var(--text); line-height: 1.25; }
+  .lo-wmeta { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-2); }
+  .lo-wmeta .st { display: flex; align-items: center; gap: 5px; color: var(--muted); }
+  .lo-days { display: flex; justify-content: space-between; gap: 3px; margin-top: 7px; }
+  .lo-day { flex: 1; border-radius: 999px; padding: 5px 0 6px; text-align: center; font-size: 9px; font-weight: 700; color: var(--muted-2); background: var(--surface-2); }
+  .lo-day i { display: block; width: 4px; height: 4px; border-radius: 999px; background: var(--sage); margin: 3px auto 0; }
+  .lo-day.off i { background: transparent; }
+  .lo-day.today { background: var(--primary); color: var(--surface); }
+  .lo-day.today i { background: var(--accent); }
+  .lo-wfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--card-line); font-size: 10px; color: var(--muted); }
+  .lo-pill { padding: 3px 9px; border-radius: 999px; border: 1px solid var(--card-line); font-weight: 700; font-size: 9.5px; color: var(--primary); flex-shrink: 0; }
+
+  /* TryNextCard — tonight's dish */
+  .lo-try { background: var(--card); border: 1px solid var(--card-line); border-radius: var(--r-card); padding: 11px; }
+  .lo-tryhead { display: flex; gap: 10px; }
+  .lo-tile { width: 54px; height: 54px; border-radius: var(--r-card); flex-shrink: 0; background: linear-gradient(135deg, var(--sage-tint), #BFD4B8); display: flex; align-items: center; justify-content: center; color: var(--primary); }
+  .lo-trymeta { flex: 1; min-width: 0; }
+  .lo-trymeta .eb { font-size: 8.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
+  .lo-trymeta .tt { font-weight: 800; font-size: 14.5px; letter-spacing: -0.01em; margin-top: 2px; }
+  .lo-trymeta .mt { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+  .lo-trymeta .mt em { width: 4px; height: 4px; border-radius: 999px; background: var(--accent); font-style: normal; }
+  .lo-why { margin-top: 9px; padding: 7px 9px; border-radius: 10px; background: var(--sage-tint); font-size: 10.5px; font-weight: 600; color: var(--primary); }
+  .lo-chips { display: flex; align-items: center; gap: 4px; margin-top: 8px; flex-wrap: nowrap; }
+  .lo-chip { padding: 4px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--card-line); font-size: 9.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .lo-chip.soon { background: var(--accent-soft); border-color: transparent; color: var(--accent-ink); }
+  .lo-chips .steps { margin-left: auto; font-size: 9.5px; font-weight: 700; color: var(--muted-2); white-space: nowrap; }
+  .lo-tryfoot { display: flex; gap: 7px; margin-top: 10px; }
+  .lo-btn { flex: 1; height: 32px; border-radius: var(--r-btn); background: var(--primary); color: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; }
+  .lo-btn.ghost { flex: 0 0 auto; padding: 0 11px; background: transparent; color: var(--primary); border: 1px solid var(--hairline-strong); }
+
+  /* Dock: Recipes · Kitchen · Add · Insights · Settings */
+  .lo-tabbar { margin-top: auto; height: 60px; border-top: 1px solid var(--card-line); background: var(--surface); display: flex; align-items: center; justify-content: space-around; color: var(--muted-2); }
+  .lo-tabbar .on { color: var(--primary); }
+  .lo-add { width: 46px; height: 46px; border-radius: 999px; background: var(--primary); border: 4px solid var(--surface); color: var(--surface); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 18px rgba(35,75,52,0.30); transform: translateY(-12px); }
 
   /* ── Section scaffolding ───────────────── */
   section { position: relative; }
@@ -394,7 +434,7 @@
   .sec-head.center { margin-left: auto; margin-right: auto; text-align: center; }
   .eyebrow { color: var(--accent); margin-bottom: 14px; }
   h2.sec-title {
-    font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 700;
+    font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800;
     font-size: 42px; line-height: 1.08; letter-spacing: -0.025em;
   }
   .sec-title .mark { color: var(--primary); }
@@ -403,12 +443,12 @@
   /* How it works */
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
   .step-card {
-    background: var(--card); border: 1px solid var(--hairline);
-    border-radius: 22px; padding: 30px 26px;
+    background: var(--card); border: 1px solid var(--card-line);
+    border-radius: var(--r-lg); padding: 30px 26px;
   }
   .step-num {
     width: 40px; height: 40px; border-radius: 12px; background: var(--primary-50);
-    color: var(--primary); font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 20px;
+    color: var(--primary); font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 20px;
     display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
   }
   .step-ill {
@@ -424,13 +464,13 @@
   .stats .sec-pad { padding-block: 76px; }
   .stats-head { max-width: 620px; margin-bottom: 44px; }
   .stats-head .eyebrow { color: var(--accent); }
-  .stats-head h2 { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 36px; line-height: 1.12; letter-spacing: -0.02em; color: var(--surface); }
+  .stats-head h2 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 36px; line-height: 1.12; letter-spacing: -0.02em; color: var(--surface); }
   .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
   .stat-card {
     background: rgba(248,244,238,0.06); border: 1px solid rgba(248,244,238,0.16);
     border-radius: 22px; padding: 34px 32px;
   }
-  .stat-num { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 64px; line-height: 0.95; letter-spacing: -0.03em; color: var(--accent); }
+  .stat-num { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 64px; line-height: 0.95; letter-spacing: -0.03em; color: var(--accent); }
   .stat-desc { font-size: 17px; line-height: 1.45; margin-top: 16px; opacity: 0.92; }
   .stat-src { font-size: 13px; margin-top: 16px; opacity: 0.6; }
   .stat-src a { text-decoration: underline; text-underline-offset: 2px; }
@@ -440,7 +480,7 @@
   .feat { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
   .feat + .feat { margin-top: 72px; }
   .feat-flip .feat-copy { order: 2; }
-  .feat-copy h3 { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 30px; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .feat-copy h3 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 30px; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 14px; }
   .feat-copy p { font-size: 17px; color: var(--muted); line-height: 1.55; margin-bottom: 20px; }
   .feat-list { display: flex; flex-direction: column; gap: 12px; }
   .feat-li { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; }
@@ -483,8 +523,8 @@
 
   .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
   .plan {
-    background: var(--card); border: 1px solid var(--hairline);
-    border-radius: 24px; padding: 32px 28px;
+    background: var(--card); border: 1px solid var(--card-line);
+    border-radius: var(--r-lg); padding: 32px 28px;
     display: flex; flex-direction: column;
   }
   .plan.featured { border: 1.5px solid var(--primary); box-shadow: 0 20px 50px rgba(27,67,50,0.14); position: relative; }
@@ -492,7 +532,7 @@
   .plan-name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
   .plan-for { font-size: 14px; color: var(--muted); margin-top: 4px; }
   .plan-price { display: flex; align-items: baseline; gap: 4px; margin: 22px 0 4px; }
-  .plan-price .amt { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 46px; letter-spacing: -0.03em; }
+  .plan-price .amt { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 46px; letter-spacing: -0.03em; }
   .plan-price .per { font-size: 15px; color: var(--muted); }
   .plan-note { font-size: 13px; color: var(--muted); min-height: 18px; }
   .plan ul { list-style: none; padding: 0; margin: 24px 0; display: flex; flex-direction: column; gap: 12px; flex: 1; }
@@ -504,7 +544,7 @@
 
   /* FAQ */
   .faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-  .faq-item { background: var(--card); border: 1px solid var(--hairline); border-radius: 16px; overflow: hidden; }
+  .faq-item { background: var(--card); border: 1px solid var(--card-line); border-radius: var(--r-card); overflow: hidden; }
   .faq-q {
     width: 100%; text-align: left; background: none; border: none; cursor: default;
     padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -530,7 +570,7 @@
   /* Comparison table */
   .stats-grid.three { grid-template-columns: repeat(3, 1fr); }
   .compare-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table.compare { width: 100%; min-width: 760px; border-collapse: collapse; background: var(--card); border: 1px solid var(--hairline); border-radius: 22px; overflow: hidden; }
+  table.compare { width: 100%; min-width: 760px; border-collapse: collapse; background: var(--card); border: 1px solid var(--card-line); border-radius: var(--r-lg); overflow: hidden; }
   table.compare th, table.compare td { padding: 16px 18px; text-align: left; font-size: 14.5px; line-height: 1.45; border-bottom: 1px solid var(--hairline); vertical-align: top; }
   table.compare thead th { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: var(--surface-2); }
   table.compare thead th.us { color: var(--primary); }
@@ -557,7 +597,8 @@
   .final .sec-pad { padding-block: 80px; }
   .final-inner { max-width: 640px; margin: 0 auto; text-align: center; }
   .final-logo { color: var(--surface); font-size: 30px; margin-bottom: 18px; }
-  .final h2 { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 700; font-size: 44px; line-height: 1.08; letter-spacing: -0.025em; color: var(--surface); margin-bottom: 18px; }
+  .final-logo .logo-r { color: var(--accent); }   /* gold reads on green */
+  .final h2 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 44px; line-height: 1.08; letter-spacing: -0.025em; color: var(--surface); margin-bottom: 18px; }
   .final h2 .mark { color: var(--accent); }
   .final p.lead { font-size: 19px; opacity: 0.85; margin-bottom: 34px; }
   .final .capture { margin: 0 auto; }
@@ -668,7 +709,7 @@
       "@type": "WebPage",
       "@id": "https://leftovr.co/#webpage",
       "url": "https://leftovr.co/",
-      "name": "Pantry tracker that turns your receipt into dinner | leftovr",
+      "name": "Scan your pantry, get recipes from it | leftovr",
       "isPartOf": {
         "@id": "https://leftovr.co/#website"
       },
@@ -702,13 +743,13 @@
       "author": {
         "@id": "https://leftovr.co/#org"
       },
-      "description": "leftovr is an iPhone pantry tracker. Scan one grocery receipt, a PDF e-receipt, a pantry photo or a barcode, and leftovr fills your kitchen, ranks every item by what will spoil first, and generates recipes using only food you already own. Cooking a recipe removes those ingredients automatically.",
+      "description": "leftovr is an iPhone app that turns the food you already own into dinner. Photograph your fridge or pantry — or scan a grocery receipt, a PDF e-receipt or a barcode — and leftovr fills your kitchen, ranks every item by what will spoil first, and generates recipes using only food you already own. Cooking a recipe removes those ingredients automatically.",
       "featureList": [
+        "Pantry photo scanning — up to three shelves at once",
+        "Recipes generated only from food you already own",
         "Receipt photo and PDF e-receipt scanning (20–30 items in about ten seconds)",
-        "Pantry photo scanning of a whole shelf",
         "Free barcode scanning and manual add",
         "Eat-first ranking by estimated freshness",
-        "Recipes generated only from food you already own",
         "Automatic inventory depletion when you cook",
         "Shared household kitchen for up to three people",
         "Weekly insights on money saved, food used and food tossed",
@@ -720,7 +761,7 @@
           "name": "Free",
           "price": "0",
           "priceCurrency": "USD",
-          "description": "First receipt scan and first recipe generation, plus unlimited manual and barcode add."
+          "description": "First scan (pantry photo or receipt) and first recipe generation, plus unlimited manual and barcode add."
         },
         {
           "@type": "Offer",
@@ -755,8 +796,8 @@
     {
       "@type": "HowTo",
       "@id": "https://leftovr.co/#howto",
-      "name": "How to plan dinner from food you already have",
-      "description": "Three steps from a grocery receipt to tonight's dinner with leftovr.",
+      "name": "How to cook dinner from the food already in your kitchen",
+      "description": "Three steps from a photo of your shelves to tonight's dinner with leftovr.",
       "totalTime": "PT10M",
       "tool": [
         {
@@ -765,15 +806,15 @@
         },
         {
           "@type": "HowToTool",
-          "name": "A grocery receipt, e-receipt or a photo of your shelf"
+          "name": "Your fridge or pantry — or a grocery receipt"
         }
       ],
       "step": [
         {
           "@type": "HowToStep",
           "position": 1,
-          "name": "Snap your receipt",
-          "text": "Take one photo after the grocery run, forward a PDF e-receipt, or photograph a shelf. leftovr reads it, keeps the food and skips the shampoo."
+          "name": "Snap your shelves",
+          "text": "Photograph your fridge, a shelf or the counter — up to three shots. leftovr reads what it can see. A receipt photo or PDF e-receipt works too, and adds 20–30 items at once."
         },
         {
           "@type": "HowToStep",
@@ -798,7 +839,7 @@
           "name": "Is leftovr free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, to start. Your first receipt scan and first recipe are free, and manual add and barcode scan stay free forever. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is $7.99/month ($54.99/year) and Household is $14.99/month ($99.99/year) for up to three people."
+            "text": "Yes, to start. Your first scan — a pantry photo or a receipt — and first recipe are free, and manual add and barcode scan stay free forever. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is $7.99/month ($54.99/year) and Household is $14.99/month ($99.99/year) for up to three people."
           }
         },
         {
@@ -806,7 +847,15 @@
           "name": "Do I have to log everything by hand?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No. A receipt scan adds 20–30 items at once, in about ten seconds. A pantry photo reads a whole shelf. If you pick something up loose or shop without a receipt, you can scan a barcode or add it manually — both are free and unlimited."
+            "text": "No. A pantry photo reads a whole shelf at a time — up to three shots — and a receipt scan adds 20–30 items in about ten seconds. For a single thing you can scan a barcode or add it manually, both free and unlimited."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does the pantry photo work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Take up to three photos of a shelf, the fridge or the counter. leftovr reads what it can see and you confirm the list before anything lands in your kitchen. It is an AI scan, so it counts against the same allowance as a receipt scan."
           }
         },
         {
@@ -925,11 +974,11 @@
         </div>
 
         <h1 class="hero-h1" data-i18n-html="hero.h1">
-          Scan one receipt. <span class="uline">Cook what you have<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#D4A843" stroke-width="4" stroke-linecap="round"/></svg></span>.
+          Snap your shelves. <span class="uline">Cook what's on them<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#D4A843" stroke-width="4" stroke-linecap="round"/></svg></span>.
         </h1>
 
         <p class="hero-tagline" data-i18n="hero.lead">Waste less. Cook more.</p>
-        <p class="hero-sub" data-i18n="hero.sub">leftovr fills your kitchen from one grocery receipt, ranks every item by what spoils first, and builds tonight's dinner from what is already in there. iPhone, free to start.</p>
+        <p class="hero-sub" data-i18n="hero.sub">leftovr turns a photo of your fridge or pantry into a kitchen it keeps track of, then builds tonight's dinner from what is actually in there. Receipts, barcodes and manual add fill it too.</p>
 
         <!-- Inline email capture -->
         <form class="capture" id="hero-form" novalidate>
@@ -957,7 +1006,7 @@
             <div class="strip-ico">
               <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M4 3h14v16l-2-2-2 2-2-2-2 2-2-2-2 2-2-2V3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><line x1="7" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="7" y1="12" x2="13" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
             </div>
-            <div class="lab"><b data-i18n="hero.step1Title">Scan receipt</b><span data-i18n="hero.step1Meta">10 seconds</span></div>
+            <div class="lab"><b data-i18n="hero.step1Title">Snap your shelves</b><span data-i18n="hero.step1Meta">up to 3 photos</span></div>
           </div>
           <svg class="strip-arrow" width="18" height="18" viewBox="0 0 18 18"><path d="M5 4l6 5-6 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <div class="strip-step">
@@ -1007,53 +1056,70 @@
               </span>
             </div>
             <div class="lo-body">
+              <!-- 1. Header: wordmark (+ premium dot) and the household pill -->
               <div class="lo-head">
-                <div>
-                  <div class="lo-eyebrow" data-i18n="phone.day">Tuesday evening</div>
-                  <div class="lo-h" data-i18n="phone.fridge">What you have</div>
-                </div>
-                <div class="lo-avatar">l</div>
+                <span class="lo-logo">leftov<i>r</i><span class="lo-dot"></span></span>
+                <span class="lo-hh"><b>L</b><span data-i18n="phone.household">Lena&#39;s kitchen</span></span>
               </div>
 
-              <div class="lo-sect"><span class="t" data-i18n="phone.useFirst">Use first</span><span class="c" data-i18n="phone.useFirstCount">3 of 22 items</span></div>
-              <div class="lo-card">
-                <div class="lo-row">
-                  <div class="lo-thumb" style="background:#DDE6D7;"><svg width="22" height="22" viewBox="0 0 36 36" fill="none" stroke="#1B4332" stroke-width="1.4" stroke-linejoin="round" opacity="0.78"><path d="M7 23 Q11 9 18 9 Q25 9 29 23 Q25 28 18 28 Q11 28 7 23Z"/><line x1="18" y1="11" x2="18" y2="27"/></svg></div>
-                  <div class="lo-meta"><div class="n" data-i18n="phone.spinach">Baby spinach</div><div class="s" data-i18n="phone.spinachSub">Leafy greens · 1 bag</div></div>
-                  <span class="lo-tag today" data-i18n="phone.today">Today</span>
+              <!-- 2. Use first (urgent only) -->
+              <div class="lo-urgent">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2 3-1 4.5-1 7a3 3 0 0 0 6 0c0-1-.3-2-.8-2.8C17.9 9 19 11.3 19 13.5a7 7 0 1 1-14 0C5 8.8 9 7 12 3z"/></svg>
+                <span data-i18n="phone.urgent">Spinach, eggs &amp; chicken — use today</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l6 7-6 7"/></svg>
+              </div>
+
+              <!-- 3. WeekStrip: today&#39;s goal, streak, last seven days -->
+              <div class="lo-week">
+                <div class="lo-goal">
+                  <div class="lo-ring">
+                    <svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="32.5" transform="rotate(-90 18 18)"/></svg>
+                    <span>2/3</span>
+                  </div>
+                  <div class="gl" data-i18n="phone.goal">1 thing goes off today — use it</div>
                 </div>
-                <div class="lo-row">
-                  <div class="lo-thumb" style="background:#EFE7CF;"><svg width="22" height="22" viewBox="0 0 36 36" fill="none" stroke="#1B4332" stroke-width="1.4" opacity="0.78"><ellipse cx="18" cy="20" rx="9" ry="12"/></svg></div>
-                  <div class="lo-meta"><div class="n" data-i18n="phone.eggs">Free-range eggs</div><div class="s" data-i18n="phone.eggsSub">6 remaining</div></div>
-                  <span class="lo-tag today" data-i18n="phone.today">Today</span>
+                <div class="lo-wmeta">
+                  <span data-i18n="phone.month">November</span>
+                  <span class="st"><span data-i18n="phone.streak">5-day streak</span> <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="5" y1="8" x2="19" y2="16"/><line x1="5" y1="16" x2="19" y2="8"/></svg> 1</span>
                 </div>
-                <div class="lo-row">
-                  <div class="lo-thumb" style="background:#E9D9CD;"><svg width="22" height="22" viewBox="0 0 36 36" fill="none" stroke="#1B4332" stroke-width="1.4" opacity="0.78"><path d="M11 20 Q11 13 18 13 Q25 13 25 20 Q25 26 18 26 Q11 26 11 20Z"/><circle cx="18" cy="20" r="2.6"/></svg></div>
-                  <div class="lo-meta"><div class="n" data-i18n="phone.chicken">Chicken breast</div><div class="s" data-i18n="phone.chickenSub">400 g · pack of 2</div></div>
-                  <span class="lo-tag soon" data-i18n="phone.tomorrow">Tomorrow</span>
-                </div>
-                <div class="lo-more"><span data-i18n="phone.more">19 more items, all fresh</span>
-                  <svg width="14" height="14" viewBox="0 0 15 15"><path d="M5 3l5 4.5-5 4.5" stroke="#6B7A6D" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="lo-days"><div class="lo-day"><span data-i18n="phone.d1">M</span><i></i></div><div class="lo-day"><span data-i18n="phone.d2">T</span><i></i></div><div class="lo-day off"><span data-i18n="phone.d3">W</span><i></i></div><div class="lo-day"><span data-i18n="phone.d4">T</span><i></i></div><div class="lo-day"><span data-i18n="phone.d5">F</span><i></i></div><div class="lo-day"><span data-i18n="phone.d6">S</span><i></i></div><div class="lo-day today"><span data-i18n="phone.d7">T</span><i></i></div></div>
+                <div class="lo-wfoot">
+                  <span data-i18n="phone.lastCooked">Last cooked Shakshuka · Monday</span>
+                  <span class="lo-pill" data-i18n="phone.history">History</span>
                 </div>
               </div>
 
-              <div class="lo-tonight">
-                <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F8F4EE" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg></div>
-                <div style="flex:1;min-width:0;">
-                  <div class="lbl" data-i18n="phone.tonightLbl">Tonight, from what you have</div>
-                  <div class="ttl" data-i18n="phone.tonightTitle">Spinach &amp; feta pasta</div>
-                  <div class="sub" data-i18n="phone.tonightSub">20 min · uses 3 items due first</div>
+              <!-- 4. Tonight (TryNextCard) -->
+              <div class="lo-try">
+                <div class="lo-tryhead">
+                  <div class="lo-tile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg></div>
+                  <div class="lo-trymeta">
+                    <div class="eb" data-i18n="phone.tonightLbl">Tonight · from your kitchen</div>
+                    <div class="tt" data-i18n="phone.tonightTitle">Spinach &amp; feta pasta</div>
+                    <div class="mt"><span data-i18n="phone.tonightMeta">20 min</span><em></em><span data-i18n="phone.tonightLevel">easy</span></div>
+                  </div>
+                  <span style="color:var(--muted-2);flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 6.5a4.2 4.2 0 0 0-6-.3L12 7.6l-1.5-1.4a4.2 4.2 0 0 0-6 6L12 20l7.5-7.8a4.2 4.2 0 0 0 0-5.7z"/></svg></span>
                 </div>
-                <svg width="17" height="17" viewBox="0 0 18 18"><path d="M6 4l6 5-6 5" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="lo-why" data-i18n="phone.why">Uses spinach &amp; feta before they go off.</div>
+                <div class="lo-chips">
+                  <span class="lo-chip soon" data-i18n="phone.chipSpinach">Baby spinach</span>
+                  <span class="lo-chip" data-i18n="phone.chipFeta">Feta</span>
+                  <span class="lo-chip" data-i18n="phone.chipMore">+1</span>
+                  <span class="steps" data-i18n="phone.steps">6 steps</span>
+                </div>
+                <div class="lo-tryfoot">
+                  <span class="lo-btn" data-i18n="phone.cookThis">Cook this</span>
+                  <span class="lo-btn ghost" data-i18n="phone.moreIdeas">More ideas</span>
+                </div>
               </div>
             </div>
 
             <div class="lo-tabbar">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B4332" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v14H4z"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="12" y1="11" x2="12" y2="19.5"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg>
-              <div class="lo-scan"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-2.3-1.8-2.35 1.8L12 19.2 9.65 21 7.3 19.2 5 21V3z"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="13" y2="12"/></svg></div>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="19" y1="20" x2="19" y2="11"/></svg>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="15" cy="8" r="2.6" fill="var(--surface)"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="9" cy="16" r="2.6" fill="var(--surface)"/></svg>
+              <span class="on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg></span>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v14H4z"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="12" y1="11" x2="12" y2="19.5"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
+              <div class="lo-add"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="19" y1="20" x2="19" y2="11"/></svg>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="15" cy="8" r="2.6" fill="var(--surface)"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="9" cy="16" r="2.6" fill="var(--surface)"/></svg>
             </div>
           </div>
         </div>
@@ -1069,7 +1135,7 @@
         <h2 class="sec-title" data-i18n-html="what.title">The app that already knows <span class="mark">what's in your kitchen.</span></h2>
       </div>
       <div class="define-card">
-        <p class="lede" data-i18n="what.body">leftovr is an iPhone app that tracks the food your household already owns. Scan one grocery receipt and 20–30 items land in your kitchen, ranked by what should be eaten first. It then builds recipes from those ingredients only — and clears them out of your kitchen once you cook.</p>
+        <p class="lede" data-i18n="what.body">leftovr is an iPhone app that turns the food you already own into dinner. Photograph your fridge or pantry — or scan a grocery receipt — and leftovr fills your kitchen, ranks everything by what should be eaten first, and generates recipes from those ingredients only.</p>
         <div class="define-facts">
           <span data-i18n="what.fact1">iPhone app</span>
           <span data-i18n="what.fact2">English &amp; Serbian</span>
@@ -1086,7 +1152,7 @@
     <div class="wrap">
       <div class="sec-head center">
         <div class="micro eyebrow" data-i18n="how.eyebrow">How it works</div>
-        <h2 class="sec-title" data-i18n-html="how.title">Receipt in. <span class="mark">Dinner out.</span></h2>
+        <h2 class="sec-title" data-i18n-html="how.title">Shelves in. <span class="mark">Dinner out.</span></h2>
         <p class="sec-sub" data-i18n="how.sub">Three steps, one of which you already do every time you shop.</p>
       </div>
 
@@ -1108,8 +1174,8 @@
               <rect x="58" y="84" width="20" height="20" rx="5" fill="#D4A843"/>
             </svg>
           </div>
-          <h3 data-i18n="step1.title">Snap your receipt</h3>
-          <p data-i18n="step1.body">One photo after the grocery run, or a PDF e-receipt from your inbox. leftovr reads it, figures out the food, and skips the shampoo. No receipt? Photograph a shelf, scan a barcode, or type it in.</p>
+          <h3 data-i18n="step1.title">Snap your shelves</h3>
+          <p data-i18n="step1.body">Photograph your fridge, a shelf or the counter — up to three shots. leftovr reads what it can see and fills your kitchen. Came back from the shop instead? A receipt photo or PDF e-receipt adds 20–30 items at once. Barcode and manual add work too.</p>
         </div>
 
         <div class="step-card">
@@ -1153,7 +1219,7 @@
         </div>
       </div>
 
-      <p class="ways" data-i18n-html="how.ways"><b>Five ways to fill your kitchen:</b> receipt photo, PDF e-receipt, pantry photo (up to three shelves at once), barcode scan, or manual add. Barcode and manual add are free and unlimited, forever.</p>
+      <p class="ways" data-i18n-html="how.ways"><b>Five ways to fill your kitchen:</b> pantry photo (up to three shelves at once), receipt photo, PDF e-receipt, barcode scan, or manual add. Barcode and manual add are free and unlimited, forever.</p>
     </div>
   </section>
 
@@ -1276,7 +1342,7 @@
           <tbody>
             <tr>
               <th scope="row">Getting food in</th>
-              <td class="us">One receipt, a shelf photo, a barcode, or by hand</td>
+              <td class="us">A photo of your shelves, a receipt, a barcode, or by hand</td>
               <td>You type the ingredients in every time</td>
               <td>Usually barcode, one item at a time</td>
               <td>You pick the meals first, then shop</td>
@@ -1331,7 +1397,7 @@
         <h2 class="sec-title" data-i18n-html="price.title">Free to start. <span class="mark">Honest from there.</span></h2>
       </div>
 
-      <p class="honest-strip" data-i18n-html="price.honest">Your <b>first receipt scan</b> and <b>first recipe</b> are on us. <b>Manual add and barcode scan stay free, always.</b> Go unlimited when you're ready.</p>
+      <p class="honest-strip" data-i18n-html="price.honest">Your <b>first scan</b> — pantry photo or receipt — and <b>first recipe</b> are on us. <b>Manual add and barcode scan stay free, always.</b> Go unlimited when you're ready.</p>
 
       <div class="toggle-wrap">
         <div class="price-toggle" id="price-toggle">
@@ -1348,7 +1414,7 @@
           <div class="plan-price"><span class="amt" data-i18n="plan.free.amt">$0</span></div>
           <div class="plan-note" data-i18n="plan.free.note">Free forever</div>
           <ul>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li1">Your first receipt scan</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li1">Your first scan, pantry or receipt</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li2">Your first recipe generation</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li3">Unlimited manual + barcode add</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li4">Your kitchen, kept current</span></li>
@@ -1364,7 +1430,7 @@
           <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.prem.amtM" data-yearly="plan.prem.amtY">$7.99</span><span class="per" data-i18n="plan.per">/month</span></div>
           <div class="plan-note" data-period-key data-monthly="plan.prem.noteM" data-yearly="plan.prem.noteY">Billed monthly</div>
           <ul>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li1">Unlimited receipt scanning</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li1">Unlimited pantry and receipt scans</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li2">Unlimited recipes, expiry-ranked</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li3">Daily "what to cook" suggestion</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li4">Weekly insights</span></li>
@@ -1401,11 +1467,15 @@
       <div class="faq-list" id="faq-list">
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q1">Is leftovr free?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a1">Yes, to start. Your <b>first receipt scan</b> and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$7.99/month</b> ($54.99/year) and Household is <b>$14.99/month</b> ($99.99/year) for up to three people.</div></div>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a1">Yes, to start. Your <b>first scan</b> — a pantry photo or a receipt — and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$7.99/month</b> ($54.99/year) and Household is <b>$14.99/month</b> ($99.99/year) for up to three people.</div></div>
         </div>
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q2">Do I have to log everything by hand?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a2">No. A receipt scan adds 20–30 items at once, in about ten seconds, and a <b>pantry photo</b> reads a whole shelf. If you pick something up loose or shop without a receipt, you can <b>scan a barcode</b> or <b>add it manually</b> — both are free and unlimited.</div></div>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a2">No. A <b>pantry photo</b> reads a whole shelf at a time — up to three shots — and a receipt scan adds 20–30 items in about ten seconds. For a single thing you can <b>scan a barcode</b> or <b>add it manually</b>, both free and unlimited.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q12">How does the pantry photo work?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a12">Take up to three photos of a shelf, the fridge or the counter. leftovr reads what it can see and <b>you confirm the list</b> before anything lands in your kitchen. It is an AI scan, so it counts against the same allowance as a receipt scan.</div></div>
         </div>
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q3">Can my household share one kitchen?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -1548,12 +1618,12 @@
 
   var I18N = {
     en: {
-      "meta.title": "Pantry tracker that turns your receipt into dinner | leftovr",
-      "meta.desc": "leftovr is an iPhone pantry tracker: scan one grocery receipt, see what to eat first, and get recipes built only from the food you already own. Free to start.",
+      "meta.title": "Scan your pantry, get recipes from it | leftovr",
+      "meta.desc": "leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start.",
       "nav.tag": "What's for dinner?",
       "nav.cta": "Get early access",
       "hero.kicker": "iPhone app · Free to start",
-      "hero.h1": 'Scan one receipt. <span class="uline">Cook what you have' + UL + '</span>.',
+      "hero.h1": 'Snap your shelves. <span class="uline">Cook what\'s on them' + UL + '</span>.',
       "hero.lead": "Waste less. Cook more.",
       "hero.chip1Name": "Baby spinach",
       "hero.chip1Tag": "Use today",
@@ -1563,40 +1633,49 @@
       "hero.chip3Tag": "Use soon",
       "hero.chip4Lbl": "Tonight",
       "hero.chip4Name": "Shakshuka",
-      "hero.sub": "leftovr fills your kitchen from one grocery receipt, ranks every item by what spoils first, and builds tonight's dinner from what is already in there. iPhone, free to start.",
+      "hero.sub": "leftovr turns a photo of your fridge or pantry into a kitchen it keeps track of, then builds tonight's dinner from what is actually in there. Receipts, barcodes and manual add fill it too.",
       "hero.formLabel": "Get early access",
       "hero.placeholder": "you@email.com",
       "hero.submit": "Join the waitlist",
       "hero.privacy": "Early-access updates only. Unsubscribe anytime.",
       "hero.successTitle": "You're on the list.",
       "hero.successBody": "We'll email your invite as soon as a spot opens — usually within a few days.",
-      "hero.step1Title": "Scan receipt",
-      "hero.step1Meta": "10 seconds",
+      "hero.step1Title": "Snap your shelves",
+      "hero.step1Meta": "up to 3 photos",
       "hero.step2Title": "Kitchen keeps track",
       "hero.step2Meta": "sorted for you",
       "hero.step3Title": "Dinner, sorted",
       "hero.step3Meta": "from what you have",
-      "phone.day": "Tuesday evening",
-      "phone.fridge": "What you have",
-      "phone.useFirst": "Use first",
-      "phone.useFirstCount": "3 of 22 items",
-      "phone.spinach": "Baby spinach",
-      "phone.spinachSub": "Leafy greens · 1 bag",
-      "phone.today": "Today",
-      "phone.eggs": "Free-range eggs",
-      "phone.eggsSub": "6 remaining",
-      "phone.chicken": "Chicken breast",
-      "phone.chickenSub": "400 g · pack of 2",
-      "phone.tomorrow": "Tomorrow",
-      "phone.more": "19 more items, all fresh",
-      "phone.tonightLbl": "Tonight, from what you have",
+      "phone.household": "Lena's kitchen",
+      "phone.urgent": "Spinach, eggs & chicken — use today",
+      "phone.goal": "1 thing goes off today — use it",
+      "phone.month": "November",
+      "phone.streak": "5-day streak",
+      "phone.d1": "M",
+      "phone.d2": "T",
+      "phone.d3": "W",
+      "phone.d4": "T",
+      "phone.d5": "F",
+      "phone.d6": "S",
+      "phone.d7": "T",
+      "phone.lastCooked": "Last cooked Shakshuka · Monday",
+      "phone.history": "History",
+      "phone.tonightLbl": "Tonight · from your kitchen",
       "phone.tonightTitle": "Spinach & feta pasta",
-      "phone.tonightSub": "20 min · uses 3 items due first",
+      "phone.tonightMeta": "20 min",
+      "phone.tonightLevel": "easy",
+      "phone.why": "Uses spinach & feta before they go off.",
+      "phone.chipSpinach": "Baby spinach",
+      "phone.chipFeta": "Feta",
+      "phone.chipMore": "+1",
+      "phone.steps": "6 steps",
+      "phone.cookThis": "Cook this",
+      "phone.moreIdeas": "More ideas",
       "how.eyebrow": "How it works",
-      "how.title": 'Receipt in. <span class="mark">Dinner out.</span>',
+      "how.title": 'Shelves in. <span class="mark">Dinner out.</span>',
       "how.sub": "Three steps, one of which you already do every time you shop.",
-      "step1.title": "Snap your receipt",
-      "step1.body": "One photo after the grocery run, or a PDF e-receipt from your inbox. leftovr reads it, figures out the food, and skips the shampoo. No receipt? Photograph a shelf, scan a barcode, or type it in.",
+      "step1.title": "Snap your shelves",
+      "step1.body": "Photograph your fridge, a shelf or the counter — up to three shots. leftovr reads what it can see and fills your kitchen. Came back from the shop instead? A receipt photo or PDF e-receipt adds 20–30 items at once. Barcode and manual add work too.",
       "step2.title": "Your kitchen keeps track",
       "step2.body": 'Everything lands on shelves with gentle freshness windows — "best today", "this week" — never scary expiration countdowns.',
       "step3.title": "Cook what you have",
@@ -1632,7 +1711,7 @@
       "recipe2.note": "Uses 3 items at risk",
       "price.eyebrow": "Pricing",
       "price.title": 'Free to start. <span class="mark">Honest from there.</span>',
-      "price.honest": "Your <b>first receipt scan</b> and <b>first recipe</b> are on us. <b>Manual add and barcode scan stay free, always.</b> Go unlimited when you're ready.",
+      "price.honest": "Your <b>first scan</b> — pantry photo or receipt — and <b>first recipe</b> are on us. <b>Manual add and barcode scan stay free, always.</b> Go unlimited when you're ready.",
       "price.monthly": "Monthly",
       "price.yearly": "Yearly",
       "price.save": "Save ~40%",
@@ -1641,7 +1720,7 @@
       "plan.free.for": "Try the whole flow",
       "plan.free.amt": "$0",
       "plan.free.note": "Free forever",
-      "plan.free.li1": "Your first receipt scan",
+      "plan.free.li1": "Your first scan, pantry or receipt",
       "plan.free.li2": "Your first recipe generation",
       "plan.free.li3": "Unlimited manual + barcode add",
       "plan.free.li4": "Your kitchen, kept current",
@@ -1653,7 +1732,7 @@
       "plan.prem.amtY": "$4.58",
       "plan.prem.noteM": "Billed monthly",
       "plan.prem.noteY": "$54.99 billed yearly",
-      "plan.prem.li1": "Unlimited receipt scanning",
+      "plan.prem.li1": "Unlimited pantry and receipt scans",
       "plan.prem.li2": "Unlimited recipes, expiry-ranked",
       "plan.prem.li3": 'Daily "what to cook" suggestion',
       "plan.prem.li4": "Weekly insights",
@@ -1672,9 +1751,11 @@
       "faq.eyebrow": "Good questions",
       "faq.title": "The honest answers.",
       "faq.q1": "Is leftovr free?",
-      "faq.a1": "Yes, to start. Your <b>first receipt scan</b> and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$7.99/month</b> ($54.99/year) and Household is <b>$14.99/month</b> ($99.99/year) for up to three people.",
+      "faq.a1": "Yes, to start. Your <b>first scan</b> — a pantry photo or a receipt — and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$7.99/month</b> ($54.99/year) and Household is <b>$14.99/month</b> ($99.99/year) for up to three people.",
       "faq.q2": "Do I have to log everything by hand?",
-      "faq.a2": "No. A receipt scan adds 20–30 items at once, in about ten seconds, and a <b>pantry photo</b> reads a whole shelf. If you pick something up loose or shop without a receipt, you can <b>scan a barcode</b> or <b>add it manually</b> — both are free and unlimited.",
+      "faq.a2": "No. A <b>pantry photo</b> reads a whole shelf at a time — up to three shots — and a receipt scan adds 20–30 items in about ten seconds. For a single thing you can <b>scan a barcode</b> or <b>add it manually</b>, both free and unlimited.",
+      "faq.q12": "How does the pantry photo work?",
+      "faq.a12": "Take up to three photos of a shelf, the fridge or the counter. leftovr reads what it can see and <b>you confirm the list</b> before anything lands in your kitchen. It is an AI scan, so it counts against the same allowance as a receipt scan.",
       "faq.q3": "Can my household share one kitchen?",
       "faq.a3": "Yes. The <b>Household plan</b> gives up to three people one shared kitchen that stays in sync — so whoever shops, everyone sees what you have and what to cook.",
       "faq.q4": "How do recipe suggestions work?",
@@ -1687,18 +1768,18 @@
       "faq.a7": "No. They’re approximate freshness estimates based on the item type and what we can read from your receipt. You can edit or clear the date during receipt review or manual add if you know better.",
       "what.eyebrow": "What is leftovr?",
       "what.title": 'The app that already knows <span class="mark">what\'s in your kitchen.</span>',
-      "what.body": "leftovr is an iPhone app that tracks the food your household already owns. Scan one grocery receipt and 20–30 items land in your kitchen, ranked by what should be eaten first. It then builds recipes from those ingredients only — and clears them out of your kitchen once you cook.",
+      "what.body": "leftovr is an iPhone app that turns the food you already own into dinner. Photograph your fridge or pantry — or scan a grocery receipt — and leftovr fills your kitchen, ranks everything by what should be eaten first, and generates recipes from those ingredients only.",
       "what.fact1": "iPhone app",
       "what.fact2": "English & Serbian",
       "what.fact3": "Five ways to add food",
       "what.fact4": "Free to start",
       "what.updated": "Page last updated 6 November 2026 by the leftovr team.",
-      "how.ways": "<b>Five ways to fill your kitchen:</b> receipt photo, PDF e-receipt, pantry photo (up to three shelves at once), barcode scan, or manual add. Barcode and manual add are free and unlimited, forever.",
+      "how.ways": "<b>Five ways to fill your kitchen:</b> pantry photo (up to three shelves at once), receipt photo, PDF e-receipt, barcode scan, or manual add. Barcode and manual add are free and unlimited, forever.",
       "stat3.desc": "Share of food binned at home simply because it wasn\'t used in time — not because it was inedible.",
       "compare.eyebrow": "How it compares",
       "compare.title": 'Four kinds of app. <span class="mark">One of them subtracts.</span>',
       "compare.sub": "Most kitchen apps add work: you type what you have, or you plan meals and then go shopping. leftovr starts from the food already in your house.",
-      "compare.table": '<table class="compare">      <thead>       <tr>        <th scope="col">&nbsp;</th>        <th scope="col" class="us">leftovr</th>        <th scope="col">Recipe apps</th>        <th scope="col">Pantry &amp; expiry trackers</th>        <th scope="col">Meal-plan apps</th>       </tr>      </thead>      <tbody>       <tr>        <th scope="row">Getting food in</th>        <td class="us">One receipt, a shelf photo, a barcode, or by hand</td>        <td>You type the ingredients in every time</td>        <td>Usually barcode, one item at a time</td>        <td>You pick the meals first, then shop</td>       </tr>       <tr>        <th scope="row">Knows what goes off first</th>        <td class="us">Every item ranked by freshness, every day</td>        <td>No</td>        <td>Yes — as a list of dates</td>        <td>No</td>       </tr>       <tr>        <th scope="row">Recipes limited to what you own</th>        <td class="us">Yes — required ingredients come from your kitchen</td>        <td>Yes</td>        <td>Rarely</td>        <td>No — the plan comes first, the shopping list after</td>       </tr>       <tr>        <th scope="row">After you cook</th>        <td class="us">Those ingredients leave your kitchen automatically</td>        <td>Nothing changes</td>        <td>You tick items off by hand</td>        <td>You tick items off by hand</td>       </tr>       <tr>        <th scope="row">Shared household</th>        <td class="us">Up to three people, one synced kitchen</td>        <td>Rare</td>        <td>Rare</td>        <td>Sometimes</td>       </tr>       <tr>        <th scope="row">Money saved vs. tossed</th>        <td class="us">Tracked by week, month and year</td>        <td>No</td>        <td>Sometimes, as one total</td>        <td>No</td>       </tr>      </tbody>     </table>',
+      "compare.table": '<table class="compare">      <thead>       <tr>        <th scope="col">&nbsp;</th>        <th scope="col" class="us">leftovr</th>        <th scope="col">Recipe apps</th>        <th scope="col">Pantry &amp; expiry trackers</th>        <th scope="col">Meal-plan apps</th>       </tr>      </thead>      <tbody>       <tr>        <th scope="row">Getting food in</th>        <td class="us">A photo of your shelves, a receipt, a barcode, or by hand</td>        <td>You type the ingredients in every time</td>        <td>Usually barcode, one item at a time</td>        <td>You pick the meals first, then shop</td>       </tr>       <tr>        <th scope="row">Knows what goes off first</th>        <td class="us">Every item ranked by freshness, every day</td>        <td>No</td>        <td>Yes — as a list of dates</td>        <td>No</td>       </tr>       <tr>        <th scope="row">Recipes limited to what you own</th>        <td class="us">Yes — required ingredients come from your kitchen</td>        <td>Yes</td>        <td>Rarely</td>        <td>No — the plan comes first, the shopping list after</td>       </tr>       <tr>        <th scope="row">After you cook</th>        <td class="us">Those ingredients leave your kitchen automatically</td>        <td>Nothing changes</td>        <td>You tick items off by hand</td>        <td>You tick items off by hand</td>       </tr>       <tr>        <th scope="row">Shared household</th>        <td class="us">Up to three people, one synced kitchen</td>        <td>Rare</td>        <td>Rare</td>        <td>Sometimes</td>       </tr>       <tr>        <th scope="row">Money saved vs. tossed</th>        <td class="us">Tracked by week, month and year</td>        <td>No</td>        <td>Sometimes, as one total</td>        <td>No</td>       </tr>      </tbody>     </table>',
       "compare.note": "Categories, not brands: app features change often. This is how the four common approaches work as of November 2026 — check any app yourself before you switch.",
       "faq.q8": "Does leftovr work on Android?",
       "faq.a8": "Not yet. leftovr is an <b>iPhone app</b> today. The early-access list is the fastest way to hear when that changes.",
@@ -1734,12 +1815,12 @@
       "wl.network": "Couldn't reach the waitlist right now. Please try again in a minute.",
     },
     sr: {
-      "meta.title": "Praćenje zaliha i recepti od onoga što imaš | leftovr",
-      "meta.desc": "leftovr je iPhone aplikacija: skeniraj jedan račun, vidi šta prvo treba pojesti i dobij recepte samo od hrane koju već imaš. Besplatno za početak.",
+      "meta.title": "Slikaj ostavu, dobij recepte od nje | leftovr",
+      "meta.desc": "leftovr pretvara sliku tvog frižidera ili ostave u recepte od hrane koju već imaš. Računi i bar-kodovi takođe pune kuhinju. iPhone, besplatno za početak.",
       "nav.tag": "Šta ima za večeru?",
       "nav.cta": "Rani pristup",
       "hero.kicker": "iPhone aplikacija · Besplatno za početak",
-      "hero.h1": 'Skeniraj račun. <span class="uline">Kuvaj ono što imaš' + UL + '</span>.',
+      "hero.h1": 'Slikaj police. <span class="uline">Kuvaj ono što je na njima' + UL + '</span>.',
       "hero.lead": "Manje bacaj. Više kuvaj.",
       "hero.chip1Name": "Mladi spanać",
       "hero.chip1Tag": "Za danas",
@@ -1749,40 +1830,49 @@
       "hero.chip3Tag": "Uskoro",
       "hero.chip4Lbl": "Večeras",
       "hero.chip4Name": "Šakšuka",
-      "hero.sub": "leftovr puni tvoju kuhinju sa jednog računa, ređa sve po tome šta prvo propada i pravi večeru od onoga što je unutra. iPhone, besplatno za početak.",
+      "hero.sub": "leftovr pretvara sliku tvog frižidera ili ostave u kuhinju koja vodi računa, pa pravi večeru od onoga što je zaista unutra. Računi, bar-kodovi i ručni unos je takođe pune.",
       "hero.formLabel": "Rani pristup",
       "hero.placeholder": "ti@primer.rs",
       "hero.submit": "Prijavi se na listu",
       "hero.privacy": "Samo obaveštenja o ranom pristupu. Odjava bilo kada.",
       "hero.successTitle": "Na listi si.",
       "hero.successBody": "Poslaćemo ti pozivnicu čim se oslobodi mesto — obično za nekoliko dana.",
-      "hero.step1Title": "Skeniraj račun",
-      "hero.step1Meta": "10 sekundi",
+      "hero.step1Title": "Slikaj police",
+      "hero.step1Meta": "do 3 slike",
       "hero.step2Title": "Kuhinja vodi računa",
       "hero.step2Meta": "sređeno za tebe",
       "hero.step3Title": "Večera, rešena",
       "hero.step3Meta": "od onoga što imaš",
-      "phone.day": "Utorak uveče",
-      "phone.fridge": "Šta imaš",
-      "phone.useFirst": "Pojedi prvo",
-      "phone.useFirstCount": "3 od 22 stavke",
-      "phone.spinach": "Mladi spanać",
-      "phone.spinachSub": "Lisnato povrće · 1 kesa",
-      "phone.today": "Danas",
-      "phone.eggs": "Jaja iz slob. uzgoja",
-      "phone.eggsSub": "ostalo 6",
-      "phone.chicken": "Pileća prsa",
-      "phone.chickenSub": "400 g · pakovanje od 2",
-      "phone.tomorrow": "Sutra",
-      "phone.more": "još 19 stavki, sve sveže",
-      "phone.tonightLbl": "Večeras, od onoga što imaš",
+      "phone.household": "Lenina kuhinja",
+      "phone.urgent": "Spanać, jaja i piletina — za danas",
+      "phone.goal": "1 stvar ti propada danas — iskoristi je",
+      "phone.month": "Novembar",
+      "phone.streak": "Niz od 5 dana",
+      "phone.d1": "P",
+      "phone.d2": "U",
+      "phone.d3": "S",
+      "phone.d4": "Č",
+      "phone.d5": "P",
+      "phone.d6": "S",
+      "phone.d7": "N",
+      "phone.lastCooked": "Poslednje kuvano: Šakšuka · ponedeljak",
+      "phone.history": "Istorija",
+      "phone.tonightLbl": "Večeras · iz tvoje kuhinje",
       "phone.tonightTitle": "Pasta sa spanaćem i fetom",
-      "phone.tonightSub": "20 min · koristi 3 stavke kojima ističe rok",
+      "phone.tonightMeta": "20 min",
+      "phone.tonightLevel": "lako",
+      "phone.why": "Koristi spanać i fetu pre nego što propadnu.",
+      "phone.chipSpinach": "Mladi spanać",
+      "phone.chipFeta": "Feta",
+      "phone.chipMore": "+1",
+      "phone.steps": "6 koraka",
+      "phone.cookThis": "Skuvaj ovo",
+      "phone.moreIdeas": "Još ideja",
       "how.eyebrow": "Kako radi",
-      "how.title": 'Račun uđe. <span class="mark">Večera izađe.</span>',
+      "how.title": 'Police unutra. <span class="mark">Večera napolje.</span>',
       "how.sub": "Tri koraka, a jedan već radiš svaki put kad kupuješ.",
-      "step1.title": "Skeniraj račun",
-      "step1.body": "Slikaj račun iz bilo koje radnje ili ubaci PDF e-račun iz inboxa. leftovr pročita svaku stavku za desetak sekundi i odjednom doda 20–30 namirnica.",
+      "step1.title": "Slikaj police",
+      "step1.body": "Slikaj frižider, policu ili pult — do tri slike. leftovr pročita šta vidi i napuni tvoju kuhinju. Vraćaš se iz kupovine? Slika računa ili PDF e-račun doda 20–30 stavki odjednom. Bar-kod i ručni unos takođe rade.",
       "step2.title": "Tvoja kuhinja vodi računa",
       "step2.body": "Sve sleće na virtuelne police, sređeno po kategoriji i poređano po tome šta prvo treba pojesti — da se ništa ne krije pozadi.",
       "step3.title": "Kuvaj od onoga što već imaš",
@@ -1818,7 +1908,7 @@
       "recipe2.note": "Koristi 3 ugrožene stavke",
       "price.eyebrow": "Cene",
       "price.title": 'Besplatno za početak. <span class="mark">Iskreno odatle.</span>',
-      "price.honest": "Tvoje <b>prvo skeniranje računa</b> i <b>prvi recept</b> su na nas. <b>Ručno dodavanje i skeniranje bar-koda su uvek besplatni.</b> Pređi na neograničeno kad budeš spreman/na.",
+      "price.honest": "Tvoje <b>prvo skeniranje</b> — slika ostave ili račun — i <b>prvi recept</b> su na nas. <b>Ručno dodavanje i skeniranje bar-koda su uvek besplatni.</b> Pređi na neograničeno kad budeš spreman/na.",
       "price.monthly": "Mesečno",
       "price.yearly": "Godišnje",
       "price.save": "Ušteda ~40%",
@@ -1827,7 +1917,7 @@
       "plan.free.for": "Isprobaj ceo tok",
       "plan.free.amt": "0 €",
       "plan.free.note": "Zauvek besplatno",
-      "plan.free.li1": "Tvoje prvo skeniranje računa",
+      "plan.free.li1": "Prvo skeniranje, ostava ili račun",
       "plan.free.li2": "Tvoje prvo generisanje recepta",
       "plan.free.li3": "Neograničeno ručno + bar-kod dodavanje",
       "plan.free.li4": "Tvoja kuhinja, uvek ažurna",
@@ -1839,7 +1929,7 @@
       "plan.prem.amtY": "4,58 €",
       "plan.prem.noteM": "Naplata mesečno",
       "plan.prem.noteY": "54,99 € godišnje",
-      "plan.prem.li1": "Neograničeno skeniranje računa",
+      "plan.prem.li1": "Neograničeno skeniranje ostave i računa",
       "plan.prem.li2": "Neograničeni recepti, poređani po roku",
       "plan.prem.li3": "Dnevni predlog „šta da kuvaš“",
       "plan.prem.li4": "Nedeljni uvidi",
@@ -1858,9 +1948,11 @@
       "faq.eyebrow": "Dobra pitanja",
       "faq.title": "Iskreni odgovori.",
       "faq.q1": "Da li je leftovr besplatan?",
-      "faq.a1": "Da, za početak. Tvoje <b>prvo skeniranje računa</b> i <b>prvi recept</b> su besplatni, a <b>ručno i bar-kod dodavanje su zauvek besplatni</b>. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i uvide, Premium je <b>7,99 €/mesec</b> (54,99 €/god), a Domaćinstvo <b>14,99 €/mesec</b> (99,99 €/god) za do tri osobe.",
+      "faq.a1": "Da, za početak. Tvoje <b>prvo skeniranje</b> — slika ostave ili račun — i <b>prvi recept</b> su besplatni, a <b>ručno i bar-kod dodavanje su zauvek besplatni</b>. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i uvide, Premium je <b>7,99 €/mesec</b> (54,99 €/god), a Domaćinstvo <b>14,99 €/mesec</b> (99,99 €/god) za do tri osobe.",
       "faq.q2": "Moram li sve ručno da unosim?",
-      "faq.a2": "Ne. Skeniranje računa doda 20–30 stavki odjednom, za desetak sekundi, a <b>slika police</b> pročita celu policu. Ako uzmeš nešto na rinfuz ili kupuješ bez računa, možeš da <b>skeniraš bar-kod</b> ili <b>dodaš ručno</b> — oboje je besplatno i neograničeno.",
+      "faq.a2": "Ne. <b>Slika ostave</b> pročita celu policu odjednom — do tri slike — a skeniranje računa doda 20–30 stavki za desetak sekundi. Za jednu stvar možeš da <b>skeniraš bar-kod</b> ili <b>dodaš ručno</b>, oboje besplatno i neograničeno.",
+      "faq.q12": "Kako radi slika ostave?",
+      "faq.a12": "Slikaj do tri slike police, frižidera ili pulta. leftovr pročita šta vidi, a <b>ti potvrdiš spisak</b> pre nego što išta uđe u kuhinju. To je AI skeniranje, pa ulazi u isto ograničenje kao i skeniranje računa.",
       "faq.q3": "Može li moje domaćinstvo da deli jednu kuhinju?",
       "faq.a3": "Da. <b>Plan Domaćinstvo</b> daje do tri osobe jednu zajedničku kuhinju koja ostaje sinhronizovana — ko god da kupuje, svi vide šta imate i šta da skuvate.",
       "faq.q4": "Kako rade predlozi recepata?",
@@ -1873,18 +1965,18 @@
       "faq.a7": "Ne. To su približne procene svežine na osnovu vrste namirnice i onoga što možemo da pročitamo sa računa. Možeš izmeniti ili obrisati datum tokom provere računa ili ručnog dodavanja ako znaš bolje.",
       "what.eyebrow": "Šta je leftovr?",
       "what.title": 'Aplikacija koja već zna <span class="mark">šta ti je u kuhinji.</span>',
-      "what.body": "leftovr je iPhone aplikacija koja prati hranu koju tvoje domaćinstvo već ima. Skeniraj jedan račun i 20–30 stavki sleti u tvoju kuhinju, poređano po tome šta prvo treba pojesti. Zatim pravi recepte samo od tih sastojaka — i briše ih iz kuhinje čim skuvaš.",
+      "what.body": "leftovr je iPhone aplikacija koja hranu koju već imaš pretvara u večeru. Slikaj frižider ili ostavu — ili skeniraj račun — i leftovr napuni tvoju kuhinju, poreda sve po tome šta prvo treba pojesti i pravi recepte samo od tih sastojaka.",
       "what.fact1": "iPhone aplikacija",
       "what.fact2": "Engleski i srpski",
       "what.fact3": "Pet načina da dodaš hranu",
       "what.fact4": "Besplatno za početak",
       "what.updated": "Stranica ažurirana 6. novembra 2026.",
-      "how.ways": "<b>Pet načina da napuniš kuhinju:</b> slika računa, PDF e-račun, slika police (do tri odjednom), bar-kod ili ručni unos. Bar-kod i ručni unos su besplatni i neograničeni, zauvek.",
+      "how.ways": "<b>Pet načina da napuniš kuhinju:</b> slika ostave (do tri police odjednom), slika računa, PDF e-račun, bar-kod ili ručni unos. Bar-kod i ručni unos su besplatni i neograničeni, zauvek.",
       "stat3.desc": "Udeo hrane bačene kod kuće samo zato što nije iskorišćena na vreme — ne zato što je bila neupotrebljiva.",
       "compare.eyebrow": "Kako se poredi",
       "compare.title": 'Četiri vrste aplikacija. <span class="mark">Samo jedna oduzima.</span>',
       "compare.sub": "Većina kuhinjskih aplikacija dodaje posao: ili kucaš šta imaš, ili planiraš obroke pa ideš u kupovinu. leftovr kreće od hrane koja je već u kući.",
-      "compare.table": '<table class="compare">      <thead>       <tr>        <th scope="col">&nbsp;</th>        <th scope="col" class="us">leftovr</th>        <th scope="col">Aplikacije sa receptima</th>        <th scope="col">Praćenje zaliha i rokova</th>        <th scope="col">Planeri obroka</th>       </tr>      </thead>      <tbody>       <tr>        <th scope="row">Kako hrana ulazi</th>        <td class="us">Jedan račun, slika police, bar-kod ili ručno</td>        <td>Svaki put kucaš sastojke</td>        <td>Uglavnom bar-kod, stavku po stavku</td>        <td>Prvo biraš obroke, pa kupuješ</td>       </tr>       <tr>        <th scope="row">Zna šta prvo propada</th>        <td class="us">Svaka stavka poredana po svežini, svakog dana</td>        <td>Ne</td>        <td>Da — kao spisak datuma</td>        <td>Ne</td>       </tr>       <tr>        <th scope="row">Recepti samo od onoga što imaš</th>        <td class="us">Da — obavezni sastojci dolaze iz tvoje kuhinje</td>        <td>Da</td>        <td>Retko</td>        <td>Ne — prvo plan, pa spisak za kupovinu</td>       </tr>       <tr>        <th scope="row">Kad skuvaš</th>        <td class="us">Ti sastojci automatski izlaze iz kuhinje</td>        <td>Ništa se ne menja</td>        <td>Ručno štikliraš stavke</td>        <td>Ručno štikliraš stavke</td>       </tr>       <tr>        <th scope="row">Zajedničko domaćinstvo</th>        <td class="us">Do tri osobe, jedna sinhronizovana kuhinja</td>        <td>Retko</td>        <td>Retko</td>        <td>Ponekad</td>       </tr>       <tr>        <th scope="row">Ušteđeno naspram bačenog</th>        <td class="us">Praćeno po nedelji, mesecu i godini</td>        <td>Ne</td>        <td>Ponekad, kao jedan zbir</td>        <td>Ne</td>       </tr>      </tbody>     </table>',
+      "compare.table": '<table class="compare">      <thead>       <tr>        <th scope="col">&nbsp;</th>        <th scope="col" class="us">leftovr</th>        <th scope="col">Aplikacije sa receptima</th>        <th scope="col">Praćenje zaliha i rokova</th>        <th scope="col">Planeri obroka</th>       </tr>      </thead>      <tbody>       <tr>        <th scope="row">Kako hrana ulazi</th>        <td class="us">Slika polica, račun, bar-kod ili ručno</td>        <td>Svaki put kucaš sastojke</td>        <td>Uglavnom bar-kod, stavku po stavku</td>        <td>Prvo biraš obroke, pa kupuješ</td>       </tr>       <tr>        <th scope="row">Zna šta prvo propada</th>        <td class="us">Svaka stavka poredana po svežini, svakog dana</td>        <td>Ne</td>        <td>Da — kao spisak datuma</td>        <td>Ne</td>       </tr>       <tr>        <th scope="row">Recepti samo od onoga što imaš</th>        <td class="us">Da — obavezni sastojci dolaze iz tvoje kuhinje</td>        <td>Da</td>        <td>Retko</td>        <td>Ne — prvo plan, pa spisak za kupovinu</td>       </tr>       <tr>        <th scope="row">Kad skuvaš</th>        <td class="us">Ti sastojci automatski izlaze iz kuhinje</td>        <td>Ništa se ne menja</td>        <td>Ručno štikliraš stavke</td>        <td>Ručno štikliraš stavke</td>       </tr>       <tr>        <th scope="row">Zajedničko domaćinstvo</th>        <td class="us">Do tri osobe, jedna sinhronizovana kuhinja</td>        <td>Retko</td>        <td>Retko</td>        <td>Ponekad</td>       </tr>       <tr>        <th scope="row">Ušteđeno naspram bačenog</th>        <td class="us">Praćeno po nedelji, mesecu i godini</td>        <td>Ne</td>        <td>Ponekad, kao jedan zbir</td>        <td>Ne</td>       </tr>      </tbody>     </table>',
       "compare.note": "Kategorije, ne brendovi: funkcije aplikacija se često menjaju. Ovako rade četiri uobičajena pristupa u novembru 2026 — proveri sam/a pre nego što pređeš.",
       "faq.q8": "Da li leftovr radi na Androidu?",
       "faq.a8": "Još ne. leftovr je za sada <b>iPhone aplikacija</b>. Lista za rani pristup je najbrži način da saznaš kada se to promeni.",

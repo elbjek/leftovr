@@ -5,7 +5,7 @@ iPhone app. Prices in USD, billed through the App Store. Last updated 2026-11-06
 ## Free
 
 - Price: $0, forever
-- Limits: one receipt or pantry scan (ever), one recipe generation (ever)
+- Limits: one scan of either kind — pantry photo or receipt — ever; one recipe generation ever
 - Included: unlimited barcode scanning, unlimited manual add, full kitchen with
   eat-first ranking, automatic depletion when you cook
 - Note: a scan that finds nothing does not use up the free scan
@@ -15,7 +15,7 @@ iPhone app. Prices in USD, billed through the App Store. Last updated 2026-11-06
 - Price: $7.99/month, or $54.99/year (≈ $4.58/month, ~40% less)
 - For: one cook
 - Limits: 100 scans/month and 30/day; 150 recipe generations/month and 50/day
-- Included: unlimited receipt, e-receipt and pantry scanning; unlimited recipes ranked by what
+- Included: unlimited pantry-photo, receipt and e-receipt scanning; unlimited recipes ranked by what
   expires first; a daily "what to cook" suggestion; weekly and monthly insights
 
 ## Household
