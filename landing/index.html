@@ -170,195 +170,111 @@
   .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--primary); }
 
   /* ── Stage ─────────────────────────────── */
-  /* A stage, not a strip: the hero takes the screen and the composition is
-     lit in the middle of it. */
-  .stage {
-    position: relative; overflow: hidden;
-    min-height: calc(100dvh - 71px);
-    display: flex; align-items: center;
-    padding: 30px 0 40px;
+  /* ── Hero ──────────────────────────────────────────────────────────
+     An editorial split: the message holds the left axis, the product demo
+     sits on the right as one elevated card. No background effects; the
+     contrast between cream page and paper card does the work. */
+  .stage { position: relative; padding: clamp(40px, 7vh, 88px) 0 clamp(48px, 8vh, 96px); }
+  .stage-grid {
+    display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
+    gap: clamp(36px, 5vw, 72px); align-items: center;
+    max-width: 1180px;
   }
-  .stage-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-  /* Edge falloff, so the centre reads as the lit part of the room. */
-  .stage-bg::after {
-    content: ""; position: absolute; inset: 0;
-    background: radial-gradient(ellipse 68% 58% at 50% 44%,
-                transparent 42%, rgba(226,219,205,0.55) 100%);
-  }
-  .stage-inner { position: relative; z-index: 2; width: 100%; max-width: 1120px; text-align: center; }
-
-  /* Warm key light behind the composition. */
-  .hg-glow-gold {
-    position: absolute; width: 1180px; height: 1180px; border-radius: 50%;
-    left: 50%; top: 44%; transform: translate(-50%, -50%);
-    background:
-      radial-gradient(circle at 50% 44%, rgba(242,193,78,0.40), transparent 54%),
-      radial-gradient(circle at 36% 62%, rgba(167,195,163,0.26), transparent 56%);
-  }
-  /* A faint grain of dots so the cream is a surface, not a void. */
-  .hg-grid {
-    position: absolute; inset: -10%;
-    background-image: radial-gradient(circle, rgba(35,75,52,0.17) 1.3px, transparent 1.5px);
-    background-size: 26px 26px;
-    -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 44%, transparent 34%, #000 82%);
-    mask-image: radial-gradient(ellipse 62% 58% at 50% 44%, transparent 34%, #000 82%);
-    opacity: 0.55;
-  }
+  .stage-copy { max-width: 36rem; }
 
   .kicker {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 7px 14px; border-radius: 999px;
     background: var(--primary-50); color: var(--primary);
     font-weight: 700; font-size: 12px; letter-spacing: 0.08em;
-    text-transform: uppercase; margin-bottom: 26px;
+    text-transform: uppercase; margin-bottom: 24px;
   }
   .kicker .seed { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
   h1.stage-h1 {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     font-weight: 800;
-    /* min keeps the nowrap underlined phrase inside a 390px screen */
-    font-size: clamp(31px, 5.4vw, 76px);
-    line-height: 1.02; letter-spacing: -0.038em;
-    color: var(--text);
-    max-width: 17ch; margin: 0 auto 42px;
+    font-size: clamp(32px, 3.9vw, 55px);
+    line-height: 1.04; letter-spacing: -0.036em;
+    color: var(--text); margin: 0 0 36px;
   }
   .uline { position: relative; white-space: nowrap; }
-  .uline svg { position: absolute; left: 0; right: 0; bottom: -0.14em; width: 100%; height: 0.19em; }
+  .uline svg { position: absolute; left: 0; right: 0; bottom: -0.13em; width: 100%; height: 0.17em; }
 
-  /* The plate: your kitchen on the left, tonight on the right. */
-  /* Objects on a surface, not text in a box. One light source, top left,
-     and every shadow tinted warm so nothing reads as a floating sticker. */
-  .plate {
-    position: relative;
-    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-    gap: 40px; text-align: left; padding: 10px 0 4px;
-  }
-  /* The floor the whole composition stands on. */
-  .plate::before {
-    content: ""; position: absolute; z-index: -1;
-    left: 50%; bottom: -34px; width: 88%; height: 130px;
-    transform: translateX(-50%);
-    background: radial-gradient(ellipse at center, rgba(120,80,40,0.13), transparent 70%);
-    filter: blur(20px); pointer-events: none;
-  }
-  .plate-side + .plate-arrow + .plate-side { padding-left: 10px; }
-  .plate-label {
-    font-size: 11px; font-weight: 800; letter-spacing: 0.15em;
-    text-transform: uppercase; color: var(--accent-ink); margin-bottom: 18px;
-  }
-  .ings { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
-  /* Dim by default, lit when tonight's dish uses it. That swap IS the product. */
-  /* Each ingredient is a thing sitting on the page. Unused ones lie flat and
-     colourless; the ones tonight's dish claims rise into the light. */
-  .ing {
-    display: flex; align-items: center; gap: 11px;
-    font-size: 15.5px; font-weight: 500; line-height: 1.25;
-    color: var(--muted);
-    transition: color 0.45s ease;
-  }
-  .ing i {
-    position: relative; flex-shrink: 0;
-    width: 56px; height: 56px; border-radius: 999px;
-    background: var(--surface-2);
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: inset 0 1px 2px rgba(120,80,40,0.10);
-    transition: background 0.45s ease, box-shadow 0.5s ease,
-                transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .ing img {
-    width: 34px; height: 34px; object-fit: contain;
-    opacity: 0.5; filter: saturate(0.3);
-    transition: opacity 0.45s ease, filter 0.45s ease;
-  }
-  .ing em { font-style: normal; }
-  .ing.on { color: var(--text); font-weight: 700; }
-  .ing.on i {
-    background: var(--paper); transform: translateY(-4px);
-    box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset,
-                0 10px 18px -8px rgba(120,80,40,0.38),
-                0 2px 4px rgba(120,80,40,0.10);
-  }
-  .ing.on img { opacity: 1; filter: none; }
-
-  /* Tonight's dish arrives on a plate, the heaviest object on the page. */
-  .dish-plate {
-    position: relative; width: 208px; height: 208px; border-radius: 999px;
-    margin: 0 0 24px; display: flex; align-items: center; justify-content: center;
-    background:
-      radial-gradient(circle at 34% 28%, #FFFFFF 0%, var(--paper) 46%, #F1E9E2 100%);
+  /* ── The demo card ───────────────────────────────────────────────── */
+  .demo {
+    background: var(--paper); border: 1px solid var(--card-line);
+    border-radius: var(--r-lg); padding: 22px 24px 20px;
     box-shadow:
       0 1px 0 rgba(255,255,255,0.9) inset,
-      0 0 0 1px rgba(120,80,40,0.07),
-      0 26px 40px -22px rgba(120,80,40,0.55),
-      0 6px 12px -6px rgba(120,80,40,0.18);
+      0 28px 44px -28px rgba(120,80,40,0.42),
+      0 4px 10px -6px rgba(120,80,40,0.12);
   }
-  /* The rim: a second ring just inside the edge, the way a real plate reads. */
-  .dish-plate::after {
-    content: ""; position: absolute; inset: 21px; border-radius: 999px;
-    border: 1px solid rgba(120,80,40,0.09);
+  .demo-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+  .demo-label {
+    font-size: 10.5px; font-weight: 800; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--accent-ink);
   }
-  .dish-cluster { display: flex; position: relative; z-index: 1; }
-  .dish-cluster span {
-    width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
-    filter: drop-shadow(0 8px 9px rgba(120,80,40,0.30));
-  }
-  .dish-cluster span[hidden] { display: none; }
-  .dish-cluster span + span { margin-left: -14px; }
-  .dish-cluster span:nth-child(2) { transform: translateY(-7px); }
-  .dish-cluster img { width: 54px; height: 54px; object-fit: contain; }
-  .dish-cluster.swap span { animation: clusterIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-  .dish-cluster.swap span:nth-child(2) { animation-delay: 0.07s; }
-  .dish-cluster.swap span:nth-child(3) { animation-delay: 0.14s; }
-  @keyframes clusterIn {
-    from { opacity: 0; transform: translateY(-16px) scale(0.8); }
-    to   { opacity: 1; }
-  }
-  /* nth-child(2) keeps its lift once the keyframes hand back. */
-  .dish-cluster.swap span:nth-child(2) { animation-name: clusterInLifted; }
-  @keyframes clusterInLifted {
-    from { opacity: 0; transform: translateY(-24px) scale(0.8); }
-    to   { opacity: 1; transform: translateY(-7px); }
-  }
-  .plate-arrow { position: relative; color: var(--muted-2); width: 96px; }
-  .plate-arrow svg { width: 96px; height: 14px; display: block; }
-  /* A gold pulse runs the arrow on every swap: these become that. */
-  .arrow-pulse {
-    position: absolute; top: 50%; left: 0; width: 7px; height: 7px;
-    margin-top: -3.5px; border-radius: 999px; background: var(--accent);
-    opacity: 0; pointer-events: none;
-  }
-  .plate-arrow.go .arrow-pulse { animation: pulseRun 0.62s cubic-bezier(0.4, 0, 0.3, 1); }
-  @keyframes pulseRun {
-    0%   { opacity: 0; transform: translateX(0) scale(0.6); }
-    25%  { opacity: 1; }
-    80%  { opacity: 1; }
-    100% { opacity: 0; transform: translateX(86px) scale(0.9); }
-  }
+  .demo-count { font-size: 12px; color: var(--muted-2); }
 
-  .dish-wrap { position: relative; min-height: 4.6em; }
-  @media (prefers-reduced-motion: reduce) {
-    .arrow-pulse { animation: none !important; opacity: 0; }
-    .ing, .ing i, .ing img { transition: none; }
-    .dish-cluster.swap span { animation: none; }
+  .k-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  /* Unused food sits back; the dish's own ingredients come forward. */
+  .k-ing {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 14px; font-weight: 500; color: var(--muted);
+    transition: color 0.4s ease;
   }
+  .k-ing img {
+    width: 30px; height: 30px; flex-shrink: 0; object-fit: contain;
+    opacity: 0.38; filter: saturate(0.2);
+    transition: opacity 0.4s ease, filter 0.4s ease,
+                transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .k-ing.on { color: var(--text); font-weight: 700; }
+  .k-ing.on img { opacity: 1; filter: none; transform: scale(1.1); }
+
+  /* The rule between the two halves. A gold sweep runs it on every swap:
+     these become that. */
+  .demo-rule { position: relative; height: 1px; background: var(--card-line); margin: 18px 0 16px; overflow: hidden; }
+  .demo-sweep {
+    position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .demo-rule.go .demo-sweep { animation: sweep 0.72s cubic-bezier(0.4, 0, 0.3, 1); }
+  @keyframes sweep { to { transform: translateX(100%); } }
+
+  .demo-foot .demo-label { display: block; margin-bottom: 12px; }
+  .pick { display: flex; align-items: center; gap: 13px; }
+  .pick-icons { display: flex; flex-shrink: 0; }
+  .pick-icons span {
+    width: 40px; height: 40px; border-radius: 999px;
+    background: var(--surface-2); border: 2px solid var(--paper);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pick-icons span[hidden] { display: none; }
+  .pick-icons span + span { margin-left: -12px; }
+  .pick-icons img { width: 26px; height: 26px; object-fit: contain; }
+  .pick-icons.swap span { animation: pickIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .pick-icons.swap span:nth-child(2) { animation-delay: 0.06s; }
+  .pick-icons.swap span:nth-child(3) { animation-delay: 0.12s; }
+  @keyframes pickIn { from { opacity: 0; transform: scale(0.72); } to { opacity: 1; transform: none; } }
+
+  .pick-text { flex: 1; min-width: 0; }
   .dish {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
-    font-weight: 800; font-size: clamp(28px, 3.5vw, 46px);
-    line-height: 1.06; letter-spacing: -0.032em; color: var(--primary);
+    font-weight: 800; font-size: 19px; line-height: 1.2;
+    letter-spacing: -0.02em; color: var(--primary);
   }
-  .dish-meta { font-size: 15px; line-height: 1.45; color: var(--muted); margin-top: 10px; }
-  /* The dish materializes rather than fades, and the meta follows a beat later. */
-  .dish.swap { animation: dishIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .dish-meta.swap { animation: dishIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both; }
+  .dish-meta { font-size: 12.5px; line-height: 1.4; color: var(--muted); margin-top: 3px; }
+  .dish.swap { animation: dishIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .dish-meta.swap { animation: dishIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.07s both; }
   @keyframes dishIn {
-    from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
-    to   { opacity: 1; transform: none; filter: blur(0); }
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
   }
 
   .dish-next {
-    position: absolute; right: 0; bottom: 0;
-    width: 30px; height: 30px; border-radius: 999px; padding: 0;
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 999px; padding: 0;
     background: transparent; color: var(--primary);
     border: 1px solid var(--hairline-strong);
     display: flex; align-items: center; justify-content: center; cursor: pointer;
@@ -368,47 +284,43 @@
   .dish-next:hover { background: var(--primary-50); border-color: var(--primary); }
   .dish-next:active { transform: scale(0.94); }
   .dish-next:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .plate-answer { position: relative; padding-right: 40px; }
 
-  .stage-inner .capture { max-width: 470px; margin: 44px auto 0; }
-  .stage-inner .capture-label { text-align: center; }
-  .stage-inner .privacy { justify-content: center; }
-  .stage-inner .form-success { margin: 40px auto 0; }
+  .stage-copy .capture { max-width: 440px; }
 
-  /* Entrance: eyebrow, headline, then the plate deals in. */
-  @keyframes riseIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-  @keyframes plateIn { from { opacity: 0; transform: translateY(26px) scale(0.97); } to { opacity: 1; transform: none; } }
-  .stage-inner > * { animation: riseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .stage-inner > .kicker   { animation-delay: 0.02s; }
-  .stage-inner > .stage-h1 { animation-delay: 0.10s; }
-  .stage-inner > .plate    { animation: plateIn 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.20s both; }
-  .stage-inner > .capture  { animation-delay: 0.34s; }
+  /* Entrance: the message, then the card. */
+  @keyframes riseIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  .stage-copy > * { animation: riseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .stage-copy > .kicker   { animation-delay: 0.02s; }
+  .stage-copy > .stage-h1 { animation-delay: 0.08s; }
+  .stage-copy > .capture  { animation-delay: 0.16s; }
+  .demo { animation: riseIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage-copy > *, .demo { animation: none; opacity: 1; transform: none; }
+    .k-ing, .k-ing img, .pick-icons.swap span, .dish, .dish-meta { animation: none; transition: none; }
+    .demo-rule.go .demo-sweep { animation: none; }
+  }
+
+  @media (max-width: 980px) {
+    .stage-grid { grid-template-columns: 1fr; gap: 36px; }
+    .stage-copy { max-width: none; }
+    .demo { order: 2; }
+  }
+  @media (max-width: 560px) {
+    .k-list { grid-template-columns: 1fr; gap: 9px; }
+    .demo { padding: 18px 18px 16px; }
+  }
 
   /* The device now lives under "What is leftovr?". */
   .define-device { display: flex; justify-content: center; margin: 44px 0 8px; overflow: hidden; }
 
   @media (prefers-reduced-motion: reduce) {
-    .stage-inner > *, .stage-inner > .plate, .phone-stage,
-    .lo-head, .lo-urgent, .lo-week, .lo-try,
-    .dish, .dish-meta { animation: none; opacity: 1; transform: none; filter: none; }
-    .ing { transition: none; }
+    .phone-stage, .lo-head, .lo-urgent, .lo-week, .lo-try
+      { animation: none; opacity: 1; transform: none; filter: none; }
   }
 
   @media (max-width: 860px) {
-    .stage { min-height: 0; display: block; padding: 32px 0 44px; }
     .phone-glow { width: 300px; height: 300px; }
-    .plate { grid-template-columns: 1fr; gap: 16px; padding: 4px 0; text-align: left; }
-    .plate::before { display: none; }
-    .plate-side + .plate-arrow + .plate-side { padding-left: 0; padding-top: 10px; }
-    .plate-arrow, .plate-arrow svg { width: 60px; }
-    .dish-plate { width: 150px; height: 150px; margin-bottom: 16px; }
-    .dish-plate::after { inset: 16px; }
-    .dish-cluster span { width: 48px; height: 48px; }
-    .dish-cluster img { width: 40px; height: 40px; }
-    .ing i { width: 48px; height: 48px; }
-    .ing img { width: 28px; height: 28px; }
-    .plate-arrow { transform: rotate(90deg); margin: 0 auto; }
-    .dish-wrap { min-height: 0; }
   }
 
   /* Inline email capture */
@@ -1256,58 +1168,16 @@
 
   <!-- ─────────────── HERO ─────────────── -->
   <section class="stage" id="top-stage" data-screen-label="Hero">
-    <div class="stage-bg" aria-hidden="true">
-      <div class="hg-glow-gold"></div>
-      <div class="hg-grid"></div>
-    </div>
+    <div class="wrap stage-grid">
 
-    <div class="wrap stage-inner">
-      <div class="kicker" data-i18n-kicker="hero.kicker">
-        <span class="seed" aria-hidden="true"></span><span>Waste less</span><span class="seed" aria-hidden="true"></span><span>Cook more</span><span class="seed" aria-hidden="true"></span>
-      </div>
-
-      <h1 class="stage-h1" data-i18n-html="hero.h1">
-        Dinner, from what&#39;s <span class="uline">already in your fridge<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#F2C14E" stroke-width="4" stroke-linecap="round"/></svg></span>.
-      </h1>
-
-      <!-- The plate: what you have, and what it becomes. The loop below is the
-           product demo, so the motion is the message. -->
-      <div class="plate" role="img" aria-label="leftovr turning the food in your kitchen into tonight&#39;s dinner">
-        <div class="plate-side">
-          <div class="plate-label" data-i18n="stage.have">You have</div>
-          <div class="ings">
-            <span class="ing" data-ing="0"><i><img src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing0">Baby spinach</em></span>
-            <span class="ing" data-ing="1"><i><img src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing1">Feta</em></span>
-            <span class="ing" data-ing="2"><i><img src="/food/eggs.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing2">Free-range eggs</em></span>
-            <span class="ing" data-ing="3"><i><img src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing3">Cherry tomatoes</em></span>
-            <span class="ing" data-ing="4"><i><img src="/food/chicken_breast.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing4">Chicken breast</em></span>
-            <span class="ing" data-ing="5"><i><img src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async"></i><em data-i18n="stage.ing5">Pasta</em></span>
-          </div>
+      <div class="stage-copy">
+        <div class="kicker" data-i18n-kicker="hero.kicker">
+          <span class="seed" aria-hidden="true"></span><span>Waste less</span><span class="seed" aria-hidden="true"></span><span>Cook more</span><span class="seed" aria-hidden="true"></span>
         </div>
 
-        <div class="plate-arrow" aria-hidden="true">
-          <svg viewBox="0 0 40 12" fill="none" preserveAspectRatio="none"><path d="M1 6h34" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M30 1.5 35.5 6 30 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-          <span class="arrow-pulse"></span>
-        </div>
-
-        <div class="plate-side plate-answer">
-          <div class="plate-label" data-i18n="stage.tonight">Tonight</div>
-          <div class="dish-plate" aria-hidden="true">
-            <div class="dish-cluster" id="dish-cluster">
-              <span><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"></span>
-              <span><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"></span>
-              <span><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"></span>
-            </div>
-          </div>
-          <div class="dish-wrap">
-            <div class="dish" id="dish" data-i18n="stage.dish0">Spinach &amp; feta pasta</div>
-            <div class="dish-meta" id="dish-meta" data-i18n="stage.meta0">20 min &middot; uses the spinach before it turns</div>
-          </div>
-          <button type="button" class="dish-next" id="dish-next" data-i18n-aria="stage.next" aria-label="Show another dinner">
-            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h12M11 5.5 15.5 10 11 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-      </div>
+        <h1 class="stage-h1" data-i18n-html="hero.h1">
+          Dinner, from what&#39;s <span class="uline">already in your fridge<svg viewBox="0 0 200 14" fill="none" preserveAspectRatio="none"><path d="M3 8.5C44 4 140 3 197 6.5" stroke="#F2C14E" stroke-width="4" stroke-linecap="round"/></svg></span>.
+        </h1>
 
       <form class="capture" id="hero-form" novalidate>
         <label class="capture-label sr-only" for="hero-email" data-i18n="hero.formLabel">Get early access</label>
@@ -1327,6 +1197,46 @@
         <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#F9F6F1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div><b style="font-weight:700;" data-i18n="hero.successTitle">You&#39;re on the list.</b><br><span style="color:var(--muted);font-size:14px;" data-i18n="hero.successBody">We&#39;ll email your invite as soon as a spot opens, usually within a few days.</span></div>
       </div>
+      </div>
+
+      <!-- The demo: one card, two sections, a rule between them. Tonight's
+           dish lights the things it uses in the kitchen above it. -->
+      <div class="demo" role="img" aria-label="leftovr turning the food in your kitchen into tonight&#39;s dinner">
+        <div class="demo-head">
+          <span class="demo-label" data-i18n="stage.have">Your kitchen</span>
+          <span class="demo-count" data-i18n="stage.count">6 items</span>
+        </div>
+
+        <ul class="k-list">
+            <li class="k-ing" data-ing="0"><img src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing0">Baby spinach</span></li>
+            <li class="k-ing" data-ing="1"><img src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing1">Feta</span></li>
+            <li class="k-ing" data-ing="2"><img src="/food/eggs.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing2">Free-range eggs</span></li>
+            <li class="k-ing" data-ing="3"><img src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing3">Cherry tomatoes</span></li>
+            <li class="k-ing" data-ing="4"><img src="/food/chicken_breast.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing4">Chicken breast</span></li>
+            <li class="k-ing" data-ing="5"><img src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async"><span data-i18n="stage.ing5">Pasta</span></li>
+        </ul>
+
+        <div class="demo-rule"><span class="demo-sweep"></span></div>
+
+        <div class="demo-foot">
+          <span class="demo-label" data-i18n="stage.tonight">Tonight</span>
+          <div class="pick">
+            <div class="pick-icons" id="dish-cluster" aria-hidden="true">
+              <span><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"></span>
+              <span><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"></span>
+              <span><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"></span>
+            </div>
+            <div class="pick-text">
+              <div class="dish" id="dish" data-i18n="stage.dish0">Spinach &amp; feta pasta</div>
+              <div class="dish-meta" id="dish-meta" data-i18n="stage.meta0">20 min &middot; uses the spinach before it turns</div>
+            </div>
+            <button type="button" class="dish-next" id="dish-next" data-i18n-aria="stage.next" aria-label="Show another dinner">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h12M11 5.5 15.5 10 11 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -1934,7 +1844,7 @@
   (function () {
     var dish = document.getElementById('dish');
     var meta = document.getElementById('dish-meta');
-    var ings = [].slice.call(document.querySelectorAll('.ing'));
+    var ings = [].slice.call(document.querySelectorAll('.k-ing'));
     if (!dish || !meta || !ings.length) return;
 
     // The index into .ing is also the index into FILES, so the cluster on the
@@ -1956,7 +1866,7 @@
       });
     }
 
-    var arrow = document.querySelector('.plate-arrow');
+    var rule = document.querySelector('.demo-rule');
     var cluster = document.getElementById('dish-cluster');
 
     function group(idx, animate) {
@@ -1982,10 +1892,10 @@
         dish.classList.remove('swap'); meta.classList.remove('swap');
         void dish.offsetWidth;                       // restart the keyframes
         dish.classList.add('swap'); meta.classList.add('swap');
-        if (arrow) {                                 // run the pulse along the arrow
-          arrow.classList.remove('go');
-          void arrow.offsetWidth;
-          arrow.classList.add('go');
+        if (rule) {                                  // sweep the rule between them
+          rule.classList.remove('go');
+          void rule.offsetWidth;
+          rule.classList.add('go');
         }
       }
       group(idx, animate);
@@ -2018,12 +1928,12 @@
     restart();
 
     // Hovering or tabbing in holds the current dinner so it can be read.
-    var plate = document.querySelector('.plate');
-    if (plate) {
-      plate.addEventListener('pointerenter', stop);
-      plate.addEventListener('pointerleave', restart);
-      plate.addEventListener('focusin', stop);
-      plate.addEventListener('focusout', restart);
+    var demo = document.querySelector('.demo');
+    if (demo) {
+      demo.addEventListener('pointerenter', stop);
+      demo.addEventListener('pointerleave', restart);
+      demo.addEventListener('focusin', stop);
+      demo.addEventListener('focusout', restart);
     }
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) stop(); else restart();
@@ -2073,7 +1983,8 @@
       "nav.cta": "Get early access",
       "hero.kicker": "Waste less · Cook more",
       "hero.h1": 'Dinner, from what\'s <span class="uline">already in your fridge' + UL + '</span>.',
-      "stage.have": "You have",
+      "stage.have": "Your kitchen",
+      "stage.count": "6 items",
       "stage.next": "Show another dinner",
       "stage.tonight": "Tonight",
       "stage.ing0": "Baby spinach",
@@ -2278,7 +2189,8 @@
       "nav.cta": "Rani pristup",
       "hero.kicker": "Manje bacaj · Više kuvaj",
       "hero.h1": 'Večera od onoga <span class="uline">što već imaš u frižideru' + UL + '</span>.',
-      "stage.have": "Imaš",
+      "stage.have": "Tvoja kuhinja",
+      "stage.count": "6 stavki",
       "stage.next": "Prikaži drugu večeru",
       "stage.tonight": "Večeras",
       "stage.ing0": "Mladi spanać",
