@@ -443,6 +443,7 @@ const styles = StyleSheet.create({
   },
   top: {
     gap: spacing.sm,
+    zIndex: 10,
   },
   // Same header as the home (recipes.tsx): logo left, pill right.
   header: {
@@ -489,12 +490,20 @@ const styles = StyleSheet.create({
   chevronOpen: {
     transform: [{ rotate: "180deg" }],
   },
+  // Floats under the pill instead of pushing the page down.
   menu: {
-    alignSelf: "stretch",
+    position: "absolute",
+    top: 44,
+    right: 0,
+    minWidth: 180,
     borderRadius: radii.xl,
     borderWidth: 1,
     borderColor: colors.cardLine,
     backgroundColor: colors.paper,
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
   },
   menuRow: {
     flexDirection: "row",
