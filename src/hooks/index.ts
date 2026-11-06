@@ -3,6 +3,7 @@ export * from "./useHousehold";
 export * from "./useInsights";
 export * from "./useInventory";
 export * from "./useNotifications";
+export * from "./useNotificationRouting";
 export * from "./usePeriodInsights";
 export * from "./useRecipes";
 export * from "./useRetention";

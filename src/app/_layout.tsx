@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "@/i18n";
 import { AuthProvider } from "@/features";
+import { useNotificationRouting } from "@/hooks";
 import { installErrorReporting, reportError, useLeftovrFonts } from "@/lib";
 import { ErrorBoundary } from "@/components/primitives";
 import { syncHouseholdTimezone, updateLastActive } from "@/repositories/notificationRepository";
@@ -17,6 +18,22 @@ import { colors } from "@/theme";
 
 SplashScreen.preventAutoHideAsync();
 installErrorReporting();
+
+// Without a handler, a push that arrives while the app is open is swallowed.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
+/** Lives inside AuthProvider so it can wait for a signed-in user. */
+function NotificationRouter() {
+  useNotificationRouting();
+  return null;
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useLeftovrFonts();
@@ -52,6 +69,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <ErrorBoundary onError={(error, componentStack) => reportError(error, { componentStack })}>
         <AuthProvider>
+          <NotificationRouter />
           <StatusBar style="dark" />
           <View style={styles.appFrame}>
             <Stack screenOptions={{ headerShown: false }} />
