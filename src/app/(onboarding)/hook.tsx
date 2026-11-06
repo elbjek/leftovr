@@ -6,7 +6,6 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
-  Pressable,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -15,9 +14,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { useTranslation } from "react-i18next";
 
-import { AuthButtons, Button, ShowcaseSlide, ShowcaseStage, showcaseThemes, Text } from "@/components";
+import { AuthButtons, Button, ShowcaseSlide, ShowcaseStage, showcaseThemes, Tappable, Text } from "@/components";
 import { useOnboardingSignIn } from "@/features/onboardingSignIn";
-import { colors, fonts, radii, spacing } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 // Room the floating footer (56pt buttons) takes over each slide's copy.
 const FOOTER_SPACE = 56 + spacing.huge + spacing.xxl;
@@ -94,7 +93,7 @@ export default function HookCarouselRoute() {
               <View style={styles.copy}>
                 {item.eyebrow ? (
                   <View style={styles.eyebrowRow}>
-                    <Text variant="micro" color={slideTheme.eyebrow} uppercase style={styles.eyebrow}>
+                    <Text variant="micro" color={slideTheme.eyebrow} uppercase>
                       {item.eyebrow}
                     </Text>
                     {item.badge ? (
@@ -106,11 +105,11 @@ export default function HookCarouselRoute() {
                     ) : null}
                   </View>
                 ) : null}
-                <Text style={[styles.title, { color: slideTheme.ink }]}>
+                <Text variant="h1" weight="regular" style={{ color: slideTheme.ink }}>
                   {/* Words wrapped in *asterisks* in the locale copy render bold. */}
                   {item.title.split("*").map((part, partIndex) =>
                     partIndex % 2 ? (
-                      <Text key={partIndex} style={[styles.title, styles.titleBold, { color: slideTheme.ink }]}>
+                      <Text key={partIndex} variant="h1" weight="extrabold" style={{ color: slideTheme.ink }}>
                         {part}
                       </Text>
                     ) : (
@@ -118,7 +117,7 @@ export default function HookCarouselRoute() {
                     ),
                   )}
                 </Text>
-                <Text variant="body" color={slideTheme.muted} style={styles.body}>
+                <Text variant="body" weight="medium" color={slideTheme.muted}>
                   {item.body}
                 </Text>
               </View>
@@ -130,11 +129,11 @@ export default function HookCarouselRoute() {
       <View style={[styles.topBar, { top: insets.top + spacing.sm }]}>
         <View style={styles.progress}>
           {slides.map((slide, index) => (
-            <Pressable
+            <Tappable
               key={slide.key}
-              accessibilityRole="button"
-              accessibilityLabel={slide.eyebrow ?? slide.key}
+              label={slide.eyebrow ?? slide.key}
               onPress={() => goTo(index)}
+              hitSlop={0}
               style={styles.progressHit}
             >
               <View
@@ -154,19 +153,18 @@ export default function HookCarouselRoute() {
                   },
                 ]}
               />
-            </Pressable>
+            </Tappable>
           ))}
         </View>
-        <Pressable
-          accessibilityRole="button"
+        <Tappable
           onPress={() => goTo(lastIndex)}
           disabled={last}
           style={[styles.skip, last && styles.hidden]}
         >
-          <Text variant="label" color={theme.ink} style={styles.skipLabel}>
+          <Text variant="label" weight="extrabold" color={theme.ink}>
             {t("onboarding.hook.skip")}
           </Text>
-        </Pressable>
+        </Tappable>
       </View>
 
       {last ? (
@@ -180,15 +178,14 @@ export default function HookCarouselRoute() {
             onGoogle={() => void signIn.google()}
             onEmail={() => void signIn.email()}
           />
-          <Pressable
-            accessibilityRole="button"
+          <Tappable
             onPress={() => router.push("/(onboarding)/invite")}
             style={styles.inviteLink}
           >
-            <Text variant="label" style={styles.skipLabel}>
+            <Text variant="label" weight="extrabold">
               {t("onboarding.hook.inviteCode")}
             </Text>
-          </Pressable>
+          </Tappable>
           {signIn.error ? (
             <Text variant="small" color={colors.redInk} center>
               {signIn.error}
@@ -198,10 +195,10 @@ export default function HookCarouselRoute() {
       ) : (
         <View style={[styles.footer, { bottom: insets.bottom + spacing.xxl }]}>
           {current > 0 ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("common.back")}
+            <Tappable
+              label={t("common.back")}
               onPress={() => goTo(current - 1)}
+              hitSlop={0}
               style={[
                 styles.back,
                 {
@@ -216,7 +213,7 @@ export default function HookCarouselRoute() {
               <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
                 <Path d="M9 3L5 7l4 4" stroke={theme.ink} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
               </Svg>
-            </Pressable>
+            </Tappable>
           ) : null}
           <Button
             title={current === 0 ? t("onboarding.hook.start") : t("onboarding.hook.next")}
@@ -266,14 +263,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.xxs,
   },
-  skipLabel: {
-    fontFamily: fonts.bodyExtraBold,
-  },
   hidden: {
     opacity: 0,
   },
   copy: {
-    paddingHorizontal: spacing.xxxl,
+    paddingHorizontal: spacing.screenX,
     gap: spacing.md,
     minHeight: 190,
   },
@@ -282,37 +276,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  eyebrow: {
-    fontSize: 12,
-    lineHeight: 14,
-    letterSpacing: 1.4,
-  },
   badge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     backgroundColor: colors.accentSoft,
-    borderWidth: 1,
-    borderColor: colors.accent,
     borderRadius: radii.pill,
-  },
-  title: {
-    fontFamily: fonts.body,
-    fontSize: 31,
-    lineHeight: 36,
-    letterSpacing: -0.6,
-  },
-  titleBold: {
-    fontFamily: fonts.bodyExtraBold,
-  },
-  body: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 16,
-    lineHeight: 23,
   },
   footer: {
     position: "absolute",
-    left: spacing.xxxl,
-    right: spacing.xxxl,
+    left: spacing.screenX,
+    right: spacing.screenX,
     flexDirection: "row",
     gap: 10,
   },
@@ -328,8 +301,8 @@ const styles = StyleSheet.create({
   },
   auth: {
     position: "absolute",
-    left: spacing.xxxl,
-    right: spacing.xxxl,
+    left: spacing.screenX,
+    right: spacing.screenX,
     gap: 12,
   },
   inviteLink: {
