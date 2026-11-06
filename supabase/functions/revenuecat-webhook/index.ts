@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
+import { secretsMatch } from "../_shared/secrets.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@^2.46.1";
 
 // RevenueCat webhook → server-authoritative tier sync.
@@ -134,7 +135,7 @@ Deno.serve(async (req) => {
     return Response.json({ error: "missing_server_config" }, { status: 500 });
   }
 
-  if (req.headers.get("Authorization") !== webhookSecret) {
+  if (!secretsMatch(req.headers.get("Authorization"), webhookSecret)) {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 

@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 import { sendPush } from "../_shared/sendPush.ts";
+import { secretsMatch } from "../_shared/secrets.ts";
 import {
   isWithinSendWindow, isRecapDay, sentToday, buildDailySuggestion, toUrgencyGroups,
   isStreakReminderHour, buildStreakReminder,
@@ -13,7 +14,7 @@ import {
 Deno.serve(async (req) => {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("Authorization") !== `Bearer ${cronSecret}`) {
+  if (!secretsMatch(req.headers.get("Authorization"), cronSecret && `Bearer ${cronSecret}`)) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
 

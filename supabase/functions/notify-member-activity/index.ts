@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 import { sendPush } from "../_shared/sendPush.ts";
+import { secretsMatch } from "../_shared/secrets.ts";
 import { coalesceOpen } from "../_shared/notificationRules.ts";
 
 const COALESCE_MIN = 10;
@@ -14,7 +15,7 @@ Deno.serve(async (req) => {
   // changed once and silently broke the compare.)
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("Authorization") !== `Bearer ${cronSecret}`) {
+  if (!secretsMatch(req.headers.get("Authorization"), cronSecret && `Bearer ${cronSecret}`)) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
 

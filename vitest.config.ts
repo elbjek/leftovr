@@ -23,6 +23,7 @@ export default defineConfig({
       "src/**/*.test.ts",
       "supabase/functions/normalize-receipt/cache-merge.test.ts",
       "supabase/functions/_shared/avoidances.test.ts",
+      "supabase/functions/_shared/secrets.test.ts",
     ],
     globals: true,
   },

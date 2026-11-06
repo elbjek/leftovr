@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
+import { secretsMatch } from "../_shared/secrets.ts";
 
 // Hourly cron entrypoint (cleanup-receipt-images-hourly). Removes receipt and
 // pantry uploads that no scan ever picked up: the scan functions delete their
@@ -7,7 +8,7 @@ import { createClient } from "npm:@supabase/supabase-js@^2.46.1";
 // notifications-dispatch, so a logged-in user can't trigger it.
 Deno.serve(async (req) => {
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (!cronSecret || req.headers.get("Authorization") !== `Bearer ${cronSecret}`) {
+  if (!secretsMatch(req.headers.get("Authorization"), cronSecret && `Bearer ${cronSecret}`)) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
 
