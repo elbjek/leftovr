@@ -12,6 +12,7 @@ import {
   Screen,
   ScreenHeader,
   SegmentedControl,
+  Tappable,
   Text,
   TextField,
 } from "../components/primitives";
@@ -165,6 +166,34 @@ export default function Gallery() {
         />
       </Section>
 
+      <Section title="Tappable">
+        <Row label="opacity · rows and icon buttons">
+          <Tappable label="A row" onPress={() => {}} style={styles.tapRow}>
+            <Text>Press me</Text>
+          </Tappable>
+        </Row>
+        <Row label="scale · tiles and card-sized targets">
+          <Tappable label="A tile" feedback="scale" onPress={() => {}} style={styles.tapRow}>
+            <Text>Press me</Text>
+          </Tappable>
+        </Row>
+        <Row label="selected">
+          <Tappable label="A row" selected onPress={() => {}} style={[styles.tapRow, styles.tapRowSelected]}>
+            <Text color={colors.onPrimary}>Selected</Text>
+          </Tappable>
+        </Row>
+        <Row label="disabled">
+          <Tappable label="A row" disabled onPress={() => {}} style={styles.tapRow}>
+            <Text>Disabled</Text>
+          </Tappable>
+        </Row>
+        <Row label="none · when the child animates itself">
+          <Tappable label="A row" feedback="none" onPress={() => {}} style={styles.tapRow}>
+            <Text>No feedback</Text>
+          </Tappable>
+        </Row>
+      </Section>
+
       <Section title="IconButton">
         <View style={styles.rowWrap}>
           <IconButton label="Add" onPress={() => {}}>
@@ -236,6 +265,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xxs,
     width: 72,
+  },
+  tapRow: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
+  },
+  tapRowSelected: {
+    backgroundColor: colors.primary,
   },
   chipColor: {
     width: 56,
