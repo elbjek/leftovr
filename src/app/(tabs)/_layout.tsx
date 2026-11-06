@@ -1,11 +1,11 @@
 import { Redirect, Tabs, useLocalSearchParams } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
-import { PlusIcon } from "@/components";
+import { PlusIcon, Tappable, Text } from "@/components";
 import { useAuth } from "@/features";
-import { colors, fonts } from "@/theme";
+import { colors } from "@/theme";
 
 type TabBarProps = {
   state: {
@@ -125,39 +125,31 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
         if (route.name === "scan") {
           return (
             <View key={route.key} style={styles.tabCell}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={label}
+              <Tappable
+                label={label}
                 onPress={onPress}
-                style={({ pressed }) => [
-                  styles.scanButton,
-                  pressed && styles.pressed,
-                ]}
+                style={[styles.scanButton]}
               >
                 <PlusIcon color={colors.onPrimary} size={26} />
-              </Pressable>
-              <Text style={styles.scanLabel}>{label}</Text>
+              </Tappable>
+              <Text weight="bold" style={styles.scanLabel}>{label}</Text>
             </View>
           );
         }
 
         return (
-          <Pressable
+          <Tappable
             key={route.key}
-            accessibilityRole="button"
-            accessibilityState={focused ? { selected: true } : {}}
-            accessibilityLabel={label}
+            selected={focused}
+            label={label}
             onPress={onPress}
-            style={({ pressed }) => [
-              styles.tabCell,
-              pressed && styles.pressed,
-            ]}
+            style={styles.tabCell}
           >
             {getTabIcon(route.name, color)}
-            <Text style={[styles.label, { color }, focused && styles.labelActive]}>
+            <Text weight={focused ? "bold" : "semibold"} style={[styles.label, { color }]}>
               {label}
             </Text>
-          </Pressable>
+          </Tappable>
         );
       })}
     </View>
@@ -227,7 +219,7 @@ const styles = StyleSheet.create({
   dock: {
     position: "relative",
     backgroundColor: colors.surface,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.hairline,
     paddingTop: 10,
     paddingHorizontal: 26,
@@ -242,16 +234,12 @@ const styles = StyleSheet.create({
     gap: 4,
     minHeight: 41,
   },
+  // Tab labels sit below the content type scale on purpose: iOS tab bars
+  // run ~10px, and micro's 0.66 tracking widens them past the Serbian copy.
   label: {
     fontSize: 10.5,
     lineHeight: 13,
-    fontFamily: fonts.bodySemiBold,
-    fontWeight: "600",
     letterSpacing: 0.1,
-  },
-  labelActive: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
   },
   scanButton: {
     position: "absolute",
@@ -269,8 +257,6 @@ const styles = StyleSheet.create({
   scanLabel: {
     fontSize: 10.5,
     lineHeight: 13,
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
     color: colors.primary,
     marginTop: 39,
     letterSpacing: 0.1,
