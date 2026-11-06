@@ -7,6 +7,7 @@ export * from "./DateField";
 export * from "./ErrorBoundary";
 export * from "./FilterChip";
 export * from "./GeneratingOverlay";
+export * from "./GlyphTile";
 export * from "./IconButton";
 export * from "./ReceiptReadingProgress";
 export * from "./PlusIcon";

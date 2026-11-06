@@ -7,6 +7,7 @@ import {
   Card,
   ChoiceCard,
   FilterChip,
+  GlyphTile,
   IconButton,
   PlusIcon,
   Screen,
@@ -164,6 +165,37 @@ export default function Gallery() {
           value={segment}
           onChange={setSegment}
         />
+      </Section>
+
+      <Section title="GlyphTile">
+        <Row label="sizes · sm 40 · md 44 · lg 64">
+          <View style={styles.rowWrap}>
+            <GlyphTile name="milk" category="dairy" size="sm" />
+            <GlyphTile name="milk" category="dairy" size="md" />
+            <GlyphTile name="milk" category="dairy" size="lg" />
+          </View>
+        </Row>
+        <Row label="round">
+          <View style={styles.rowWrap}>
+            <GlyphTile name="apple" category="fruit" size="md" round />
+            <GlyphTile name="bread" category="bakery" size="md" round />
+          </View>
+        </Row>
+        <Row label="category tints">
+          <View style={styles.rowWrap}>
+            {["dairy", "meat", "fish", "vegetables", "fruit", "bakery", "frozen", "drinks", "snacks", "other"].map(
+              (c) => (
+                <GlyphTile key={c} name="" category={c} size="sm" />
+              ),
+            )}
+          </View>
+        </Row>
+        <Row label="underscored category, normalised here">
+          <GlyphTile name="" category="dairy_eggs" size="md" />
+        </Row>
+        <Row label="no match · drawn fallback">
+          <GlyphTile name="zzzz" category="other" size="md" />
+        </Row>
       </Section>
 
       <Section title="Tappable">
