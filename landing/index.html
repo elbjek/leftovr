@@ -170,9 +170,40 @@
   .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--primary); }
 
   /* ── Stage ─────────────────────────────── */
-  .stage { position: relative; overflow: hidden; padding: 72px 0 84px; }
+  /* A stage, not a strip: the hero takes the screen and the composition is
+     lit in the middle of it. */
+  .stage {
+    position: relative; overflow: hidden;
+    min-height: calc(100dvh - 71px);
+    display: flex; align-items: center;
+    padding: 30px 0 40px;
+  }
   .stage-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-  .stage-inner { position: relative; z-index: 2; max-width: 980px; text-align: center; }
+  /* Edge falloff, so the centre reads as the lit part of the room. */
+  .stage-bg::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 68% 58% at 50% 44%,
+                transparent 42%, rgba(226,219,205,0.55) 100%);
+  }
+  .stage-inner { position: relative; z-index: 2; width: 100%; max-width: 1120px; text-align: center; }
+
+  /* Warm key light behind the composition. */
+  .hg-glow-gold {
+    position: absolute; width: 1180px; height: 1180px; border-radius: 50%;
+    left: 50%; top: 44%; transform: translate(-50%, -50%);
+    background:
+      radial-gradient(circle at 50% 44%, rgba(242,193,78,0.40), transparent 54%),
+      radial-gradient(circle at 36% 62%, rgba(167,195,163,0.26), transparent 56%);
+  }
+  /* A faint grain of dots so the cream is a surface, not a void. */
+  .hg-grid {
+    position: absolute; inset: -10%;
+    background-image: radial-gradient(circle, rgba(35,75,52,0.17) 1.3px, transparent 1.5px);
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 44%, transparent 34%, #000 82%);
+    mask-image: radial-gradient(ellipse 62% 58% at 50% 44%, transparent 34%, #000 82%);
+    opacity: 0.55;
+  }
 
   .kicker {
     display: inline-flex; align-items: center; gap: 8px;
@@ -187,10 +218,10 @@
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     font-weight: 800;
     /* min keeps the nowrap underlined phrase inside a 390px screen */
-    font-size: clamp(31px, 5.6vw, 72px);
+    font-size: clamp(31px, 5.4vw, 76px);
     line-height: 1.02; letter-spacing: -0.038em;
     color: var(--text);
-    max-width: 16ch; margin: 0 auto 44px;
+    max-width: 17ch; margin: 0 auto 42px;
   }
   .uline { position: relative; white-space: nowrap; }
   .uline svg { position: absolute; left: 0; right: 0; bottom: -0.14em; width: 100%; height: 0.19em; }
@@ -199,27 +230,36 @@
   /* Objects on a surface, not text in a box. One light source, top left,
      and every shadow tinted warm so nothing reads as a floating sticker. */
   .plate {
-    display: grid; grid-template-columns: 1.02fr auto 0.98fr; align-items: center;
-    gap: 26px; text-align: left; padding: 10px 0 4px;
+    position: relative;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    gap: 40px; text-align: left; padding: 10px 0 4px;
   }
-  .plate-side + .plate-arrow + .plate-side { padding-left: 26px; }
+  /* The floor the whole composition stands on. */
+  .plate::before {
+    content: ""; position: absolute; z-index: -1;
+    left: 50%; bottom: -34px; width: 88%; height: 130px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(120,80,40,0.13), transparent 70%);
+    filter: blur(20px); pointer-events: none;
+  }
+  .plate-side + .plate-arrow + .plate-side { padding-left: 10px; }
   .plate-label {
-    font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--accent-ink); margin-bottom: 12px;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--accent-ink); margin-bottom: 18px;
   }
-  .ings { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .ings { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; }
   /* Dim by default, lit when tonight's dish uses it. That swap IS the product. */
   /* Each ingredient is a thing sitting on the page. Unused ones lie flat and
      colourless; the ones tonight's dish claims rise into the light. */
   .ing {
     display: flex; align-items: center; gap: 11px;
-    font-size: 14.5px; font-weight: 500; line-height: 1.25;
+    font-size: 15.5px; font-weight: 500; line-height: 1.25;
     color: var(--muted);
     transition: color 0.45s ease;
   }
   .ing i {
     position: relative; flex-shrink: 0;
-    width: 46px; height: 46px; border-radius: 999px;
+    width: 56px; height: 56px; border-radius: 999px;
     background: var(--surface-2);
     display: flex; align-items: center; justify-content: center;
     box-shadow: inset 0 1px 2px rgba(120,80,40,0.10);
@@ -227,7 +267,7 @@
                 transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .ing img {
-    width: 28px; height: 28px; object-fit: contain;
+    width: 34px; height: 34px; object-fit: contain;
     opacity: 0.5; filter: saturate(0.3);
     transition: opacity 0.45s ease, filter 0.45s ease;
   }
@@ -243,8 +283,8 @@
 
   /* Tonight's dish arrives on a plate, the heaviest object on the page. */
   .dish-plate {
-    position: relative; width: 152px; height: 152px; border-radius: 999px;
-    margin: 0 0 18px; display: flex; align-items: center; justify-content: center;
+    position: relative; width: 208px; height: 208px; border-radius: 999px;
+    margin: 0 0 24px; display: flex; align-items: center; justify-content: center;
     background:
       radial-gradient(circle at 34% 28%, #FFFFFF 0%, var(--paper) 46%, #F1E9E2 100%);
     box-shadow:
@@ -255,18 +295,18 @@
   }
   /* The rim: a second ring just inside the edge, the way a real plate reads. */
   .dish-plate::after {
-    content: ""; position: absolute; inset: 15px; border-radius: 999px;
+    content: ""; position: absolute; inset: 21px; border-radius: 999px;
     border: 1px solid rgba(120,80,40,0.09);
   }
   .dish-cluster { display: flex; position: relative; z-index: 1; }
   .dish-cluster span {
-    width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
-    filter: drop-shadow(0 6px 7px rgba(120,80,40,0.30));
+    width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
+    filter: drop-shadow(0 8px 9px rgba(120,80,40,0.30));
   }
   .dish-cluster span[hidden] { display: none; }
-  .dish-cluster span + span { margin-left: -10px; }
+  .dish-cluster span + span { margin-left: -14px; }
   .dish-cluster span:nth-child(2) { transform: translateY(-7px); }
-  .dish-cluster img { width: 40px; height: 40px; object-fit: contain; }
+  .dish-cluster img { width: 54px; height: 54px; object-fit: contain; }
   .dish-cluster.swap span { animation: clusterIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
   .dish-cluster.swap span:nth-child(2) { animation-delay: 0.07s; }
   .dish-cluster.swap span:nth-child(3) { animation-delay: 0.14s; }
@@ -280,8 +320,8 @@
     from { opacity: 0; transform: translateY(-24px) scale(0.8); }
     to   { opacity: 1; transform: translateY(-7px); }
   }
-  .plate-arrow { position: relative; color: var(--muted-2); width: 52px; }
-  .plate-arrow svg { width: 52px; height: 14px; display: block; }
+  .plate-arrow { position: relative; color: var(--muted-2); width: 96px; }
+  .plate-arrow svg { width: 96px; height: 14px; display: block; }
   /* A gold pulse runs the arrow on every swap: these become that. */
   .arrow-pulse {
     position: absolute; top: 50%; left: 0; width: 7px; height: 7px;
@@ -293,7 +333,7 @@
     0%   { opacity: 0; transform: translateX(0) scale(0.6); }
     25%  { opacity: 1; }
     80%  { opacity: 1; }
-    100% { opacity: 0; transform: translateX(42px) scale(0.9); }
+    100% { opacity: 0; transform: translateX(86px) scale(0.9); }
   }
 
   .dish-wrap { position: relative; min-height: 4.6em; }
@@ -304,10 +344,10 @@
   }
   .dish {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
-    font-weight: 800; font-size: clamp(26px, 3.1vw, 38px);
-    line-height: 1.08; letter-spacing: -0.03em; color: var(--primary);
+    font-weight: 800; font-size: clamp(28px, 3.5vw, 46px);
+    line-height: 1.06; letter-spacing: -0.032em; color: var(--primary);
   }
-  .dish-meta { font-size: 14px; line-height: 1.45; color: var(--muted); margin-top: 8px; }
+  .dish-meta { font-size: 15px; line-height: 1.45; color: var(--muted); margin-top: 10px; }
   /* The dish materializes rather than fades, and the meta follows a beat later. */
   .dish.swap { animation: dishIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
   .dish-meta.swap { animation: dishIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both; }
@@ -330,7 +370,7 @@
   .dish-next:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .plate-answer { position: relative; padding-right: 40px; }
 
-  .stage-inner .capture { max-width: 470px; margin: 40px auto 0; }
+  .stage-inner .capture { max-width: 470px; margin: 44px auto 0; }
   .stage-inner .capture-label { text-align: center; }
   .stage-inner .privacy { justify-content: center; }
   .stage-inner .form-success { margin: 40px auto 0; }
@@ -345,7 +385,7 @@
   .stage-inner > .capture  { animation-delay: 0.34s; }
 
   /* The device now lives under "What is leftovr?". */
-  .define-device { display: flex; justify-content: center; margin: 44px 0 8px; }
+  .define-device { display: flex; justify-content: center; margin: 44px 0 8px; overflow: hidden; }
 
   @media (prefers-reduced-motion: reduce) {
     .stage-inner > *, .stage-inner > .plate, .phone-stage,
@@ -355,9 +395,18 @@
   }
 
   @media (max-width: 860px) {
+    .stage { min-height: 0; display: block; padding: 32px 0 44px; }
+    .phone-glow { width: 300px; height: 300px; }
     .plate { grid-template-columns: 1fr; gap: 16px; padding: 4px 0; text-align: left; }
+    .plate::before { display: none; }
     .plate-side + .plate-arrow + .plate-side { padding-left: 0; padding-top: 10px; }
-    .dish-plate { width: 132px; height: 132px; margin-bottom: 14px; }
+    .plate-arrow, .plate-arrow svg { width: 60px; }
+    .dish-plate { width: 150px; height: 150px; margin-bottom: 16px; }
+    .dish-plate::after { inset: 16px; }
+    .dish-cluster span { width: 48px; height: 48px; }
+    .dish-cluster img { width: 40px; height: 40px; }
+    .ing i { width: 48px; height: 48px; }
+    .ing img { width: 28px; height: 28px; }
     .plate-arrow { transform: rotate(90deg); margin: 0 auto; }
     .dish-wrap { min-height: 0; }
   }
@@ -861,7 +910,9 @@
   /* Footer */
   footer { padding: 44px 0; border-top: 1px solid var(--hairline); }
   .foot { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-  .foot-links { display: flex; gap: 24px; font-size: 14px; color: var(--muted); }
+  /* Five links no longer fit one phone-width row since "How it compares"
+     was added, so let them wrap instead of pushing the page sideways. */
+  .foot-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 22px; font-size: 14px; color: var(--muted); }
   .foot-links a:hover { color: var(--text); }
   .foot-copy { font-size: 13px; color: var(--muted-2); }
 
