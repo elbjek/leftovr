@@ -1,0 +1,245 @@
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { StyleSheet, View } from "react-native";
+import {
+  BackButton,
+  Button,
+  Card,
+  ChoiceCard,
+  FilterChip,
+  IconButton,
+  PlusIcon,
+  Screen,
+  ScreenHeader,
+  SegmentedControl,
+  Text,
+  TextField,
+} from "../components/primitives";
+import { colors, radii, spacing, typography } from "../theme";
+
+/**
+ * Component gallery. Every primitive, every variant, every state, on one
+ * screen against the real tokens.
+ *
+ * This is the review surface for the design system: a component reviewed
+ * inside a real screen is reviewed against that screen's data and spacing,
+ * which is how a system drifts. A component with no block here is not
+ * finished.
+ *
+ * Reachable at /gallery. Not linked from anywhere in the app.
+ */
+export default function Gallery() {
+  const router = useRouter();
+  const [segment, setSegment] = useState<"all" | "soon" | "gone">("all");
+  const [chip, setChip] = useState("fridge");
+  const [text, setText] = useState("");
+
+  return (
+    <Screen scroll>
+      <BackButton onPress={() => router.back()} />
+      <ScreenHeader eyebrow="Design system" title="Gallery" subtitle="Every primitive, every state." />
+
+      <Section title="Typography">
+        <Card>
+          {(["display", "h1", "h2", "h3", "body", "label", "small", "micro", "numeral"] as const).map(
+            (v) => (
+              <View key={v} style={styles.typeRow}>
+                <Text variant="micro" muted style={styles.typeName}>
+                  {v} · {typography[v].fontSize}/{typography[v].lineHeight}
+                </Text>
+                <Text variant={v}>{v === "numeral" ? "1 284" : "What's for dinner"}</Text>
+              </View>
+            ),
+          )}
+        </Card>
+      </Section>
+
+      <Section title="Colour">
+        <View style={styles.swatches}>
+          {(
+            [
+              ["bg", colors.bg],
+              ["surface", colors.surface],
+              ["surface2", colors.surface2],
+              ["surface3", colors.surface3],
+              ["primary", colors.primary],
+              ["primary700", colors.primary700],
+              ["accent", colors.accent],
+              ["accentSoft", colors.accentSoft],
+              ["accentInk", colors.accentInk],
+              ["text", colors.text],
+              ["muted", colors.muted],
+              ["muted2", colors.muted2],
+              ["green", colors.green],
+              ["red", colors.red],
+              ["redSoft", colors.redSoft],
+              ["redInk", colors.redInk],
+            ] as const
+          ).map(([name, value]) => (
+            <View key={name} style={styles.swatch}>
+              <View style={[styles.chipColor, { backgroundColor: value }]} />
+              <Text variant="micro" muted>
+                {name}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Section>
+
+      <Section title="Button">
+        <Row label="primary">
+          <Button title="Add to fridge" />
+        </Row>
+        <Row label="primary · loading">
+          <Button title="Add to fridge" loading />
+        </Row>
+        <Row label="primary · disabled">
+          <Button title="Add to fridge" disabled />
+        </Row>
+        <Row label="primary · icon">
+          <Button title="Scan a receipt" iconLeft={<PlusIcon size={20} />} />
+        </Row>
+        <Row label="accent">
+          <Button title="Cook this" variant="accent" />
+        </Row>
+        <Row label="ghost">
+          <Button title="Maybe later" variant="ghost" />
+        </Row>
+        <Row label="text">
+          <Button title="Skip" variant="text" />
+        </Row>
+        <Row label="fit">
+          <Button title="Fit" fit />
+        </Row>
+        <Row label="long label">
+          <Button title="Generate recipes from everything in the fridge" />
+        </Row>
+      </Section>
+
+      <Section title="Card">
+        <Card>
+          <Text variant="h3">Plain card</Text>
+          <Text muted>Padded by default.</Text>
+        </Card>
+        <View style={styles.gap} />
+        <Card dashed>
+          <Text muted>Dashed card</Text>
+        </Card>
+      </Section>
+
+      <Section title="ChoiceCard">
+        <ChoiceCard title="Fridge" subtitle="Cold storage" onPress={() => {}} />
+        <View style={styles.gap} />
+        <ChoiceCard title="Pantry" subtitle="Dry goods" selected onPress={() => {}} />
+        <View style={styles.gap} />
+        <ChoiceCard title="Yearly" subtitle="Two months free" recommended recommendedLabel="Best value" onPress={() => {}} />
+        <View style={styles.gap} />
+        <ChoiceCard title="Compact row" compact onPress={() => {}} />
+      </Section>
+
+      <Section title="TextField">
+        <TextField label="Item name" value={text} onChangeText={setText} placeholder="Milk" />
+        <View style={styles.gap} />
+        <TextField label="Quantity" value="" placeholder="0" error="Enter a number" />
+        <View style={styles.gap} />
+        <TextField label="Disabled" value="Locked" editable={false} />
+      </Section>
+
+      <Section title="FilterChip">
+        <View style={styles.rowWrap}>
+          {["fridge", "pantry", "freezer"].map((c) => (
+            <FilterChip key={c} label={c} active={chip === c} count="4" onPress={() => setChip(c)} />
+          ))}
+        </View>
+      </Section>
+
+      <Section title="SegmentedControl">
+        <SegmentedControl
+          options={[
+            { value: "all", label: "All" },
+            { value: "soon", label: "Use soon" },
+            { value: "gone", label: "Expired" },
+          ]}
+          value={segment}
+          onChange={setSegment}
+        />
+      </Section>
+
+      <Section title="IconButton">
+        <View style={styles.rowWrap}>
+          <IconButton label="Add" onPress={() => {}}>
+            <PlusIcon size={20} />
+          </IconButton>
+          <IconButton label="Add" transparent onPress={() => {}}>
+            <PlusIcon size={20} color={colors.primary} />
+          </IconButton>
+        </View>
+      </Section>
+    </Screen>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <Text variant="micro" muted uppercase style={styles.sectionTitle}>
+        {title}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.row}>
+      <Text variant="micro" muted>
+        {label}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  section: {
+    marginTop: spacing.huge,
+    gap: spacing.md,
+  },
+  sectionTitle: {
+    marginBottom: spacing.xxs,
+  },
+  row: {
+    gap: spacing.sm,
+  },
+  rowWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  gap: {
+    height: spacing.md,
+  },
+  typeRow: {
+    gap: spacing.xxs,
+    paddingVertical: spacing.sm,
+  },
+  typeName: {
+    opacity: 0.7,
+  },
+  swatches: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.md,
+  },
+  swatch: {
+    alignItems: "center",
+    gap: spacing.xxs,
+    width: 72,
+  },
+  chipColor: {
+    width: 56,
+    height: 44,
+    borderRadius: radii.sm,
+  },
+});
