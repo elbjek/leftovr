@@ -6,9 +6,11 @@ import {
   Button,
   Card,
   ChoiceCard,
+  Divider,
   FilterChip,
   GlyphTile,
   IconButton,
+  ListRow,
   PlusIcon,
   Screen,
   ScreenHeader,
@@ -155,6 +157,60 @@ export default function Gallery() {
             <FilterChip key={c} label={c} active={chip === c} count="4" onPress={() => setChip(c)} />
           ))}
         </View>
+      </Section>
+
+      <Section title="ListRow + Divider">
+        <Card padded={false} style={styles.listCard}>
+          <ListRow
+            title="Milk"
+            subtitle="2 days left · Lena"
+            leading={<GlyphTile name="milk" category="dairy" />}
+            trailing={<StatusPill label="Use soon" tone="useSoon" />}
+            onPress={() => {}}
+          />
+          <Divider inset />
+          <ListRow
+            title="Chicken breast"
+            subtitle="Today · 450 g"
+            leading={<GlyphTile name="chicken" category="meat" />}
+            trailing={<StatusPill label="Today" tone="urgent" />}
+            onPress={() => {}}
+          />
+          <Divider inset />
+          <ListRow
+            title="A very long item name that will not fit on one line"
+            subtitle="And a subtitle that will not fit either, not even close"
+            leading={<GlyphTile name="bread" category="bakery" />}
+            onPress={() => {}}
+          />
+        </Card>
+        <View style={styles.gap} />
+        <Row label="settings shape · no leading, value trailing">
+          <Card padded={false} style={styles.listCard}>
+            <ListRow title="Language" trailing={<Text variant="small" muted>English</Text>} onPress={() => {}} />
+            <Divider />
+            <ListRow title="Units" trailing={<Text variant="small" muted>Metric</Text>} onPress={() => {}} />
+            <Divider />
+            <ListRow title="Delete account" danger onPress={() => {}} />
+          </Card>
+        </Row>
+        <Row label="static · no onPress, no chevron">
+          <Card padded={false} style={styles.listCard}>
+            <ListRow title="Not pressable" subtitle="No chevron, no feedback" />
+          </Card>
+        </Row>
+        <Row label="disabled">
+          <Card padded={false} style={styles.listCard}>
+            <ListRow title="Unavailable" subtitle="Needs a household" disabled onPress={() => {}} />
+          </Card>
+        </Row>
+        <Row label="Divider · full and inset">
+          <View style={styles.dividerDemo}>
+            <Divider />
+            <View style={styles.gap} />
+            <Divider inset />
+          </View>
+        </Row>
       </Section>
 
       <Section title="SectionHeader">
@@ -357,6 +413,14 @@ const styles = StyleSheet.create({
   },
   tapRowSelected: {
     backgroundColor: colors.primary,
+  },
+  listCard: {
+    paddingHorizontal: spacing.lg,
+  },
+  dividerDemo: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
   },
   chipColor: {
     width: 56,
