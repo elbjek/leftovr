@@ -1,9 +1,9 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { categoryColors, CategoryTone, colors, fonts, radii, spacing, Urgency, urgencyColors } from "../../theme";
-import { FoodGlyph } from "../illustrations";
-import { Text } from "../primitives";
+import { colors, spacing, Urgency, urgencyColors } from "../../theme";
+import { Card, Divider, GlyphTile, ListRow, SectionHeader, StatusPill, Tappable, Text } from "../primitives";
 
 export type FoodListItem = {
   id: string;
@@ -12,9 +12,9 @@ export type FoodListItem = {
   meta: string;
   urgency?: Urgency;
   addedBy?: string | null;
-  /** TinyMeals-style status pill ("Use now"); without it a freshness dot. */
+  /** A status pill ("Use now"); without it a freshness dot. */
   status?: string;
-  /** Shows a date column ("TUE" over "5") in place of the food tile, as in TinyMeals' Try next. */
+  /** Shows a date column ("TUE" over "5") in place of the food tile. */
   date?: { weekday: string; day: string };
 };
 
@@ -32,117 +32,104 @@ type Props = {
   emptyText?: string;
 };
 
-// A shelf on the Kitchen home: small uppercase label, then a cream card of
-// hairline-divided food rows (round glyph tile, name, meta, status pill or
-// freshness dot).
-export function FoodListCard({ title, items, maxVisible, seeAllLabel, onSeeAll, onItemPress, footer, emptyText }: Props) {
+/** A shelf on the Kitchen home: a section header, then a card of food rows. */
+export function FoodListCard({
+  title,
+  items,
+  maxVisible,
+  seeAllLabel,
+  onSeeAll,
+  onItemPress,
+  footer,
+  emptyText,
+}: Props) {
   const visible = maxVisible ? items.slice(0, maxVisible) : items;
   const showSeeAll = Boolean(seeAllLabel && onSeeAll && visible.length < items.length);
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.head}>
-        <Text variant="micro" uppercase muted style={styles.title}>
-          {title}
-        </Text>
-        {showSeeAll ? (
-          <Pressable accessibilityRole="link" onPress={onSeeAll} hitSlop={8}>
-            <Text variant="small" color={colors.primary} style={styles.seeAll}>
-              {seeAllLabel}
+      <SectionHeader
+        title={title}
+        style={styles.head}
+        actions={
+          showSeeAll ? (
+            <Tappable role="link" label={seeAllLabel} onPress={onSeeAll}>
+              <Text variant="label" color={colors.primary}>
+                {seeAllLabel}
+              </Text>
+            </Tappable>
+          ) : (
+            <Text variant="small" muted>
+              {items.length}
             </Text>
-          </Pressable>
-        ) : (
-          <Text variant="small" muted>
-            {items.length}
-          </Text>
-        )}
-      </View>
+          )
+        }
+      />
 
-      <View style={styles.card}>
+      <Card padded={false} style={styles.card}>
         {items.length === 0 && emptyText ? (
-          <View style={[styles.row, styles.empty]}>
-            <View style={styles.emptyCheck}>
-              <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-                <Path d="M5.5 12.5l4.2 4.2 8.8-9.4" stroke={colors.primary} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </View>
-            <Text variant="small" color={colors.primary} style={[styles.copy, styles.seeAll]}>
-              {emptyText}
-            </Text>
-          </View>
-        ) : null}
-        {visible.map((item, index) => {
-          const tone = categoryColors[(item.category as CategoryTone)] ?? categoryColors.other;
-          return (
-            <Pressable
-              key={item.id}
-              accessibilityRole="button"
-              accessibilityLabel={`${item.name}. ${item.meta}`}
-              onPress={() => onItemPress(item)}
-              style={({ pressed }) => [styles.row, index > 0 && styles.rowDivider, pressed && styles.pressed]}
-            >
-              {item.date ? (
-                <View style={styles.date}>
-                  <Text variant="micro" color={colors.muted2} uppercase style={styles.dateWeekday}>
-                    {item.date.weekday}
-                  </Text>
-                  <Text style={styles.dateDay}>{item.date.day}</Text>
-                </View>
-              ) : (
-                <View style={[styles.thumb, { backgroundColor: tone.background }]}>
-                  <FoodGlyph name={item.name} category={item.category} color={tone.mark} size={24} />
-                </View>
-              )}
-              <View style={styles.copy}>
-                <Text variant="label" numberOfLines={1} style={styles.name}>
-                  {item.name}
-                </Text>
-                <Text variant="small" muted numberOfLines={1}>
-                  {item.addedBy ? `${item.meta} · ${item.addedBy}` : item.meta}
-                </Text>
+          <ListRow
+            title={emptyText}
+            leading={
+              <View style={styles.emptyCheck}>
+                <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M5.5 12.5l4.2 4.2 8.8-9.4"
+                    stroke={colors.primary}
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
               </View>
-              {item.status ? (
-                <View style={[styles.pill, { backgroundColor: PILL[item.urgency ?? "safe"].background }]}>
-                  <Text variant="micro" color={PILL[item.urgency ?? "safe"].ink} style={styles.pillLabel}>
-                    {item.status}
-                  </Text>
-                </View>
-              ) : (
-                <View style={[styles.dot, { backgroundColor: urgencyColors[item.urgency ?? "safe"] }]} />
-              )}
-              <ChevronIcon />
-            </Pressable>
-          );
-        })}
-        {footer && items.length > 0 ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={footer.onPress}
-            style={({ pressed }) => [styles.row, styles.footer, visible.length > 0 && styles.rowDivider, pressed && styles.pressed]}
-          >
-            <Text variant="label" color={colors.primary} style={[styles.name, styles.copy]}>
-              {footer.label}
-            </Text>
-            <ChevronIcon />
-          </Pressable>
+            }
+          />
         ) : null}
-      </View>
+
+        {visible.map((item, index) => (
+          <React.Fragment key={item.id}>
+            {index > 0 ? <Divider inset /> : null}
+            <ListRow
+              title={item.name}
+              subtitle={item.addedBy ? `${item.meta} · ${item.addedBy}` : item.meta}
+              leading={
+                item.date ? (
+                  <View style={styles.date}>
+                    <Text variant="micro" color={colors.muted2}>
+                      {item.date.weekday}
+                    </Text>
+                    <Text variant="h3">{item.date.day}</Text>
+                  </View>
+                ) : (
+                  <GlyphTile name={item.name} category={item.category} size="sm" round />
+                )
+              }
+              trailing={
+                item.status ? (
+                  <StatusPill label={item.status} tone={item.urgency ?? "safe"} />
+                ) : (
+                  // Redundant with the meta line, which already says the days
+                  // left in words — so this is reinforcement, not the only cue.
+                  <View
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    style={[styles.dot, { backgroundColor: urgencyColors[item.urgency ?? "safe"] }]}
+                  />
+                )
+              }
+              onPress={() => onItemPress(item)}
+            />
+          </React.Fragment>
+        ))}
+
+        {footer && items.length > 0 ? (
+          <>
+            {visible.length > 0 ? <Divider /> : null}
+            <ListRow title={footer.label} onPress={footer.onPress} style={styles.footer} />
+          </>
+        ) : null}
+      </Card>
     </View>
-  );
-}
-
-const PILL: Record<Urgency, { background: string; ink: string }> = {
-  urgent: { background: colors.redSoft, ink: colors.redInk },
-  useSoon: { background: colors.accentSoft, ink: colors.accentInk },
-  safe: { background: colors.sageTint, ink: colors.primary },
-  expired: { background: colors.surface3, ink: colors.muted },
-};
-
-function ChevronIcon() {
-  return (
-    <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
-      <Path d="M5 2.5 9.5 7 5 11.5" stroke={colors.muted2} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
   );
 }
 
@@ -152,57 +139,14 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   head: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
     paddingHorizontal: spacing.xxs,
   },
-  title: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    letterSpacing: 0.66,
-  },
-  seeAll: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-  },
   card: {
-    backgroundColor: colors.paper,
-    borderRadius: radii.xl,
     paddingHorizontal: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    minHeight: 62,
-    paddingVertical: spacing.sm + 2,
-  },
-  rowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
   },
   date: {
     width: 40,
     alignItems: "center",
-  },
-  dateWeekday: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 10,
-    letterSpacing: 0.5,
-  },
-  dateDay: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 18,
-    lineHeight: 22,
-    color: colors.text,
-  },
-  empty: {
-    minHeight: 56,
   },
   emptyCheck: {
     width: 26,
@@ -215,39 +159,9 @@ const styles = StyleSheet.create({
   footer: {
     minHeight: 52,
   },
-  thumb: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  copy: {
-    flex: 1,
-    minWidth: 0,
-    gap: 1,
-  },
-  name: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-    fontSize: 15,
-  },
-  pill: {
-    height: 24,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    justifyContent: "center",
-  },
-  pillLabel: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-  },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-  },
-  pressed: {
-    opacity: 0.6,
   },
 });
