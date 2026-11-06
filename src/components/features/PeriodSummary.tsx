@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, radii, spacing } from "../../theme";
-import { Tappable, Text } from "../primitives";
+import { Card, Tappable, Text } from "../primitives";
 
 type Props = {
   /** Label over the big number, e.g. "Saved". */
@@ -20,34 +20,32 @@ type Props = {
   onShare: () => void;
 };
 
-// The top of Insights: one flat green card carrying the period's money, the
-// trend line and the three figures, so the page has a single focal number
-// instead of a grid of equal cards.
+// The top of Insights: the period's money as the page's one big number, with
+// the three figures under it. A white card like the home's, green as ink
+// rather than as a filled slab.
 export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel, onShare }: Props) {
   return (
-    <View style={styles.card}>
+    <Card style={styles.card}>
       <View style={styles.top}>
         <View style={styles.headline}>
-          <Text variant="micro" color={colors.onPrimary} uppercase style={styles.kicker}>
+          <Text variant="micro" uppercase color={colors.accentInk}>
             {label}
           </Text>
           {emptyText ? (
-            <Text variant="body" color={colors.onPrimary} style={styles.empty}>
+            <Text variant="body" muted>
               {emptyText}
             </Text>
           ) : (
             <>
               {value ? (
-                <Text variant="numeral" color={colors.onPrimary} style={styles.value}>
+                <Text variant="numeral" color={colors.primary} style={styles.value}>
                   {value}
                 </Text>
               ) : null}
               {sub ? (
-                <View style={styles.subChip}>
-                  <Text variant="small" weight="bold" color={colors.onPrimary}>
-                    {sub}
-                  </Text>
-                </View>
+                <Text variant="small" muted>
+                  {sub}
+                </Text>
               ) : null}
             </>
           )}
@@ -57,7 +55,7 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
             <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"
-                stroke={colors.onPrimary}
+                stroke={colors.primary}
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -71,24 +69,22 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
         <View style={styles.stats}>
           {stats.map((stat, index) => (
             <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
-              <Text variant="h2" weight="extrabold" color={colors.onPrimary}>
+              <Text variant="h2" weight="extrabold">
                 {stat.value}
               </Text>
-              <Text variant="small" color={colors.onPrimary} style={styles.statLabel}>
+              <Text variant="small" muted>
                 {stat.label}
               </Text>
             </View>
           ))}
         </View>
       )}
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.xxl,
     padding: spacing.xl,
     gap: spacing.lg,
   },
@@ -100,37 +96,24 @@ const styles = StyleSheet.create({
   headline: {
     flex: 1,
     minWidth: 0,
-    gap: spacing.xs,
-  },
-  kicker: {
-    opacity: 0.8,
+    gap: 2,
   },
   value: {
-    marginTop: 2,
-  },
-  empty: {
-    opacity: 0.85,
-  },
-  subChip: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: radii.pill,
-    backgroundColor: colors.primary700,
+    marginVertical: 2,
   },
   share: {
     width: 44,
     height: 44,
     borderRadius: radii.lg,
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.primary50,
     alignItems: "center",
     justifyContent: "center",
   },
   stats: {
     flexDirection: "row",
-    paddingTop: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.inverseHairline,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
   },
   stat: {
     flex: 1,
@@ -138,11 +121,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   statDivider: {
-    borderLeftWidth: 1,
-    borderLeftColor: colors.inverseHairline,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: colors.hairline,
     paddingLeft: spacing.md,
-  },
-  statLabel: {
-    opacity: 0.75,
   },
 });

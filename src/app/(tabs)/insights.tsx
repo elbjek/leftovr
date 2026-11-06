@@ -15,9 +15,9 @@ import {
   PremiumSheet,
   Screen,
   SectionTitle,
+  SegmentedControl,
   ShareStatsSheet,
   StoryCard,
-  Tappable,
   Text,
   TopDinners,
   UsedTossedChart,
@@ -28,7 +28,7 @@ import type { ShareLook } from "@/components";
 import { useDaySheet, usePeriodInsights, useStreak, useWins } from "@/hooks";
 import { InventoryCategory, Period, toUiCategory } from "@/services";
 import { formatMoney } from "@/lib/money";
-import { colors, radii, spacing } from "@/theme";
+import { colors, radii, shadows, spacing } from "@/theme";
 
 const PERIODS: Period[] = ["week", "month", "year"];
 
@@ -84,23 +84,11 @@ export default function InsightsRoute() {
         </View>
       </View>
       {isPremium ? (
-        <View style={styles.segmented} accessibilityRole="tablist">
-          {PERIODS.map((option) => (
-            <Tappable
-              key={option}
-              role="tab"
-              selected={option === period}
-              label={t(`insights.period.${option}`)}
-              onPress={() => setPeriod(option)}
-              hitSlop={0}
-              style={[styles.segment, option === period && styles.segmentOn]}
-            >
-              <Text variant="label" weight="bold" color={option === period ? colors.primary : colors.muted}>
-                {t(`insights.period.${option}`)}
-              </Text>
-            </Tappable>
-          ))}
-        </View>
+        <SegmentedControl
+          options={PERIODS.map((option) => ({ value: option, label: t(`insights.period.${option}`) }))}
+          value={period}
+          onChange={setPeriod}
+        />
       ) : null}
     </View>
   );
@@ -458,23 +446,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  // Week / Month / Year, all three visible.
-  segmented: {
-    flexDirection: "row",
-    padding: 4,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
-  },
-  segment: {
-    flex: 1,
-    minHeight: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radii.pill,
-  },
-  segmentOn: {
-    backgroundColor: colors.surface,
-  },
   section: {
     gap: spacing.sm,
   },
@@ -491,9 +462,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.xl,
     borderRadius: radii.xxl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
     backgroundColor: colors.surface,
+    ...shadows.soft,
   },
   lockSeal: {
     width: 48,

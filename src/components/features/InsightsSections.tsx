@@ -1,8 +1,9 @@
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, radii, spacing } from "../../theme";
-import { GlyphTile, SectionHeader, Tappable, Text } from "../primitives";
+import { colors, radii, shadows, spacing } from "../../theme";
+import { Card, Divider, GlyphTile, SectionHeader, Tappable, Text } from "../primitives";
+import { RecipeGlyph } from "./RecipeGlyph";
 
 // The Insights tab's sections, TinyMeals-style: each answers one question
 // about your kitchen; with no data yet, the screen shows an EmptyNote instead.
@@ -51,10 +52,11 @@ export function StoryCard({
         </Text>
       </View>
       {chips.length > 0 ? (
-        <View style={styles.chips}>
+        <View style={styles.verdicts}>
           {chips.map((chip) => (
-            <View key={chip.text} style={[styles.chip, chip.weak && styles.chipWeak]}>
-              <Text variant="small" weight="bold" color={chip.weak ? colors.redInk : colors.primary}>
+            <View key={chip.text} style={styles.verdict}>
+              <View style={[styles.verdictDot, { backgroundColor: chip.weak ? colors.redInk : colors.green }]} />
+              <Text variant="small" muted style={styles.verdictText}>
                 {chip.text}
               </Text>
             </View>
@@ -106,10 +108,11 @@ export function UsedTossedChart({
         <Text variant="label" weight="bold">
           {title}
         </Text>
-        <View style={styles.legend}>
-          <LegendDot color={colors.sage} label={legend.used} />
-          <LegendDot color={colors.redInk} label={legend.tossed} />
-        </View>
+        {aside ? (
+          <Text variant="small" muted>
+            {aside}
+          </Text>
+        ) : null}
       </View>
       <View style={[styles.bars, { height: HEIGHT + 20 }]}>
         {bars.map((bar, index) => {
@@ -137,22 +140,10 @@ export function UsedTossedChart({
           </Text>
         ))}
       </View>
-      {aside ? (
-        <View style={styles.callout}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M12 3l2.4 5.2 5.6.7-4.1 3.9 1.1 5.6L12 15.7 6.9 18.4 8 12.8 3.9 8.9l5.6-.7L12 3z"
-              stroke={colors.primary}
-              strokeWidth={2.2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-          <Text variant="small" weight="bold" color={colors.primary} style={styles.calloutText}>
-            {aside}
-          </Text>
-        </View>
-      ) : null}
+      <View style={styles.legend}>
+        <LegendDot color={colors.sage} label={legend.used} />
+        <LegendDot color={colors.redInk} label={legend.tossed} />
+      </View>
     </View>
   );
 }
@@ -254,25 +245,30 @@ export function GoingOffList({
 /** The period's most-cooked dinners as a menu: the dish, then how often. */
 export function TopDinners({ dinners }: { dinners: { title: string; detail: string; onPress?: () => void }[] }) {
   return (
-    <View style={styles.menu}>
+    <Card style={styles.listCard}>
       {dinners.map((dinner, index) => (
-        <Tappable
-          key={dinner.title}
-          role={dinner.onPress ? "button" : "text"}
-          disabled={!dinner.onPress}
-          onPress={dinner.onPress}
-          hitSlop={0}
-          style={[styles.dinner, index > 0 && styles.menuDivider]}
-        >
-          <Text variant="label" weight="bold" color={colors.onPrimary} numberOfLines={2} style={styles.dinnerTitle}>
-            {dinner.title}
-          </Text>
-          <Text variant="label" weight="extrabold" color={colors.onPrimary}>
-            {dinner.detail}
-          </Text>
-        </Tappable>
+        <View key={dinner.title}>
+          {index > 0 ? <Divider /> : null}
+          <Tappable
+            role={dinner.onPress ? "button" : "text"}
+            disabled={!dinner.onPress}
+            onPress={dinner.onPress}
+            hitSlop={0}
+            style={styles.dinner}
+          >
+            <View style={styles.dinnerTile}>
+              <RecipeGlyph size={26} />
+            </View>
+            <Text variant="label" weight="bold" numberOfLines={2} style={styles.dinnerTitle}>
+              {dinner.title}
+            </Text>
+            <Text variant="small" muted>
+              {dinner.detail}
+            </Text>
+          </Tappable>
+        </View>
       ))}
-    </View>
+    </Card>
   );
 }
 
@@ -288,39 +284,30 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radii.xxl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+    borderRadius: radii.xl,
+    ...shadows.soft,
     padding: spacing.lg,
     gap: spacing.md,
   },
   storyText: {
     gap: spacing.xs,
   },
-  chips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
+  verdicts: {
+    gap: spacing.xs,
   },
-  chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: radii.pill,
-    backgroundColor: colors.sageTint,
-  },
-  chipWeak: {
-    backgroundColor: colors.redSoft,
-  },
-  callout: {
+  verdict: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    backgroundColor: colors.sageTint,
   },
-  calloutText: {
+  verdictDot: {
+    width: 7,
+    height: 7,
+    borderRadius: radii.pill,
+  },
+  verdictText: {
     flex: 1,
+    minWidth: 0,
   },
   note: {
     flexDirection: "row",
@@ -445,29 +432,27 @@ const styles = StyleSheet.create({
   },
   dots: {
     flexDirection: "row",
-    gap: 5,
+    gap: 6,
   },
   dot: {
-    width: 18,
-    height: 7,
-    borderRadius: radii.pill,
-  },
-  menu: {
-    backgroundColor: colors.primary,
-    borderRadius: radii.xxl,
-    paddingHorizontal: spacing.lg,
+    width: 14,
+    height: 14,
+    borderRadius: radii.xs,
   },
   dinner: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: spacing.md,
     minHeight: 56,
     paddingVertical: spacing.md,
   },
-  menuDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.inverseHairline,
+  dinnerTile: {
+    width: 42,
+    height: 42,
+    borderRadius: radii.md,
+    backgroundColor: colors.sageTint,
+    alignItems: "center",
+    justifyContent: "center",
   },
   dinnerTitle: {
     flex: 1,
