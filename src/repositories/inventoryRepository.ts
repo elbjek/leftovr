@@ -233,37 +233,49 @@ async function markInventoryPartialState(itemId: string, partialState: PartialSt
 }
 
 // Fetches the active lots for one food and plans which ops deplete it.
-// Ops are applied atomically by the apply_cook RPC.
-async function computeDepletionOps(
-  householdId: string,
-  normalizedName: string,
-  amount: number,
-  unit: string,
-) {
-  const supabase = getSupabaseClient();
+type DepletableLot = {
+  id: string;
+  name: string;
+  category: InventoryCategory;
+  quantity: number;
+  partial_state: PartialState;
+  unit: string;
+  expires_at: string | null;
+  added_at: string;
+  net_amount: number | null;
+  net_unit: "ml" | "g" | null;
+};
 
-  const { data, error } = await supabase
+// Every lot a cook might touch, in one request — a recipe names up to a dozen
+// ingredients and a query each was a round-trip each before the cook started.
+async function fetchDepletableLots(householdId: string, normalizedNames: string[]) {
+  const byName = new Map<string, DepletableLot[]>();
+  if (normalizedNames.length === 0) return byName;
+
+  const { data, error } = await getSupabaseClient()
     .from("inventory_items")
-    .select("id, name, category, quantity, partial_state, unit, expires_at, added_at, net_amount, net_unit")
+    .select("id, name, normalized_name, category, quantity, partial_state, unit, expires_at, added_at, net_amount, net_unit")
     .eq("household_id", householdId)
-    .eq("normalized_name", normalizedName)
+    .in("normalized_name", normalizedNames)
     .is("removed_at", null);
 
   if (error) throw error;
 
-  const lots = (data ?? []) as {
-    id: string;
-    name: string;
-    category: InventoryCategory;
-    quantity: number;
-    partial_state: PartialState;
-    unit: string;
-    expires_at: string | null;
-    added_at: string;
-    net_amount: number | null;
-    net_unit: "ml" | "g" | null;
-  }[];
+  for (const row of (data ?? []) as (DepletableLot & { normalized_name: string })[]) {
+    const bucket = byName.get(row.normalized_name);
+    if (bucket) bucket.push(row);
+    else byName.set(row.normalized_name, [row]);
+  }
+  return byName;
+}
 
+// Ops are applied atomically by the apply_cook RPC.
+function computeDepletionOps(
+  lots: DepletableLot[],
+  normalizedName: string,
+  amount: number,
+  unit: string,
+) {
   // Expired lots are never cooked with — they wait in "Check these" for the
   // user to vouch for or toss, so depletion must not consume them.
   const usableLots = lots.filter((lot) => resolveUrgency(lot) !== "expired");
@@ -361,17 +373,18 @@ export async function recordCookedEventAndDepleteInventory(input: {
 }) {
   const supabase = getSupabaseClient();
 
-  const ops = [];
-  for (const item of input.usedItems) {
-    ops.push(
-      ...(await computeDepletionOps(
-        input.householdId,
-        item.normalizedName,
-        item.amount ?? 1,
-        item.unit ?? "item",
-      )),
-    );
-  }
+  const lotsByName = await fetchDepletableLots(
+    input.householdId,
+    [...new Set(input.usedItems.map((item) => item.normalizedName))],
+  );
+  const ops = input.usedItems.flatMap((item) =>
+    computeDepletionOps(
+      lotsByName.get(item.normalizedName) ?? [],
+      item.normalizedName,
+      item.amount ?? 1,
+      item.unit ?? "item",
+    ),
+  );
 
   // Single transaction: all depletion ops + the cooked event land together
   // (cooked_by is auth.uid() inside the RPC).
