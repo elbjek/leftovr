@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, spacing, Urgency, urgencyColors } from "../../theme";
+import { Urgency, colors, radii, spacing, urgencyColors } from "../../theme";
 import { Card, Divider, GlyphTile, ListRow, SectionHeader, StatusPill, Tappable, Text } from "../primitives";
 
 export type FoodListItem = {
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   emptyCheck: {
     width: 26,
     height: 26,
-    borderRadius: 13,
+    borderRadius: radii.md,
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",

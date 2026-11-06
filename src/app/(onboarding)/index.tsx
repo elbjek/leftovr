@@ -245,7 +245,7 @@ export default function OnboardingRoute() {
 
         {error ? (
           <View style={styles.errorBox}>
-            <Text variant="small" color={colors.redInk} center>
+            <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
               {error}
             </Text>
           </View>

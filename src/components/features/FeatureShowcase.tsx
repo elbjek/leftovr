@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
   dot9: {
     width: 9,
     height: 9,
-    borderRadius: 5,
+    borderRadius: radii.xs,
   },
   dotHollow: {
     borderWidth: 1.5,
@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
   checkCircle: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: radii.xs,
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
@@ -867,7 +867,7 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 22,
     height: 22,
-    borderRadius: 7,
+    borderRadius: radii.xs,
     backgroundColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
@@ -889,7 +889,7 @@ const styles = StyleSheet.create({
   toastCheck: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: radii.md,
     backgroundColor: colors.green,
     alignItems: "center",
     justifyContent: "center",
@@ -912,7 +912,7 @@ const styles = StyleSheet.create({
   segment: {
     height: 26,
     paddingHorizontal: 10,
-    borderRadius: 8,
+    borderRadius: radii.xs,
     justifyContent: "center",
   },
   segmentOn: {
@@ -946,7 +946,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 76,
     height: 76,
-    borderRadius: 38,
+    borderRadius: radii.xxl,
     borderWidth: 5,
     borderColor: colors.onPrimary,
     alignItems: "center",
@@ -993,6 +993,6 @@ const styles = StyleSheet.create({
   startDot: {
     width: 12,
     height: 12,
-    borderRadius: 6,
+    borderRadius: radii.xs,
   },
 });

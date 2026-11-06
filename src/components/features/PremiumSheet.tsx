@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   checkCircle: {
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: radii.md,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",

@@ -56,7 +56,7 @@ export default function InviteCodeRoute() {
             disabled={!ready}
           />
           {signIn.error ? (
-            <Text variant="small" color={colors.redInk} center>
+            <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
               {signIn.error}
             </Text>
           ) : null}

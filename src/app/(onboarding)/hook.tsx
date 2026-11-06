@@ -187,7 +187,7 @@ export default function HookCarouselRoute() {
             </Text>
           </Tappable>
           {signIn.error ? (
-            <Text variant="small" color={colors.redInk} center>
+            <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
               {signIn.error}
             </Text>
           ) : null}
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   back: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: radii.xxl,
     alignItems: "center",
     justifyContent: "center",
   },

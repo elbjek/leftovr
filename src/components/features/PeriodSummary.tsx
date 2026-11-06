@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, fonts, radii, shadows, spacing } from "../../theme";
+import { colors, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
@@ -36,7 +36,7 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
             </Text>
           ) : (
             <>
-              {value ? <Text style={styles.value}>{value}</Text> : null}
+              {value ? <Text variant="numeral" style={styles.value}>{value}</Text> : null}
               {sub ? (
                 <Text variant="small" muted>
                   {sub}
@@ -97,16 +97,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   value: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 44,
-    // At or above the font size so iOS doesn't clip the digits.
-    lineHeight: 50,
     color: colors.primary,
   },
   share: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: radii.xl,
     backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",

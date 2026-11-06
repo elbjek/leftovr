@@ -115,7 +115,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
       </View>
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {quickLookRows.length > 0 ? (
-          <Text style={styles.quickLookTitle}>
+          <Text variant="h2" style={styles.quickLookTitle}>
             {t("scan.confirm.quickLookTitle", { count: quickLookRows.length })}
           </Text>
         ) : null}
@@ -324,7 +324,7 @@ function QuickLookCard({
                 {t("scan.confirm.quickLookBadge")}
               </Text>
             </View>
-            <Text style={styles.quickLookQuestion} numberOfLines={1}>
+            <Text variant="label" weight="extrabold" style={styles.quickLookQuestion} numberOfLines={1}>
               {t("scan.confirm.quickLookQuestion")}
             </Text>
           </View>
@@ -353,7 +353,7 @@ function QuickLookCard({
             onPress={() => onPick(suggestion)}
             style={({ pressed }) => [styles.suggestionChip, pressed && styles.iconBoxPressed]}
           >
-            <Text variant="label" style={styles.suggestionLabel}>
+            <Text variant="label" weight="extrabold">
               {suggestion.name}
             </Text>
           </Pressable>
@@ -414,9 +414,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   quickLookTitle: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 27,
-    lineHeight: 33,
     marginBottom: spacing.xs,
   },
   quickLook: {
@@ -450,14 +447,11 @@ const styles = StyleSheet.create({
   },
   quickLookQuestion: {
     flexShrink: 1,
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 16,
-    lineHeight: 20,
   },
   quickLookRemove: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radii.lg,
     backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
@@ -473,10 +467,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     backgroundColor: colors.surface,
     justifyContent: "center",
-  },
-  suggestionLabel: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 15,
   },
   categorySheet: {
     gap: spacing.sm,
@@ -500,7 +490,7 @@ const styles = StyleSheet.create({
   remove: {
     width: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: radii.md,
     alignItems: "center",
     justifyContent: "center",
   },

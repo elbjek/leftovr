@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 38,
     height: 38,
-    borderRadius: 19,
+    borderRadius: radii.xl,
     backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",

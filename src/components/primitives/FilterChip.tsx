@@ -26,7 +26,9 @@ export function FilterChip({ label, active = false, count, disabled = false, onP
       disabled={disabled}
       onPress={onPress}
       label={count ? `${label}, ${count}` : label}
-      hitSlop={0}
+      // 36 high, so 4 each side brings the target to Apple's 44pt minimum
+      // without eating into the 8pt gap between chips.
+      hitSlop={4}
       style={[styles.chip, active && styles.chipActive]}
     >
       <Text variant="small" color={active ? colors.onPrimary : colors.text}>

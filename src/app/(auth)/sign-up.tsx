@@ -75,7 +75,7 @@ export default function SignUpRoute() {
       />
       {formError || error ? (
         <View style={styles.errorWrap}>
-          <Text variant="small" color={colors.redInk} center>
+          <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
             {formError ?? error}
           </Text>
         </View>

@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Line, Path } from "react-native-svg";
 
 import { useReducedMotion } from "../../hooks/useReducedMotion";
-import { colors, spacing } from "../../theme";
+import { colors, radii, spacing } from "../../theme";
 import { Text } from "./Text";
 
 export type ProcessingStep = "recognising" | "matching" | "estimating" | "complete";
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 140,
     height: 140,
-    borderRadius: 70,
+    borderRadius: radii.xxl,
     backgroundColor: colors.accentSoft,
   },
   copy: {
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   checkDot: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: radii.xs,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   pendingDot: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: radii.xs,
     borderWidth: 2,
     borderColor: colors.hairlineStrong,
   },

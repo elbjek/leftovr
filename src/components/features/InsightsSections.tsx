@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   noteCheck: {
     width: 26,
     height: 26,
-    borderRadius: 13,
+    borderRadius: radii.md,
     backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   barUsed: {
-    borderRadius: 6,
+    borderRadius: radii.xs,
     backgroundColor: colors.sage,
   },
   barCurrent: {
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
   dot: {
     width: 14,
     height: 14,
-    borderRadius: 7,
+    borderRadius: radii.xs,
   },
   dinners: {
     flexDirection: "row",
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     left: 6,
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: radii.md,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",

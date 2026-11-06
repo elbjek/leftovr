@@ -5,7 +5,7 @@ import Svg, { Circle, Path } from "react-native-svg";
 import type { CookedSummary } from "@/hooks";
 import type { RecipeRow } from "@/repositories/recipeRepository";
 import { formatCategory, fridgeCoverage } from "@/services/recipeService";
-import { colors, fonts, radii, shadows, spacing } from "../../theme";
+import { categoryColors, colors, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 import { RecipeCover } from "./RecipeCover";
 
@@ -51,7 +51,7 @@ export function SavedRecipeRow({ recipe, onPress, onFavorite, cookedSummary, mem
         <RecipeCover path={recipe.cover_path} glyphSize={38} glyphVariant="simple" />
       </View>
       <View style={styles.savedRowCopy}>
-        <Text style={styles.savedRowTitle} numberOfLines={2}>{recipe.title}</Text>
+        <Text variant="label" weight="extrabold" numberOfLines={2}>{recipe.title}</Text>
         <View style={styles.savedRowMeta}>
           {time ? (
             <View style={styles.inlineMeta}>
@@ -97,7 +97,15 @@ export function SavedRecipeRow({ recipe, onPress, onFavorite, cookedSummary, mem
   );
 }
 
-const THUMB_COLORS = ["#C8D5C2", "#E8C3B0", "#F0DDA8", "#E8B59E", "#E5D9C4"] as const;
+// The category tints, reused as a stable per-recipe thumbnail colour. They
+// were copied out as hex here; these are the same five values.
+const THUMB_COLORS = [
+  categoryColors.vegetables.background,
+  categoryColors.meat.background,
+  categoryColors.dairy.background,
+  categoryColors.fruit.background,
+  categoryColors.bakery.background,
+] as const;
 
 function thumbColorFor(title: string) {
   let hash = 0;
@@ -167,11 +175,6 @@ const styles = StyleSheet.create({
   savedRowCopy: {
     flex: 1,
     minWidth: 0,
-  },
-  savedRowTitle: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 16,
-    lineHeight: 20,
   },
   savedRowMeta: {
     flexDirection: "row",

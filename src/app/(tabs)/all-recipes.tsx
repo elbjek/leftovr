@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   filterButton: {
     width: 42,
     height: 42,
-    borderRadius: 21,
+    borderRadius: radii.xl,
     backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",

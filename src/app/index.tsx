@@ -35,7 +35,7 @@ export default function IndexRoute() {
             {t("auth.configBody")}
           </Text>
           {error ? (
-            <Text variant="small" color={colors.redInk}>
+            <Text variant="small" color={colors.redInk} accessibilityLiveRegion="polite">
               {error}
             </Text>
           ) : null}

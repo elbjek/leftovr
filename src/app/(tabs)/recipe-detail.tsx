@@ -1216,7 +1216,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   ingredientIconTile: {
-    borderRadius: 18,
+    borderRadius: radii.lg,
     backgroundColor: colors.surface2,
   },
   dotBadge: {
@@ -1225,7 +1225,7 @@ const styles = StyleSheet.create({
     bottom: -1,
     width: 12,
     height: 12,
-    borderRadius: 6,
+    borderRadius: radii.xs,
     borderWidth: 2,
     borderColor: colors.card,
   },
@@ -1263,7 +1263,7 @@ const styles = StyleSheet.create({
   stepNumber: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: radii.md,
     backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
@@ -1320,7 +1320,7 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 24,
     height: 24,
-    borderRadius: 7,
+    borderRadius: radii.xs,
     borderWidth: 1.5,
     borderColor: colors.hairlineStrong,
     alignItems: "center",

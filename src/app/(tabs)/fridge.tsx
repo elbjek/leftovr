@@ -429,7 +429,7 @@ export default function FridgeRoute() {
 
           {!loading && error ? (
             <View style={styles.centerState}>
-              <Text variant="small" color={colors.redInk} center>
+              <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
                 {error}
               </Text>
             </View>
@@ -1211,7 +1211,7 @@ const styles = StyleSheet.create({
   householdAvatar: {
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: radii.md,
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
@@ -1225,7 +1225,7 @@ const styles = StyleSheet.create({
   clearButton: {
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: radii.md,
     backgroundColor: colors.surface3,
     alignItems: "center",
     justifyContent: "center",
@@ -1239,7 +1239,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: radii.xl,
     backgroundColor: colors.surface,
     ...shadows.soft,
     alignItems: "center",
@@ -1273,7 +1273,7 @@ const styles = StyleSheet.create({
   tileIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radii.xl,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1398,7 +1398,7 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 20,
     height: 20,
-    borderRadius: 6,
+    borderRadius: radii.xs,
     borderWidth: 1.5,
     borderColor: colors.hairlineStrong,
     backgroundColor: colors.surface,

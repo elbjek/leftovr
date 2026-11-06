@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
 import { useReducedMotion } from "../../hooks/useReducedMotion";
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations/FoodGlyph";
 import { Text } from "./Text";
 
@@ -141,7 +141,7 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps }: Generati
       accessibilityLiveRegion="polite"
     >
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]} scrollEnabled={false}>
-        <Text variant="micro" uppercase muted style={styles.eyebrow}>
+        <Text variant="micro" uppercase muted weight="extrabold" style={styles.eyebrow}>
           {eyebrow}
         </Text>
         <Text variant="h1" style={styles.title}>
@@ -158,7 +158,7 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps }: Generati
             />
           ))}
         </View>
-        <Text variant="micro" uppercase muted style={[styles.eyebrow, styles.listLabel]}>
+        <Text variant="micro" uppercase muted weight="extrabold" style={[styles.eyebrow, styles.listLabel]}>
           {listLabel}
         </Text>
         {[0, 1, 2].map((i) => (
@@ -236,7 +236,7 @@ function StepRow({
           <View style={styles.dotPending} />
         )}
       </View>
-      <Text variant="body" color={state === "pending" ? colors.muted : colors.text} style={state !== "pending" ? styles.stepLabelStrong : undefined}>
+      <Text variant="body" weight={state === "pending" ? undefined : "semibold"} color={state === "pending" ? colors.muted : colors.text}>
         {label}
       </Text>
     </Animated.View>
@@ -296,8 +296,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   eyebrow: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
     letterSpacing: 0.66,
   },
   listLabel: {
@@ -327,7 +325,7 @@ const styles = StyleSheet.create({
   },
   skeletonLine: {
     height: 12,
-    borderRadius: 6,
+    borderRadius: radii.xs,
     backgroundColor: colors.surface2,
   },
   skeletonShort: {
@@ -340,7 +338,7 @@ const styles = StyleSheet.create({
   skeletonPill: {
     width: 58,
     height: 20,
-    borderRadius: 10,
+    borderRadius: radii.xs,
     backgroundColor: colors.sageSoft,
   },
   hero: {
@@ -387,14 +385,14 @@ const styles = StyleSheet.create({
   dotPending: {
     width: 11,
     height: 11,
-    borderRadius: 5.5,
+    borderRadius: radii.pill,
     borderWidth: 1.5,
     borderColor: colors.hairlineStrong,
   },
   dotActiveRing: {
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: radii.md,
     borderWidth: 2,
     borderColor: colors.accent,
     alignItems: "center",
@@ -403,7 +401,7 @@ const styles = StyleSheet.create({
   dotActiveCore: {
     width: 10,
     height: 10,
-    borderRadius: 5,
+    borderRadius: radii.xs,
     backgroundColor: colors.accent,
   },
   pulseRing: {
@@ -412,18 +410,15 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 13,
+    borderRadius: radii.md,
     backgroundColor: colors.accentSoft,
   },
   dotDone: {
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: radii.md,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-  },
-  stepLabelStrong: {
-    fontWeight: "600",
   },
 });

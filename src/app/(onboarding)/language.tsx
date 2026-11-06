@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Button, ChoiceCard, Logo, Screen, Text } from "@/components";
 import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
 import { i18n } from "@/i18n";
-import { colors, spacing } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 type LanguageChoice = {
   value: "en" | "sr";
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   radio: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: radii.md,
     borderWidth: 1.5,
     borderColor: colors.hairlineStrong,
     alignItems: "center",
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   radioDot: {
     width: 12,
     height: 12,
-    borderRadius: 6,
+    borderRadius: radii.xs,
     backgroundColor: colors.primary,
   },
 });

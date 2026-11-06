@@ -827,7 +827,7 @@ export default function ScanRoute() {
             </View>
 
             {error ? (
-              <Text variant="small" color={colors.redInk} center>
+              <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
                 {error}
               </Text>
             ) : null}
@@ -895,7 +895,7 @@ export default function ScanRoute() {
             </View>
 
             {error ? (
-              <Text variant="small" color={colors.redInk} center>
+              <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
                 {error}
               </Text>
             ) : null}
@@ -1019,7 +1019,7 @@ export default function ScanRoute() {
             </View>
 
             {error ? (
-              <Text variant="small" color={colors.redInk} center>
+              <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
                 {error}
               </Text>
             ) : null}
@@ -1145,7 +1145,7 @@ export default function ScanRoute() {
         ) : null}
 
         {error && !customSheetVisible ? (
-          <Text variant="small" color={colors.redInk} center>
+          <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
             {error}
           </Text>
         ) : null}
@@ -1268,7 +1268,7 @@ export default function ScanRoute() {
             />
 
             {error ? (
-              <Text variant="small" color={colors.redInk} center>
+              <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
                 {error}
               </Text>
             ) : null}
@@ -1448,7 +1448,7 @@ export default function ScanRoute() {
       </View>
 
       {error ? (
-        <Text variant="small" color={colors.redInk} center>
+        <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
           {error}
         </Text>
       ) : null}
@@ -1575,14 +1575,14 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "88%",
     aspectRatio: 0.72,
-    borderRadius: 22,
+    borderRadius: radii.xl,
     position: "relative",
   },
   barcodeFrame: {
     alignSelf: "center",
     width: "88%",
     height: 160,
-    borderRadius: 22,
+    borderRadius: radii.xl,
     borderWidth: 2,
     borderColor: colors.accent,
     justifyContent: "center",
@@ -1633,7 +1633,7 @@ const styles = StyleSheet.create({
   captureButton: {
     width: 76,
     height: 76,
-    borderRadius: 38,
+    borderRadius: radii.xxl,
     alignSelf: "center",
     backgroundColor: colors.surface,
     alignItems: "center",
@@ -1642,7 +1642,7 @@ const styles = StyleSheet.create({
   captureInner: {
     width: 58,
     height: 58,
-    borderRadius: 29,
+    borderRadius: radii.xxl,
     borderWidth: 3,
     borderColor: colors.primary,
   },
@@ -1673,7 +1673,7 @@ const styles = StyleSheet.create({
     right: -6,
     width: 18,
     height: 18,
-    borderRadius: 9,
+    borderRadius: radii.xs,
     backgroundColor: colors.black,
     alignItems: "center",
     justifyContent: "center",
@@ -1698,7 +1698,7 @@ const styles = StyleSheet.create({
   notificationIcon: {
     width: 86,
     height: 86,
-    borderRadius: 24,
+    borderRadius: radii.xxl,
     alignItems: "center",
     justifyContent: "center",
   },

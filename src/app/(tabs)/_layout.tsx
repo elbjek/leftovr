@@ -5,7 +5,7 @@ import Svg, { Circle, Line, Path } from "react-native-svg";
 
 import { PlusIcon, Tappable, Text } from "@/components";
 import { useAuth } from "@/features";
-import { colors } from "@/theme";
+import { colors, radii } from "@/theme";
 
 type TabBarProps = {
   state: {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     top: -26,
     width: 60,
     height: 60,
-    borderRadius: 30,
+    borderRadius: radii.xxl,
     backgroundColor: colors.primary,
     borderWidth: 4,
     borderColor: colors.surface,

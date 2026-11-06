@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 
-import { colors, fonts, radii, spacing } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 import { Logo } from "../illustrations";
 import { Text } from "../primitives";
@@ -147,7 +147,7 @@ function AuthButton({
       ]}
     >
       {icon}
-      <Text variant="label" color={color} style={styles.authButtonLabel}>
+      <Text variant="body" color={color}>
         {label}
       </Text>
     </Pressable>
@@ -214,10 +214,6 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.45,
-  },
-  authButtonLabel: {
-    fontSize: 16,
-    fontFamily: fonts.body,
   },
   spacer: {
     flex: 1,

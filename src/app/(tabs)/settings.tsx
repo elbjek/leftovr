@@ -770,6 +770,8 @@ function ToggleRow({
       </View>
       <Tappable
         role="switch"
+        label={title}
+        hint={body}
         state={{ checked: value, disabled }}
         disabled={disabled}
         onPress={() => onToggle(!value)}
@@ -879,7 +881,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: radii.xxl,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -945,7 +947,7 @@ const styles = StyleSheet.create({
   toggle: {
     width: 48,
     height: 28,
-    borderRadius: 14,
+    borderRadius: radii.md,
     backgroundColor: colors.hairlineStrong,
     justifyContent: "center",
     paddingHorizontal: 2,
@@ -956,7 +958,7 @@ const styles = StyleSheet.create({
   toggleThumb: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: radii.md,
     backgroundColor: colors.onPrimary,
   },
   toggleThumbActive: {
@@ -976,7 +978,7 @@ const styles = StyleSheet.create({
   servingsOption: {
     width: 52,
     height: 52,
-    borderRadius: 26,
+    borderRadius: radii.xxl,
     backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",

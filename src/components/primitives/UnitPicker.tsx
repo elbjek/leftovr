@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
 import { normalizeUnit, UNIT_OPTIONS, UnitOption } from "@/lib";
-import { colors, fonts, radii, spacing } from "../../theme";
+import { colors, radii, spacing } from "../../theme";
 import { BottomSheet } from "./BottomSheet";
 import { Text } from "./Text";
 
@@ -39,7 +39,7 @@ export function UnitPicker({ label, value, onChange, containerStyle, boxStyle }:
           {label}
         </Text>
         <View style={styles.valueRow}>
-          <Text style={styles.value}>{t(`units.${selected}`)}</Text>
+          <Text variant="body" style={styles.value}>{t(`units.${selected}`)}</Text>
           <ChevronDown color={colors.muted} />
         </View>
       </Pressable>
@@ -108,9 +108,6 @@ const styles = StyleSheet.create({
   },
   value: {
     color: colors.text,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    lineHeight: 20,
   },
   sheetTitle: {
     marginBottom: spacing.lg,

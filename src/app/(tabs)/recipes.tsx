@@ -528,7 +528,7 @@ export default function RecipesRoute() {
 
         {recipeError ? (
           <View style={styles.errorBanner}>
-            <Text variant="small" color={colors.redInk} weight="bold">
+            <Text variant="small" color={colors.redInk} weight="bold" accessibilityLiveRegion="polite">
               {recipeError}
             </Text>
           </View>
@@ -825,7 +825,7 @@ const styles = StyleSheet.create({
   householdAvatar: {
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: radii.md,
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",

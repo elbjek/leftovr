@@ -58,7 +58,7 @@ export function TryNextCard({
           <Text variant="micro" uppercase muted style={styles.eyebrow}>
             {eyebrow}
           </Text>
-          <Text style={styles.heroTitle}>{title}</Text>
+          <Text variant="h3" style={styles.heroTitle}>{title}</Text>
           <MetaLine text={meta} />
         </View>
         {onFavorite ? <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} /> : null}
@@ -113,7 +113,7 @@ export function TryNextCard({
             onPress={onPress}
             style={({ pressed }) => [styles.view, styles.actionPrimary, pressed && styles.pressed]}
           >
-            <Text variant="label" color={colors.onPrimary} style={styles.viewLabel} numberOfLines={1}>
+            <Text variant="label" weight="bold" color={colors.onPrimary} numberOfLines={1}>
               {ctaLabel}
             </Text>
           </Pressable>
@@ -169,7 +169,7 @@ export function RecipeListCard({
         <Text variant="micro" uppercase numberOfLines={1} color={badgeAccent ? colors.accentInk : colors.muted} style={styles.eyebrow}>
           {badge}
         </Text>
-        <Text numberOfLines={2} style={styles.listTitle}>
+        <Text variant="label" weight="extrabold" numberOfLines={2} style={styles.listTitle}>
           {title}
         </Text>
         <MetaLine text={meta} />
@@ -242,7 +242,7 @@ export function IdeasResults({
               <Text variant="micro" uppercase color={colors.accentInk} style={styles.eyebrow}>
                 {bestLabel}
               </Text>
-              <Text style={styles.heroTitle}>{best.title}</Text>
+              <Text variant="h3" style={styles.heroTitle}>{best.title}</Text>
               <Text variant="small" muted>
                 {best.meta}
               </Text>
@@ -254,7 +254,7 @@ export function IdeasResults({
           {best.description ? <Text variant="body">{best.description}</Text> : null}
           {best.pill ? <Pill label={best.pill} /> : null}
           <Pressable accessibilityRole="button" onPress={best.onPress} style={({ pressed }) => [styles.view, pressed && styles.pressed]}>
-            <Text variant="label" color={colors.onPrimary} style={styles.viewLabel}>
+            <Text variant="label" weight="bold" color={colors.onPrimary}>
               {viewLabel}
             </Text>
           </Pressable>
@@ -277,7 +277,7 @@ export function IdeasResults({
                 <RecipeCover path={idea.coverPath} glyphSize={28} />
               </View>
               <View style={[styles.copy, styles.otherCopy]}>
-                <Text numberOfLines={2} style={styles.listTitle}>
+                <Text variant="label" weight="extrabold" numberOfLines={2} style={styles.listTitle}>
                   {idea.title}
                 </Text>
                 <Text variant="small" muted>
@@ -404,16 +404,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.66,
   },
   heroTitle: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 20,
-    lineHeight: 25,
     color: colors.text,
     marginTop: 2,
   },
   listTitle: {
-    fontFamily: fonts.bodyExtraBold,
-    fontSize: 16,
-    lineHeight: 21,
     color: colors.text,
     marginTop: 2,
   },
@@ -446,7 +440,7 @@ const styles = StyleSheet.create({
     gap: 6,
     minHeight: 28,
     paddingHorizontal: 11,
-    borderRadius: 14,
+    borderRadius: radii.md,
     backgroundColor: colors.sageTint,
   },
   why: {
@@ -461,7 +455,7 @@ const styles = StyleSheet.create({
   heart: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: radii.lg,
     backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
@@ -516,7 +510,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     minHeight: 28,
     paddingHorizontal: 11,
-    borderRadius: 14,
+    borderRadius: radii.md,
     justifyContent: "center",
     backgroundColor: colors.sageTint,
   },
@@ -526,10 +520,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-  },
-  viewLabel: {
-    fontFamily: fonts.bodyBold,
-    fontSize: 16,
   },
   section: {
     gap: spacing.sm,

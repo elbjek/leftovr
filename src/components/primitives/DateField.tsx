@@ -3,7 +3,7 @@ import { Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, fonts, radii, shadows, spacing } from "../../theme";
+import { colors, radii, shadows, spacing } from "../../theme";
 import { Text } from "./Text";
 
 // Inline date picker (field + month grid), adapted from TinyMeals' onboarding
@@ -125,7 +125,7 @@ export function DateField({ label, value, onChange, placeholder, onClear, clearL
         </Text>
         <View style={styles.valueRow}>
           <CalendarIcon />
-          <Text style={styles.valueText} color={value ? colors.text : colors.muted}>
+          <Text variant="body" style={styles.valueText} color={value ? colors.text : colors.muted}>
             {valueText}
           </Text>
           {value && onClear ? (
@@ -166,7 +166,7 @@ export function DateField({ label, value, onChange, placeholder, onClear, clearL
               }}
               style={({ pressed }) => [styles.titleButton, pressed && styles.pressed]}
             >
-              <Text style={styles.title}>
+              <Text variant="label" weight="extrabold" style={styles.title}>
                 {panel === "years" ? t("calendar.year") : panel === "months" ? String(pickYear) : title}
               </Text>
               <Chevron rotate={0} size={10} />
@@ -223,7 +223,7 @@ export function DateField({ label, value, onChange, placeholder, onClear, clearL
               <View style={styles.weekRow}>
                 {weekdays.map((day, i) => (
                   <View key={`${day}-${i}`} style={styles.weekCell}>
-                    <Text style={styles.weekday} color={colors.muted}>
+                    <Text variant="micro" weight="extrabold" style={styles.weekday} color={colors.muted}>
                       {day}
                     </Text>
                   </View>
@@ -247,7 +247,8 @@ export function DateField({ label, value, onChange, placeholder, onClear, clearL
                     >
                       <View style={[styles.dayDot, isToday && !selected && styles.todayDot, selected && styles.selectedDot]}>
                         <Text
-                          style={[styles.dayText, (selected || isToday) && styles.dayTextStrong]}
+                          variant="small"
+                          weight={selected || isToday ? "extrabold" : "bold"}
                           color={selected ? colors.onPrimary : disabled ? colors.muted2 : colors.text}
                         >
                           {date.getDate()}
@@ -320,7 +321,12 @@ function JumpCell({
       style={({ pressed }) => [styles.jumpCell, { width }, disabled && styles.arrowDisabled, pressed && styles.pressed]}
     >
       <View style={[styles.jumpPill, selected && styles.selectedDot]}>
-        <Text style={[styles.jumpText, selected && styles.dayTextStrong]} color={selected ? colors.onPrimary : colors.text}>
+        <Text
+          variant="small"
+          weight={selected ? "extrabold" : "bold"}
+          style={styles.jumpText}
+          color={selected ? colors.onPrimary : colors.text}
+        >
           {label}
         </Text>
       </View>
@@ -385,8 +391,6 @@ const styles = StyleSheet.create({
   },
   valueText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 20,
   },
   card: {
     backgroundColor: colors.card,
@@ -402,7 +406,7 @@ const styles = StyleSheet.create({
   arrow: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radii.lg,
     backgroundColor: colors.primary50,
     alignItems: "center",
     justifyContent: "center",
@@ -423,9 +427,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
   },
   title: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 15,
     textTransform: "capitalize",
   },
   pressed: {
@@ -441,9 +442,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   weekday: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-    fontSize: 11,
     textTransform: "uppercase",
   },
   dayGrid: {
@@ -459,7 +457,7 @@ const styles = StyleSheet.create({
   dayDot: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: radii.lg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -469,15 +467,8 @@ const styles = StyleSheet.create({
   selectedDot: {
     backgroundColor: colors.primary,
   },
-  dayText: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  dayTextStrong: {
-    fontFamily: fonts.bodyExtraBold,
-    fontWeight: "800",
-  },
+
+
   jumpGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -492,14 +483,11 @@ const styles = StyleSheet.create({
     minWidth: 64,
     minHeight: 34,
     paddingHorizontal: spacing.sm,
-    borderRadius: 17,
+    borderRadius: radii.lg,
     alignItems: "center",
     justifyContent: "center",
   },
   jumpText: {
-    fontFamily: fonts.bodyBold,
-    fontWeight: "700",
-    fontSize: 14,
     textTransform: "capitalize",
   },
 });
