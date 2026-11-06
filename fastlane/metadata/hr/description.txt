@@ -32,3 +32,6 @@ O FOTOGRAFIJAMA I UMJETNOJ INTELIGENCIJI
 Fotografije računa i polica šalju se Anthropicu na čitanje i odmah se brišu — nikad se ne pohranjuju niti koriste za treniranje modela. Recepti nastaju od naziva onoga što imate u kuhinji. leftovr vas pita jednom, prije prve fotografije, a obavijest o privatnosti sve to objašnjava.
 
 Prikazani datumi su procjena na temelju rokova trajanja, a ne otisnuti datumi. Pouzdajte se u oči i nos, a sastojke zbog alergena provjerite sami.
+
+Uvjeti korištenja: https://leftovr.co/terms
+Obavijest o privatnosti: https://leftovr.co/privacy

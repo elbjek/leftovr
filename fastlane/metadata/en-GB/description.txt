@@ -32,3 +32,6 @@ A NOTE ON PHOTOS AND AI
 Receipt and shelf photos are sent to Anthropic to be read, then deleted immediately — they are never stored and never used to train anything. Recipes are written from the names of what is in your kitchen. leftovr asks you once, before the first photo, and the privacy notice spells all of it out.
 
 Dates shown are estimates from shelf-life rules, not printed best-before dates. Trust your eyes and nose, and check ingredients yourself for allergens.
+
+Terms of Use: https://leftovr.co/terms
+Privacy Notice: https://leftovr.co/privacy
