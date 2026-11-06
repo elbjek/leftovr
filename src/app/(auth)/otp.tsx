@@ -115,7 +115,7 @@ export default function OtpRoute() {
             />
           ) : null}
           {formError || error ? (
-            <Text variant="small" color={colors.red}>
+            <Text variant="small" color={colors.redInk}>
               {formError ?? error}
             </Text>
           ) : null}

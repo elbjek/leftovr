@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Button, ChoiceCard, Logo, Screen, Text } from "@/components";
 import { HAS_PICKED_LANGUAGE_KEY, HAS_SEEN_HOOK_KEY } from "@/features/onboardingGate";
 import { i18n } from "@/i18n";
-import { colors } from "@/theme";
+import { colors, spacing } from "@/theme";
 
 type LanguageChoice = {
   value: "en" | "sr";
@@ -97,9 +97,9 @@ function Radio({ selected }: { selected: boolean }) {
 
 const styles = StyleSheet.create({
   screenPad: {
-    paddingHorizontal: 28,
+    paddingHorizontal: spacing.screenX,
     paddingTop: 92,
-    paddingBottom: 32,
+    paddingBottom: spacing.huge,
   },
   wrap: {
     flex: 1,
@@ -108,17 +108,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
-    marginBottom: 40,
+    gap: spacing.sm,
+    marginBottom: spacing.huge,
   },
   copy: {
-    gap: 10,
+    gap: spacing.md,
     alignItems: "flex-start",
-    marginBottom: 24,
+    marginBottom: spacing.xxl,
   },
   choices: {
     flex: 1,
-    gap: 10,
+    gap: spacing.md,
   },
   flag: {
     fontSize: 24,
@@ -134,12 +134,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   radioSelected: {
-    borderColor: colors.onPrimary,
+    borderColor: colors.primary,
   },
   radioDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.onPrimary,
+    backgroundColor: colors.primary,
   },
 });

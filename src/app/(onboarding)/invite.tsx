@@ -27,7 +27,7 @@ export default function InviteCodeRoute() {
         <View style={styles.wrap}>
           <BackButton onPress={() => router.back()} />
           <View style={styles.copy}>
-            <Text variant="micro" color={colors.accentInk} uppercase style={styles.eyebrow}>
+            <Text variant="micro" color={colors.accentInk} uppercase>
               {t("onboarding.invite.eyebrow")}
             </Text>
             <Text variant="h1">{t("onboarding.invite.title")}</Text>
@@ -72,18 +72,13 @@ const styles = StyleSheet.create({
   },
   wrap: {
     flex: 1,
-    paddingHorizontal: spacing.xxxl,
+    paddingHorizontal: spacing.screenX,
     paddingTop: spacing.screenTop,
     paddingBottom: spacing.lg,
     gap: spacing.xxl,
   },
   copy: {
     gap: spacing.sm,
-  },
-  eyebrow: {
-    fontSize: 12,
-    lineHeight: 14,
-    letterSpacing: 1.4,
   },
   code: {
     fontFamily: fonts.bodyExtraBold,
