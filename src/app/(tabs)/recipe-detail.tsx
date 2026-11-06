@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Animated, Pressable, ScrollView, ScrollViewInstance, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, Pressable, ScrollView, ScrollViewInstance, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
-import { BottomSheet, Button, Card, CookReward, RecipeGlyph, ShareCardExport, Text, TextField } from "@/components";
+import { BottomSheet, Button, Card, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Text, TextField } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
-import { formatMoney, newClientId } from "@/lib";
-import { addAmounts, canonicalFoodName, DAILY_GOAL, expandRecipe, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency } from "@/services";
+import { foodIconKey, formatMoney, newClientId } from "@/lib";
+import { addAmounts, canonicalFoodName, DAILY_GOAL, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { markCookedCoachmarkSeen } from "@/repositories/notificationRepository";
@@ -106,6 +106,12 @@ export default function RecipeDetailRoute() {
 
   const ingredients = detail.ingredients;
   const steps = detail.steps;
+  // The header's icons come from the ingredients the recipe opened with (a
+  // card's are the kitchen items it uses), so they don't reshuffle when the
+  // full list arrives with the steps.
+  const heroNames = (params.ingredients ? (JSON.parse(params.ingredients) as IngredientItem[]) : [])
+    .filter((ing) => ing.required)
+    .map((ing) => ing.name);
   const timeMinutes = detail.timeMinutes;
   const complexity = detail.complexity;
 
@@ -138,9 +144,13 @@ export default function RecipeDetailRoute() {
 
   // Expand once inventory has loaded: on a cold open `lots` starts empty, and
   // an empty inventory makes the server null every matchKey (C17). Expired
-  // lots are left out — cooking skips them anyway.
+  // lots are left out — cooking skips them anyway. A fresh idea usually has
+  // its request already running (the prefetch after generating): join that
+  // one straight away instead of waiting for inventory and asking again.
   useEffect(() => {
-    if (inventoryLoading || pendingExpandRef.current !== recipeId) return;
+    if (pendingExpandRef.current !== recipeId) return;
+    const joined = recipeId ? sharedExpand(recipeId) : null;
+    if (inventoryLoading && !joined) return;
     pendingExpandRef.current = null;
     const baseIngredients: IngredientItem[] = params.ingredients
       ? JSON.parse(params.ingredients)
@@ -148,10 +158,10 @@ export default function RecipeDetailRoute() {
     const baseTime = Number(params.timeMinutes ?? 20);
     let cancelled = false;
     let finished = false;
-    setExpanding(true);
-    setExpandFailed(false);
     (async () => {
-      const result = await expandRecipe({
+      setExpanding(true);
+      setExpandFailed(false);
+      const input = {
         title,
         description,
         timeMinutes: baseTime,
@@ -159,7 +169,8 @@ export default function RecipeDetailRoute() {
         inventory: lots.filter((lot) => resolveUrgency(lot) !== "expired"),
         avoidances: profile?.avoidances ?? [],
         servings,
-      });
+      };
+      const result = await (joined ?? (recipeId ? expandRecipeShared(recipeId, input) : expandRecipe(input)));
       if (cancelled) return;
       if (!result) setExpandFailed(true);
       if (result) {
@@ -606,10 +617,17 @@ export default function RecipeDetailRoute() {
                       : ing.amount;
                 const metaColor = isUrgent || missingRequired ? colors.red : colors.muted;
                 const have = haveLabel(ing);
+                const iconId = foodIconKey(ing.name);
+                const hasIcon = iconId != null && !iconId.startsWith("category_");
                 return (
                   <View key={i} style={[styles.fridgeRow, i > 0 && styles.fridgeRowDivider]}>
                     <View style={styles.fridgeRowLeft}>
-                      <View style={[styles.dot, { backgroundColor: dotColor }]} />
+                      {/* The food's icon with its status dot as a badge; foods
+                          without an icon keep the plain dot. */}
+                      <View style={[styles.ingredientIcon, hasIcon && styles.ingredientIconTile]}>
+                        {hasIcon ? <FoodGlyph name={iconId} size={22} /> : null}
+                        <View style={[styles.dot, hasIcon && styles.dotBadge, { backgroundColor: dotColor }]} />
+                      </View>
                       <View style={styles.ingredientText}>
                         <Text
                           variant="body"
@@ -646,12 +664,10 @@ export default function RecipeDetailRoute() {
 
         <View style={styles.steps}>
           {expanding && steps.length === 0 ? (
-            <>
+            <View style={styles.stepsPending}>
+              <ActivityIndicator size="small" color={colors.muted} />
               <Text variant="body" muted>{t("recipes.detail.preparingSteps")}</Text>
-              {[0, 1, 2].map((i) => (
-                <View key={i} style={styles.stepSkeleton} />
-              ))}
-            </>
+            </View>
           ) : expandFailed && steps.length === 0 ? (
             <>
               <Text variant="body" muted>{t("recipes.detail.stepsFailed")}</Text>
@@ -675,7 +691,7 @@ export default function RecipeDetailRoute() {
         <Animated.View
           style={{ transform: [{ translateY: glyphTranslate }, { scale: glyphScale }] }}
         >
-          <RecipeGlyph size={48} />
+          <IngredientIcons names={heroNames} />
         </Animated.View>
         {coverUri ? <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} /> : null}
         {urgentBadge ? (
@@ -1094,6 +1110,26 @@ const styles = StyleSheet.create({
     height: 9,
     borderRadius: 4.5,
   },
+  ingredientIcon: {
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ingredientIconTile: {
+    borderRadius: 18,
+    backgroundColor: colors.surface2,
+  },
+  dotBadge: {
+    position: "absolute",
+    right: -1,
+    bottom: -1,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.paper,
+  },
   ingredientText: {
     flex: 1,
     minWidth: 0,
@@ -1108,10 +1144,10 @@ const styles = StyleSheet.create({
   steps: {
     gap: spacing.lg,
   },
-  stepSkeleton: {
-    height: 14,
-    borderRadius: radii.sm,
-    backgroundColor: colors.surface2,
+  stepsPending: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   stepRow: {
     flexDirection: "row",

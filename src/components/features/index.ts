@@ -19,6 +19,7 @@ export * from "./ReceiptConfirmList";
 export * from "./RecipeCard";
 export * from "./RecipeGlyph";
 export * from "./RecipeCover";
+export * from "./IngredientIcons";
 export * from "./RecipeIdeas";
 export * from "./RetentionCard";
 export * from "./SavedRecipeRow";

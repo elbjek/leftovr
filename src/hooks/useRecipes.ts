@@ -16,7 +16,7 @@ import {
   RecipeMatch,
 } from "@/services/recipeService";
 import {
-  expandRecipe,
+  expandRecipeShared,
   generateRecipeMatches,
   RecipeGenerationFilters,
   RecipeMonthlyLimitError,
@@ -327,7 +327,7 @@ export function useRecipes(
           for (const [index, recipe] of savedRecipes.entries()) {
             const match = top[index];
             if (!match || match.steps.length > 0) continue;
-            void expandRecipe({
+            void expandRecipeShared(recipe.id, {
               title: match.title,
               description: match.description,
               timeMinutes: match.timeMinutes,

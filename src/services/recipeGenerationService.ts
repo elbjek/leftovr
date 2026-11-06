@@ -148,6 +148,32 @@ export type ExpandRecipeResult = {
   servings: number;
 };
 
+// One steps request per saved recipe per app session: the background prefetch
+// after a generation and the detail screen opened while it runs share it, so
+// opening a fresh idea waits for the request already on its way instead of
+// paying for (and waiting on) a second one. Failures are forgotten so a retry
+// asks again.
+const expandRequests = new Map<string, Promise<ExpandRecipeResult | null>>();
+
+export function expandRecipeShared(
+  recipeId: string,
+  input: Parameters<typeof expandRecipe>[0],
+): Promise<ExpandRecipeResult | null> {
+  const running = expandRequests.get(recipeId);
+  if (running) return running;
+  const request = expandRecipe(input).then((result) => {
+    if (!result) expandRequests.delete(recipeId);
+    return result;
+  });
+  expandRequests.set(recipeId, request);
+  return request;
+}
+
+/** The steps request already made for this recipe, if any (running or done). */
+export function sharedExpand(recipeId: string): Promise<ExpandRecipeResult | null> | null {
+  return expandRequests.get(recipeId) ?? null;
+}
+
 /**
  * Phase-2 generation: expands a tapped card into full ingredients + steps.
  * Returns null on any failure so the caller can fall back gracefully.
