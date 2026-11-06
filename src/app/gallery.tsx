@@ -169,6 +169,11 @@ export default function Gallery() {
             <FilterChip key={c} label={c} active={chip === c} count="4" onPress={() => setChip(c)} />
           ))}
         </View>
+        <View style={styles.gap} />
+        <View style={styles.rowWrap}>
+          <FilterChip label="no count" onPress={() => {}} />
+          <FilterChip label="disabled" disabled onPress={() => {}} />
+        </View>
       </Section>
 
       <Section title="ListRow + Divider">

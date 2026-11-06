@@ -1,23 +1,35 @@
-import { Pressable, StyleSheet, View } from "react-native";
-import { Text } from "./Text";
+import { StyleSheet, View } from "react-native";
 import { colors, radii, spacing } from "../../theme";
+import { Tappable } from "./Tappable";
+import { Text } from "./Text";
 
 type Props = {
   label: string;
   active?: boolean;
   count?: string;
+  disabled?: boolean;
   onPress?: () => void;
 };
 
-export function FilterChip({ label, active = false, count, onPress }: Props) {
+/**
+ * A filter toggle.
+ *
+ * The hairline outline is gone: resting is a white chip on the grey page,
+ * active is the solid primary fill the interaction spec gives a selected
+ * control. A short label on a solid fill is unambiguous in a way a 1px
+ * border changing colour never was.
+ */
+export function FilterChip({ label, active = false, count, disabled = false, onPress }: Props) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
+    <Tappable
+      selected={active}
+      disabled={disabled}
       onPress={onPress}
+      label={count ? `${label}, ${count}` : label}
+      hitSlop={0}
       style={[styles.chip, active && styles.chipActive]}
     >
-      <Text variant="small" color={active ? colors.onPrimary : colors.text} style={styles.chipText}>
+      <Text variant="small" color={active ? colors.onPrimary : colors.text}>
         {label}
       </Text>
       {count ? (
@@ -27,28 +39,22 @@ export function FilterChip({ label, active = false, count, onPress }: Props) {
           </Text>
         </View>
       ) : null}
-    </Pressable>
+    </Tappable>
   );
 }
 
 const styles = StyleSheet.create({
   chip: {
     minHeight: 36,
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.md,
     borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.paper,
+    backgroundColor: colors.surface,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
   },
   chipActive: {
     backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  chipText: {
-    fontWeight: "600",
   },
   count: {
     borderRadius: radii.pill,
