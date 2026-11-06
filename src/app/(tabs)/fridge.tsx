@@ -236,7 +236,6 @@ export default function FridgeRoute() {
         <View style={styles.headerRow}>
           <View style={styles.brand}>
             <Logo size={26} />
-            {isPremium ? <View style={styles.premiumDot} /> : null}
           </View>
           <View style={styles.headerActions}>
             {activeHousehold ? (
@@ -1181,12 +1180,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  premiumDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: colors.accent,
   },
   headerActions: {
     flexShrink: 1,

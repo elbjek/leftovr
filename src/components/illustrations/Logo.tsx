@@ -11,7 +11,7 @@ type Props = {
 };
 
 const inkByVariant = {
-  primary: { word: colors.primary, r: colors.accentInk },
+  primary: { word: colors.primary, r: colors.accent },
   inverse: { word: colors.onPrimary, r: colors.accent },
   onAccent: { word: colors.primary, r: colors.primary },
 } as const;
@@ -19,7 +19,9 @@ const inkByVariant = {
 /**
  * Brand mark (logo direction 08, "Stacked badge"): "leftovr" in Plus Jakarta
  * Sans ExtraBold, trailing "r" in gold rotated 9° (the intentional "crooked
- * r"). The stacked version is the app icon (assets/images/icon.png). Colors
+ * r"). The "r" is colors.accent on every light surface — the one brand gold.
+ * A logotype carries no contrast requirement (WCAG 1.4.11 exempts it), which
+ * is why it can be the real gold here and nowhere else. The stacked version is the app icon (assets/images/icon.png). Colors
  * come from theme tokens so a colorscheme change carries the logo with it.
  */
 export function Logo({ size = 48, variant = "primary" }: Props) {

@@ -81,7 +81,6 @@ export default function InsightsRoute() {
       <View style={styles.header}>
         <View style={styles.brand}>
           <Logo size={26} />
-          {isPremium ? <View style={styles.premiumDot} /> : null}
         </View>
       </View>
       {isPremium ? (
@@ -458,12 +457,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  premiumDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: colors.accent,
   },
   // Week / Month / Year, all three visible.
   segmented: {
