@@ -174,13 +174,38 @@
      An editorial split: the message holds the left axis, the product demo
      sits on the right as one elevated card. No background effects; the
      contrast between cream page and paper card does the work. */
-  .stage { position: relative; padding: clamp(40px, 7vh, 88px) 0 clamp(48px, 8vh, 96px); }
+  /* The hero owns the screen down to the fold, and it has its own light:
+     a warm vertical wash rather than a radial laid over flat cream. */
+  .stage {
+    position: relative; overflow: hidden;
+    min-height: calc(100dvh - 71px);
+    display: flex; align-items: center;
+    padding: clamp(40px, 6vh, 72px) 0;
+    background: linear-gradient(177deg, #FCFAF7 0%, var(--surface) 38%, #F2EDE3 100%);
+  }
+  /* A single hairline where the hero ends, so the fold is deliberate. */
+  .stage::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+    height: 1px; background: var(--hairline);
+  }
+
+  .stage-texture { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .stage-texture .tx { position: absolute; opacity: 0.085; filter: saturate(0.55); }
+  .tx-1 { width: 320px; height: 320px; left: -108px; top: 9%;  transform: rotate(-14deg); }
+  .tx-2 { width: 270px; height: 270px; right: -84px; bottom: 7%; transform: rotate(16deg); }
+  .tx-3 { width: 230px; height: 230px; right: 13%;  top: -72px; transform: rotate(9deg); }
+  .tx-4 { width: 190px; height: 190px; left: 16%;   bottom: -66px; transform: rotate(-8deg); }
+  @media (max-width: 980px) { .tx-3, .tx-4 { display: none; } }
+
   .stage-grid {
-    display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr);
-    gap: clamp(36px, 5vw, 72px); align-items: center;
+    position: relative; z-index: 1;
+    /* The left column has to clear the nowrap underlined phrase at the
+       largest headline size, so it takes the wider share. */
+    display: grid; grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr);
+    gap: clamp(40px, 5.5vw, 80px); align-items: center;
     max-width: 1180px;
   }
-  .stage-copy { max-width: 36rem; }
+  .stage-copy { max-width: 38rem; }
 
   .kicker {
     display: inline-flex; align-items: center; gap: 8px;
@@ -194,9 +219,9 @@
   h1.stage-h1 {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     font-weight: 800;
-    font-size: clamp(32px, 3.9vw, 55px);
+    font-size: clamp(33px, 4.1vw, 59px);
     line-height: 1.04; letter-spacing: -0.036em;
-    color: var(--text); margin: 0 0 36px;
+    color: var(--text); margin: 0 0 40px;
   }
   .uline { position: relative; white-space: nowrap; }
   .uline svg { position: absolute; left: 0; right: 0; bottom: -0.13em; width: 100%; height: 0.17em; }
@@ -204,7 +229,7 @@
   /* ── The demo card ───────────────────────────────────────────────── */
   .demo {
     background: var(--paper); border: 1px solid var(--card-line);
-    border-radius: var(--r-lg); padding: 22px 24px 20px;
+    border-radius: var(--r-lg); padding: 28px 30px 26px;
     box-shadow:
       0 1px 0 rgba(255,255,255,0.9) inset,
       0 28px 44px -28px rgba(120,80,40,0.42),
@@ -217,15 +242,15 @@
   }
   .demo-count { font-size: 12px; color: var(--muted-2); }
 
-  .k-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
+  .k-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
   /* Unused food sits back; the dish's own ingredients come forward. */
   .k-ing {
     display: flex; align-items: center; gap: 9px;
-    font-size: 14px; font-weight: 500; color: var(--muted);
+    font-size: 14.5px; font-weight: 500; color: var(--muted);
     transition: color 0.4s ease;
   }
   .k-ing img {
-    width: 30px; height: 30px; flex-shrink: 0; object-fit: contain;
+    width: 34px; height: 34px; flex-shrink: 0; object-fit: contain;
     opacity: 0.38; filter: saturate(0.2);
     transition: opacity 0.4s ease, filter 0.4s ease,
                 transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -235,7 +260,7 @@
 
   /* The rule between the two halves. A gold sweep runs it on every swap:
      these become that. */
-  .demo-rule { position: relative; height: 1px; background: var(--card-line); margin: 18px 0 16px; overflow: hidden; }
+  .demo-rule { position: relative; height: 1px; background: var(--card-line); margin: 24px 0 20px; overflow: hidden; }
   .demo-sweep {
     position: absolute; inset: 0; transform: translateX(-100%);
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
@@ -247,13 +272,13 @@
   .pick { display: flex; align-items: center; gap: 13px; }
   .pick-icons { display: flex; flex-shrink: 0; }
   .pick-icons span {
-    width: 40px; height: 40px; border-radius: 999px;
+    width: 46px; height: 46px; border-radius: 999px;
     background: var(--surface-2); border: 2px solid var(--paper);
     display: flex; align-items: center; justify-content: center;
   }
   .pick-icons span[hidden] { display: none; }
   .pick-icons span + span { margin-left: -12px; }
-  .pick-icons img { width: 26px; height: 26px; object-fit: contain; }
+  .pick-icons img { width: 30px; height: 30px; object-fit: contain; }
   .pick-icons.swap span { animation: pickIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
   .pick-icons.swap span:nth-child(2) { animation-delay: 0.06s; }
   .pick-icons.swap span:nth-child(3) { animation-delay: 0.12s; }
@@ -262,10 +287,10 @@
   .pick-text { flex: 1; min-width: 0; }
   .dish {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
-    font-weight: 800; font-size: 19px; line-height: 1.2;
+    font-weight: 800; font-size: 21px; line-height: 1.2;
     letter-spacing: -0.02em; color: var(--primary);
   }
-  .dish-meta { font-size: 12.5px; line-height: 1.4; color: var(--muted); margin-top: 3px; }
+  .dish-meta { font-size: 13px; line-height: 1.4; color: var(--muted); margin-top: 4px; }
   .dish.swap { animation: dishIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
   .dish-meta.swap { animation: dishIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.07s both; }
   @keyframes dishIn {
@@ -297,11 +322,13 @@
 
   @media (prefers-reduced-motion: reduce) {
     .stage-copy > *, .demo { animation: none; opacity: 1; transform: none; }
+    .stage-texture .tx { transform: none; }
     .k-ing, .k-ing img, .pick-icons.swap span, .dish, .dish-meta { animation: none; transition: none; }
     .demo-rule.go .demo-sweep { animation: none; }
   }
 
   @media (max-width: 980px) {
+    .stage { min-height: 0; display: block; padding: 36px 0 48px; }
     .stage-grid { grid-template-columns: 1fr; gap: 36px; }
     .stage-copy { max-width: none; }
     .demo { order: 2; }
@@ -1168,6 +1195,16 @@
 
   <!-- ─────────────── HERO ─────────────── -->
   <section class="stage" id="top-stage" data-screen-label="Hero">
+    <!-- The page's own food, oversized and cropped by the viewport. At this
+         opacity it is texture, not illustration: the cream gets something to
+         catch light on without anything competing with the card. -->
+    <div class="stage-texture" aria-hidden="true">
+      <img class="tx tx-1" src="/food/spinach.png" alt="" width="192" height="192" decoding="async">
+      <img class="tx tx-2" src="/food/tomato.png" alt="" width="192" height="192" decoding="async">
+      <img class="tx tx-3" src="/food/pasta.png" alt="" width="192" height="192" decoding="async">
+      <img class="tx tx-4" src="/food/cheese.png" alt="" width="192" height="192" decoding="async">
+    </div>
+
     <div class="wrap stage-grid">
 
       <div class="stage-copy">
