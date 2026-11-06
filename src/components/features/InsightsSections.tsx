@@ -106,7 +106,7 @@ export function UsedTossedChart({
       </View>
       <View style={styles.legend}>
         <LegendDot color={colors.sage} label={legend.used} />
-        <LegendDot color={colors.red} label={legend.tossed} />
+        <LegendDot color={colors.redInk} label={legend.tossed} />
       </View>
     </View>
   );
@@ -195,7 +195,7 @@ export function GoingOffList({
             </View>
             <View style={styles.dots}>
               {row.outcomes.map((outcome, i) => (
-                <View key={i} style={[styles.dot, { backgroundColor: outcome === "tossed" ? colors.red : colors.sage }]} />
+                <View key={i} style={[styles.dot, { backgroundColor: outcome === "tossed" ? colors.redInk : colors.sage }]} />
               ))}
             </View>
           </View>
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   barTossed: {
     borderRadius: 4,
-    backgroundColor: colors.red,
+    backgroundColor: colors.redInk,
   },
   barEmpty: {
     height: 3,

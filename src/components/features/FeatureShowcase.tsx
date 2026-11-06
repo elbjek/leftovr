@@ -641,7 +641,7 @@ function StartScene({ active }: { active: boolean }) {
         <Logo size={64} variant="onAccent" />
       </Reveal>
       <Reveal active={active} delay={300} style={styles.startDots}>
-        {[colors.red, colors.primary, colors.green].map((color) => (
+        {[colors.redInk, colors.primary, colors.green].map((color) => (
           <View key={color} style={[styles.startDot, { backgroundColor: color }]} />
         ))}
       </Reveal>

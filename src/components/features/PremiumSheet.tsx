@@ -222,7 +222,7 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
       ) : null}
 
       {error ? (
-        <Text variant="small" color={colors.red} center style={styles.error}>
+        <Text variant="small" color={colors.redInk} center style={styles.error}>
           {error}
         </Text>
       ) : null}

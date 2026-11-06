@@ -294,7 +294,7 @@ export function HouseholdSection({
           })}
           {members.length > 1 ? (
             <Pressable accessibilityRole="button" hitSlop={8} onPress={handleLeave} style={styles.leave}>
-              <Text variant="small" color={colors.red}>
+              <Text variant="small" color={colors.redInk}>
                 {t("settings.household.leave")}
               </Text>
             </Pressable>

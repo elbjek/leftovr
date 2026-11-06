@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  AccessibilityInfo,
   ActivityIndicator,
   Animated,
   Easing,
@@ -10,6 +9,7 @@ import {
 import { useTranslation } from "react-i18next";
 import Svg, { Line, Path } from "react-native-svg";
 
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { colors, spacing } from "../../theme";
 import { Text } from "./Text";
 
@@ -19,23 +19,9 @@ const STEP_ORDER: Exclude<ProcessingStep, "complete">[] = ["recognising", "match
 
 type RowStatus = "done" | "active" | "pending";
 
-function useReduceMotion() {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (mounted) setReduce(enabled);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-  return reduce;
-}
-
 /** Pulsing accent halo behind the receipt glyph — the one hero animation. */
 function ReceiptPulse() {
-  const reduce = useReduceMotion();
+  const reduce = useReducedMotion();
   const [pulse] = useState(() => new Animated.Value(0));
 
   useEffect(() => {

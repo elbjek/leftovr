@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, ScrollView, StyleSheet, View } from "react-native";
+import { Animated, Easing, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
+import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { colors, fonts, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations/FoodGlyph";
 import { Text } from "./Text";
@@ -27,20 +28,10 @@ type GeneratingLoaderProps = {
  * glyphs without pulses.
  */
 export function GeneratingLoader({ size = 150 }: GeneratingLoaderProps) {
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const reduceMotion = useReducedMotion();
   const [glyphIndex, setGlyphIndex] = useState(0);
   const [halo] = useState(() => new Animated.Value(0));
   const [glyphPop] = useState(() => new Animated.Value(1));
-
-  useEffect(() => {
-    let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (mounted) setReduceMotion(enabled);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -120,19 +111,9 @@ type StepState = "pending" | "active" | "done";
  */
 export function GeneratingOverlay({ eyebrow, title, listLabel, steps }: GeneratingOverlayProps) {
   const insets = useSafeAreaInsets();
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const reduceMotion = useReducedMotion();
   const [activeStep, setActiveStep] = useState(0);
   const [screenOpacity] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (mounted) setReduceMotion(enabled);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   useEffect(() => {
     Animated.timing(screenOpacity, {
