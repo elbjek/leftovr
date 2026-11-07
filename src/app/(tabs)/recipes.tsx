@@ -3,8 +3,9 @@ import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from 
 import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
 import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
+import Svg, { Path } from "react-native-svg";
 
-import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UseFirstCarousel, UseFirstItem, WeekStrip } from "@/components";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UseFirstCarousel, UseFirstItem, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -433,6 +434,28 @@ export default function RecipesRoute() {
           ) : null}
         </View>
 
+        {!isPremium ? (
+          <View style={[styles.limitBanner, !canGenerate && styles.limitWarning]}>
+            <View style={styles.limitMessage}>
+              {!canGenerate ? (
+                <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false}>
+                  <Path d="M12 3 22 21H2L12 3Z" fill="none" stroke={colors.redInk} strokeWidth={1.8} strokeLinejoin="round" />
+                  <Path d="M12 9v5m0 3v.1" stroke={colors.redInk} strokeWidth={2} strokeLinecap="round" />
+                </Svg>
+              ) : null}
+              <View style={styles.limitCopy}>
+                <Text variant="label" color={canGenerate ? colors.text : colors.redInk} weight="bold">
+                  {t(canGenerate ? "recipes.freeGenerationLeft" : "recipes.freeGenerationUsed")}
+                </Text>
+                <Text variant="small" color={canGenerate ? colors.muted : colors.redInk} style={styles.limitSub}>
+                  {t(canGenerate ? "recipes.freePlan" : "recipes.freeGenerationUsedBody")}
+                </Text>
+              </View>
+            </View>
+            <Button title={t("recipes.upgrade")} onPress={() => setShowPremium(true)} />
+          </View>
+        ) : null}
+
         {useFirstText ? (
           <Tappable
             onPress={() => router.push("/(tabs)/fridge")}
@@ -541,25 +564,6 @@ export default function RecipesRoute() {
             <Text variant="small" color={colors.redInk} weight="bold" accessibilityLiveRegion="polite">
               {recipeError}
             </Text>
-          </View>
-        ) : null}
-
-        {!isPremium ? (
-          <View style={styles.limitBanner}>
-            <View>
-              <Text variant="small" color={colors.accentInk} weight="bold">
-                {canGenerate
-                  ? t("recipes.freeGenerationLeft")
-                  : t("recipes.freeGenerationUsed")}
-              </Text>
-              <Text variant="small" muted style={styles.limitSub}>{t("recipes.freePlan")}</Text>
-            </View>
-            <Tappable
-              onPress={() => setShowPremium(true)}
-              style={styles.upgradeChip}
-            >
-              <Text variant="micro" color={colors.onPrimary} weight="bold">{t("recipes.upgrade")}</Text>
-            </Tappable>
           </View>
         ) : null}
 
@@ -849,12 +853,9 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.screenX,
     marginBottom: spacing.lg,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md + 2,
-    backgroundColor: colors.accentSoft,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.surface2,
     borderRadius: radii.xl,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     gap: spacing.md,
   },
   errorBanner: {
@@ -865,14 +866,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.redSoft,
     borderRadius: radii.xl,
   },
-  limitSub: {
-    marginTop: 2,
+  limitWarning: {
+    backgroundColor: colors.redSoft,
   },
-  upgradeChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    backgroundColor: colors.primary,
-    borderRadius: radii.pill,
+  limitMessage: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+  },
+  limitCopy: {
+    flex: 1,
+  },
+  limitSub: {
+    marginTop: spacing.xxs,
   },
   sectionBlock: {
     paddingHorizontal: spacing.screenX,
