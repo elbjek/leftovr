@@ -3,21 +3,21 @@ export const colors = {
   primary700: "#1A3A28",
   primary50: "rgba(35, 75, 52, 0.06)",
   primary100: "rgba(35, 75, 52, 0.12)",
-  // Page background. Cream, not a tinted white: the chroma is high
-  // enough (22/255) to read as cream rather than as white gone off. It separates
-  // from the white cards by hue (dE 9.0), not by luminance (1.11:1).
-  bg: "#FAF3E4",
+  // Page background. TinyMeals' cream (its `bg`), so the two apps share a
+  // page colour. It sits only dE 3.9 from the white cards, so the cards are
+  // separated by the warm `shadows.soft` lift below, not by this contrast.
+  bg: "#FEF8F3",
   // Cards and sheets: the layer that sits on top of bg.
   surface: "#FFFFFF",
   // Text and icons on primary (dark green) fills.
   onPrimary: "#FFFFFF",
   // Inset wells: the layer that sits below bg.
-  surface2: "#F1E9D6",
-  surface3: "#EDE4CE",
+  surface2: "#F3E7D3",  // TinyMeals `bgSubtle`.
+  surface3: "#EEE2CD",
   // Alias for surface, kept so existing call sites keep working.
   paper: "#FFFFFF",
   // Alias for bg, kept so existing call sites keep working.
-  appBackground: "#FAF3E4",
+  appBackground: "#FEF8F3",
   // Flat neutral hairline for card outlines (no shadows).
   cardLine: "#E6E4D8",
   accent: "#F2C14E",
@@ -147,12 +147,13 @@ export const shadows = {
     boxShadow: "0px 8px 24px rgba(35, 75, 52, 0.18)",
   },
   card: {
-    boxShadow: "0px 6px 14px rgba(31, 31, 31, 0.04)",
+    boxShadow: "0px 6px 14px rgba(90, 60, 20, 0.05)",
   },
-  // Soft lift for white cards on the grey page. Neutral, not warm: a brown
-  // shadow reads orange against #EDEDEB.
+  // Soft lift for white cards on the cream page. Warm, matching TinyMeals'
+  // homeHero: on a cream this close to white, the shadow is what makes a card
+  // read as a card.
   soft: {
-    boxShadow: "0px 8px 22px rgba(31, 31, 31, 0.06)",
+    boxShadow: "0px 8px 22px rgba(120, 80, 40, 0.07)",
   },
   elevated: {
     boxShadow: "0px 14px 34px rgba(31, 31, 31, 0.10)",
