@@ -177,3 +177,13 @@ export function addAmounts(
   }
   return a;
 }
+
+/**
+ * Is this recipe amount a liquid measure? Liquids are tracked and shown as
+ * have-it-or-not (2026-11-06), so a volume amount is never displayed and
+ * never depletes anything.
+ */
+export function isLiquidAmount(amount: string): boolean {
+  const use = ingredientUse(amount);
+  return toMetric(use.quantity, use.unit).dimension === "volume";
+}

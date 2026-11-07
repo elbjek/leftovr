@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addAmounts, dimensionOf, formatAmount, ingredientUse, parseIngredientAmount, toMetric } from "./units";
+import { addAmounts, dimensionOf, formatAmount, ingredientUse, isLiquidAmount, parseIngredientAmount, toMetric } from "./units";
 
 describe("toMetric", () => {
   it("converts volume units to ml", () => {
@@ -129,5 +129,19 @@ describe("parseIngredientAmount review cases", () => {
     expect(parseIngredientAmount("a pinch of salt")).toMatchObject({ value: 1, kind: "other" });
     expect(parseIngredientAmount("salt to taste")).toMatchObject({ value: 1, kind: "other" });
     expect(ingredientUse("pola kašike")).toEqual({ quantity: 1, unit: "pola" });
+  });
+});
+
+describe("isLiquidAmount", () => {
+  it("is true for every volume measure, in any language", () => {
+    for (const amount of ["200 ml", "0,5 l", "2 tbsp", "1 kašika", "½ šolja", "1 tsp"]) {
+      expect(isLiquidAmount(amount)).toBe(true);
+    }
+  });
+
+  it("is false for mass, counts and single-use words", () => {
+    for (const amount of ["250 g", "1 kg", "2 tomatoes", "3", "a pinch of salt", "2 čena belog luka"]) {
+      expect(isLiquidAmount(amount)).toBe(false);
+    }
   });
 });

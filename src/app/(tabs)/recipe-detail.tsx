@@ -11,7 +11,7 @@ import type { ShareFormat } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
 import { asCountedPack, foodIconKey, formatMoney, newClientId } from "@/lib";
-import { addAmounts, canonicalFoodName, dailyGoal, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
+import { addAmounts, canonicalFoodName, isLiquidAmount, dailyGoal, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { reportRecipe, toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
@@ -289,6 +289,9 @@ export default function RecipeDetailRoute() {
   const haveLabel = (ing: IngredientItem) => {
     const matches = inventoryGroups.filter((group) => group.normalizedName === ingredientKey(ing));
     if (matches.length === 0) return null;
+    // Liquids carry no amount (2026-11-06): the green dot says you have oil,
+    // and that is the whole story — no "1 item, some used".
+    if (isLiquidAmount(ing.amount)) return null;
     return matches
       .map((group) => (group.partialState === "full" ? group.amountLabel : `${group.amountLabel} (${group.partialLabel.toLowerCase()})`))
       .join(" + ");
@@ -648,7 +651,10 @@ export default function RecipeDetailRoute() {
                     ? t("recipes.detail.missing")
                     : !ing.required && !inFridge
                       ? t("recipes.detail.niceToHave")
-                      : ing.amount;
+                      // A liquid shows no amount at all, here or anywhere.
+                      : isLiquidAmount(ing.amount)
+                        ? ""
+                        : ing.amount;
                 const metaColor = isUrgent || missingRequired ? colors.redInk : colors.muted;
                 const have = haveLabel(ing);
                 const iconId = foodIconKey(ing.name);
@@ -843,6 +849,9 @@ export default function RecipeDetailRoute() {
             >
               {cookedItems.map((item, i) => {
                 const missing = !item.inFridge && !item.swapDisplay;
+                // No liquid amounts anywhere on the recipe: "Olive oil" alone.
+                const amountLine = (suffix?: string) =>
+                  [isLiquidAmount(item.amount) ? null : item.amount, suffix].filter(Boolean).join(" · ");
 
                 // Unlogged pantry staples (salt, oil, spices): assume they're
                 // owned — show quietly, never nag, never deplete.
@@ -852,7 +861,7 @@ export default function RecipeDetailRoute() {
                       <View style={styles.cookedItemCopy}>
                         <Text variant="body" muted>{item.name}</Text>
                         <Text variant="small" muted>
-                          {item.amount} · {t("recipes.cooked.pantryStaple")}
+                          {amountLine(t("recipes.cooked.pantryStaple"))}
                         </Text>
                       </View>
                     </View>
@@ -867,7 +876,7 @@ export default function RecipeDetailRoute() {
                       <View>
                         <Text variant="body" muted>{item.name}</Text>
                         <Text variant="small" muted>
-                          {item.amount} · {t("recipes.cooked.notInFridge")}
+                          {amountLine(t("recipes.cooked.notInFridge"))}
                         </Text>
                       </View>
                       <View style={styles.missingActions}>
@@ -916,7 +925,7 @@ export default function RecipeDetailRoute() {
                           ? t("recipes.cooked.insteadOf", { item: item.name })
                           : item.extra
                             ? t("recipes.fromFridge")
-                            : item.amount}
+                            : amountLine()}
                       </Text>
                     </View>
                   </Tappable>
