@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { colors, radii, shadows, spacing } from "../../theme";
@@ -19,19 +19,13 @@ type Props = {
   /** Opens what happened today. */
   onGoalPress: () => void;
   /** The foods the goal is about (soonest first). Premium only. */
-  foods?: string[];
+  foods?: { id: string; name: string; when: string; today: boolean }[];
   onFoodsPress?: () => void;
 };
-
-// Names before "+N": the goal tops out at 3, so 3 covers the job.
-const MAX_FOOD_NAMES = 3;
 
 // Today at a glance: the goal ring, the streak it adds up to, and the last
 // thing cooked.
 export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onGoalPress, foods, onFoodsPress }: Props) {
-  const shown = foods?.slice(0, MAX_FOOD_NAMES) ?? [];
-  const more = (foods?.length ?? 0) - shown.length;
-  const foodLine = shown.join(" · ") + (more > 0 ? `  +${more}` : "");
   return (
     <View style={styles.card}>
       <Pressable
@@ -42,24 +36,9 @@ export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastP
         <GoalRing done={goal.done} total={goal.total} />
         <View style={styles.goalText}>
           <Text variant="label">{goal.title}</Text>
-          {/* The foods take the subtitle's place, so naming them costs no height. */}
-          {foodLine ? (
-            <Text
-              variant="small"
-              weight="bold"
-              color={colors.primary}
-              numberOfLines={1}
-              accessibilityRole="button"
-              onPress={onFoodsPress}
-              suppressHighlighting
-            >
-              {foodLine}
-            </Text>
-          ) : (
-            <Text variant="small" muted>
-              {goal.subtitle}
-            </Text>
-          )}
+          <Text variant="small" muted>
+            {goal.subtitle}
+          </Text>
         </View>
         <View style={styles.badges}>
           {streak ? (
@@ -80,6 +59,31 @@ export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastP
           ) : null}
         </View>
       </Pressable>
+
+      {/* One scrolling row, never wrapped: long names would stack the pills. */}
+      {foods?.length ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.foods}
+          contentContainerStyle={styles.foodsRow}
+        >
+          {foods.map((food) => (
+            <Pressable
+              key={food.id}
+              accessibilityRole="button"
+              accessibilityLabel={`${food.name}, ${food.when}`}
+              onPress={onFoodsPress}
+              style={({ pressed }) => [styles.food, pressed && styles.pressed]}
+            >
+              <View style={[styles.foodDot, { backgroundColor: food.today ? colors.red : colors.accent }]} />
+              <Text variant="small" weight="bold" color={colors.primary} numberOfLines={1} style={styles.foodName}>
+                {food.name}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : null}
 
       <View style={styles.foot}>
         <Pressable
@@ -227,6 +231,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: radii.pill,
     backgroundColor: colors.sageSoft,
+  },
+  // Bleeds to the card edge so the row scrolls under it, not inside a gutter.
+  foods: {
+    marginHorizontal: -spacing.md,
+    marginBottom: spacing.sm,
+  },
+  foodsRow: {
+    paddingHorizontal: spacing.md,
+    gap: spacing.xs,
+  },
+  food: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    height: 28,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.pill,
+    backgroundColor: colors.sageSoft,
+  },
+  foodDot: {
+    width: 6,
+    height: 6,
+    borderRadius: radii.pill,
+  },
+  foodName: {
+    maxWidth: 140,
   },
   foot: {
     flexDirection: "row",
