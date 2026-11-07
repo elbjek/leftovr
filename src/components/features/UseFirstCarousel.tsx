@@ -1,8 +1,7 @@
 import { ScrollView, StyleSheet, View } from "react-native";
 
-import { colors, spacing, Urgency } from "../../theme";
-import { Tappable, Text } from "../primitives";
-import { FoodCard } from "./FoodCard";
+import { colors, radii, spacing, Urgency, urgencyColors } from "../../theme";
+import { Card, GlyphTile, Tappable, Text } from "../primitives";
 
 export type UseFirstItem = {
   id: string;
@@ -20,62 +19,85 @@ type Props = {
   onSeeAll: () => void;
 };
 
+const BEST_BY_COLOR: Partial<Record<Urgency, string>> = {
+  urgent: colors.redInk,
+  useSoon: colors.accentInk,
+};
+
 /**
- * The foods about to go off, as tiles. Premium only — free sees the counted
- * strip instead, as on Kitchen's Eat first shelf.
+ * The foods about to go off, as flat tiles in one white card — the same
+ * surface as the rest of the home, so it doesn't read as a banner. Premium
+ * only.
  */
 export function UseFirstCarousel({ title, seeAllLabel, items, onSeeAll }: Props) {
   return (
-    <View style={styles.band}>
+    <Card padded={false} style={styles.card}>
       <View style={styles.head}>
         <Text variant="h3">{title}</Text>
         <Tappable label={seeAllLabel} onPress={onSeeAll} hitSlop={8}>
-          <Text variant="small" color={colors.accentInk} weight="bold">
+          <Text variant="small" color={colors.primary} weight="bold">
             {seeAllLabel}
           </Text>
         </Tappable>
       </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.row}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
         {items.map((item) => (
-          <FoodCard
+          <Tappable
             key={item.id}
-            name={item.name}
-            category={item.category}
-            compact
-            meta=""
-            bestBy={item.bestBy}
-            urgency={item.urgency}
+            feedback="scale"
+            label={`${item.name}. ${item.bestBy}`}
             onPress={onSeeAll}
-          />
+            hitSlop={0}
+            style={styles.tile}
+          >
+            <View>
+              <GlyphTile name={item.name} category={item.category} size="lg" />
+              <View
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={[styles.dot, { backgroundColor: urgencyColors[item.urgency] }]}
+              />
+            </View>
+            <Text variant="small" weight="bold" numberOfLines={1}>
+              {item.name}
+            </Text>
+            <Text variant="small" color={BEST_BY_COLOR[item.urgency] ?? colors.muted} numberOfLines={1}>
+              {item.bestBy}
+            </Text>
+          </Tappable>
         ))}
       </ScrollView>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  // A full-bleed warm band, so the urgent food reads as its own zone and not
-  // as one more card in the column.
-  band: {
-    backgroundColor: colors.accentSoft,
-    paddingVertical: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.hairline,
+  card: {
+    paddingVertical: spacing.lg,
   },
   head: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: spacing.screenX,
-    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
   },
   row: {
-    paddingHorizontal: spacing.screenX,
-    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+  },
+  tile: {
+    width: 72,
+    gap: 2,
+  },
+  dot: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    width: 12,
+    height: 12,
+    borderRadius: radii.pill,
+    borderWidth: 2,
+    borderColor: colors.surface,
   },
 });

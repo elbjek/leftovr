@@ -824,6 +824,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   useFirstShelf: {
+    paddingHorizontal: spacing.screenX,
     marginBottom: spacing.md,
   },
   limitBanner: {

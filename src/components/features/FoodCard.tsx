@@ -12,8 +12,6 @@ type Props = {
   bestBy?: string;
   urgency?: Urgency;
   size?: "small" | "large";
-  /** Narrower tile with a one-line name, so a row of them is one height. */
-  compact?: boolean;
   addedBy?: string | null;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
@@ -28,7 +26,6 @@ export function FoodCard({
   bestBy,
   urgency = "safe",
   size = "small",
-  compact = false,
   addedBy,
   onPress,
   style,
@@ -45,9 +42,9 @@ export function FoodCard({
       hitSlop={0}
       style={style}
     >
-      <Card padded={false} style={[styles.card, isLarge && styles.largeCard, compact && styles.compactCard]}>
+      <Card padded={false} style={[styles.card, isLarge && styles.largeCard]}>
         <View style={[styles.image, isLarge && styles.largeImage]}>
-          <FoodGlyph name={name} category={category} color={tone.mark} size={isLarge ? 46 : compact ? 30 : 36} />
+          <FoodGlyph name={name} category={category} color={tone.mark} size={isLarge ? 46 : 36} />
           <View
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
@@ -55,11 +52,7 @@ export function FoodCard({
           />
         </View>
         <View style={styles.copy}>
-          <Text
-            variant={compact ? "small" : "label"}
-            weight={compact ? "bold" : undefined}
-            numberOfLines={compact ? 1 : 2}
-          >
+          <Text variant="label" numberOfLines={2}>
             {name}
           </Text>
           {bestBy ? null : (
@@ -88,11 +81,6 @@ const styles = StyleSheet.create({
     width: 118,
     padding: spacing.sm,
     gap: spacing.sm,
-  },
-  compactCard: {
-    width: 92,
-    padding: spacing.xs,
-    gap: spacing.xs,
   },
   largeCard: {
     width: 168,
