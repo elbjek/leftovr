@@ -587,7 +587,9 @@ export const en = {
       saved: "{{amount}} saved",
       streak_one: "{{count}}-day streak",
       streak_other: "{{count}}-day streak",
-      goalEyebrow: "Today",
+      usedToday_one: "You used 1 item from your kitchen.",
+      usedToday_other: "You used {{count}} items from your kitchen.",
+      usedNone: "Nothing used from your kitchen yet.",
       goalStart: "Use 1 item to start a streak",
       goalKeep_one: "Use 1 item to keep your {{count}}-day streak",
       goalKeep_other: "Use 1 item to keep your {{count}}-day streak",
@@ -598,7 +600,6 @@ export const en = {
       goalDone: "Today's goal done",
       freezes_one: "{{count}} streak freeze",
       freezes_other: "{{count}} streak freezes",
-      frozenNote: "A streak freeze covered {{day}}",
     },
     milestone: {
       title_one: "{{count}} day in a row",

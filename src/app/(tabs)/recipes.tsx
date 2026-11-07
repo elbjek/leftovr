@@ -277,7 +277,6 @@ export default function RecipesRoute() {
           : streak > 0
             ? t("recipes.week.goalKeep", { count: streak })
             : t("recipes.week.goalStart");
-  const lastFrozen = [...week].reverse().find((day) => day.state === "frozen");
   // Foods worth using now (today or soon), by normalized name — they lead the
   // hero's chips and the list's "Uses: …" badges.
   const soonNames = new Set(
@@ -448,21 +447,20 @@ export default function RecipesRoute() {
 
         <View style={styles.weekWrap}>
           <WeekStrip
-            days={week}
-            goal={{ done: usedToday, total: goalTotal, eyebrow: t("recipes.week.goalEyebrow"), title: goalTitle }}
+            goal={{
+              done: usedToday,
+              total: goalTotal,
+              subtitle: usedToday > 0 ? t("recipes.week.usedToday", { count: usedToday }) : t("recipes.week.usedNone"),
+              title: goalTitle,
+            }}
             streak={streak >= 2 ? t("recipes.week.streak", { count: streak }) : undefined}
             freezes={{ count: freezes, label: t("recipes.week.freezes", { count: freezes }) }}
-            note={
-              lastFrozen
-                ? t("recipes.week.frozenNote", { day: lastFrozen.date.toLocaleDateString(undefined, { weekday: "long" }) })
-                : undefined
-            }
             lastLabel={t("recipes.week.lastCooked")}
             lastValue={lastCooked ? `${lastCooked.title} · ${lastCookedDay}` : t("recipes.week.nothingCooked")}
             onLastPress={lastCooked ? () => openSavedRecipe(lastCooked) : undefined}
             historyLabel={t("recipes.week.history")}
             onHistory={() => router.push({ pathname: "/(tabs)/all-recipes", params: { tab: "cooked" } })}
-            onDayPress={showDay}
+            onGoalPress={() => showDay(new Date())}
           />
         </View>
 

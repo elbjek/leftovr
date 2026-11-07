@@ -5,47 +5,38 @@ import { colors, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
-  /** The last seven days, oldest first, today last. Frozen = covered by a streak freeze. */
-  days: { date: Date; state: "used" | "frozen" | "none" }[];
   /** Today's goal: items used up so far against the target, and what to do next. */
-  goal: { done: number; total: number; eyebrow: string; title: string };
-  /** e.g. "4-day streak" — shown beside the month when there is one. */
+  goal: { done: number; total: number; subtitle: string; title: string };
+  /** e.g. "4-day streak" — shown beside the goal when there is one. */
   streak?: string;
   /** Banked streak freezes, with a spoken label ("2 streak freezes"). */
   freezes?: { count: number; label: string };
-  /** One quiet line under the days, e.g. which day a freeze covered. */
-  note?: string;
   lastLabel: string;
   lastValue: string;
   onLastPress?: () => void;
   historyLabel: string;
   onHistory: () => void;
-  /** Opens what happened that day. */
-  onDayPress: (date: Date) => void;
+  /** Opens what happened today. */
+  onGoalPress: () => void;
 };
 
-// The week at a glance: today's goal, a dot under every day food got used (a
-// snowflake where a freeze covered it), the streak it adds up to, and the last
+// Today at a glance: the goal ring, the streak it adds up to, and the last
 // thing cooked.
-export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onDayPress }: Props) {
-  const today = days[days.length - 1].date;
-  const month = today.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onGoalPress }: Props) {
   return (
     <View style={styles.card}>
-      <View style={styles.goal}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onGoalPress}
+        style={({ pressed }) => [styles.goal, pressed && styles.pressed]}
+      >
         <GoalRing done={goal.done} total={goal.total} />
         <View style={styles.goalText}>
-          <Text variant="micro" muted uppercase>
-            {goal.eyebrow}
-          </Text>
           <Text variant="label">{goal.title}</Text>
+          <Text variant="small" muted>
+            {goal.subtitle}
+          </Text>
         </View>
-      </View>
-
-      <View style={styles.head}>
-        <Text variant="small" muted weight="semibold">
-          {month}
-        </Text>
         <View style={styles.badges}>
           {streak ? (
             <View style={styles.streak}>
@@ -56,7 +47,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
             </View>
           ) : null}
           {freezes && freezes.count > 0 ? (
-            <View style={styles.streak} accessible accessibilityLabel={freezes.label}>
+            <View style={styles.freeze} accessible accessibilityLabel={freezes.label}>
               <SnowflakeIcon size={13} color={colors.primary} />
               <Text variant="micro" color={colors.primary} weight="bold">
                 {freezes.count}
@@ -64,56 +55,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
             </View>
           ) : null}
         </View>
-      </View>
-
-      <View style={styles.days}>
-        {days.map(({ date, state }, index) => {
-          const isToday = index === days.length - 1;
-          const filled = state !== "none";
-          return (
-            <Pressable
-              key={date.toDateString()}
-              accessibilityRole="button"
-              accessibilityLabel={date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
-              onPress={() => onDayPress(date)}
-              hitSlop={{ top: 4, bottom: 4 }}
-              style={({ pressed }) => [
-                styles.day,
-                filled && styles.dayFilled,
-                isToday && styles.dayToday,
-                pressed && styles.dayPressed,
-              ]}
-            >
-              <Text variant="micro" color={isToday ? colors.sage : colors.muted}>
-                {date.toLocaleDateString(undefined, { weekday: "narrow" })}
-              </Text>
-              <Text
-                variant="label"
-                color={isToday ? colors.onPrimary : filled ? colors.primary : colors.muted}
-                weight="bold"
-              >
-                {date.getDate()}
-              </Text>
-              <View style={styles.markSlot}>
-                {state === "frozen" ? (
-                  <SnowflakeIcon size={9} color={isToday ? colors.onPrimary : colors.primary} />
-                ) : isToday && state === "used" ? (
-                  <View style={styles.markDot} />
-                ) : null}
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {note ? (
-        <View style={styles.note}>
-          <SnowflakeIcon size={12} color={colors.muted} />
-          <Text variant="small" muted style={styles.noteText}>
-            {note}
-          </Text>
-        </View>
-      ) : null}
+      </Pressable>
 
       <View style={styles.foot}>
         <Pressable
@@ -224,9 +166,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingTop: spacing.xxs,
     paddingBottom: spacing.sm,
-    marginBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.hairline,
   },
   goalText: {
     flex: 1,
@@ -245,72 +184,31 @@ const styles = StyleSheet.create({
   badges: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.md,
-  },
-  head: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: spacing.sm,
+    gap: spacing.xs,
   },
   streak: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-  },
-  days: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  day: {
-    width: 40,
-    alignItems: "center",
-    gap: 2,
-    paddingTop: 5,
-    paddingBottom: 6,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
     borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: "transparent",
+    backgroundColor: colors.accentSoft,
   },
-  // A day food got used: soft sage, the same green family as the ring.
-  dayFilled: {
-    backgroundColor: colors.sageSoft,
-    borderColor: colors.hairline,
-  },
-  dayToday: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  dayPressed: {
-    transform: [{ scale: 0.94 }],
-  },
-  // Fixed box so every pill is the same height, marked or not.
-  markSlot: {
-    height: 9,
-    marginTop: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  markDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: colors.onPrimary,
-  },
-  note: {
+  freeze: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    marginTop: spacing.sm,
-  },
-  noteText: {
-    flexShrink: 1,
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: radii.pill,
+    backgroundColor: colors.sageSoft,
   },
   foot: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    marginTop: spacing.sm,
+    marginTop: spacing.xxs,
     paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.hairline,
