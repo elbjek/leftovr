@@ -211,7 +211,6 @@ export default function RecipesRoute() {
     urgency: toUiUrgency(group.urgency),
     bestBy: left <= 0 ? t("fridge.bestBy.today") : left === 1 ? t("fridge.bestBy.tomorrow") : t("fridge.bestBy.inDays", { count: left }),
   }));
-  const useFirstText = urgentGroups.length === 0 || isPremium ? null : t("recipes.home.useToday", { count: urgentGroups.length });
   const rawName = profile?.display_name?.trim() ?? "";
   const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
 
@@ -454,20 +453,6 @@ export default function RecipesRoute() {
             </View>
             <Button title={t("recipes.upgrade")} onPress={() => setShowPremium(true)} />
           </View>
-        ) : null}
-
-        {useFirstText ? (
-          <Tappable
-            onPress={() => router.push("/(tabs)/fridge")}
-            style={[styles.useFirst]}
-          >
-            <Text variant="small" color={colors.accentInk}>
-              <Text variant="small" color={colors.accentInk} weight="bold">
-                {t("recipes.home.useFirst")} ·{" "}
-              </Text>
-              {useFirstText}
-            </Text>
-          </Tappable>
         ) : null}
 
         {isPremium && useFirstItems.length > 0 ? (
@@ -837,14 +822,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
-  },
-  useFirst: {
-    marginHorizontal: spacing.screenX,
-    marginBottom: spacing.md,
-    paddingVertical: 9,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.lg,
-    backgroundColor: colors.accentSoft,
   },
   useFirstShelf: {
     marginBottom: spacing.md,
