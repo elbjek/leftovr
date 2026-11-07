@@ -4,19 +4,19 @@ export const colors = {
   primary50: "rgba(35, 75, 52, 0.06)",
   primary100: "rgba(35, 75, 52, 0.12)",
   // Page background. Warm paper, not a tinted white: the chroma is high
-  // enough (11/255) to read as its own colour rather than as white gone off.
-  bg: "#EDE9E2",
+  // enough (12/255) to read as its own colour rather than as white gone off.
+  bg: "#F2EEE6",
   // Cards and sheets: the layer that sits on top of bg.
   surface: "#FFFFFF",
   // Text and icons on primary (dark green) fills.
   onPrimary: "#FFFFFF",
   // Inset wells: the layer that sits below bg.
-  surface2: "#E5E1D8",
-  surface3: "#D8D2C6",
+  surface2: "#EAE6DD",
+  surface3: "#DED8CC",
   // Alias for surface, kept so existing call sites keep working.
   paper: "#FFFFFF",
   // Alias for bg, kept so existing call sites keep working.
-  appBackground: "#EDE9E2",
+  appBackground: "#F2EEE6",
   // Flat neutral hairline for card outlines (no shadows).
   cardLine: "#E6E4D8",
   accent: "#F2C14E",
