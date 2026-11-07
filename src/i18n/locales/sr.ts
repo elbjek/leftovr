@@ -606,6 +606,8 @@ export const sr = {
       goalMore_few: "Još {{count}} do današnjeg cilja",
       goalMore_other: "Još {{count}} do današnjeg cilja",
       goalDone: "Današnji cilj ispunjen",
+      goalDoneShort: "Sve je gotovo za danas",
+      useSoon: "Iskoristi uskoro",
       freezes_one: "{{count}} zamrzavanje niza",
       freezes_few: "{{count}} zamrzavanja niza",
       freezes_other: "{{count}} zamrzavanja niza",

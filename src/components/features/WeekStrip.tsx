@@ -20,13 +20,15 @@ type Props = {
   onGoalPress: () => void;
   /** The foods the goal is about (soonest first). Premium only. */
   foods?: { id: string; name: string; when: string; today: boolean }[];
+  /** Small heading over the foods ("Use soon"). */
+  foodsLabel?: string;
   onFoodsPress?: () => void;
 };
 
 // Today at a glance, in the cook prompt's selected meal card style: a flat
 // sage panel, the ring in a white tile, "Today's goal" over the nudge. Then
 // the foods it is about, and the last thing cooked.
-export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onGoalPress, foods, onFoodsPress }: Props) {
+export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onGoalPress, foods, foodsLabel, onFoodsPress }: Props) {
   return (
     <View style={styles.card}>
       <Pressable
@@ -48,8 +50,8 @@ export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastP
         <View style={styles.badges}>
           {streak ? (
             <View style={styles.streak}>
-              <FlameIcon />
-              <Text variant="micro" color={colors.accentInk} weight="bold">
+              <FlameIcon size={16} />
+              <Text variant="small" color={colors.text} weight="extrabold">
                 {streak}
               </Text>
             </View>
@@ -66,6 +68,11 @@ export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastP
       </Pressable>
 
       {/* One scrolling row, never wrapped: long names would stack the pills. */}
+      {foods?.length && foodsLabel ? (
+        <Text variant="micro" color={colors.muted} uppercase style={styles.foodsLabel}>
+          {foodsLabel}
+        </Text>
+      ) : null}
       {foods?.length ? (
         <ScrollView
           horizontal
@@ -185,9 +192,9 @@ function ClockIcon() {
 }
 
 const styles = StyleSheet.create({
-  // Flat, no shadow — CookPromptSheet's selected mealCard.
+  // Flat, no shadow; the same light sage as the Tonight card's "why" line.
   card: {
-    backgroundColor: colors.sageTint,
+    backgroundColor: colors.sageSoft,
     borderRadius: radii.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
@@ -231,10 +238,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    // Solid gold so the streak reads at a glance, not as a tag.
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: radii.pill,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
   },
   freeze: {
     flexDirection: "row",
@@ -244,6 +252,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: radii.pill,
     backgroundColor: colors.surface,
+  },
+  foodsLabel: {
+    marginBottom: spacing.xs,
   },
   // Bleeds to the card edge so the row scrolls under it, not inside a gutter.
   foods: {

@@ -272,7 +272,7 @@ export default function RecipesRoute() {
   const goalTotal = dailyGoal(urgentGroups.length);
   const goalTitle =
     usedToday >= goalTotal
-      ? t("recipes.week.goalDone")
+      ? t("recipes.week.goalDoneShort")
       : urgentGroups.length > 0
         ? t("recipes.week.goalRescue", { count: goalTotal - usedToday })
         : usedToday > 0
@@ -473,6 +473,7 @@ export default function RecipesRoute() {
             onHistory={() => router.push({ pathname: "/(tabs)/all-recipes", params: { tab: "cooked" } })}
             onGoalPress={() => showDay(new Date())}
             foods={goalFoods}
+            foodsLabel={t("recipes.week.useSoon")}
             onFoodsPress={() => router.push("/(tabs)/fridge")}
           />
         </View>

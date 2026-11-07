@@ -596,6 +596,9 @@ export const en = {
       goalMore_one: "{{count}} more for today's goal",
       goalMore_other: "{{count}} more for today's goal",
       goalDone: "Today's goal done",
+      // Under the "Today's goal" title, where "Today's goal done" reads twice.
+      goalDoneShort: "All done for today",
+      useSoon: "Use soon",
       freezes_one: "{{count}} streak freeze",
       freezes_other: "{{count}} streak freezes",
     },
