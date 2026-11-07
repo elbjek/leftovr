@@ -18,11 +18,19 @@ type Props = {
   onHistory: () => void;
   /** Opens what happened today. */
   onGoalPress: () => void;
+  /** The foods the goal is about (soonest first). Premium only. */
+  foods?: { id: string; name: string; when: string; today: boolean }[];
+  onFoodsPress?: () => void;
 };
+
+// Chips before "+N": the goal tops out at 3, so 3 covers the job.
+const MAX_FOOD_CHIPS = 3;
 
 // Today at a glance: the goal ring, the streak it adds up to, and the last
 // thing cooked.
-export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onGoalPress }: Props) {
+export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onGoalPress, foods, onFoodsPress }: Props) {
+  const shown = foods?.slice(0, MAX_FOOD_CHIPS) ?? [];
+  const more = (foods?.length ?? 0) - shown.length;
   return (
     <View style={styles.card}>
       <Pressable
@@ -56,6 +64,39 @@ export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastP
           ) : null}
         </View>
       </Pressable>
+
+      {shown.length > 0 ? (
+        <View style={styles.foods}>
+          {shown.map((food) => (
+            <Pressable
+              key={food.id}
+              accessibilityRole="button"
+              accessibilityLabel={`${food.name}, ${food.when}`}
+              onPress={onFoodsPress}
+              style={({ pressed }) => [styles.food, pressed && styles.pressed]}
+            >
+              <View style={[styles.foodDot, { backgroundColor: food.today ? colors.red : colors.accent }]} />
+              <Text variant="small" weight="bold" color={colors.primary} numberOfLines={1} style={styles.foodName}>
+                {food.name}
+              </Text>
+              <Text variant="small" color={food.today ? colors.redInk : colors.accentInk}>
+                {food.when}
+              </Text>
+            </Pressable>
+          ))}
+          {more > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onFoodsPress}
+              style={({ pressed }) => [styles.food, pressed && styles.pressed]}
+            >
+              <Text variant="small" weight="bold" color={colors.primary}>
+                {`+${more}`}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
 
       <View style={styles.foot}>
         <Pressable
@@ -203,6 +244,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: radii.pill,
     backgroundColor: colors.sageSoft,
+  },
+  foods: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    paddingBottom: spacing.sm,
+  },
+  food: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    maxWidth: "100%",
+    minHeight: 30,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.pill,
+    backgroundColor: colors.sageSoft,
+  },
+  foodDot: {
+    width: 7,
+    height: 7,
+    borderRadius: radii.pill,
+  },
+  foodName: {
+    flexShrink: 1,
   },
   foot: {
     flexDirection: "row",

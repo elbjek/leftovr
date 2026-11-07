@@ -627,7 +627,6 @@ export const en = {
       notFeelingIt: "Not feeling it?",
       haveAll: "you have everything",
       haveSome: "{{have}} of {{total}} in kitchen",
-      useFirst: "Use first",
     },
     scanCta: "Scan",
     scanBody: "Add food to your kitchen and Leftovr turns it into recipe ideas.",

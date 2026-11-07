@@ -5,7 +5,7 @@ import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UseFirstCarousel, UseFirstItem, WeekStrip } from "@/components";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -18,7 +18,7 @@ import {
   parseRecipeIngredients,
   RecipeMatch,
 } from "@/services/recipeService";
-import { availableBaseOptions, dailyGoal, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory, toUiUrgency } from "@/services";
+import { availableBaseOptions, dailyGoal, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory } from "@/services";
 import { colors, radii, shadows, spacing } from "@/theme";
 
 type ListFilter = "all" | "soon" | "quick" | "saved" | "cooked";
@@ -202,15 +202,16 @@ export default function RecipesRoute() {
     .map((group) => ({ group, left: Math.min(...group.lots.map((lot) => daysLeft(lot))) }))
     .sort((a, b) => a.left - b.left);
   const urgentGroups = urgentRanked.map(({ group }) => group);
-  // Use first: premium gets the foods as tiles (as Eat first does on Kitchen);
-  // free gets the counted strip.
-  const useFirstItems: UseFirstItem[] = urgentRanked.slice(0, 8).map(({ group, left }) => ({
-    id: group.key,
-    name: group.name,
-    category: toUiCategory(group.category),
-    urgency: toUiUrgency(group.urgency),
-    bestBy: left <= 0 ? t("fridge.bestBy.today") : left === 1 ? t("fridge.bestBy.tomorrow") : t("fridge.bestBy.inDays", { count: left }),
-  }));
+  // The foods behind today's goal, as chips in the goal card. Premium only:
+  // the eat-first list is premium on Kitchen too; free keeps the count line.
+  const goalFoods = isPremium
+    ? urgentRanked.map(({ group, left }) => ({
+        id: group.key,
+        name: group.name,
+        today: left <= 0,
+        when: left <= 0 ? t("fridge.bestBy.today") : left === 1 ? t("fridge.bestBy.tomorrow") : t("fridge.bestBy.inDays", { count: left }),
+      }))
+    : undefined;
   const rawName = profile?.display_name?.trim() ?? "";
   const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
 
@@ -455,17 +456,6 @@ export default function RecipesRoute() {
           </View>
         ) : null}
 
-        {isPremium && useFirstItems.length > 0 ? (
-          <View style={styles.useFirstShelf}>
-            <UseFirstCarousel
-              title={t("recipes.home.useFirst")}
-              seeAllLabel={t("fridge.shelves.seeAll")}
-              items={useFirstItems}
-              onSeeAll={() => router.push("/(tabs)/fridge")}
-            />
-          </View>
-        ) : null}
-
         <View style={styles.weekWrap}>
           <WeekStrip
             goal={{
@@ -482,6 +472,8 @@ export default function RecipesRoute() {
             historyLabel={t("recipes.week.history")}
             onHistory={() => router.push({ pathname: "/(tabs)/all-recipes", params: { tab: "cooked" } })}
             onGoalPress={() => showDay(new Date())}
+            foods={goalFoods}
+            onFoodsPress={() => router.push("/(tabs)/fridge")}
           />
         </View>
 
@@ -822,10 +814,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
-  },
-  useFirstShelf: {
-    paddingHorizontal: spacing.screenX,
-    marginBottom: spacing.md,
   },
   limitBanner: {
     marginHorizontal: spacing.screenX,

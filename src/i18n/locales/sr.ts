@@ -642,7 +642,6 @@ export const sr = {
       notFeelingIt: "Nešto drugo?",
       haveAll: "imaš sve",
       haveSome: "{{have}} od {{total}} u kuhinji",
-      useFirst: "Prvo potroši",
     },
     scanCta: "Skeniraj",
     scanBody: "Dodaj namirnice u kuhinju i Leftovr ce ih pretvoriti u ideje za recepte.",
