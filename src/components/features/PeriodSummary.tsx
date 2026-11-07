@@ -2,17 +2,20 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, radii, spacing } from "../../theme";
+import { colors, radii, shadows, spacing } from "../../theme";
 import { Card, Tappable, Text } from "../primitives";
 
-/** Each figure carries its own soft tint: rescue green, cooking gold, streak red. */
+/** Each figure carries its own tile colour: rescue sage, cooking gold, streak red. */
 export type StatTone = "green" | "gold" | "red";
 
 const TINTS: Record<StatTone, string> = {
-  green: colors.sageTint,
-  gold: colors.accentSoft,
-  red: colors.redSoft,
+  green: colors.sage,
+  gold: colors.accent,
+  red: colors.red,
 };
+
+// Quiet copy on the green panel. White text only on green — never amber.
+const ON_GREEN_MUTED = "rgba(255, 255, 255, 0.72)";
 
 type Props = {
   /** Label over the big number, e.g. "Saved". */
@@ -31,29 +34,29 @@ type Props = {
 };
 
 // The top of Insights: the period's money as the page's one big number, with
-// the three figures under it. A white card like the home's, green as ink
-// rather than as a filled slab.
+// the three figures under it. The one green slab on the tab — the landing
+// page's hero block, brought into the app.
 export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel, onShare }: Props) {
   return (
     <Card style={styles.card}>
       <View style={styles.top}>
         <View style={styles.headline}>
-          <Text variant="micro" uppercase color={colors.accentInk}>
+          <Text variant="micro" uppercase color={colors.accent}>
             {label}
           </Text>
           {emptyText ? (
-            <Text variant="small" muted>
+            <Text variant="small" color={ON_GREEN_MUTED}>
               {emptyText}
             </Text>
           ) : (
             <>
               {value ? (
-                <Text variant="h1" color={colors.primary} style={styles.value}>
+                <Text variant="h1" color={colors.onPrimary} style={styles.value}>
                   {value}
                 </Text>
               ) : null}
               {sub ? (
-                <Text variant="small" muted>
+                <Text variant="small" color={ON_GREEN_MUTED}>
                   {sub}
                 </Text>
               ) : null}
@@ -65,7 +68,7 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
             <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"
-                stroke={colors.primary}
+                stroke={colors.onPrimary}
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -80,10 +83,10 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
           {stats.map((stat, index) => (
             <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
               <View style={[styles.statTile, { backgroundColor: TINTS[stat.tone] }]}>{stat.icon}</View>
-              <Text variant="h3" weight="extrabold">
+              <Text variant="h3" weight="extrabold" color={colors.onPrimary}>
                 {stat.value}
               </Text>
-              <Text variant="small" muted>
+              <Text variant="small" color={ON_GREEN_MUTED}>
                 {stat.label}
               </Text>
             </View>
@@ -96,6 +99,8 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: colors.primary,
+    ...shadows.primaryButton,
     padding: spacing.xl,
     gap: spacing.lg,
   },
@@ -116,7 +121,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radii.lg,
-    backgroundColor: colors.primary50,
+    backgroundColor: colors.inverseHairlineStrong,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -124,7 +129,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.hairline,
+    borderTopColor: colors.inverseHairline,
   },
   stat: {
     flex: 1,
@@ -141,7 +146,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: colors.hairline,
+    borderLeftColor: colors.inverseHairline,
     paddingLeft: spacing.md,
   },
 });

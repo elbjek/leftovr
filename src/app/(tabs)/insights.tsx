@@ -455,12 +455,11 @@ const STAT_PATHS = {
   streak: "M12 3c3 3.5 4.5 6 4.5 8.5a4.5 4.5 0 1 1-9 0C7.5 9 9 6.5 12 3z",
 } as const;
 
-const STAT_INK = { used: colors.primary, cooked: colors.accentInk, streak: colors.redInk } as const;
 
 function StatGlyph({ kind }: { kind: keyof typeof STAT_PATHS }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d={STAT_PATHS[kind]} stroke={STAT_INK[kind]} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d={STAT_PATHS[kind]} stroke={colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
