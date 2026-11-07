@@ -38,7 +38,7 @@ export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastP
           <GoalRing done={goal.done} total={goal.total} />
         </View>
         <View style={styles.goalText}>
-          <Text variant="label" color={colors.text}>
+          <Text variant="label" weight="extrabold" color={colors.text}>
             {goal.label}
           </Text>
           <Text variant="small" color={colors.muted}>

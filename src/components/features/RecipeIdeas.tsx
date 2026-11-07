@@ -58,7 +58,7 @@ export function TryNextCard({
           <Text variant="micro" uppercase muted style={styles.eyebrow}>
             {eyebrow}
           </Text>
-          <Text variant="h3" style={styles.heroTitle}>{title}</Text>
+          <Text variant="h3" weight="extrabold" style={styles.heroTitle}>{title}</Text>
           <MetaLine text={meta} />
         </View>
         {onFavorite ? <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} /> : null}
@@ -242,7 +242,7 @@ export function IdeasResults({
               <Text variant="micro" uppercase color={colors.accentInk} style={styles.eyebrow}>
                 {bestLabel}
               </Text>
-              <Text variant="h3" style={styles.heroTitle}>{best.title}</Text>
+              <Text variant="h3" weight="extrabold" style={styles.heroTitle}>{best.title}</Text>
               <Text variant="small" muted>
                 {best.meta}
               </Text>
