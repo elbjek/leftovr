@@ -69,6 +69,7 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
       <View style={styles.days}>
         {days.map(({ date, state }, index) => {
           const isToday = index === days.length - 1;
+          const filled = state !== "none";
           return (
             <Pressable
               key={date.toDateString()}
@@ -76,30 +77,30 @@ export function WeekStrip({ days, goal, streak, freezes, note, lastLabel, lastVa
               accessibilityLabel={date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}
               onPress={() => onDayPress(date)}
               hitSlop={{ top: 4, bottom: 4 }}
-              style={({ pressed }) => [styles.day, isToday && styles.dayToday, pressed && styles.dayPressed]}
+              style={({ pressed }) => [
+                styles.day,
+                filled && styles.dayFilled,
+                isToday && styles.dayToday,
+                pressed && styles.dayPressed,
+              ]}
             >
               <Text variant="micro" color={isToday ? colors.sage : colors.muted}>
                 {date.toLocaleDateString(undefined, { weekday: "narrow" })}
               </Text>
-              <Text variant="label" color={isToday ? colors.onPrimary : colors.text} weight="bold">
+              <Text
+                variant="label"
+                color={isToday ? colors.onPrimary : filled ? colors.primary : colors.muted}
+                weight="bold"
+              >
                 {date.getDate()}
               </Text>
-              {state === "frozen" ? (
-                <View style={styles.dotSlot}>
-                  <SnowflakeIcon size={9} color={colors.primary} />
-                </View>
-              ) : (
-                <View
-                  style={[
-                    styles.dot,
-                    {
-                      backgroundColor: isToday
-                        ? state === "used" ? colors.onPrimary : colors.inverseHairlineStrong
-                        : state === "used" ? colors.green : colors.surface3,
-                    },
-                  ]}
-                />
-              )}
+              <View style={styles.markSlot}>
+                {state === "frozen" ? (
+                  <SnowflakeIcon size={9} color={isToday ? colors.onPrimary : colors.primary} />
+                ) : isToday && state === "used" ? (
+                  <View style={styles.markDot} />
+                ) : null}
+              </View>
             </Pressable>
           );
         })}
@@ -268,25 +269,33 @@ const styles = StyleSheet.create({
     paddingTop: 5,
     paddingBottom: 6,
     borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  // A day food got used: soft sage, the same green family as the ring.
+  dayFilled: {
+    backgroundColor: colors.sageSoft,
+    borderColor: colors.hairline,
   },
   dayToday: {
     backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   dayPressed: {
     transform: [{ scale: 0.94 }],
   },
-  dot: {
+  // Fixed box so every pill is the same height, marked or not.
+  markSlot: {
+    height: 9,
+    marginTop: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  markDot: {
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    marginTop: 2,
-  },
-  // Same box as the dot so a frozen day's pill stays the same height.
-  dotSlot: {
-    height: 5,
-    marginTop: 2,
-    justifyContent: "center",
+    backgroundColor: colors.onPrimary,
   },
   note: {
     flexDirection: "row",
