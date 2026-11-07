@@ -51,7 +51,7 @@ export function UseFirstCarousel({ title, seeAllLabel, items, onSeeAll }: Props)
             style={styles.tile}
           >
             <View>
-              <GlyphTile name={item.name} category={item.category} size="lg" />
+              <GlyphTile name={item.name} category={item.category} size="lg" style={styles.well} />
               <View
                 accessibilityElementsHidden
                 importantForAccessibility="no-hide-descendants"
@@ -89,6 +89,11 @@ const styles = StyleSheet.create({
   tile: {
     width: 72,
     gap: 2,
+  },
+  // Neutral well, not the category tint: the tints match the food's own
+  // colour (yogurt on cream, banana on peach), so the icon disappears.
+  well: {
+    backgroundColor: colors.surface2,
   },
   dot: {
     position: "absolute",
