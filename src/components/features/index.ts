@@ -12,6 +12,7 @@ export * from "./HouseholdSheet";
 export * from "./InsightsSections";
 export * from "./PeriodSummary";
 export * from "./FoodCard";
+export * from "./UseFirstCarousel";
 export * from "./FoodListCard";
 export * from "./KitchenPulse";
 export * from "./PremiumSheet";

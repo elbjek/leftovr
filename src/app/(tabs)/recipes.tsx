@@ -4,7 +4,7 @@ import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "exp
 import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 
-import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, WeekStrip } from "@/components";
+import { CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UseFirstCarousel, UseFirstItem, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -17,7 +17,7 @@ import {
   parseRecipeIngredients,
   RecipeMatch,
 } from "@/services/recipeService";
-import { availableBaseOptions, dailyGoal, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory } from "@/services";
+import { availableBaseOptions, dailyGoal, daysLeft, InventoryCategory, normalizeFoodName, toUiCategory, toUiUrgency } from "@/services";
 import { colors, radii, shadows, spacing } from "@/theme";
 
 type ListFilter = "all" | "soon" | "quick" | "saved" | "cooked";
@@ -196,19 +196,21 @@ export default function RecipesRoute() {
   const tonightSessionId = hasSuggestions ? currentSessionId : restoredTonight[0]?.session_id ?? null;
   const fridgeEmpty = inventory.length === 0;
   // Soonest to go off first — the same foods Kitchen's Eat first shelf lists.
-  const urgentGroups = inventoryGroups
+  const urgentRanked = inventoryGroups
     .filter((group) => group.urgency === "urgent")
     .map((group) => ({ group, left: Math.min(...group.lots.map((lot) => daysLeft(lot))) }))
-    .sort((a, b) => a.left - b.left)
-    .map(({ group }) => group);
-  // Use first: premium names the foods (as Eat first does); free gets the count.
-  const useFirstText =
-    urgentGroups.length === 0
-      ? null
-      : isPremium
-        ? urgentGroups.slice(0, 3).map((group) => group.name).join(", ") +
-          (urgentGroups.length > 3 ? ` +${urgentGroups.length - 3}` : "")
-        : t("recipes.home.useToday", { count: urgentGroups.length });
+    .sort((a, b) => a.left - b.left);
+  const urgentGroups = urgentRanked.map(({ group }) => group);
+  // Use first: premium gets the foods as tiles (as Eat first does on Kitchen);
+  // free gets the counted strip.
+  const useFirstItems: UseFirstItem[] = urgentRanked.slice(0, 8).map(({ group, left }) => ({
+    id: group.key,
+    name: group.name,
+    category: toUiCategory(group.category),
+    urgency: toUiUrgency(group.urgency),
+    bestBy: left <= 0 ? t("fridge.bestBy.today") : left === 1 ? t("fridge.bestBy.tomorrow") : t("fridge.bestBy.inDays", { count: left }),
+  }));
+  const useFirstText = urgentGroups.length === 0 || isPremium ? null : t("recipes.home.useToday", { count: urgentGroups.length });
   const rawName = profile?.display_name?.trim() ?? "";
   const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
 
@@ -443,6 +445,17 @@ export default function RecipesRoute() {
               {useFirstText}
             </Text>
           </Tappable>
+        ) : null}
+
+        {isPremium && useFirstItems.length > 0 ? (
+          <View style={styles.useFirstShelf}>
+            <UseFirstCarousel
+              title={t("recipes.home.useFirst")}
+              seeAllLabel={t("fridge.shelves.seeAll")}
+              items={useFirstItems}
+              onSeeAll={() => router.push("/(tabs)/fridge")}
+            />
+          </View>
         ) : null}
 
         <View style={styles.weekWrap}>
@@ -828,6 +841,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radii.lg,
     backgroundColor: colors.accentSoft,
+  },
+  useFirstShelf: {
+    marginBottom: spacing.md,
   },
   limitBanner: {
     marginHorizontal: spacing.screenX,
