@@ -26,7 +26,7 @@ type Props = {
  */
 export function UseFirstCarousel({ title, seeAllLabel, items, onSeeAll }: Props) {
   return (
-    <View>
+    <View style={styles.band}>
       <View style={styles.head}>
         <Text variant="h3">{title}</Text>
         <Tappable label={seeAllLabel} onPress={onSeeAll} hitSlop={8}>
@@ -45,6 +45,7 @@ export function UseFirstCarousel({ title, seeAllLabel, items, onSeeAll }: Props)
             key={item.id}
             name={item.name}
             category={item.category}
+            compact
             meta=""
             bestBy={item.bestBy}
             urgency={item.urgency}
@@ -57,6 +58,15 @@ export function UseFirstCarousel({ title, seeAllLabel, items, onSeeAll }: Props)
 }
 
 const styles = StyleSheet.create({
+  // A full-bleed warm band, so the urgent food reads as its own zone and not
+  // as one more card in the column.
+  band: {
+    backgroundColor: colors.accentSoft,
+    paddingVertical: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.hairline,
+  },
   head: {
     flexDirection: "row",
     alignItems: "center",
