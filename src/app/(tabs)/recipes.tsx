@@ -202,16 +202,9 @@ export default function RecipesRoute() {
     .map((group) => ({ group, left: Math.min(...group.lots.map((lot) => daysLeft(lot))) }))
     .sort((a, b) => a.left - b.left);
   const urgentGroups = urgentRanked.map(({ group }) => group);
-  // The foods behind today's goal, as chips in the goal card. Premium only:
-  // the eat-first list is premium on Kitchen too; free keeps the count line.
-  const goalFoods = isPremium
-    ? urgentRanked.map(({ group, left }) => ({
-        id: group.key,
-        name: group.name,
-        today: left <= 0,
-        when: left <= 0 ? t("fridge.bestBy.today") : left === 1 ? t("fridge.bestBy.tomorrow") : t("fridge.bestBy.inDays", { count: left }),
-      }))
-    : undefined;
+  // The foods behind today's goal, named in the goal card. Premium only: the
+  // eat-first list is premium on Kitchen too; free keeps the count line.
+  const goalFoods = isPremium ? urgentGroups.map((group) => group.name) : undefined;
   const rawName = profile?.display_name?.trim() ?? "";
   const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
 
