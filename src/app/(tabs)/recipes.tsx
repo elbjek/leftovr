@@ -461,7 +461,7 @@ export default function RecipesRoute() {
             goal={{
               done: usedToday,
               total: goalTotal,
-              subtitle: usedToday > 0 ? t("recipes.week.usedToday", { count: usedToday }) : t("recipes.week.usedNone"),
+              label: t("recipes.week.todayGoal"),
               title: goalTitle,
             }}
             streak={streak >= 2 ? t("recipes.week.streak", { count: streak }) : undefined}

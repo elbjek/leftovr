@@ -1,12 +1,12 @@
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { colors, radii, shadows, spacing } from "../../theme";
+import { colors, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
   /** Today's goal: items used up so far against the target, and what to do next. */
-  goal: { done: number; total: number; subtitle: string; title: string };
+  goal: { done: number; total: number; label: string; title: string };
   /** e.g. "4-day streak" — shown beside the goal when there is one. */
   streak?: string;
   /** Banked streak freezes, with a spoken label ("2 streak freezes"). */
@@ -23,8 +23,9 @@ type Props = {
   onFoodsPress?: () => void;
 };
 
-// Today at a glance: the goal ring, the streak it adds up to, and the last
-// thing cooked.
+// Today at a glance, in the cook prompt's selected meal card style: a flat
+// sage panel, the ring in a white tile, "Today's goal" over the nudge. Then
+// the foods it is about, and the last thing cooked.
 export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onGoalPress, foods, onFoodsPress }: Props) {
   return (
     <View style={styles.card}>
@@ -33,11 +34,15 @@ export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastP
         onPress={onGoalPress}
         style={({ pressed }) => [styles.goal, pressed && styles.pressed]}
       >
-        <GoalRing done={goal.done} total={goal.total} />
+        <View style={styles.ringTile}>
+          <GoalRing done={goal.done} total={goal.total} />
+        </View>
         <View style={styles.goalText}>
-          <Text variant="label">{goal.title}</Text>
-          <Text variant="small" muted>
-            {goal.subtitle}
+          <Text variant="label" color={colors.text}>
+            {goal.label}
+          </Text>
+          <Text variant="small" color={colors.muted}>
+            {goal.title}
           </Text>
         </View>
         <View style={styles.badges}>
@@ -180,13 +185,21 @@ function ClockIcon() {
 }
 
 const styles = StyleSheet.create({
+  // Flat, no shadow — CookPromptSheet's selected mealCard.
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    ...shadows.soft,
-    paddingTop: spacing.sm,
+    backgroundColor: colors.sageTint,
+    borderRadius: radii.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.sm,
     paddingHorizontal: spacing.md,
+  },
+  ringTile: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
   },
   goal: {
     flexDirection: "row",
@@ -230,7 +243,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 8,
     borderRadius: radii.pill,
-    backgroundColor: colors.sageSoft,
+    backgroundColor: colors.surface,
   },
   // Bleeds to the card edge so the row scrolls under it, not inside a gutter.
   foods: {
@@ -248,7 +261,7 @@ const styles = StyleSheet.create({
     height: 28,
     paddingHorizontal: spacing.md,
     borderRadius: radii.pill,
-    backgroundColor: colors.sageSoft,
+    backgroundColor: colors.surface,
   },
   foodDot: {
     width: 6,
@@ -281,7 +294,7 @@ const styles = StyleSheet.create({
     minHeight: 26,
     paddingHorizontal: 10,
     borderRadius: radii.md,
-    backgroundColor: colors.surface2,
+    backgroundColor: colors.surface,
   },
   pressed: {
     opacity: 0.6,
