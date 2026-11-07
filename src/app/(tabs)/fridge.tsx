@@ -843,7 +843,7 @@ function ItemActionSheet({
     setConfirmingRemove(false);
   }
 
-  const isPrecise = group?.netAmount != null && group.netUnit != null;
+  const isPrecise = group?.netAmount != null && group.netUnit === "g";
   // "How much is left" only means something for a single item with no size:
   // that's the one case cooking can't subtract from, so it walks full → some
   // used → low instead. More than one, or a known size, is tracked exactly.
@@ -951,7 +951,7 @@ function ItemActionSheet({
               const nextQuantity = Number.isFinite(qty) && qty > 0 ? qty : lot?.quantity ?? 1;
               let net = Number(netInput.replace(",", "."));
               // Quantity changed but the size wasn't touched: scale the size
-              // with it (2 cartons = 2000 ml → 3 cartons = 3000 ml) (C2).
+              // with it (2 packs = 500 g → 3 packs = 750 g) (C2).
               const netUntouched = lot?.net_amount != null && net === lot.net_amount;
               if (netUntouched && lot && lot.quantity > 0 && nextQuantity !== lot.quantity) {
                 net = Number(((lot.net_amount as number) * (nextQuantity / lot.quantity)).toFixed(2));

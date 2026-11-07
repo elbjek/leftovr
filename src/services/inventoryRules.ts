@@ -1,4 +1,5 @@
 import { i18n } from "@/i18n";
+import { asCountedPack } from "@/lib/units";
 import { formatAmount, MeasurementSystem } from "./units";
 
 export const INVENTORY_CATEGORIES = [
@@ -95,7 +96,7 @@ const categoryDefaults: Record<InventoryCategory, [number, number]> = {
 const demoFoodCatalog: CatalogFood[] = [
   { name: "Eggs", category: "dairy_eggs", shelfLifeDays: [14, 21], unit: "egg" },
   { name: "Greek yogurt", category: "dairy_eggs", shelfLifeDays: [5, 8], unit: "tub", netAmount: 500, netUnit: "g" },
-  { name: "Milk", category: "dairy_eggs", shelfLifeDays: [4, 7], unit: "carton", netAmount: 1000, netUnit: "ml" },
+  { name: "Milk", category: "dairy_eggs", shelfLifeDays: [4, 7], unit: "carton" },
   { name: "Butter", category: "dairy_eggs", shelfLifeDays: [21, 45], unit: "block", netAmount: 250, netUnit: "g" },
   { name: "Feta", category: "dairy_eggs", shelfLifeDays: [7, 14], unit: "pack", netAmount: 200, netUnit: "g" },
   { name: "Chicken breast", category: "meat", shelfLifeDays: [1, 2], unit: "pack", netAmount: 400, netUnit: "g" },
@@ -123,13 +124,13 @@ const demoFoodCatalog: CatalogFood[] = [
   { name: "Pasta", category: "pantry", shelfLifeDays: [180, 365], unit: "box", netAmount: 500, netUnit: "g" },
   { name: "Chickpeas", category: "pantry", shelfLifeDays: [180, 365], unit: "can", netAmount: 400, netUnit: "g" },
   { name: "Black beans", category: "pantry", shelfLifeDays: [180, 365], unit: "can", netAmount: 400, netUnit: "g" },
-  { name: "Coconut milk", category: "pantry", shelfLifeDays: [180, 365], unit: "can", netAmount: 400, netUnit: "ml" },
-  { name: "Olive oil", category: "pantry", shelfLifeDays: [180, 365], unit: "bottle", netAmount: 500, netUnit: "ml" },
+  { name: "Coconut milk", category: "pantry", shelfLifeDays: [180, 365], unit: "can" },
+  { name: "Olive oil", category: "pantry", shelfLifeDays: [180, 365], unit: "bottle" },
   { name: "Oats", category: "pantry", shelfLifeDays: [90, 180], unit: "bag", netAmount: 1000, netUnit: "g" },
   { name: "Frozen peas", category: "frozen", shelfLifeDays: [60, 120], unit: "bag", netAmount: 500, netUnit: "g" },
   { name: "Frozen berries", category: "frozen", shelfLifeDays: [60, 120], unit: "bag", netAmount: 500, netUnit: "g" },
-  { name: "Orange juice", category: "drinks", shelfLifeDays: [5, 10], unit: "bottle", netAmount: 1000, netUnit: "ml" },
-  { name: "Sparkling water", category: "drinks", shelfLifeDays: [90, 365], unit: "can", netAmount: 330, netUnit: "ml" },
+  { name: "Orange juice", category: "drinks", shelfLifeDays: [5, 10], unit: "bottle" },
+  { name: "Sparkling water", category: "drinks", shelfLifeDays: [90, 365], unit: "can" },
   { name: "Hummus", category: "snacks", shelfLifeDays: [4, 7], unit: "tub", netAmount: 200, netUnit: "g" },
   { name: "Almonds", category: "snacks", shelfLifeDays: [60, 180], unit: "bag", netAmount: 200, netUnit: "g" },
   { name: "Cheddar", category: "dairy_eggs", shelfLifeDays: [14, 30], unit: "block", netAmount: 200, netUnit: "g" },
@@ -447,10 +448,13 @@ function formatGroupAmount(
   group: Pick<InventoryGroup, "quantity" | "unit" | "netAmount" | "netUnit">,
   system: MeasurementSystem,
 ) {
-  const quantity = Number.isInteger(group.quantity) ? group.quantity : Number(group.quantity.toFixed(1));
-  return group.netAmount != null && group.netUnit
+  // Liquids carry no amount: a legacy ml net or volume unit (a row added
+  // before the 2026-11-06 migration) is shown as the pack it is.
+  const counted = asCountedPack(group.quantity, group.unit);
+  const quantity = Number.isInteger(counted.quantity) ? counted.quantity : Number(counted.quantity.toFixed(1));
+  return group.netAmount != null && group.netUnit === "g"
     ? formatAmount(group.netAmount, group.netUnit, system)
-    : `${quantity} ${group.unit}`;
+    : `${quantity} ${counted.unit}`;
 }
 
 function formatGroupMeta(

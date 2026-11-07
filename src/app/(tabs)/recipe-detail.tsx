@@ -10,7 +10,7 @@ import { BottomSheet, Button, CookReward, FoodGlyph, IngredientIcons, ShareCardE
 import type { ShareFormat } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
-import { foodIconKey, formatMoney, newClientId } from "@/lib";
+import { asCountedPack, foodIconKey, formatMoney, newClientId } from "@/lib";
 import { addAmounts, canonicalFoodName, dailyGoal, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
@@ -956,7 +956,7 @@ export default function RecipeDetailRoute() {
                 containerStyle={styles.extraAmountField}
               />
               <View style={styles.unitChips}>
-                {[extraTarget.unit, extraTarget.netUnit]
+                {[asCountedPack(1, extraTarget.unit).unit, extraTarget.netUnit === "g" ? "g" : null]
                   .filter((unit): unit is string => Boolean(unit))
                   .filter((unit, index, all) => all.indexOf(unit) === index)
                   .map((unit) => (
