@@ -1,31 +1,32 @@
 export const colors = {
-  primary: "#E85D45",
-  primary700: "#C9472F",
-  primary50: "rgba(232, 93, 69, 0.06)",
-  primary100: "rgba(232, 93, 69, 0.12)",
-  // Palette trial (2026-11-08): coral primary, gold secondary, sage accent.
+  primary: "#D9503A",
+  primary700: "#B8402C",
+  primary50: "rgba(217, 80, 58, 0.06)",
+  primary100: "rgba(217, 80, 58, 0.12)",
+  // Theme D (2026-11-08, Lena's tomato layout): tomato primary, peach
+  // wells, butter yellow, warm white cards.
   // Page background. Close to white, so the cards are separated by the warm
   // `shadows.soft` lift below, not by this contrast.
-  bg: "#FFF9F2",
+  bg: "#FDF1E8",
   // Cards and sheets: the layer that sits on top of bg.
-  surface: "#FFFFFF",
+  surface: "#FFF9F4",
   // Text and icons on primary (dark green) fills.
   onPrimary: "#FFFFFF",
   // Inset wells: the layer that sits below bg.
-  surface2: "#F4EDE3",
-  surface3: "#EAE1D4",
+  surface2: "#FBE3D6",
+  surface3: "#F6D3C2",
   // Alias for surface, kept so existing call sites keep working.
-  paper: "#FFFFFF",
+  paper: "#FFF9F4",
   // Alias for bg, kept so existing call sites keep working.
-  appBackground: "#FFF9F2",
+  appBackground: "#FDF1E8",
   // Flat neutral hairline for card outlines (no shadows).
-  cardLine: "#E6E4D8",
-  accent: "#F3B75B",
-  accentSoft: "#FBE6C4",
-  text: "#292B24",
+  cardLine: "#F3D9CB",
+  accent: "#F2B640",
+  accentSoft: "#FFE7A6",
+  text: "#1E1B19",
   // Green-gray tuned for 4.5:1+ contrast on cream surfaces at small sizes.
-  muted: "#55655A",
-  muted2: "#9AA59C",
+  muted: "#6B5F57",
+  muted2: "#B3A79E",
   green: "#5E9A64",
   red: "#E76F51",
   // Light sage highlight (from brand palette) for selected/active states.
@@ -34,17 +35,17 @@ export const colors = {
   // Solid light-sage fill for thumbnails/tiles.
   sageTint: "#D9E5DC",
   sageBorder: "rgba(114, 150, 125, 0.45)",
-  hairline: "rgba(41, 43, 36, 0.10)",
-  hairlineStrong: "rgba(41, 43, 36, 0.18)",
+  hairline: "rgba(30, 27, 25, 0.08)",
+  hairlineStrong: "rgba(30, 27, 25, 0.16)",
   // Hairlines on primary (dark green) surfaces.
   inverseHairline: "rgba(255, 255, 255, 0.12)",
   inverseHairlineStrong: "rgba(255, 255, 255, 0.24)",
   // Kitchen home (TinyMeals-style): white cards on cream, warm tints.
-  card: "#FFFFFF",
+  card: "#FFF9F4",
   accentInk: "#8A5A0B",
   redSoft: "#F9E4DC",
   redInk: "#9A3F27",
-  black: "#292B24",
+  black: "#1E1B19",
   white: "#FFFFFF",
   overlay: "rgba(31, 31, 31, 0.55)",
 } as const;
@@ -144,7 +145,7 @@ export const radii = {
 
 export const shadows = {
   primaryButton: {
-    boxShadow: "0px 8px 24px rgba(232, 93, 69, 0.22)",
+    boxShadow: "0px 8px 24px rgba(217, 80, 58, 0.24)",
   },
   card: {
     boxShadow: "0px 6px 14px rgba(90, 60, 20, 0.05)",
@@ -153,7 +154,7 @@ export const shadows = {
   // homeHero: on a cream this close to white, the shadow is what makes a card
   // read as a card.
   soft: {
-    boxShadow: "0px 8px 22px rgba(120, 80, 40, 0.07)",
+    boxShadow: "0px 10px 26px rgba(170, 90, 50, 0.10)",
   },
   elevated: {
     boxShadow: "0px 14px 34px rgba(31, 31, 31, 0.10)",

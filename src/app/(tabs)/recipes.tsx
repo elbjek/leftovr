@@ -420,13 +420,16 @@ export default function RecipesRoute() {
               style={[styles.householdPill]}
             >
               <View style={styles.householdAvatar}>
-                <Text variant="micro" color={colors.primary} weight="bold">
+                <Text variant="small" color={colors.primary} weight="extrabold">
                   {(firstName || activeHousehold.name).charAt(0).toUpperCase()}
                 </Text>
               </View>
-              <Text variant="small" numberOfLines={1} weight="bold">
+              <Text variant="small" numberOfLines={1} weight="bold" style={styles.householdName}>
                 {activeHousehold.name}
               </Text>
+              <Svg width={14} height={14} viewBox="0 0 24 24" accessible={false}>
+                <Path d="M6 9l6 6 6-6" fill="none" stroke={colors.text} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
             </Tappable>
           ) : null}
         </View>
@@ -472,7 +475,8 @@ export default function RecipesRoute() {
                 coverPath={dish.row?.cover_path}
                 eyebrow={hasTonight ? t("recipes.tryNext.tonight") : t("recipes.tryNext.fromYours")}
                 title={dish.title}
-                meta={[formatTimeLabel(dish.minutes), formatComplexity(dish.complexity)].join(" · ")}
+                time={formatTimeLabel(dish.minutes)}
+                complexity={formatComplexity(dish.complexity)}
                 description={generateNotice ?? dish.description}
                 ingredientsLabel={t("recipes.tryNext.youHave")}
                 stepsLabel={dishSteps > 0 ? t("recipes.tryNext.steps", { count: dishSteps }) : undefined}
@@ -533,10 +537,10 @@ export default function RecipesRoute() {
         {listRecipes.length > 0 ? (
           <View style={styles.sectionBlock}>
             <View style={styles.listHead}>
-              <Text variant="micro" muted uppercase weight="extrabold">
+              <Text variant="h3" weight="extrabold">
                 {t("recipes.list.title")}
               </Text>
-              <Text variant="small" color={colors.accentInk} weight="bold">
+              <Text variant="small" muted>
                 {t("recipes.list.count", { count: filteredList.length })}
               </Text>
             </View>
@@ -806,14 +810,16 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
     paddingRight: spacing.md,
     borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
+    backgroundColor: colors.surface2,
+  },
+  householdName: {
+    flexShrink: 1,
   },
   householdAvatar: {
-    width: 22,
-    height: 22,
-    borderRadius: radii.md,
-    backgroundColor: colors.sageTint,
+    width: 28,
+    height: 28,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface3,
     alignItems: "center",
     justifyContent: "center",
   },

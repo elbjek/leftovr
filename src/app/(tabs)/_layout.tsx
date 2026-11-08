@@ -3,9 +3,9 @@ import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
-import { PlusIcon, Tappable, Text } from "@/components";
+import { ScanIcon, Tappable } from "@/components";
 import { useAuth } from "@/features";
-import { colors, radii } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 type TabBarProps = {
   state: {
@@ -59,10 +59,9 @@ export default function TabsLayout() {
           title: t("tabs.scan"),
           tabBarIcon: () => (
             <View style={styles.scanButton}>
-              <PlusIcon color={colors.onPrimary} size={26} />
+              <ScanIcon color={colors.primary} size={28} />
             </View>
           ),
-          tabBarLabelStyle: [styles.label, styles.scanLabel],
         }}
       />
       <Tabs.Screen
@@ -107,7 +106,7 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
         // Routes in the group that aren't tabs don't get a dock slot.
         if (NON_TAB_ROUTES.has(route.name)) return null;
         const focused = state.index === index;
-        const color = focused ? colors.primary : colors.muted2;
+        const color = focused ? colors.primary : colors.text;
         const label = getTabLabel(route.name, t);
 
         function onPress() {
@@ -130,9 +129,8 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
                 onPress={onPress}
                 style={[styles.scanButton]}
               >
-                <PlusIcon color={colors.onPrimary} size={26} />
+                <ScanIcon color={colors.primary} size={28} />
               </Tappable>
-              <Text weight="bold" style={styles.scanLabel}>{label}</Text>
             </View>
           );
         }
@@ -145,10 +143,8 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
             onPress={onPress}
             style={styles.tabCell}
           >
+            {/* Icons only, like the tomato layout; the label is still spoken. */}
             {getTabIcon(route.name, color)}
-            <Text weight={focused ? "bold" : "semibold"} style={[styles.label, { color }]}>
-              {label}
-            </Text>
           </Tappable>
         );
       })}
@@ -219,46 +215,28 @@ const styles = StyleSheet.create({
   dock: {
     position: "relative",
     backgroundColor: colors.surface,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.hairline,
-    paddingTop: 10,
-    paddingHorizontal: 26,
+    borderTopLeftRadius: radii.xxl,
+    borderTopRightRadius: radii.xxl,
+    boxShadow: "0px -8px 24px rgba(170, 90, 50, 0.08)",
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.xxl,
     paddingBottom: 26,
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
   },
   tabCell: {
     flex: 1,
     alignItems: "center",
-    gap: 4,
-    minHeight: 41,
-  },
-  // Tab labels sit below the content type scale on purpose: iOS tab bars
-  // run ~10px, and micro's 0.66 tracking widens them past the Serbian copy.
-  label: {
-    fontSize: 10.5,
-    lineHeight: 13,
-    letterSpacing: 0.1,
+    justifyContent: "center",
+    minHeight: 64,
   },
   scanButton: {
-    position: "absolute",
-    top: -26,
-    width: 60,
-    height: 60,
-    borderRadius: radii.xxl,
-    backgroundColor: colors.primary,
-    borderWidth: 4,
-    borderColor: colors.surface,
+    width: 64,
+    height: 64,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0px 8px 20px rgba(232, 93, 69, 0.32)",
-  },
-  scanLabel: {
-    fontSize: 10.5,
-    lineHeight: 13,
-    color: colors.primary,
-    marginTop: 39,
-    letterSpacing: 0.1,
   },
 });

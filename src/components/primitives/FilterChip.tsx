@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     minHeight: 36,
     paddingHorizontal: spacing.md,
     borderRadius: radii.pill,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface2,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,

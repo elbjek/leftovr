@@ -17,9 +17,10 @@ type Props = {
   onPress: () => void;
 };
 
-// Today's goal in one line: the ring in a white tile, the headline over the
-// progress, and the streak as a gold flame. Small on purpose: the recipe
-// below is the home's main thing.
+// Today's goal as a small tomato block: the ring in a white circle, the
+// headline over the progress in white, a tomato in the corner and the streak
+// as a butter-yellow flame pill. Small on purpose: the recipe below is the
+// home's main thing.
 export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
   const active = streak.count > 0;
   return (
@@ -29,20 +30,21 @@ export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
+      <TomatoMark />
       <View style={styles.ringTile}>
-        <GoalRing done={goal.done} total={goal.total} />
+        <GoalRing done={goal.done} total={goal.total} size={52} stroke={7} track={colors.accent} color={colors.text} />
       </View>
       <View style={styles.text}>
-        <Text variant="small" weight="extrabold" color={colors.text} numberOfLines={1}>
+        <Text variant="h3" weight="extrabold" color={colors.onPrimary} numberOfLines={1}>
           {headline}
         </Text>
-        <Text variant="small" color={colors.muted} numberOfLines={1}>
+        <Text variant="small" color={colors.onPrimary} numberOfLines={1} style={styles.detail}>
           {detail}
         </Text>
       </View>
-      <View style={[styles.streak, !active && styles.streakIdle]}>
-        <FlameIcon size={15} color={active ? colors.accentInk : colors.muted2} />
-        <Text variant="small" weight="extrabold" color={active ? colors.text : colors.muted} style={styles.num}>
+      <View style={styles.streak}>
+        <FlameIcon size={18} color={active ? colors.primary : colors.muted2} />
+        <Text variant="label" weight="extrabold" color={active ? colors.text : colors.muted} style={styles.num}>
           {streak.count}
         </Text>
       </View>
@@ -50,23 +52,47 @@ export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
   );
 }
 
+// The tomato peeking out behind the streak: decoration only.
+function TomatoMark() {
+  return (
+    <View style={styles.tomato} pointerEvents="none" accessible={false}>
+      <View style={styles.tomatoBody} />
+      <Svg width={34} height={20} viewBox="0 0 34 20" style={styles.tomatoLeaf}>
+        <Path d="M17 14C12 4 4 6 1 9c5 0 9 2 12 6M17 14c5-10 13-8 16-5-5 0-9 2-12 6M17 14V2" stroke={colors.green} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </Svg>
+    </View>
+  );
+}
+
 // Progress toward today's goal; full once the target is met.
-export function GoalRing({ done, total }: { done: number; total: number }) {
-  const size = 36;
-  const stroke = 4;
+export function GoalRing({
+  done,
+  total,
+  size = 36,
+  stroke = 4,
+  track = colors.surface3,
+  color = colors.primary,
+}: {
+  done: number;
+  total: number;
+  size?: number;
+  stroke?: number;
+  track?: string;
+  color?: string;
+}) {
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
   const progress = Math.min(done, total) / total;
   return (
-    <View style={styles.ring} accessible accessibilityLabel={`${Math.min(done, total)} / ${total}`}>
+    <View style={[styles.ring, { width: size, height: size }]} accessible accessibilityLabel={`${Math.min(done, total)} / ${total}`}>
       <Svg width={size} height={size}>
-        <Circle cx={size / 2} cy={size / 2} r={r} stroke={colors.surface3} strokeWidth={stroke} fill="none" />
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
         {progress > 0 ? (
           <Circle
             cx={size / 2}
             cy={size / 2}
             r={r}
-            stroke={colors.primary}
+            stroke={color}
             strokeWidth={stroke}
             strokeLinecap="round"
             fill="none"
@@ -75,7 +101,7 @@ export function GoalRing({ done, total }: { done: number; total: number }) {
           />
         ) : null}
       </Svg>
-      <Text variant="micro" weight="bold" style={styles.ringLabel}>
+      <Text variant={size >= 48 ? "label" : "micro"} weight={size >= 48 ? "extrabold" : "bold"} color={colors.text} style={styles.ringLabel}>
         {`${Math.min(done, total)}/${total}`}
       </Text>
     </View>
@@ -96,50 +122,69 @@ export function FlameIcon({ size = 13, color = colors.accentInk }: { size?: numb
 }
 
 const styles = StyleSheet.create({
-  // Flat, no shadow; the same light sage as the Tonight card's "why" line.
+  // Solid tomato, no shadow, like a banner; the tomato mark clips at its edge.
   card: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    minHeight: 56,
-    paddingVertical: spacing.xs,
-    paddingLeft: spacing.xs,
-    paddingRight: spacing.sm,
-    borderRadius: radii.lg,
-    backgroundColor: colors.sageSoft,
+    minHeight: 84,
+    paddingVertical: spacing.md,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.md,
+    borderRadius: radii.xl,
+    backgroundColor: colors.primary,
+    overflow: "hidden",
   },
   ringTile: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.md,
+    width: 60,
+    height: 60,
+    borderRadius: radii.pill,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.onPrimary,
   },
   text: {
     flex: 1,
     minWidth: 0,
   },
+  detail: {
+    opacity: 0.85,
+  },
   ring: {
-    width: 36,
-    height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
   ringLabel: {
     position: "absolute",
   },
+  tomato: {
+    position: "absolute",
+    right: 72,
+    bottom: -44,
+    width: 104,
+    height: 104,
+  },
+  tomatoBody: {
+    position: "absolute",
+    top: 14,
+    width: 104,
+    height: 96,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary700,
+  },
+  tomatoLeaf: {
+    position: "absolute",
+    top: 0,
+    left: 35,
+  },
   streak: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 3,
-    height: 30,
-    paddingHorizontal: 10,
+    gap: 4,
+    height: 40,
+    paddingHorizontal: spacing.md,
     borderRadius: radii.pill,
-    backgroundColor: colors.accent,
-  },
-  streakIdle: {
-    backgroundColor: colors.surface3,
+    backgroundColor: colors.accentSoft,
   },
   num: {
     fontVariant: ["tabular-nums"],

@@ -3,6 +3,7 @@ import Svg, { Path } from "react-native-svg";
 
 import { colors, fonts, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
+import { FoodGlyph } from "../illustrations";
 import { RecipeCover } from "./RecipeCover";
 
 // Recipe ideas, TinyMeals-style: the "Try next" hero and list cards on the
@@ -14,7 +15,8 @@ export type IngredientChip = { label: string; tag?: string };
 export function TryNextCard({
   eyebrow,
   title,
-  meta,
+  time,
+  complexity,
   description,
   ingredientsLabel,
   stepsLabel,
@@ -31,7 +33,8 @@ export function TryNextCard({
 }: {
   eyebrow: string;
   title: string;
-  meta: string;
+  time: string;
+  complexity: string;
   description?: string | null;
   ingredientsLabel: string;
   stepsLabel?: string;
@@ -43,101 +46,117 @@ export function TryNextCard({
   onPress: () => void;
   /** A button at the bottom ("Cook this") doing the same as tapping the card. */
   ctaLabel?: string;
-  /** A link under the CTA (e.g. "More ideas →"). */
+  /** A soft button beside the CTA (e.g. "More ideas"). */
   secondaryLabel?: string;
   onSecondary?: () => void;
   coverPath?: string | null;
 }) {
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.hero, pressed && styles.pressed]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+      {/* Clipped inside, so the card's shadow isn't. The dish photo fills the
+          top right; the panel below curves over it. */}
+      <View style={styles.hero}>
+      <View style={styles.heroPhoto}>
+        <RecipeCover path={coverPath} glyphSize={72} />
+      </View>
       <View style={styles.heroTop}>
-        <View style={styles.copy}>
-          <Text variant="micro" uppercase color={colors.accentInk} style={styles.eyebrow}>
-            {eyebrow}
-          </Text>
-          <Text variant="h3" weight="extrabold" style={styles.heroTitle}>{title}</Text>
-          <MetaLine text={meta} />
-        </View>
-        {/* The dish photo leads on the right; the heart sits on its corner. */}
-        <View>
-          <View style={styles.heroCover}>
-            <RecipeCover path={coverPath} glyphSize={48} />
+        <View style={styles.eyebrowRow}>
+          <View style={styles.eyebrowPill}>
+            <Text variant="micro" uppercase weight="extrabold" color={colors.primary} numberOfLines={1}>
+              {eyebrow}
+            </Text>
           </View>
-          {onFavorite ? (
-            <View style={styles.heroHeart}>
-              <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} onPhoto />
-            </View>
-          ) : null}
+          {onFavorite ? <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} /> : null}
+        </View>
+        <Text variant="h2" weight="extrabold" style={styles.heroTitle}>{title}</Text>
+        <View style={styles.heroMeta}>
+          <ClockIcon size={17} />
+          <Text variant="small" weight="semibold" color={colors.text}>
+            {time}
+          </Text>
+          <Text variant="small" muted>
+            ·
+          </Text>
+          <View style={styles.metaDot} />
+          <Text variant="small" weight="semibold" color={colors.text}>
+            {complexity}
+          </Text>
         </View>
       </View>
-      {/* Why it's tonight's pick (e.g. what it saves from going off) leads. */}
-      {why ? (
-        <View style={styles.why}>
-          <SparkIcon />
-          <Text variant="small" color={colors.accentInk} weight="bold" style={styles.copy}>
-            {why}
+      <View style={styles.heroPanel}>
+        {/* Why it's tonight's pick (e.g. what it saves from going off) leads. */}
+        {why ? (
+          <View style={styles.why}>
+            <SparkIcon />
+            <Text variant="small" color={colors.text} weight="semibold" style={styles.whyText}>
+              {why}
+            </Text>
+          </View>
+        ) : null}
+        {description ? (
+          <Text variant="small" color={colors.text} numberOfLines={2}>
+            {description}
           </Text>
-        </View>
-      ) : null}
-      {description ? (
-        <Text variant="small" muted numberOfLines={1}>
-          {description}
-        </Text>
-      ) : null}
-      {ingredients.length > 0 ? (
-        <>
-          <View style={styles.rowBetween}>
-            <Text variant="micro" muted>
-              {ingredientsLabel}
-            </Text>
-            {stepsLabel ? (
-              <Text variant="small" color={colors.accentInk} weight="bold">
-                {stepsLabel}
+        ) : null}
+        {ingredients.length > 0 ? (
+          <>
+            <View style={styles.rowBetween}>
+              <Text variant="label" weight="extrabold">
+                {ingredientsLabel}
               </Text>
-            ) : null}
-          </View>
-          <View style={styles.chips}>
-            {ingredients.map((chip) => (
-              <View key={chip.label} style={styles.chip}>
-                <Text variant="small" color={colors.text} weight="bold">
-                  {chip.label}
+              {stepsLabel ? (
+                <Text variant="small" color={colors.primary} weight="extrabold">
+                  {stepsLabel}
                 </Text>
-                {chip.tag ? (
-                  <Text variant="micro" color={colors.redInk} weight="bold">
-                    {chip.tag}
+              ) : null}
+            </View>
+            <View style={styles.chips}>
+              {ingredients.map((chip) => (
+                <View key={chip.label} style={styles.chip}>
+                  <FoodGlyph name={chip.label} size={18} color={colors.text} />
+                  <Text variant="small" color={colors.text} weight="bold">
+                    {chip.label}
                   </Text>
-                ) : null}
-              </View>
-            ))}
-          </View>
-        </>
-      ) : null}
-      {ctaLabel ? (
-        // One solid button; anything else is a link, so the two never compete.
-        <View style={styles.actions}>
-          <Pressable
-            accessibilityRole="button"
-            onPress={onPress}
-            style={({ pressed }) => [styles.view, pressed && styles.pressed]}
-          >
-            <Text variant="label" weight="bold" color={colors.onPrimary} numberOfLines={1}>
-              {ctaLabel}
-            </Text>
-          </Pressable>
-          {secondaryLabel && onSecondary ? (
+                  {chip.tag ? (
+                    <View style={styles.chipTag}>
+                      <Text variant="micro" color={colors.primary} weight="bold">
+                        {chip.tag}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          </>
+        ) : null}
+        {ctaLabel ? (
+          <View style={styles.actions}>
             <Pressable
               accessibilityRole="button"
-              onPress={onSecondary}
-              hitSlop={8}
-              style={({ pressed }) => [styles.link, pressed && styles.pressed]}
+              onPress={onPress}
+              style={({ pressed }) => [styles.cook, pressed && styles.pressed]}
             >
-              <Text variant="small" weight="extrabold" color={colors.accentInk}>
-                {`${secondaryLabel} →`}
+              <Text variant="label" weight="extrabold" color={colors.onPrimary} numberOfLines={1}>
+                {ctaLabel}
               </Text>
+              <ArrowIcon />
             </Pressable>
-          ) : null}
-        </View>
-      ) : null}
+            {secondaryLabel && onSecondary ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onSecondary}
+                style={({ pressed }) => [styles.soft, pressed && styles.pressed]}
+              >
+                <BulbIcon />
+                <Text variant="label" weight="bold" numberOfLines={1}>
+                  {secondaryLabel}
+                </Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+      </View>
     </Pressable>
   );
 }
@@ -170,11 +189,11 @@ export function RecipeListCard({
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.listCard, highlight && styles.listCardHighlight, pressed && styles.pressed]}>
-      <View style={styles.tileLarge}>
+      <View style={styles.listThumb}>
         <RecipeCover path={coverPath} glyphSize={36} />
       </View>
       <View style={styles.copy}>
-        <Text variant="micro" uppercase numberOfLines={1} color={badgeAccent ? colors.accentInk : colors.muted} style={styles.eyebrow}>
+        <Text variant="micro" uppercase numberOfLines={1} color={badgeAccent ? colors.primary : colors.muted} style={styles.eyebrow}>
           {badge}
         </Text>
         <Text variant="label" weight="extrabold" numberOfLines={2} style={styles.listTitle}>
@@ -314,7 +333,8 @@ export function IdeasResults({
 function MetaLine({ text }: { text: string }) {
   return (
     <View style={styles.meta}>
-      <Text variant="small" color={colors.accentInk} numberOfLines={1} weight="bold" style={styles.copy}>
+      <ClockIcon size={14} />
+      <Text variant="small" color={colors.text} numberOfLines={1} weight="semibold" style={styles.copy}>
         {text}
       </Text>
     </View>
@@ -331,7 +351,7 @@ function Pill({ label }: { label: string }) {
   );
 }
 
-function Heart({ active, label, onPress, onPhoto }: { active?: boolean; label: string; onPress: () => void; onPhoto?: boolean }) {
+function Heart({ active, label, onPress }: { active?: boolean; label: string; onPress: () => void }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -339,12 +359,12 @@ function Heart({ active, label, onPress, onPhoto }: { active?: boolean; label: s
       accessibilityState={{ selected: Boolean(active) }}
       onPress={onPress}
       hitSlop={6}
-      style={({ pressed }) => [styles.heart, onPhoto && styles.heartOnPhoto, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.heart, pressed && styles.pressed]}
     >
-      <Svg width={16} height={16} viewBox="0 0 24 24" fill={active ? colors.accent : "none"}>
+      <Svg width={18} height={18} viewBox="0 0 24 24" fill={active ? colors.primary : "none"}>
         <Path
           d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"
-          stroke={active ? colors.accent : colors.accentInk}
+          stroke={colors.primary}
           strokeWidth={2}
           strokeLinejoin="round"
         />
@@ -353,9 +373,33 @@ function Heart({ active, label, onPress, onPhoto }: { active?: boolean; label: s
   );
 }
 
+function ClockIcon({ size }: { size: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4v5l3 2" stroke={colors.text} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 12h14M13 6l6 6-6 6" stroke={colors.onPrimary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function BulbIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z" stroke={colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 function SparkIcon() {
   return (
-    <Svg width={15} height={15} viewBox="0 0 24 24" fill="none">
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
       <Path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" stroke={colors.accentInk} strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
@@ -376,29 +420,96 @@ const styles = StyleSheet.create({
     ...shadows.soft,
   },
   hero: {
-    padding: spacing.lg,
-    gap: spacing.md,
+    borderRadius: radii.xxl,
+    overflow: "hidden",
   },
-  heroTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  heroCover: {
-    width: 96,
-    height: 96,
-    borderRadius: radii.xl,
-    backgroundColor: colors.sageTint,
+  heroPhoto: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: "44%",
+    height: 196,
+    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
   },
-  heroHeart: {
-    position: "absolute",
-    top: -spacing.xs,
-    right: -spacing.xs,
+  heroTop: {
+    width: "62%",
+    minHeight: 172,
+    paddingTop: spacing.lg,
+    paddingLeft: spacing.lg,
+    gap: spacing.sm,
+  },
+  eyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  eyebrowPill: {
+    flexShrink: 1,
+    minHeight: 30,
+    justifyContent: "center",
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+  },
+  heroMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  metaDot: {
+    width: 9,
+    height: 9,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
+  },
+  heroPanel: {
+    marginTop: spacing.sm,
+    padding: spacing.lg,
+    paddingTop: spacing.lg,
+    gap: spacing.md,
+    borderTopRightRadius: radii.xxl,
+    backgroundColor: colors.surface,
+  },
+  whyText: {
+    flexShrink: 1,
+  },
+  chipTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+  },
+  cook: {
+    flex: 1,
+    minHeight: 54,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
     borderRadius: radii.lg,
-    ...shadows.soft,
+    backgroundColor: colors.primary,
+  },
+  soft: {
+    flex: 1,
+    minHeight: 54,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    borderRadius: radii.lg,
+    backgroundColor: colors.surface2,
+  },
+  listThumb: {
+    width: 100,
+    height: 76,
+    borderRadius: radii.md,
+    backgroundColor: colors.surface2,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
   },
   tileLarge: {
     width: 64,
@@ -428,7 +539,6 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: colors.text,
-    marginTop: 2,
   },
   listTitle: {
     color: colors.text,
@@ -451,18 +561,23 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: -spacing.xs,
   },
+  // Outlined pills with the food's icon; "Use soon" is a small peach tag.
   chip: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    minHeight: 28,
-    paddingHorizontal: 11,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface2,
+    minHeight: 34,
+    paddingLeft: spacing.sm,
+    paddingRight: spacing.md,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.bg,
   },
   why: {
+    alignSelf: "flex-start",
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: spacing.sm,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -470,16 +585,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
   },
   heart: {
-    width: 36,
-    height: 36,
-    borderRadius: radii.lg,
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "flex-start",
-  },
-  heartOnPhoto: {
-    backgroundColor: colors.surface,
   },
   listCard: {
     flexDirection: "row",
@@ -488,10 +600,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   actions: {
-    gap: spacing.md,
-  },
-  link: {
-    alignSelf: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
   },
   listCardHighlight: {
     backgroundColor: colors.accentSoft,
