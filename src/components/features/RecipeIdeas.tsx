@@ -54,8 +54,8 @@ export function TryNextCard({
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.hero}>
-      {/* The dish floats top right on a peach blob, with a little spark; the
-          heart sits in the card's corner above it. */}
+      {/* The pill and meta sit beside the dish, which floats top right on a
+          peach blob with a little spark; the heart sits in the card's corner. */}
       <View style={styles.heroTop}>
         <View style={styles.heroCopy}>
         <View style={styles.eyebrowPill}>
@@ -63,7 +63,6 @@ export function TryNextCard({
             {eyebrow}
           </Text>
         </View>
-        <Text variant="h2" weight="extrabold" style={styles.heroTitle}>{title}</Text>
         <View style={styles.heroMeta}>
           <ClockIcon size={17} />
           <Text variant="small" weight="semibold" color={colors.text}>
@@ -88,6 +87,8 @@ export function TryNextCard({
           </View>
         </View>
       </View>
+      {/* Full width, so a long title wraps in two lines, not a word per line. */}
+      <Text variant="h2" weight="extrabold" style={styles.heroTitle}>{title}</Text>
       {onFavorite ? (
         <View style={styles.heroHeart}>
           <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} />
@@ -446,7 +447,7 @@ const styles = StyleSheet.create({
   heroArt: {
     width: 132,
     height: 132,
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -567,6 +568,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: colors.text,
+    marginTop: -spacing.xs,
   },
   listTitle: {
     color: colors.text,
