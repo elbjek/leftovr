@@ -1455,16 +1455,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // Like the reference: a light rounded square, thin warm-grey outline.
   checkbox: {
-    width: 24,
-    height: 24,
+    width: 26,
+    height: 26,
     borderRadius: radii.xs,
-    backgroundColor: colors.surface3,
+    borderWidth: 1.5,
+    borderColor: colors.hairlineStrong,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxChecked: {
     backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   checkActionBar: {
     flexDirection: "row",
