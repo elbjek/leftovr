@@ -701,23 +701,13 @@ function CheckTheseSheet({
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
       <View style={styles.sheetContent}>
-        {/* Title and why on the left, a tomato on a butter blob on the right. */}
-        <View style={styles.checkHead}>
-          <View style={styles.checkHeadCopy}>
-            <Text variant="h1" weight="extrabold">
-              {labels.title}
-            </Text>
-            <Text variant="small" muted>
-              {labels.subtitle}
-            </Text>
-          </View>
-          <View style={styles.checkArt} pointerEvents="none">
-            <View style={styles.checkBlob} />
-            <Svg width={30} height={26} viewBox="0 0 30 26" style={styles.checkSpark}>
-              <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
-            </Svg>
-            <FoodGlyph name="tomato" size={72} />
-          </View>
+        <View style={styles.checkHeadCopy}>
+          <Text variant="h1" weight="extrabold">
+            {labels.title}
+          </Text>
+          <Text variant="small" muted>
+            {labels.subtitle}
+          </Text>
         </View>
         <ScrollView style={styles.fullShelfScroll} contentContainerStyle={styles.checkSheetList}>
           {sections.map((section) => {
@@ -1424,34 +1414,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  checkHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-  },
   checkHeadCopy: {
-    flex: 1,
-    minWidth: 0,
     gap: spacing.xs,
-  },
-  checkArt: {
-    width: 116,
-    height: 96,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkBlob: {
-    position: "absolute",
-    width: 116,
-    height: 88,
-    borderRadius: radii.pill,
-    backgroundColor: colors.accentSoft,
-    transform: [{ rotate: "-12deg" }],
-  },
-  checkSpark: {
-    position: "absolute",
-    top: -spacing.xs,
-    left: -spacing.xs,
   },
   checkFood: {
     width: 48,
@@ -1466,7 +1430,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  // Each food is its own soft card.
+  // Each food is its own soft card: fills only, no outlines.
   checkPickRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1475,13 +1439,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: radii.xl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface2,
   },
   checkPickRowSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary50,
+    backgroundColor: colors.surface3,
   },
   checkPickName: {
     flex: 1,
@@ -1497,15 +1458,12 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: radii.xs,
-    borderWidth: 1.5,
-    borderColor: colors.hairlineStrong,
     backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxChecked: {
     backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   checkActionBar: {
     flexDirection: "row",
