@@ -491,6 +491,7 @@ export default function FridgeRoute() {
         sections={checkSections}
         labels={{
           title: t("fridge.checkThese.title"),
+          subtitle: t("fridge.checkThese.subtitle"),
           selectAll: t("fridge.checkThese.selectAll"),
           clearSelection: t("fridge.checkThese.clearSelection"),
           stillGoodCount: (count) => t("fridge.checkThese.stillGoodCount", { count }),
@@ -625,6 +626,7 @@ function CheckTheseSheet({
   sections: { key: string; name: string; items: CheckItem[] }[];
   labels: {
     title: string;
+    subtitle: string;
     selectAll: string;
     clearSelection: string;
     stillGoodCount: (count: number) => string;
@@ -699,21 +701,38 @@ function CheckTheseSheet({
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
       <View style={styles.sheetContent}>
-        <Text variant="h2">{labels.title}</Text>
+        {/* Title and why on the left, a tomato on a butter blob on the right. */}
+        <View style={styles.checkHead}>
+          <View style={styles.checkHeadCopy}>
+            <Text variant="h1" weight="extrabold">
+              {labels.title}
+            </Text>
+            <Text variant="small" muted>
+              {labels.subtitle}
+            </Text>
+          </View>
+          <View style={styles.checkArt} pointerEvents="none">
+            <View style={styles.checkBlob} />
+            <Svg width={30} height={26} viewBox="0 0 30 26" style={styles.checkSpark}>
+              <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
+            </Svg>
+            <FoodGlyph name="tomato" size={72} />
+          </View>
+        </View>
         <ScrollView style={styles.fullShelfScroll} contentContainerStyle={styles.checkSheetList}>
           {sections.map((section) => {
             const allSelected = section.items.every((item) => selected.has(item.id));
             return (
               <View key={section.key} style={styles.checkSection}>
                 <View style={styles.checkSectionHead}>
-                  <Text variant="micro" muted uppercase>
+                  <Text variant="micro" muted uppercase weight="extrabold">
                     {section.name} · {section.items.length}
                   </Text>
                   <Tappable
                     onPress={() => toggleSection(section.items)}
                     hitSlop={spacing.sm}
                   >
-                    <Text variant="micro" color={colors.primary}>
+                    <Text variant="small" weight="extrabold" color={colors.primary}>
                       {allSelected ? labels.clearSelection : labels.selectAll}
                     </Text>
                   </Tappable>
@@ -732,10 +751,13 @@ function CheckTheseSheet({
                       <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>
                         {isSelected ? <CheckMarkIcon /> : null}
                       </View>
-                      <Text variant="label" color={colors.text} numberOfLines={1} style={styles.checkPickName}>
+                      <View style={styles.checkFood}>
+                        <FoodGlyph name={item.name} category={item.category} size={38} />
+                      </View>
+                      <Text variant="label" weight="extrabold" color={colors.text} numberOfLines={1} style={styles.checkPickName}>
                         {item.name}
                       </Text>
-                      <Text variant="micro" muted numberOfLines={1}>
+                      <Text variant="small" weight="semibold" muted numberOfLines={1}>
                         {item.shortLabel ?? item.label}
                       </Text>
                       <Tappable
@@ -753,8 +775,10 @@ function CheckTheseSheet({
             );
           })}
         </ScrollView>
-        {selected.size > 0 ? (
-          <View style={styles.checkActionBar}>
+        {/* Always two buttons: Cancel and a disabled Toss until something is
+            picked, then Still good and Toss for the picked items. */}
+        <View style={styles.checkActionBar}>
+          {selected.size > 0 ? (
             <Tappable
               onPress={() => {
                 onStillGoodMany(Array.from(selected));
@@ -762,25 +786,21 @@ function CheckTheseSheet({
               }}
               style={[styles.checkActionBtn, styles.checkKeepBtn]}
             >
-              <Text variant="label" color={colors.primary}>{labels.stillGoodCount(selected.size)}</Text>
+              <Text variant="label" weight="extrabold">{labels.stillGoodCount(selected.size)}</Text>
             </Tappable>
-            <Tappable
-              onPress={() => setConfirmingToss(true)}
-              style={[styles.checkActionBtn, styles.checkTossBtn]}
-            >
-              <Text variant="label" color={colors.redInk}>{labels.tossCount(selected.size)}</Text>
+          ) : (
+            <Tappable onPress={onDismiss} style={[styles.checkActionBtn, styles.checkKeepBtn]}>
+              <Text variant="label" weight="extrabold">{labels.cancel}</Text>
             </Tappable>
-          </View>
-        ) : (
+          )}
           <Tappable
-            onPress={onDismiss}
-            style={[styles.tossAllLink]}
+            disabled={selected.size === 0}
+            onPress={() => setConfirmingToss(true)}
+            style={[styles.checkActionBtn, styles.checkTossBtn, selected.size === 0 && styles.checkTossIdle]}
           >
-            <Text variant="small" muted>
-              {labels.cancel}
-            </Text>
+            <Text variant="label" weight="extrabold" color={colors.onPrimary}>{labels.tossCount(selected.size)}</Text>
           </Tappable>
-        )}
+        </View>
       </View>
     </BottomSheet>
   );
@@ -1404,29 +1424,64 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
-  tossAllLink: {
-    alignSelf: "center",
+  checkHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  checkHeadCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: spacing.xs,
+  },
+  checkArt: {
+    width: 116,
+    height: 96,
+    alignItems: "center",
     justifyContent: "center",
-    // Matches the 48px select-actions bar so the sheet height stays constant
-    // when the footer swaps between Cancel and the still-good/toss buttons.
-    minHeight: 48,
-    paddingHorizontal: spacing.md,
+  },
+  checkBlob: {
+    position: "absolute",
+    width: 116,
+    height: 88,
+    borderRadius: radii.pill,
+    backgroundColor: colors.accentSoft,
+    transform: [{ rotate: "-12deg" }],
+  },
+  checkSpark: {
+    position: "absolute",
+    top: -spacing.xs,
+    left: -spacing.xs,
+  },
+  checkFood: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.pill,
+    backgroundColor: colors.foodWell,
+    alignItems: "center",
+    justifyContent: "center",
   },
   checkSectionHead: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
+  // Each food is its own soft card.
   checkPickRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    minHeight: 44,
-    paddingHorizontal: spacing.xs,
-    borderRadius: radii.md,
+    gap: spacing.md,
+    minHeight: 68,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.surface,
   },
   checkPickRowSelected: {
-    backgroundColor: colors.sageSoft,
+    borderColor: colors.primary,
+    backgroundColor: colors.primary50,
   },
   checkPickName: {
     flex: 1,
@@ -1439,8 +1494,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   checkbox: {
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
     borderRadius: radii.xs,
     borderWidth: 1.5,
     borderColor: colors.hairlineStrong,
@@ -1458,16 +1513,20 @@ const styles = StyleSheet.create({
   },
   checkActionBtn: {
     flex: 1,
-    minHeight: 48,
-    borderRadius: radii.lg,
+    minHeight: 54,
+    borderRadius: radii.pill,
     alignItems: "center",
     justifyContent: "center",
   },
   checkKeepBtn: {
-    backgroundColor: colors.sageTint,
+    backgroundColor: colors.surface2,
   },
   checkTossBtn: {
-    backgroundColor: colors.redSoft,
+    flex: 1.35,
+    backgroundColor: colors.primary,
+  },
+  checkTossIdle: {
+    opacity: 0.5,
   },
   checkSheetList: {
     gap: spacing.sm,
