@@ -35,11 +35,13 @@ export function CheckTheseShelf({ count, labels, onPress }: Props) {
         <ListRow
           title={`${labels.kicker} · ${count}`}
           subtitle={labels.subtitle}
-          leading={
-            <View style={styles.icon}>
-              <AlertIcon />
+          leading={<AlertIcon />}
+          trailing={
+            <View style={styles.go}>
+              <ArrowIcon />
             </View>
           }
+          chevron={false}
           onPress={onPress}
         />
       </View>
@@ -49,15 +51,23 @@ export function CheckTheseShelf({ count, labels, onPress }: Props) {
 
 function AlertIcon() {
   return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
       <Path
         d="M12 3.5 21 20H3L12 3.5Z"
-        stroke={colors.text}
+        stroke={colors.primary}
         strokeWidth={1.9}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <Path d="M12 10v4.5M12 17.2v.3" stroke={colors.text} strokeWidth={1.9} strokeLinecap="round" />
+      <Path d="M12 10v4.5M12 17.2v.3" stroke={colors.primary} strokeWidth={1.9} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 12h14M13 6l6 6-6 6" stroke={colors.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -71,10 +81,10 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     paddingHorizontal: spacing.lg,
   },
-  icon: {
-    width: 38,
-    height: 38,
-    borderRadius: radii.xl,
+  go: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
     backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",

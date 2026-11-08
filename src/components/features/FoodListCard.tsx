@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { Urgency, colors, radii, spacing, urgencyColors } from "../../theme";
-import { Card, Divider, GlyphTile, ListRow, SectionHeader, StatusPill, Tappable, Text } from "../primitives";
+import { Divider, GlyphTile, ListRow, StatusPill, Tappable, Text } from "../primitives";
 
 export type FoodListItem = {
   id: string;
@@ -32,7 +32,9 @@ type Props = {
   emptyText?: string;
 };
 
-/** A shelf on the Kitchen home: a section header, then a card of food rows. */
+/** A shelf on the Kitchen home: a big title, then food rows straight on the
+ *  page — a peach date tile (when dated), the food on its round tint, name
+ *  over meta, the status pill and a chevron. */
 export function FoodListCard({
   title,
   items,
@@ -48,25 +50,24 @@ export function FoodListCard({
 
   return (
     <View style={styles.wrap}>
-      <SectionHeader
-        title={title}
-        style={styles.head}
-        actions={
-          showSeeAll ? (
-            <Tappable role="link" label={seeAllLabel} onPress={onSeeAll}>
-              <Text variant="label" color={colors.primary}>
-                {seeAllLabel}
-              </Text>
-            </Tappable>
-          ) : (
-            <Text variant="small" muted>
-              {items.length}
+      <View style={styles.head}>
+        <Text variant="h2" weight="extrabold" accessibilityRole="header">
+          {title}
+        </Text>
+        {showSeeAll ? (
+          <Tappable role="link" label={seeAllLabel} onPress={onSeeAll}>
+            <Text variant="label" weight="extrabold" color={colors.primary}>
+              {seeAllLabel}
             </Text>
-          )
-        }
-      />
+          </Tappable>
+        ) : (
+          <Text variant="label" weight="extrabold" color={colors.primary}>
+            {items.length}
+          </Text>
+        )}
+      </View>
 
-      <Card padded={false} style={styles.card}>
+      <View>
         {items.length === 0 && emptyText ? (
           <ListRow
             title={emptyText}
@@ -86,23 +87,25 @@ export function FoodListCard({
           />
         ) : null}
 
-        {visible.map((item, index) => (
+        {visible.map((item) => (
           <React.Fragment key={item.id}>
-            {index > 0 ? <Divider inset /> : null}
             <ListRow
               title={item.name}
               subtitle={item.addedBy ? `${item.meta} · ${item.addedBy}` : item.meta}
               leading={
-                item.date ? (
-                  <View style={styles.date}>
-                    <Text variant="micro" color={colors.muted2}>
-                      {item.date.weekday}
-                    </Text>
-                    <Text variant="h3">{item.date.day}</Text>
-                  </View>
-                ) : (
-                  <GlyphTile name={item.name} category={item.category} size="sm" round />
-                )
+                <View style={styles.leading}>
+                  {item.date ? (
+                    <View style={styles.date}>
+                      <Text variant="small" weight="semibold" color={colors.primary}>
+                        {item.date.weekday}
+                      </Text>
+                      <Text variant="h3" weight="extrabold" color={colors.primary700}>
+                        {item.date.day}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <GlyphTile name={item.name} category={item.category} size="lg" round />
+                </View>
               }
               trailing={
                 item.status ? (
@@ -128,7 +131,7 @@ export function FoodListCard({
             <ListRow title={footer.label} onPress={footer.onPress} style={styles.footer} />
           </>
         ) : null}
-      </Card>
+      </View>
     </View>
   );
 }
@@ -139,14 +142,23 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   head: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.xxs,
   },
-  card: {
-    paddingHorizontal: spacing.lg,
+  leading: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
   },
   date: {
-    width: 40,
+    width: 48,
+    height: 56,
+    borderRadius: radii.md,
+    backgroundColor: colors.surface2,
     alignItems: "center",
+    justifyContent: "center",
   },
   emptyCheck: {
     width: 26,

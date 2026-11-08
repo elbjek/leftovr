@@ -3,7 +3,7 @@ import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, KitchenPulse, PlusIcon, PremiumSheet, Screen, SegmentedControl, Tappable, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, PlusIcon, PremiumSheet, Screen, SegmentedControl, Tappable, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory } from "@/hooks";
@@ -177,19 +177,6 @@ export default function FridgeRoute() {
     setView(null);
     setSearch("");
   };
-  const kitchenPulse = (
-    <KitchenPulse
-      fresh={pulse.fresh}
-      soon={pulse.soon}
-      urgent={pulse.urgent}
-      labels={{
-        today: t("fridge.kitchenPulse.today"),
-        soon: t("fridge.kitchenPulse.soon"),
-        fresh: t("fridge.kitchenPulse.fresh"),
-        total: (count) => t("fridge.kitchenPulse.total", { count }),
-      }}
-    />
-  );
   const { members } = useHousehold(activeHousehold?.id);
   const showAddedBy = members.length > 1;
   const statusLabels: Record<Urgency, string> = {
@@ -245,13 +232,16 @@ export default function FridgeRoute() {
                 style={[styles.householdPill]}
               >
                 <View style={styles.householdAvatar}>
-                  <Text variant="micro" color={colors.primary} weight="extrabold">
+                  <Text variant="small" color={colors.primary} weight="extrabold">
                     {(firstName || activeHousehold.name).charAt(0).toUpperCase()}
                   </Text>
                 </View>
-                <Text variant="small" numberOfLines={1} weight="extrabold">
+                <Text variant="small" numberOfLines={1} weight="bold" style={styles.householdName}>
                   {activeHousehold.name}
                 </Text>
+                <Svg width={14} height={14} viewBox="0 0 24 24" accessible={false}>
+                  <Path d="M6 9l6 6 6-6" fill="none" stroke={colors.text} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
               </Tappable>
             ) : null}
             <Tappable
@@ -346,9 +336,17 @@ export default function FridgeRoute() {
         </>
       ) : (
         <>
-          {/* Today: the pulse, then (premium) what to use soon as a dated list
-              like TinyMeals' Try next, or (free) the eat-first upsell. */}
-          {groups.length > 0 ? <View style={styles.pulseWrap}><View style={styles.pulseCard}>{kitchenPulse}</View></View> : null}
+          {/* Today: "What to cook next?" (opens recipes that use what's going
+              off), then (premium) what to use soon as a dated list, or (free)
+              the eat-first upsell. */}
+          {groups.length > 0 ? (
+            <CookNextCard
+              title={t("fridge.cookNext.title")}
+              body={t("fridge.cookNext.body")}
+              cta={t("fridge.cookNext.cta")}
+              onPress={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
+            />
+          ) : null}
 
           {isPremium && groups.length > 0 ? (
             <FoodListCard
@@ -374,10 +372,6 @@ export default function FridgeRoute() {
                 };
               })}
               onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
-              footer={{
-                label: t("fridge.eatFirstCook"),
-                onPress: () => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } }),
-              }}
             />
           ) : null}
 
@@ -449,19 +443,10 @@ export default function FridgeRoute() {
             />
           ) : null}
 
-          {/* TinyMeals' food library: one tile per category, opening its list. */}
+          {/* The food library: one tinted tile per category, four across,
+              each opening its list. */}
           {categoryTiles.length > 0 ? (
             <View style={styles.tilesSection}>
-              <View style={styles.sectionHead}>
-                <Text variant="micro" uppercase muted weight="extrabold">
-                  {t("fridge.homeTitle")}
-                </Text>
-                <Tappable role="link" onPress={() => setView("all")} hitSlop={8}>
-                  <Text variant="small" color={colors.primary} weight="extrabold">
-                    {t("fridge.shelves.seeAllCount", { count: activeGroups.length })}
-                  </Text>
-                </Tappable>
-              </View>
               <View style={styles.tiles}>
                 {categoryTiles.map((tile) => {
                   const tone = categoryColors[toUiCategory(tile.category) as CategoryTone] ?? categoryColors.other;
@@ -470,19 +455,16 @@ export default function FridgeRoute() {
                       key={tile.category}
                       label={`${tile.label}, ${tile.detail}`}
                       onPress={() => setView(tile.category)}
-                      style={[styles.tile]}
+                      // A light wash of the category tint (hex alpha).
+                      style={[styles.tile, { backgroundColor: `${tone.background}55` }]}
                     >
-                      <View style={[styles.tileIcon, { backgroundColor: tone.background }]}>
-                        <FoodGlyph name="" category={tile.category} color={tone.mark} size={22} />
-                      </View>
-                      <View style={styles.tileCopy}>
-                        <Text variant="label" numberOfLines={1} weight="extrabold">
-                          {tile.label}
-                        </Text>
-                        <Text variant="small" muted numberOfLines={1}>
-                          {tile.detail}
-                        </Text>
-                      </View>
+                      <FoodGlyph name="" category={tile.category} color={tone.mark} size={52} />
+                      <Text variant="small" numberOfLines={1} weight="extrabold" center>
+                        {tile.label}
+                      </Text>
+                      <Text variant="micro" muted numberOfLines={1} center>
+                        {tile.detail}
+                      </Text>
                     </Tappable>
                   );
                 })}
@@ -540,6 +522,45 @@ export default function FridgeRoute() {
       />
       <PremiumSheet visible={showPremium} onPurchased={refreshAuth} onDismiss={() => setShowPremium(false)} />
       </Screen>
+  );
+}
+
+// "What to cook next?": the Kitchen's way into recipes that use what's going
+// off — copy and a tomato button on the left, food art on a peach blob right.
+function CookNextCard({ title, body, cta, onPress }: { title: string; body: string; cta: string; onPress: () => void }) {
+  return (
+    <View style={styles.cookNextWrap}>
+      <View style={styles.cookNext}>
+        <View style={styles.cookNextArt} pointerEvents="none">
+          <View style={styles.cookNextBlob} />
+          <Svg width={34} height={30} viewBox="0 0 30 26" style={styles.cookNextSpark}>
+            <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
+          </Svg>
+          <View style={styles.cookNextTomato}>
+            <FoodGlyph name="tomato" size={96} />
+          </View>
+          <View style={styles.cookNextMushroom}>
+            <FoodGlyph name="mushrooms" size={64} />
+          </View>
+        </View>
+        <View style={styles.cookNextCopy}>
+          <Text variant="h2" weight="extrabold">
+            {title}
+          </Text>
+          <Text variant="small" muted>
+            {body}
+          </Text>
+        </View>
+        <Tappable label={cta} onPress={onPress} style={[styles.cookNextButton]}>
+          <Text variant="label" weight="extrabold" color={colors.onPrimary}>
+            {cta}
+          </Text>
+          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+            <Path d="M5 12h14M13 6l6 6-6 6" stroke={colors.onPrimary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        </Tappable>
+      </View>
+    </View>
   );
 }
 
@@ -1118,23 +1139,63 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.tabBarClearance,
     gap: spacing.xl,
   },
-  pulseWrap: {
+  cookNextWrap: {
     paddingHorizontal: spacing.screenX,
+  },
+  cookNext: {
+    overflow: "hidden",
+    borderRadius: radii.xxl,
+    backgroundColor: colors.surface2,
+    padding: spacing.xl,
+    gap: spacing.lg,
+  },
+  cookNextCopy: {
+    width: "62%",
+    gap: spacing.xs,
+  },
+  cookNextArt: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: "44%",
+  },
+  cookNextBlob: {
+    position: "absolute",
+    right: -40,
+    bottom: -50,
+    width: 190,
+    height: 190,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface3,
+  },
+  cookNextSpark: {
+    position: "absolute",
+    top: spacing.md,
+    left: spacing.xs,
+  },
+  cookNextTomato: {
+    position: "absolute",
+    top: spacing.xl,
+    right: spacing.sm,
+  },
+  cookNextMushroom: {
+    position: "absolute",
+    bottom: spacing.md,
+    left: spacing.md,
+  },
+  cookNextButton: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 48,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
   },
   safetyNote: {
     paddingHorizontal: spacing.screenX,
-  },
-  pulseCard: {
-    backgroundColor: colors.surface2,
-    borderRadius: radii.xl,
-    padding: spacing.lg,
-    ...shadows.soft,
-  },
-  sectionHead: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.xxs,
   },
   searchField: {
     flexDirection: "row",
@@ -1144,11 +1205,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.cardLine,
-    borderRadius: radii.xl,
+    borderRadius: radii.pill,
     minHeight: 50,
   },
   searchFieldFocused: {
-    borderColor: colors.sage,
+    borderColor: colors.primary,
   },
   searchInput: {
     flex: 1,
@@ -1157,8 +1218,8 @@ const styles = StyleSheet.create({
     ...typography.body,
   },
   addButton: {
-    width: 44,
-    height: 44,
+    width: 52,
+    height: 52,
     borderRadius: radii.pill,
     backgroundColor: colors.primary,
     alignItems: "center",
@@ -1198,14 +1259,15 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
+  },
+  householdName: {
+    flexShrink: 1,
   },
   householdAvatar: {
-    width: 22,
-    height: 22,
-    borderRadius: radii.md,
-    backgroundColor: colors.sageTint,
+    width: 28,
+    height: 28,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface3,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1243,8 +1305,10 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   tilesSection: {
-    paddingHorizontal: spacing.screenX,
-    gap: spacing.sm,
+    marginHorizontal: spacing.screenX,
+    paddingTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.hairline,
   },
   tiles: {
     flexDirection: "row",
@@ -1252,27 +1316,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   tile: {
-    // Two per row: half the row minus half the gap.
-    width: "48.5%",
-    flexDirection: "row",
+    // Four per row: a quarter of the row minus the gaps.
+    width: "23.4%",
     alignItems: "center",
-    gap: spacing.md,
-    padding: spacing.md,
+    gap: 2,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xxs,
     borderRadius: radii.xl,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-  },
-  tileIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.xl,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  tileCopy: {
-    flex: 1,
-    minWidth: 0,
   },
   refreshButton: {
     minHeight: 38,
