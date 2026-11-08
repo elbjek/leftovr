@@ -1411,7 +1411,7 @@ const styles = StyleSheet.create({
     maxHeight: 520,
   },
   checkSection: {
-    gap: spacing.sm,
+    gap: spacing.xxs,
     marginBottom: spacing.md,
   },
   checkHeadCopy: {
@@ -1430,19 +1430,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  // Each food is its own soft card: fills only, no outlines.
+  // Plain rows straight on the sheet, no cards or outlines; a picked row
+  // gets a soft peach fill.
   checkPickRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    minHeight: 68,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.xl,
-    backgroundColor: colors.surface2,
+    minHeight: 64,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
+    borderRadius: radii.lg,
   },
   checkPickRowSelected: {
-    backgroundColor: colors.surface3,
+    backgroundColor: colors.surface2,
   },
   checkPickName: {
     flex: 1,
@@ -1458,7 +1459,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: radii.xs,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surface3,
     alignItems: "center",
     justifyContent: "center",
   },
