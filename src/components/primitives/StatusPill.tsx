@@ -22,7 +22,7 @@ const TONES: Record<PillTone, { background: string; ink: string }> = {
   safe: { background: colors.sageTint, ink: colors.primary },
   useSoon: { background: colors.accentSoft, ink: colors.accentInk },
   // Solid: a soft red pill vanished on the peach page (red on red).
-  urgent: { background: colors.primary700, ink: colors.onPrimary },
+  urgent: { background: colors.primary, ink: colors.onPrimary },
   expired: { background: colors.surface3, ink: colors.muted },
   accent: { background: colors.accent, ink: colors.text },
   solid: { background: colors.primary, ink: colors.onPrimary },

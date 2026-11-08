@@ -1457,7 +1457,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radii.pill,
-    backgroundColor: colors.foodWell,
+    backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
   },
