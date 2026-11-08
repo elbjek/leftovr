@@ -3,7 +3,8 @@ import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { Urgency, colors, radii, spacing, urgencyColors } from "../../theme";
-import { Divider, GlyphTile, ListRow, StatusPill, Tappable, Text } from "../primitives";
+import { FoodGlyph } from "../illustrations";
+import { Divider, ListRow, StatusPill, Tappable, Text } from "../primitives";
 
 export type FoodListItem = {
   id: string;
@@ -104,7 +105,11 @@ export function FoodListCard({
                       </Text>
                     </View>
                   ) : null}
-                  <GlyphTile name={item.name} category={item.category} size="lg" round />
+                  {/* One neutral peach well and a big icon: a category tint the
+                      same colour as the food (white cheese on cream) hid it. */}
+                  <View style={styles.food}>
+                    <FoodGlyph name={item.name} category={item.category} size={50} />
+                  </View>
                 </View>
               }
               trailing={
@@ -151,6 +156,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+  },
+  food: {
+    width: 64,
+    height: 64,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    alignItems: "center",
+    justifyContent: "center",
   },
   date: {
     width: 48,
