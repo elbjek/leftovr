@@ -1,142 +1,52 @@
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { colors, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
-  /** Today's goal: items used up so far against the target, and what to do next. */
-  goal: { done: number; total: number; label: string; title: string };
-  /** The streak, when there is one: leads the card as a gold tile ("3 / days"). */
-  streak?: { count: number; unit: string; label: string };
-  /** Banked streak freezes, with a spoken label ("2 streak freezes"). */
-  freezes?: { count: number; label: string };
-  lastLabel: string;
-  lastValue: string;
-  onLastPress?: () => void;
-  historyLabel: string;
-  onHistory: () => void;
+  /** Items used up today against the target. */
+  goal: { done: number; total: number };
+  /** The one thing to know now: the food going off, or the nudge. */
+  headline: string;
+  /** "2 of 3 used · 3 more to use soon". */
+  detail: string;
+  /** Streak length (0 shows a grey flame), with a spoken label. */
+  streak: { count: number; label: string };
   /** Opens what happened today. */
-  onGoalPress: () => void;
-  /** The foods the goal is about (soonest first). Premium only. */
-  foods?: { id: string; name: string; when: string; today: boolean }[];
-  /** Small heading over the foods ("Use soon"). */
-  foodsLabel?: string;
-  onFoodsPress?: () => void;
+  onPress: () => void;
 };
 
-// Today at a glance on a flat sage panel: the streak leads as a gold tile
-// (the goal ring stands in until there is one), then "Today's goal" over the
-// nudge and one tick per item. Then the foods it is about, and the last
-// thing cooked.
-export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onGoalPress, foods, foodsLabel, onFoodsPress }: Props) {
+// Today's goal in one line: the ring in a white tile, the headline over the
+// progress, and the streak as a gold flame. Small on purpose: the recipe
+// below is the home's main thing.
+export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
+  const active = streak.count > 0;
   return (
-    <View style={styles.card}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onGoalPress}
-        style={({ pressed }) => [styles.goal, pressed && styles.pressed]}
-      >
-        {streak ? (
-          <View style={styles.streakTile} accessible accessibilityLabel={streak.label}>
-            <FlameIcon size={18} />
-            <Text variant="h3" weight="extrabold" color={colors.text} style={styles.streakCount}>
-              {streak.count}
-            </Text>
-            <Text variant="micro" color={colors.accentInk} uppercase>
-              {streak.unit}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.ringTile}>
-            <GoalRing done={goal.done} total={goal.total} />
-          </View>
-        )}
-        <View style={styles.goalText}>
-          <Text variant="label" weight="extrabold" color={colors.text}>
-            {goal.label}
-            <Text variant="label" color={colors.muted}>{`  ${Math.min(goal.done, goal.total)}/${goal.total}`}</Text>
-          </Text>
-          <Text variant="small" color={colors.muted}>
-            {goal.title}
-          </Text>
-          {streak ? (
-            <View style={styles.ticks}>
-              {Array.from({ length: goal.total }, (_, i) => (
-                <View key={i} style={[styles.tick, i < goal.done && styles.tickOn]} />
-              ))}
-            </View>
-          ) : null}
-        </View>
-        {freezes && freezes.count > 0 ? (
-          <View style={styles.freeze} accessible accessibilityLabel={freezes.label}>
-            <SnowflakeIcon size={13} color={colors.primary} />
-            <Text variant="micro" color={colors.primary} weight="bold">
-              {freezes.count}
-            </Text>
-          </View>
-        ) : null}
-      </Pressable>
-
-      {/* One scrolling row, never wrapped: long names would stack the pills. */}
-      {foods?.length && foodsLabel ? (
-        <Text variant="micro" color={colors.muted} uppercase style={styles.foodsLabel}>
-          {foodsLabel}
-        </Text>
-      ) : null}
-      {foods?.length ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.foods}
-          contentContainerStyle={styles.foodsRow}
-        >
-          {foods.map((food) => (
-            <Pressable
-              key={food.id}
-              accessibilityRole="button"
-              accessibilityLabel={`${food.name}, ${food.when}`}
-              onPress={onFoodsPress}
-              style={({ pressed }) => [styles.food, pressed && styles.pressed]}
-            >
-              <View style={[styles.foodDot, { backgroundColor: food.today ? colors.red : colors.accent }]} />
-              <Text variant="small" weight="bold" color={colors.primary} numberOfLines={1} style={styles.foodName}>
-                {food.name}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      ) : null}
-
-      <View style={styles.foot}>
-        <Pressable
-          accessibilityRole={onLastPress ? "button" : undefined}
-          disabled={!onLastPress}
-          onPress={onLastPress}
-          hitSlop={8}
-          style={({ pressed }) => [styles.last, pressed && styles.pressed]}
-        >
-          <Text variant="small" numberOfLines={1} muted style={styles.lastText}>
-            <Text variant="small" weight="bold">
-              {lastLabel}
-            </Text>
-            {"  "}
-            {lastValue}
-          </Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={onHistory}
-          hitSlop={8}
-          style={({ pressed }) => [styles.history, pressed && styles.pressed]}
-        >
-          <ClockIcon />
-          <Text variant="micro" color={colors.accentInk} weight="bold">
-            {historyLabel}
-          </Text>
-        </Pressable>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${headline}. ${detail}. ${streak.label}`}
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+    >
+      <View style={styles.ringTile}>
+        <GoalRing done={goal.done} total={goal.total} />
       </View>
-    </View>
+      <View style={styles.text}>
+        <Text variant="small" weight="extrabold" color={colors.text} numberOfLines={1}>
+          {headline}
+        </Text>
+        <Text variant="small" color={colors.muted} numberOfLines={1}>
+          {detail}
+        </Text>
+      </View>
+      <View style={[styles.streak, !active && styles.streakIdle]}>
+        <FlameIcon size={15} color={active ? colors.accentInk : colors.muted2} />
+        <Text variant="small" weight="extrabold" color={active ? colors.text : colors.muted} style={styles.num}>
+          {streak.count}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -172,20 +82,12 @@ export function GoalRing({ done, total }: { done: number; total: number }) {
   );
 }
 
-function SnowflakeIcon({ size, color }: { size: number; color: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-export function FlameIcon({ size = 13 }: { size?: number }) {
+export function FlameIcon({ size = 13, color = colors.accentInk }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.7 1.2 2.8 2.3 3.2C10.6 9.4 11 6 12 3Z"
-        stroke={colors.accentInk}
+        stroke={color}
         strokeWidth={1.9}
         strokeLinejoin="round"
       />
@@ -193,43 +95,30 @@ export function FlameIcon({ size = 13 }: { size?: number }) {
   );
 }
 
-function ClockIcon() {
-  return (
-    <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-      <Circle cx={12} cy={12} r={9} stroke={colors.accentInk} strokeWidth={2} />
-      <Path d="M12 7v5l3 2" stroke={colors.accentInk} strokeWidth={2} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
 const styles = StyleSheet.create({
   // Flat, no shadow; the same light sage as the Tonight card's "why" line.
   card: {
-    backgroundColor: colors.sageSoft,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    minHeight: 56,
+    paddingVertical: spacing.xs,
+    paddingLeft: spacing.xs,
+    paddingRight: spacing.sm,
     borderRadius: radii.lg,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-    paddingHorizontal: spacing.md,
+    backgroundColor: colors.sageSoft,
   },
   ringTile: {
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     borderRadius: radii.md,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.surface,
   },
-  goal: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    paddingTop: spacing.xxs,
-    paddingBottom: spacing.sm,
-  },
-  goalText: {
+  text: {
     flex: 1,
     minWidth: 0,
-    gap: 2,
   },
   ring: {
     width: 36,
@@ -240,94 +129,20 @@ const styles = StyleSheet.create({
   ringLabel: {
     position: "absolute",
   },
-  // Solid gold, the first thing on the card: the streak is the reason to come back.
-  streakTile: {
-    width: 56,
-    height: 64,
-    borderRadius: radii.md,
+  streak: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 3,
+    height: 30,
+    paddingHorizontal: 10,
+    borderRadius: radii.pill,
     backgroundColor: colors.accent,
   },
-  streakCount: {
+  streakIdle: {
+    backgroundColor: colors.surface3,
+  },
+  num: {
     fontVariant: ["tabular-nums"],
-  },
-  ticks: {
-    flexDirection: "row",
-    gap: 4,
-    marginTop: 4,
-  },
-  tick: {
-    width: 18,
-    height: 6,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-  },
-  tickOn: {
-    backgroundColor: colors.primary,
-  },
-  freeze: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 5,
-    paddingHorizontal: 8,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-  },
-  foodsLabel: {
-    marginBottom: spacing.xs,
-  },
-  // Bleeds to the card edge so the row scrolls under it, not inside a gutter.
-  foods: {
-    marginHorizontal: -spacing.md,
-    marginBottom: spacing.sm,
-  },
-  foodsRow: {
-    paddingHorizontal: spacing.md,
-    gap: spacing.xs,
-  },
-  food: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    height: 28,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-  },
-  foodDot: {
-    width: 6,
-    height: 6,
-    borderRadius: radii.pill,
-  },
-  foodName: {
-    maxWidth: 140,
-  },
-  foot: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    marginTop: spacing.xxs,
-    paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.hairline,
-  },
-  last: {
-    flex: 1,
-    minWidth: 0,
-  },
-  lastText: {
-    flexShrink: 1,
-  },
-  history: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    minHeight: 26,
-    paddingHorizontal: 10,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
   },
   pressed: {
     opacity: 0.6,

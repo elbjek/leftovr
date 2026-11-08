@@ -74,7 +74,6 @@ export default function RecipesRoute() {
     toggleFavorite,
     currentSessionId,
     cookedSummaries,
-    lastCookedAt,
     error: recipeError,
   } = useRecipes(activeHousehold?.id, {
     inventory,
@@ -91,7 +90,7 @@ export default function RecipesRoute() {
   // The week strip's day sheet.
   const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, profile?.id);
 
-  const { streak, freezes, today: usedToday, days: week, refresh: refreshStreak } = useStreak(activeHousehold?.id);
+  const { streak, today: usedToday, refresh: refreshStreak } = useStreak(activeHousehold?.id);
   const { milestone, dismiss: dismissMilestone } = useStreakMilestone(activeHousehold?.id, streak);
 
   // Tapping Recipes in the dock always lands on the home, out of the ideas view.
@@ -202,16 +201,6 @@ export default function RecipesRoute() {
     .map((group) => ({ group, left: Math.min(...group.lots.map((lot) => daysLeft(lot))) }))
     .sort((a, b) => a.left - b.left);
   const urgentGroups = urgentRanked.map(({ group }) => group);
-  // The foods behind today's goal, as pills in the goal card. Premium only:
-  // the eat-first list is premium on Kitchen too; free keeps the count line.
-  const goalFoods = isPremium
-    ? urgentRanked.map(({ group, left }) => ({
-        id: group.key,
-        name: group.name,
-        today: left <= 0,
-        when: left <= 0 ? t("fridge.bestBy.today") : left === 1 ? t("fridge.bestBy.tomorrow") : t("fridge.bestBy.inDays", { count: left }),
-      }))
-    : undefined;
   const rawName = profile?.display_name?.trim() ?? "";
   const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
 
@@ -259,14 +248,6 @@ export default function RecipesRoute() {
           : null;
       })();
   const dishCoverage = dish ? fridgeCoverage(dish.ingredients, inventoryNames) : null;
-  const lastCooked = cookedRecipes[0];
-  const lastCookedDay = lastCookedAt
-    ? new Date(lastCookedAt).toLocaleDateString(
-        undefined,
-        // Inside the strip's week a weekday is enough; older cooks get a date.
-        new Date(lastCookedAt) >= week[0].date ? { weekday: "short" } : { day: "numeric", month: "short" },
-      )
-    : "";
   // Today's goal is set by the fridge: rescue what is actually going off.
   // With nothing at risk it falls back to the one item that keeps the streak.
   const goalTotal = dailyGoal(urgentGroups.length);
@@ -280,6 +261,22 @@ export default function RecipesRoute() {
           : streak > 0
             ? t("recipes.week.goalKeep", { count: streak })
             : t("recipes.week.goalStart");
+  // Premium names the food that goes off first (the eat-first list is
+  // premium on Kitchen too); free keeps the nudge above.
+  const firstFood = isPremium && usedToday < goalTotal ? urgentRanked[0] : undefined;
+  const goalHeadline = firstFood
+    ? t(
+        firstFood.left <= 0 ? "recipes.week.goalFoodToday" : firstFood.left === 1 ? "recipes.week.goalFoodTomorrow" : "recipes.week.goalFoodFirst",
+        { name: firstFood.group.name },
+      )
+    : goalTitle;
+  const othersSoon = urgentRanked.length - (firstFood ? 1 : 0);
+  const goalDetail = [
+    t("recipes.week.goalProgress", { done: Math.min(usedToday, goalTotal), total: goalTotal }),
+    othersSoon > 0 ? t(firstFood ? "recipes.week.moreSoon" : "recipes.week.toUseSoon", { count: othersSoon }) : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   // Foods worth using now (today or soon), by normalized name — they lead the
   // hero's chips and the list's "Uses: …" badges.
   const soonNames = new Set(
@@ -458,27 +455,11 @@ export default function RecipesRoute() {
 
         <View style={styles.weekWrap}>
           <WeekStrip
-            goal={{
-              done: usedToday,
-              total: goalTotal,
-              label: t("recipes.week.todayGoal"),
-              title: goalTitle,
-            }}
-            streak={
-              streak >= 2
-                ? { count: streak, unit: t("recipes.week.streakUnit", { count: streak }), label: t("recipes.week.streak", { count: streak }) }
-                : undefined
-            }
-            freezes={{ count: freezes, label: t("recipes.week.freezes", { count: freezes }) }}
-            lastLabel={t("recipes.week.lastCooked")}
-            lastValue={lastCooked ? `${lastCooked.title} · ${lastCookedDay}` : t("recipes.week.nothingCooked")}
-            onLastPress={lastCooked ? () => openSavedRecipe(lastCooked) : undefined}
-            historyLabel={t("recipes.week.history")}
-            onHistory={() => router.push({ pathname: "/(tabs)/all-recipes", params: { tab: "cooked" } })}
-            onGoalPress={() => showDay(new Date())}
-            foods={goalFoods}
-            foodsLabel={t("recipes.week.useSoon")}
-            onFoodsPress={() => router.push("/(tabs)/fridge")}
+            goal={{ done: usedToday, total: goalTotal }}
+            headline={goalHeadline}
+            detail={goalDetail}
+            streak={{ count: streak, label: t("recipes.week.streak", { count: streak }) }}
+            onPress={() => showDay(new Date())}
           />
         </View>
 
