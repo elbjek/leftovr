@@ -105,8 +105,8 @@ export function FoodListCard({
                       </Text>
                     </View>
                   ) : null}
-                  {/* One neutral peach well and a big icon: a category tint the
-                      same colour as the food (white cheese on cream) hid it. */}
+                  {/* One sage well and a big icon: category tints and peach
+                      both hid pale foods (white cheese on cream). */}
                   <View style={styles.food}>
                     <FoodGlyph name={item.name} category={item.category} size={50} />
                   </View>
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
+    backgroundColor: colors.foodWell,
     alignItems: "center",
     justifyContent: "center",
   },

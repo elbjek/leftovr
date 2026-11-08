@@ -34,6 +34,10 @@ export const colors = {
   sageSoft: "rgba(114, 150, 125, 0.18)",
   // Solid light-sage fill for thumbnails/tiles.
   sageTint: "#D9E5DC",
+  // Behind food icons in Kitchen rows. Sage, not peach: the icons are mostly
+  // pale (cheese, mushrooms, milk) and vanish on a warm light well; green is
+  // the complement of their creams and browns (compared on 2026-11-08).
+  foodWell: "#CBD9C2",
   sageBorder: "rgba(114, 150, 125, 0.45)",
   hairline: "rgba(30, 27, 25, 0.08)",
   hairlineStrong: "rgba(30, 27, 25, 0.16)",
