@@ -536,7 +536,7 @@ export default function RecipesRoute() {
               <Text variant="micro" muted uppercase weight="extrabold">
                 {t("recipes.list.title")}
               </Text>
-              <Text variant="small" muted>
+              <Text variant="small" color={colors.accentInk} weight="bold">
                 {t("recipes.list.count", { count: filteredList.length })}
               </Text>
             </View>
@@ -806,7 +806,8 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
     paddingRight: spacing.md,
     borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
   },
   householdAvatar: {
     width: 22,

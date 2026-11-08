@@ -43,7 +43,7 @@ export function TryNextCard({
   onPress: () => void;
   /** A button at the bottom ("Cook this") doing the same as tapping the card. */
   ctaLabel?: string;
-  /** An outline button beside the CTA (e.g. "More ideas"). */
+  /** A link under the CTA (e.g. "More ideas →"). */
   secondaryLabel?: string;
   onSecondary?: () => void;
   coverPath?: string | null;
@@ -51,23 +51,30 @@ export function TryNextCard({
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.hero, pressed && styles.pressed]}>
       <View style={styles.heroTop}>
-        <View style={styles.tileLarge}>
-          <RecipeCover path={coverPath} glyphSize={40} />
-        </View>
         <View style={styles.copy}>
-          <Text variant="micro" uppercase muted style={styles.eyebrow}>
+          <Text variant="micro" uppercase color={colors.accentInk} style={styles.eyebrow}>
             {eyebrow}
           </Text>
           <Text variant="h3" weight="extrabold" style={styles.heroTitle}>{title}</Text>
           <MetaLine text={meta} />
         </View>
-        {onFavorite ? <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} /> : null}
+        {/* The dish photo leads on the right; the heart sits on its corner. */}
+        <View>
+          <View style={styles.heroCover}>
+            <RecipeCover path={coverPath} glyphSize={48} />
+          </View>
+          {onFavorite ? (
+            <View style={styles.heroHeart}>
+              <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} onPhoto />
+            </View>
+          ) : null}
+        </View>
       </View>
       {/* Why it's tonight's pick (e.g. what it saves from going off) leads. */}
       {why ? (
         <View style={styles.why}>
           <SparkIcon />
-          <Text variant="small" color={colors.primary} weight="bold" style={styles.copy}>
+          <Text variant="small" color={colors.accentInk} weight="bold" style={styles.copy}>
             {why}
           </Text>
         </View>
@@ -92,11 +99,11 @@ export function TryNextCard({
           <View style={styles.chips}>
             {ingredients.map((chip) => (
               <View key={chip.label} style={styles.chip}>
-                <Text variant="small" color={colors.primary} weight="bold">
+                <Text variant="small" color={colors.text} weight="bold">
                   {chip.label}
                 </Text>
                 {chip.tag ? (
-                  <Text variant="micro" color={colors.accentInk} weight="bold">
+                  <Text variant="micro" color={colors.redInk} weight="bold">
                     {chip.tag}
                   </Text>
                 ) : null}
@@ -106,12 +113,12 @@ export function TryNextCard({
         </>
       ) : null}
       {ctaLabel ? (
-        // Same shapes as the ideas view's "View recipe" / "Give me 3 more".
+        // One solid button; anything else is a link, so the two never compete.
         <View style={styles.actions}>
           <Pressable
             accessibilityRole="button"
             onPress={onPress}
-            style={({ pressed }) => [styles.view, styles.actionPrimary, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.view, pressed && styles.pressed]}
           >
             <Text variant="label" weight="bold" color={colors.onPrimary} numberOfLines={1}>
               {ctaLabel}
@@ -121,10 +128,11 @@ export function TryNextCard({
             <Pressable
               accessibilityRole="button"
               onPress={onSecondary}
-              style={({ pressed }) => [styles.more, styles.actionSecondary, pressed && styles.pressed]}
+              hitSlop={8}
+              style={({ pressed }) => [styles.link, pressed && styles.pressed]}
             >
-              <Text variant="label" weight="bold" numberOfLines={1}>
-                {secondaryLabel}
+              <Text variant="small" weight="extrabold" color={colors.accentInk}>
+                {`${secondaryLabel} →`}
               </Text>
             </Pressable>
           ) : null}
@@ -306,8 +314,7 @@ export function IdeasResults({
 function MetaLine({ text }: { text: string }) {
   return (
     <View style={styles.meta}>
-      <View style={styles.metaDot} />
-      <Text variant="small" color={colors.primary} numberOfLines={1} weight="bold" style={styles.copy}>
+      <Text variant="small" color={colors.accentInk} numberOfLines={1} weight="bold" style={styles.copy}>
         {text}
       </Text>
     </View>
@@ -324,7 +331,7 @@ function Pill({ label }: { label: string }) {
   );
 }
 
-function Heart({ active, label, onPress }: { active?: boolean; label: string; onPress: () => void }) {
+function Heart({ active, label, onPress, onPhoto }: { active?: boolean; label: string; onPress: () => void; onPhoto?: boolean }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -332,7 +339,7 @@ function Heart({ active, label, onPress }: { active?: boolean; label: string; on
       accessibilityState={{ selected: Boolean(active) }}
       onPress={onPress}
       hitSlop={6}
-      style={({ pressed }) => [styles.heart, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.heart, onPhoto && styles.heartOnPhoto, pressed && styles.pressed]}
     >
       <Svg width={16} height={16} viewBox="0 0 24 24" fill={active ? colors.accent : "none"}>
         <Path
@@ -349,7 +356,7 @@ function Heart({ active, label, onPress }: { active?: boolean; label: string; on
 function SparkIcon() {
   return (
     <Svg width={15} height={15} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" stroke={colors.primary} strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" stroke={colors.accentInk} strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -376,6 +383,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+  },
+  heroCover: {
+    width: 96,
+    height: 96,
+    borderRadius: radii.xl,
+    backgroundColor: colors.sageTint,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  heroHeart: {
+    position: "absolute",
+    top: -spacing.xs,
+    right: -spacing.xs,
+    borderRadius: radii.lg,
+    ...shadows.soft,
   },
   tileLarge: {
     width: 64,
@@ -417,12 +440,6 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 3,
   },
-  metaDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: colors.accent,
-  },
   rowBetween: {
     flexDirection: "row",
     alignItems: "baseline",
@@ -441,7 +458,7 @@ const styles = StyleSheet.create({
     minHeight: 28,
     paddingHorizontal: 11,
     borderRadius: radii.md,
-    backgroundColor: colors.sageTint,
+    backgroundColor: colors.surface2,
   },
   why: {
     flexDirection: "row",
@@ -450,7 +467,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
-    backgroundColor: colors.sageSoft,
+    backgroundColor: colors.accentSoft,
   },
   heart: {
     width: 36,
@@ -461,6 +478,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignSelf: "flex-start",
   },
+  heartOnPhoto: {
+    backgroundColor: colors.surface,
+  },
   listCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -468,15 +488,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
+    gap: spacing.md,
   },
-  // Cook this is the card's main action, so it takes the wider share.
-  actionPrimary: {
-    flex: 1.4,
-  },
-  actionSecondary: {
-    flex: 1,
+  link: {
+    alignSelf: "center",
   },
   listCardHighlight: {
     backgroundColor: colors.accentSoft,
