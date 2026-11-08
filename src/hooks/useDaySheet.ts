@@ -10,10 +10,12 @@ export function useDaySheet(householdId: string | undefined, userId: string | un
     async (date: Date) => {
       if (!householdId) return;
       setOpenDay({ date, activity: null });
+      // The whole local day, even when called with "now" (the home goal box).
+      const from = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const until = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
       let activity: DayActivity = { cooked: [], used: [], moneySaved: 0 };
       try {
-        activity = await getDayActivity(householdId, date.toISOString(), until.toISOString(), userId);
+        activity = await getDayActivity(householdId, from.toISOString(), until.toISOString(), userId);
       } catch {
         // A failed load reads as an empty day; tapping the day again retries.
       }
