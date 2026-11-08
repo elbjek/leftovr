@@ -371,7 +371,7 @@ function Heart({ active, label, onPress }: { active?: boolean; label: string; on
       hitSlop={6}
       style={({ pressed }) => [styles.heart, pressed && styles.pressed]}
     >
-      <Svg width={18} height={18} viewBox="0 0 24 24" fill={active ? colors.primary : "none"}>
+      <Svg width={16} height={16} viewBox="0 0 24 24" fill={active ? colors.primary : "none"}>
         <Path
           d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"
           stroke={colors.primary}
@@ -529,10 +529,11 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     backgroundColor: colors.surface2,
   },
+  // The original list size: a 64pt square, so the list stays compact.
   listThumb: {
-    width: 92,
-    height: 92,
-    borderRadius: radii.md,
+    width: 64,
+    height: 64,
+    borderRadius: radii.lg,
     backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
@@ -612,8 +613,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
   },
   heart: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     alignItems: "center",
