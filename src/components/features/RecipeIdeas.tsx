@@ -53,20 +53,15 @@ export function TryNextCard({
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
-      {/* Clipped inside, so the card's shadow isn't. The dish photo fills the
-          top right; the panel below curves over it. */}
       <View style={styles.hero}>
-      <View style={styles.heroPhoto}>
-        <RecipeCover path={coverPath} glyphSize={72} />
-      </View>
+      {/* The dish floats top right on a peach blob, with a little spark; the
+          heart sits in the card's corner above it. */}
       <View style={styles.heroTop}>
-        <View style={styles.eyebrowRow}>
-          <View style={styles.eyebrowPill}>
-            <Text variant="micro" uppercase weight="extrabold" color={colors.primary} numberOfLines={1}>
-              {eyebrow}
-            </Text>
-          </View>
-          {onFavorite ? <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} /> : null}
+        <View style={styles.heroCopy}>
+        <View style={styles.eyebrowPill}>
+          <Text variant="micro" uppercase weight="extrabold" color={colors.primary} numberOfLines={1}>
+            {eyebrow}
+          </Text>
         </View>
         <Text variant="h2" weight="extrabold" style={styles.heroTitle}>{title}</Text>
         <View style={styles.heroMeta}>
@@ -82,8 +77,23 @@ export function TryNextCard({
             {complexity}
           </Text>
         </View>
+        </View>
+        <View style={styles.heroArt}>
+          <View style={styles.heroBlob} />
+          <Svg width={30} height={26} viewBox="0 0 30 26" style={styles.heroSpark}>
+            <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
+          </Svg>
+          <View style={styles.heroDish}>
+            <RecipeCover path={coverPath} glyphSize={64} />
+          </View>
+        </View>
       </View>
-      <View style={styles.heroPanel}>
+      {onFavorite ? (
+        <View style={styles.heroHeart}>
+          <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} />
+        </View>
+      ) : null}
+      <View style={styles.heroBody}>
         {/* Why it's tonight's pick (e.g. what it saves from going off) leads. */}
         {why ? (
           <View style={styles.why}>
@@ -420,34 +430,56 @@ const styles = StyleSheet.create({
     ...shadows.soft,
   },
   hero: {
-    borderRadius: radii.xxl,
-    overflow: "hidden",
+    padding: spacing.lg,
+    gap: spacing.md,
   },
-  heroPhoto: {
+  heroTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  heroCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: spacing.sm,
+  },
+  heroArt: {
+    width: 132,
+    height: 132,
+    marginTop: spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroBlob: {
     position: "absolute",
-    top: 0,
-    right: 0,
-    width: "44%",
-    height: 196,
+    width: 132,
+    height: 116,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    transform: [{ rotate: "-14deg" }],
+  },
+  heroSpark: {
+    position: "absolute",
+    top: -6,
+    left: -8,
+  },
+  heroDish: {
+    width: 108,
+    height: 108,
+    borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
   },
-  heroTop: {
-    width: "62%",
-    minHeight: 172,
-    paddingTop: spacing.lg,
-    paddingLeft: spacing.lg,
-    gap: spacing.sm,
-  },
-  eyebrowRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
+  heroHeart: {
+    position: "absolute",
+    top: spacing.lg,
+    right: spacing.lg,
   },
   eyebrowPill: {
-    flexShrink: 1,
+    alignSelf: "flex-start",
+    maxWidth: "100%",
     minHeight: 30,
     justifyContent: "center",
     paddingHorizontal: spacing.md,
@@ -465,13 +497,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     backgroundColor: colors.primary,
   },
-  heroPanel: {
-    marginTop: spacing.sm,
-    padding: spacing.lg,
-    paddingTop: spacing.lg,
+  heroBody: {
     gap: spacing.md,
-    borderTopRightRadius: radii.xxl,
-    backgroundColor: colors.surface,
   },
   whyText: {
     flexShrink: 1,
@@ -503,8 +530,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface2,
   },
   listThumb: {
-    width: 100,
-    height: 76,
+    width: 92,
+    height: 92,
     borderRadius: radii.md,
     backgroundColor: colors.surface2,
     alignItems: "center",
