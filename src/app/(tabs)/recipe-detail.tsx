@@ -728,13 +728,14 @@ export default function RecipeDetailRoute() {
 
         {/* Guideline 1.2: a way to flag what the generator got wrong. */}
         {recipeId ? (
-          <Button
-            title={t("recipes.detail.report")}
-            variant="text"
-            fit
-            onPress={confirmReport}
-            style={styles.reportButton}
-          />
+          <Tappable onPress={confirmReport} hitSlop={8} style={styles.reportButton}>
+            <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+              <Path d="M5 21V4M5 4h11l-2 4 2 4H5" stroke={colors.muted} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+            <Text variant="small" muted>
+              {t("recipes.detail.report")}
+            </Text>
+          </Tappable>
         ) : null}
       </View>
       </Animated.ScrollView>
@@ -1252,7 +1253,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   reportButton: {
-    marginTop: spacing.xs,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xxs,
+    marginTop: spacing.sm,
     alignSelf: "flex-start",
   },
   stepsPending: {
