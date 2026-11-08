@@ -97,10 +97,10 @@ export function FoodListCard({
                 <View style={styles.leading}>
                   {item.date ? (
                     <View style={styles.date}>
-                      <Text variant="small" weight="semibold" color={colors.primary}>
+                      <Text variant="small" weight="semibold" muted>
                         {item.date.weekday}
                       </Text>
-                      <Text variant="h3" weight="extrabold" color={colors.primary700}>
+                      <Text variant="h3" weight="extrabold" color={colors.text}>
                         {item.date.day}
                       </Text>
                     </View>
@@ -165,11 +165,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // Neutral, so the row's only red is the status pill.
   date: {
     width: 48,
     height: 56,
     borderRadius: radii.md,
-    backgroundColor: colors.surface2,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
