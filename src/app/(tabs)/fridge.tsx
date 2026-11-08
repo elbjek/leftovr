@@ -538,14 +538,14 @@ function CookNextCard({ title, body, cta, onPress }: { title: string; body: stri
             <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
           </Svg>
           <View style={styles.cookNextTomato}>
-            <FoodGlyph name="tomato" size={96} />
+            <FoodGlyph name="tomato" size={72} />
           </View>
           <View style={styles.cookNextMushroom}>
-            <FoodGlyph name="mushrooms" size={64} />
+            <FoodGlyph name="mushrooms" size={50} />
           </View>
         </View>
         <View style={styles.cookNextCopy}>
-          <Text variant="h2" weight="extrabold">
+          <Text variant="h3" weight="extrabold">
             {title}
           </Text>
           <Text variant="small" muted>
@@ -1152,55 +1152,56 @@ const styles = StyleSheet.create({
   cookNextWrap: {
     paddingHorizontal: spacing.screenX,
   },
+  // Compact: one-line title, the tomato and mushrooms stacked tight.
   cookNext: {
     overflow: "hidden",
     borderRadius: radii.xxl,
     backgroundColor: colors.surface2,
-    padding: spacing.xl,
-    gap: spacing.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
   },
   cookNextCopy: {
-    width: "62%",
-    gap: spacing.xs,
+    width: "64%",
+    gap: spacing.xxs,
   },
   cookNextArt: {
     position: "absolute",
     top: 0,
     right: 0,
     bottom: 0,
-    width: "44%",
+    width: "38%",
   },
   cookNextBlob: {
     position: "absolute",
-    right: -40,
-    bottom: -50,
-    width: 190,
-    height: 190,
+    right: -36,
+    bottom: -44,
+    width: 150,
+    height: 150,
     borderRadius: radii.pill,
     backgroundColor: colors.surface3,
   },
   cookNextSpark: {
     position: "absolute",
-    top: spacing.md,
-    left: spacing.xs,
+    top: spacing.sm,
+    left: 0,
   },
   cookNextTomato: {
     position: "absolute",
-    top: spacing.xl,
-    right: spacing.sm,
+    top: spacing.md,
+    right: spacing.md,
   },
   cookNextMushroom: {
     position: "absolute",
     bottom: spacing.md,
-    left: spacing.md,
+    right: 64,
   },
   cookNextButton: {
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 48,
-    paddingHorizontal: spacing.xl,
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
     borderRadius: radii.pill,
     backgroundColor: colors.primary,
   },
