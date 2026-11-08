@@ -587,6 +587,7 @@ export const sr = {
       dayCooked: "Kuvano",
       dayUsed: "Potrošeno",
       dayEmpty: "Ovog dana ništa nije potrošeno.",
+      daySoon: "Iskoristi uskoro",
       saved: "{{amount}} ušteđeno",
       streak_one: "{{count}} dan zaredom",
       streak_few: "{{count}} dana zaredom",

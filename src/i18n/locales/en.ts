@@ -581,6 +581,7 @@ export const en = {
       dayCooked: "Cooked",
       dayUsed: "Used up",
       dayEmpty: "Nothing used up this day.",
+      daySoon: "Use soon",
       saved: "{{amount}} saved",
       streak_one: "{{count}}-day streak",
       streak_other: "{{count}}-day streak",

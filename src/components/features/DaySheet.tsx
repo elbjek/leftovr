@@ -16,14 +16,19 @@ type Props = {
   } | null;
   /** e.g. "€4.20 saved" — premium only, left out when nothing was saved. */
   saved?: string;
-  labels: { cooked: string; used: string; empty: string };
+  /** Foods to use soon, soonest first (home, today, premium only). */
+  soon?: { id: string; name: string; category: string; when: string; today: boolean }[];
+  labels: { cooked: string; used: string; empty: string; soon?: string };
+  /** Opens Kitchen from a use-soon food. */
+  onOpenSoon?: () => void;
   /** Opens a cooked recipe; recipes that no longer exist aren't tappable. */
   onOpenRecipe?: (recipeId: string) => void;
 };
 
-// What a day on the home week strip was: the recipes cooked and the foods
-// used up (by cooking or by hand), with what that saved.
-export function DaySheet({ visible, onDismiss, title, activity, saved, labels, onOpenRecipe }: Props) {
+// What a day was: the foods used up (by cooking or by hand) and the recipes
+// cooked, with what that saved. From the home goal box it also lists what
+// to use next.
+export function DaySheet({ visible, onDismiss, title, activity, saved, soon, labels, onOpenRecipe, onOpenSoon }: Props) {
   const empty = activity != null && activity.cooked.length === 0 && activity.used.length === 0;
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
@@ -45,6 +50,26 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, labels, o
           </Text>
         ) : (
           <>
+            {activity.used.length ? (
+              <View style={styles.section}>
+                <Text variant="micro" uppercase muted style={styles.label}>
+                  {labels.used}
+                </Text>
+                <View style={styles.foods}>
+                  {activity.used.map((food) => {
+                    const tone = categoryColors[food.category as CategoryTone] ?? categoryColors.other;
+                    return (
+                      <View key={food.name} style={[styles.food, { backgroundColor: tone.background }]}>
+                        <FoodGlyph name={food.name} category={food.category} color={tone.mark} size={18} />
+                        <Text variant="small" weight="bold">
+                          {food.name.charAt(0).toUpperCase() + food.name.slice(1)}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : null}
             {activity.cooked.length ? (
               <View style={styles.section}>
                 <Text variant="micro" uppercase muted style={styles.label}>
@@ -74,28 +99,39 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, labels, o
               </View>
             ) : null}
 
-            {activity.used.length ? (
-              <View style={styles.section}>
-                <Text variant="micro" uppercase muted style={styles.label}>
-                  {labels.used}
-                </Text>
-                <View style={styles.foods}>
-                  {activity.used.map((food) => {
-                    const tone = categoryColors[food.category as CategoryTone] ?? categoryColors.other;
-                    return (
-                      <View key={food.name} style={[styles.food, { backgroundColor: tone.background }]}>
-                        <FoodGlyph name={food.name} category={food.category} color={tone.mark} size={18} />
-                        <Text variant="small" weight="bold">
-                          {food.name.charAt(0).toUpperCase() + food.name.slice(1)}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                </View>
-              </View>
-            ) : null}
           </>
         )}
+
+        {activity != null && soon?.length ? (
+          <View style={styles.section}>
+            <Text variant="micro" uppercase muted style={styles.label}>
+              {labels.soon}
+            </Text>
+            {soon.map((food) => {
+              const tone = categoryColors[food.category as CategoryTone] ?? categoryColors.other;
+              return (
+                <Pressable
+                  key={food.id}
+                  accessibilityRole={onOpenSoon ? "button" : undefined}
+                  accessibilityLabel={`${food.name}, ${food.when}`}
+                  disabled={!onOpenSoon}
+                  onPress={onOpenSoon}
+                  style={({ pressed }) => [styles.soon, pressed && styles.pressed]}
+                >
+                  <View style={[styles.soonTile, { backgroundColor: tone.background }]}>
+                    <FoodGlyph name={food.name} category={food.category} color={tone.mark} size={22} />
+                  </View>
+                  <Text variant="label" weight="bold" numberOfLines={1} style={styles.recipeTitle}>
+                    {food.name}
+                  </Text>
+                  <Text variant="small" weight="bold" color={food.today ? colors.redInk : colors.muted}>
+                    {food.when}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
       </ScrollView>
     </BottomSheet>
   );
@@ -155,6 +191,24 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.sm,
     paddingRight: spacing.md,
     borderRadius: radii.pill,
+  },
+  soon: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    minHeight: 48,
+    paddingVertical: spacing.xs,
+    paddingLeft: spacing.xs,
+    paddingRight: spacing.md,
+    borderRadius: radii.lg,
+    backgroundColor: colors.surface,
+  },
+  soonTile: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.md,
+    alignItems: "center",
+    justifyContent: "center",
   },
   pressed: {
     opacity: 0.7,

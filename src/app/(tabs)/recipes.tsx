@@ -607,7 +607,22 @@ export default function RecipesRoute() {
             ? t("recipes.week.saved", { amount: formatMoney(openDay.activity.moneySaved, activeHousehold?.currency_code ?? "USD") })
             : undefined
         }
-        labels={{ cooked: t("recipes.week.dayCooked"), used: t("recipes.week.dayUsed"), empty: t("recipes.week.dayEmpty") }}
+        soon={
+          isPremium
+            ? urgentRanked.map(({ group, left }) => ({
+                id: group.key,
+                name: group.name,
+                category: toUiCategory(group.category),
+                today: left <= 0,
+                when: left <= 0 ? t("fridge.bestBy.today") : left === 1 ? t("fridge.bestBy.tomorrow") : t("fridge.bestBy.inDays", { count: left }),
+              }))
+            : undefined
+        }
+        labels={{ cooked: t("recipes.week.dayCooked"), used: t("recipes.week.dayUsed"), empty: t("recipes.week.dayEmpty"), soon: t("recipes.week.daySoon") }}
+        onOpenSoon={() => {
+          closeDay();
+          router.push("/(tabs)/fridge");
+        }}
         onOpenRecipe={(recipeId) => {
           const recipe = savedRecipes.find((r) => r.id === recipeId);
           if (!recipe) return;
