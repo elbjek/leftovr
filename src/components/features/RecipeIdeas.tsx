@@ -54,41 +54,38 @@ export function TryNextCard({
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.hero}>
-      {/* The pill and meta sit beside the dish, which floats top right on a
-          peach blob with a little spark; the heart sits in the card's corner. */}
+      {/* Layout C: the dish leads on the left on a peach blob; the pill,
+          title and meta stack beside it, so long titles wrap in a real
+          column. The heart sits in the card's corner. */}
       <View style={styles.heroTop}>
-        <View style={styles.heroCopy}>
-        <View style={styles.eyebrowPill}>
-          <Text variant="micro" uppercase weight="extrabold" color={colors.primary} numberOfLines={1}>
-            {eyebrow}
-          </Text>
-        </View>
-        <View style={styles.heroMeta}>
-          <ClockIcon size={17} />
-          <Text variant="small" weight="semibold" color={colors.text}>
-            {time}
-          </Text>
-          <Text variant="small" muted>
-            ·
-          </Text>
-          <View style={styles.metaDot} />
-          <Text variant="small" weight="semibold" color={colors.text}>
-            {complexity}
-          </Text>
-        </View>
-        </View>
         <View style={styles.heroArt}>
           <View style={styles.heroBlob} />
-          <Svg width={30} height={26} viewBox="0 0 30 26" style={styles.heroSpark}>
-            <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
-          </Svg>
           <View style={styles.heroDish}>
-            <RecipeCover path={coverPath} glyphSize={64} />
+            <RecipeCover path={coverPath} glyphSize={52} />
+          </View>
+        </View>
+        <View style={styles.heroCopy}>
+          <View style={styles.eyebrowPill}>
+            <Text variant="micro" uppercase weight="extrabold" color={colors.primary} numberOfLines={1}>
+              {eyebrow}
+            </Text>
+          </View>
+          <Text variant="h3" weight="extrabold" style={styles.heroTitle}>{title}</Text>
+          <View style={styles.heroMeta}>
+            <ClockIcon size={16} />
+            <Text variant="small" weight="semibold" color={colors.text}>
+              {time}
+            </Text>
+            <Text variant="small" muted>
+              ·
+            </Text>
+            <View style={styles.metaDot} />
+            <Text variant="small" weight="semibold" color={colors.text}>
+              {complexity}
+            </Text>
           </View>
         </View>
       </View>
-      {/* Full width, so a long title wraps in two lines, not a word per line. */}
-      <Text variant="h2" weight="extrabold" style={styles.heroTitle}>{title}</Text>
       {onFavorite ? (
         <View style={styles.heroHeart}>
           <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} />
@@ -437,36 +434,32 @@ const styles = StyleSheet.create({
   heroTop: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: spacing.md,
+    // Clear of the heart in the corner.
+    paddingRight: spacing.xxl,
   },
   heroCopy: {
     flex: 1,
     minWidth: 0,
-    gap: spacing.sm,
+    gap: 6,
   },
   heroArt: {
-    width: 132,
-    height: 132,
-    marginTop: spacing.md,
+    width: 96,
+    height: 96,
     alignItems: "center",
     justifyContent: "center",
   },
   heroBlob: {
     position: "absolute",
-    width: 132,
-    height: 116,
+    width: 104,
+    height: 96,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     transform: [{ rotate: "-14deg" }],
   },
-  heroSpark: {
-    position: "absolute",
-    top: -6,
-    left: -8,
-  },
   heroDish: {
-    width: 108,
-    height: 108,
+    width: 84,
+    height: 84,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     alignItems: "center",
@@ -475,8 +468,8 @@ const styles = StyleSheet.create({
   },
   heroHeart: {
     position: "absolute",
-    top: spacing.lg,
-    right: spacing.lg,
+    top: spacing.md,
+    right: spacing.md,
   },
   eyebrowPill: {
     alignSelf: "flex-start",
@@ -568,7 +561,6 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: colors.text,
-    marginTop: -spacing.xs,
   },
   listTitle: {
     color: colors.text,
