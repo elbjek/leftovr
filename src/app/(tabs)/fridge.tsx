@@ -527,7 +527,8 @@ export default function FridgeRoute() {
 }
 
 // "What to cook next?": the Kitchen's way into recipes that use what's going
-// off — copy and a tomato button on the left, food art on a peach blob right.
+// off — copy and a tomato button on the left, broccoli and avocado on a
+// peach blob right.
 function CookNextCard({ title, body, cta, onPress }: { title: string; body: string; cta: string; onPress: () => void }) {
   return (
     <View style={styles.cookNextWrap}>
@@ -537,11 +538,13 @@ function CookNextCard({ title, body, cta, onPress }: { title: string; body: stri
           <Svg width={34} height={30} viewBox="0 0 30 26" style={styles.cookNextSpark}>
             <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
           </Svg>
+          {/* Greens: they stand out on peach, where the red tomato and pale
+              mushrooms blended in. */}
           <View style={styles.cookNextTomato}>
-            <FoodGlyph name="tomato" size={72} />
+            <FoodGlyph name="broccoli" size={72} />
           </View>
           <View style={styles.cookNextMushroom}>
-            <FoodGlyph name="mushrooms" size={50} />
+            <FoodGlyph name="avocado" size={50} />
           </View>
         </View>
         <View style={styles.cookNextCopy}>
@@ -1152,7 +1155,7 @@ const styles = StyleSheet.create({
   cookNextWrap: {
     paddingHorizontal: spacing.screenX,
   },
-  // Compact: one-line title, the tomato and mushrooms stacked tight.
+  // Compact: one-line title, the two foods stacked tight.
   cookNext: {
     overflow: "hidden",
     borderRadius: radii.xxl,
