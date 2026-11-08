@@ -464,7 +464,11 @@ export default function RecipesRoute() {
               label: t("recipes.week.todayGoal"),
               title: goalTitle,
             }}
-            streak={streak >= 2 ? t("recipes.week.streak", { count: streak }) : undefined}
+            streak={
+              streak >= 2
+                ? { count: streak, unit: t("recipes.week.streakUnit", { count: streak }), label: t("recipes.week.streak", { count: streak }) }
+                : undefined
+            }
             freezes={{ count: freezes, label: t("recipes.week.freezes", { count: freezes }) }}
             lastLabel={t("recipes.week.lastCooked")}
             lastValue={lastCooked ? `${lastCooked.title} · ${lastCookedDay}` : t("recipes.week.nothingCooked")}

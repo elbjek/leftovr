@@ -7,8 +7,8 @@ import { Text } from "../primitives";
 type Props = {
   /** Today's goal: items used up so far against the target, and what to do next. */
   goal: { done: number; total: number; label: string; title: string };
-  /** e.g. "4-day streak" — shown beside the goal when there is one. */
-  streak?: string;
+  /** The streak, when there is one: leads the card as a gold tile ("3 / days"). */
+  streak?: { count: number; unit: string; label: string };
   /** Banked streak freezes, with a spoken label ("2 streak freezes"). */
   freezes?: { count: number; label: string };
   lastLabel: string;
@@ -25,9 +25,10 @@ type Props = {
   onFoodsPress?: () => void;
 };
 
-// Today at a glance, in the cook prompt's selected meal card style: a flat
-// sage panel, the ring in a white tile, "Today's goal" over the nudge. Then
-// the foods it is about, and the last thing cooked.
+// Today at a glance on a flat sage panel: the streak leads as a gold tile
+// (the goal ring stands in until there is one), then "Today's goal" over the
+// nudge and one tick per item. Then the foods it is about, and the last
+// thing cooked.
 export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastPress, historyLabel, onHistory, onGoalPress, foods, foodsLabel, onFoodsPress }: Props) {
   return (
     <View style={styles.card}>
@@ -36,35 +37,45 @@ export function WeekStrip({ goal, streak, freezes, lastLabel, lastValue, onLastP
         onPress={onGoalPress}
         style={({ pressed }) => [styles.goal, pressed && styles.pressed]}
       >
-        <View style={styles.ringTile}>
-          <GoalRing done={goal.done} total={goal.total} />
-        </View>
+        {streak ? (
+          <View style={styles.streakTile} accessible accessibilityLabel={streak.label}>
+            <FlameIcon size={18} />
+            <Text variant="h3" weight="extrabold" color={colors.text} style={styles.streakCount}>
+              {streak.count}
+            </Text>
+            <Text variant="micro" color={colors.accentInk} uppercase>
+              {streak.unit}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.ringTile}>
+            <GoalRing done={goal.done} total={goal.total} />
+          </View>
+        )}
         <View style={styles.goalText}>
           <Text variant="label" weight="extrabold" color={colors.text}>
             {goal.label}
+            <Text variant="label" color={colors.muted}>{`  ${Math.min(goal.done, goal.total)}/${goal.total}`}</Text>
           </Text>
           <Text variant="small" color={colors.muted}>
             {goal.title}
           </Text>
-        </View>
-        <View style={styles.badges}>
           {streak ? (
-            <View style={styles.streak}>
-              <FlameIcon size={16} />
-              <Text variant="small" color={colors.text} weight="extrabold">
-                {streak}
-              </Text>
-            </View>
-          ) : null}
-          {freezes && freezes.count > 0 ? (
-            <View style={styles.freeze} accessible accessibilityLabel={freezes.label}>
-              <SnowflakeIcon size={13} color={colors.primary} />
-              <Text variant="micro" color={colors.primary} weight="bold">
-                {freezes.count}
-              </Text>
+            <View style={styles.ticks}>
+              {Array.from({ length: goal.total }, (_, i) => (
+                <View key={i} style={[styles.tick, i < goal.done && styles.tickOn]} />
+              ))}
             </View>
           ) : null}
         </View>
+        {freezes && freezes.count > 0 ? (
+          <View style={styles.freeze} accessible accessibilityLabel={freezes.label}>
+            <SnowflakeIcon size={13} color={colors.primary} />
+            <Text variant="micro" color={colors.primary} weight="bold">
+              {freezes.count}
+            </Text>
+          </View>
+        ) : null}
       </Pressable>
 
       {/* One scrolling row, never wrapped: long names would stack the pills. */}
@@ -229,20 +240,31 @@ const styles = StyleSheet.create({
   ringLabel: {
     position: "absolute",
   },
-  badges: {
-    flexDirection: "row",
+  // Solid gold, the first thing on the card: the streak is the reason to come back.
+  streakTile: {
+    width: 56,
+    height: 64,
+    borderRadius: radii.md,
     alignItems: "center",
-    gap: spacing.xs,
-  },
-  streak: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    // Solid gold so the streak reads at a glance, not as a tag.
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: radii.pill,
+    justifyContent: "center",
     backgroundColor: colors.accent,
+  },
+  streakCount: {
+    fontVariant: ["tabular-nums"],
+  },
+  ticks: {
+    flexDirection: "row",
+    gap: 4,
+    marginTop: 4,
+  },
+  tick: {
+    width: 18,
+    height: 6,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface,
+  },
+  tickOn: {
+    backgroundColor: colors.primary,
   },
   freeze: {
     flexDirection: "row",

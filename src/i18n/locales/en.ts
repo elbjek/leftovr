@@ -587,6 +587,8 @@ export const en = {
       saved: "{{amount}} saved",
       streak_one: "{{count}}-day streak",
       streak_other: "{{count}}-day streak",
+      streakUnit_one: "day",
+      streakUnit_other: "days",
       todayGoal: "Today's goal",
       goalStart: "Use 1 item to start a streak",
       goalKeep_one: "Use 1 item to keep your {{count}}-day streak",
