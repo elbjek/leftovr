@@ -1425,6 +1425,7 @@ export default function ScanRoute() {
   }
 
   const recommendedMethod = profile?.shopping_style ? RECOMMENDED_BY_SHOPPING_STYLE[profile.shopping_style] : undefined;
+  const featuredMethod = recommendedMethod ?? ADD_METHODS[0];
 
   return (
     <Screen contentContainerStyle={styles.content}>
@@ -1462,18 +1463,26 @@ export default function ScanRoute() {
         <ScreenHeader title={t("scan.title")} subtitle={t("scan.body")} />
       </View>
 
+      {/* The recommended way (receipt by default) leads as a tomato banner;
+          the rest sit under it two to a row. */}
       <View style={styles.choices}>
-        {[...ADD_METHODS]
-          .sort((a, b) => Number(b === recommendedMethod) - Number(a === recommendedMethod))
-          .map((method) => (
+        <ScanMethodCard
+          featured
+          method={featuredMethod}
+          body={t(`scan.${featuredMethod}.body`)}
+          recommended={featuredMethod === recommendedMethod}
+          onPress={() => openSelectedChoice(featuredMethod)}
+        />
+        <View style={styles.choiceGrid}>
+          {ADD_METHODS.filter((method) => method !== featuredMethod).map((method) => (
             <ScanMethodCard
               key={method}
               method={method}
               body={t(`scan.${method}.body`)}
-              recommended={method === recommendedMethod}
               onPress={() => openSelectedChoice(method)}
             />
           ))}
+        </View>
       </View>
 
       {error ? (
@@ -1613,6 +1622,11 @@ const styles = StyleSheet.create({
   },
   choices: {
     flexGrow: 1,
+    gap: spacing.md,
+  },
+  choiceGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.md,
   },
   cameraWrap: {

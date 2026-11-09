@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
 import { colors, radii, shadows, spacing } from "../../theme";
+import { FoodGlyph } from "../illustrations";
 import { Text } from "../primitives";
 
 export type ScanMethod = "receipt" | "ereceipt" | "pantry" | "barcode" | "manual";
@@ -11,58 +12,93 @@ type Props = {
   method: ScanMethod;
   body: string;
   recommended?: boolean;
-  /** Persistent highlight (onboarding select+confirm). Press also highlights. */
-  selected?: boolean;
+  /** The lead method: a tomato banner, like the home's goal strip. */
+  featured?: boolean;
   onPress: () => void;
 };
 
-export function ScanMethodCard({
-  method,
-  body,
-  recommended = false,
-  selected = false,
-  onPress,
-}: Props) {
+// One way to add food. The featured one is a tomato banner with food on a
+// peach blob; the rest are warm tiles (half width, two per row) with the icon
+// on a peach blob, like the home's cards.
+export function ScanMethodCard({ method, body, recommended = false, featured = false, onPress }: Props) {
   const { t } = useTranslation();
+  const title = t(`scanMethods.${method}.title`);
+  const label = recommended ? `${title}, ${t("scanMethods.recommended")}. ${body}` : `${title}. ${body}`;
 
-  return (
-    <Pressable accessibilityRole="button" onPress={onPress}>
-      {({ pressed }) => {
-        const active = selected || pressed;
-        return (
-          <View style={[styles.card, active && styles.cardActive]}>
-            <View style={[styles.iconBox, active && styles.iconBoxActive]}>
-              <ScanMethodIcon method={method} color={colors.primary} />
-            </View>
-            <View style={styles.copy}>
-              <View style={styles.titleRow}>
-                <Text variant="h3" color={colors.text}>
-                  {t(`scanMethods.${method}.title`)}
-                </Text>
-                {recommended ? (
-                  <View style={styles.badge}>
-                    <Text variant="micro" color={colors.text}>
-                      {t("scanMethods.recommended")}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-              <Text variant="small" color={colors.muted}>
-                {body}
+  if (featured) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        onPress={onPress}
+        style={({ pressed }) => [styles.hero, pressed && styles.pressed]}
+      >
+        <View style={styles.heroArt} pointerEvents="none" accessible={false}>
+          <View style={styles.heroBlob} />
+          <View style={styles.heroFoodBig}>
+            <FoodGlyph name="broccoli" size={64} />
+          </View>
+          <View style={styles.heroFoodSmall}>
+            <FoodGlyph name="milk" size={46} />
+          </View>
+        </View>
+        <View style={styles.heroCopy}>
+          {recommended ? (
+            <View style={styles.badge}>
+              <Text variant="micro" uppercase weight="extrabold" color={colors.text}>
+                {t("scanMethods.recommended")}
               </Text>
             </View>
-            <ChevronIcon color={colors.muted} />
+          ) : null}
+          <View style={styles.heroIcon}>
+            <ScanMethodIcon method={method} size={26} />
           </View>
-        );
-      }}
+          <Text variant="h2" weight="extrabold" color={colors.onPrimary}>
+            {title}
+          </Text>
+          <Text variant="small" color={colors.onPrimary} style={styles.heroBody}>
+            {body}
+          </Text>
+        </View>
+        <View style={styles.heroGo}>
+          <ArrowIcon />
+        </View>
+      </Pressable>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
+    >
+      <View style={styles.tileArt}>
+        <View style={styles.tileBlob} />
+        <ScanMethodIcon method={method} size={24} />
+      </View>
+      <Text variant="label" weight="extrabold">
+        {title}
+      </Text>
+      {recommended ? (
+        <View style={styles.badge}>
+          <Text variant="micro" uppercase weight="extrabold" color={colors.text}>
+            {t("scanMethods.recommended")}
+          </Text>
+        </View>
+      ) : null}
+      <Text variant="small" muted>
+        {body}
+      </Text>
     </Pressable>
   );
 }
 
-export function ScanMethodIcon({ method, color = colors.primary }: { method: ScanMethod; color?: string }) {
+export function ScanMethodIcon({ method, color = colors.primary, size = 22 }: { method: ScanMethod; color?: string; size?: number }) {
   if (method === "receipt") {
     return (
-      <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+      <Svg width={size} height={size} viewBox="0 0 22 22" fill="none">
         <Path d="M4 3h14v16l-2-2-2 2-2-2-2 2-2-2-2 2-2-2V3z" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
         <Line x1={7} y1={8} x2={15} y2={8} stroke={color} strokeWidth={1.6} strokeLinecap="round" />
         <Line x1={7} y1={12} x2={13} y2={12} stroke={color} strokeWidth={1.6} strokeLinecap="round" />
@@ -72,7 +108,7 @@ export function ScanMethodIcon({ method, color = colors.primary }: { method: Sca
 
   if (method === "ereceipt") {
     return (
-      <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+      <Svg width={size} height={size} viewBox="0 0 22 22" fill="none">
         <Path d="M5 2.5h8l4 4v13H5V2.5z" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
         <Path d="M13 2.5v4h4" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
         <Line x1={8} y1={11} x2={14} y2={11} stroke={color} strokeWidth={1.6} strokeLinecap="round" />
@@ -84,7 +120,7 @@ export function ScanMethodIcon({ method, color = colors.primary }: { method: Sca
   if (method === "pantry") {
     // Open cupboard: two shelves with jars/boxes on them.
     return (
-      <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+      <Svg width={size} height={size} viewBox="0 0 22 22" fill="none">
         <Path d="M3.5 3h15v16h-15V3z" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
         <Line x1={3.5} y1={11} x2={18.5} y2={11} stroke={color} strokeWidth={1.6} />
         <Path d="M6.5 8V6h3v2" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
@@ -97,7 +133,7 @@ export function ScanMethodIcon({ method, color = colors.primary }: { method: Sca
 
   if (method === "barcode") {
     return (
-      <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+      <Svg width={size} height={size} viewBox="0 0 22 22" fill="none">
         {[4, 10, 16, 18].map((x) => (
           <Line key={x} x1={x} y1={5} x2={x} y2={17} stroke={color} strokeWidth={1.6} />
         ))}
@@ -109,61 +145,114 @@ export function ScanMethodIcon({ method, color = colors.primary }: { method: Sca
   }
 
   return (
-    <Svg width={22} height={22} viewBox="0 0 22 22" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 22 22" fill="none">
       <Circle cx={10} cy={10} r={6} stroke={color} strokeWidth={1.6} />
       <Path d="M14.5 14.5L18 18" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function ChevronIcon({ color }: { color: string }) {
+function ArrowIcon() {
   return (
-    <Svg width={18} height={18} viewBox="0 0 18 18" fill="none">
-      <Path d="M6 4L12 9L6 14" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 12h14M13 6l6 6-6 6" stroke={colors.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.lg,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xl,
-    backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    ...shadows.soft,
+  // Solid tomato like the home's goal strip; the food blob clips at its edge.
+  hero: {
+    minHeight: 172,
+    padding: spacing.lg,
+    borderRadius: radii.xxl,
+    backgroundColor: colors.primary,
+    overflow: "hidden",
   },
-  cardActive: {
-    backgroundColor: colors.sageSoft,
-    borderColor: colors.sage,
+  heroArt: {
+    position: "absolute",
+    right: -28,
+    bottom: -30,
+    width: 168,
+    height: 150,
   },
-  iconBox: {
-    width: 46,
-    height: 46,
-    borderRadius: radii.md,
-    backgroundColor: colors.primary50,
+  heroBlob: {
+    position: "absolute",
+    width: 168,
+    height: 150,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    transform: [{ rotate: "-14deg" }],
+  },
+  heroFoodBig: {
+    position: "absolute",
+    left: 26,
+    top: 14,
+  },
+  heroFoodSmall: {
+    position: "absolute",
+    left: 88,
+    top: 6,
+  },
+  heroCopy: {
+    // Clear of the food blob on the right.
+    paddingRight: 112,
+    gap: spacing.xxs,
+  },
+  heroIcon: {
+    width: 52,
+    height: 52,
+    marginBottom: spacing.sm,
+    borderRadius: radii.pill,
+    backgroundColor: colors.onPrimary,
     alignItems: "center",
     justifyContent: "center",
   },
-  iconBoxActive: {
-    backgroundColor: colors.surface,
+  heroBody: {
+    opacity: 0.9,
   },
-  copy: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  titleRow: {
-    flexDirection: "row",
+  heroGo: {
+    position: "absolute",
+    top: spacing.lg,
+    right: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
+    backgroundColor: colors.onPrimary,
     alignItems: "center",
-    flexWrap: "wrap",
-    gap: spacing.sm,
+    justifyContent: "center",
+  },
+  tile: {
+    flexGrow: 1,
+    flexBasis: "40%",
+    gap: spacing.xs,
+    padding: spacing.lg,
+    borderRadius: radii.xl,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
+  },
+  tileArt: {
+    width: 52,
+    height: 48,
+    marginBottom: spacing.xs,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tileBlob: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    transform: [{ rotate: "-14deg" }],
   },
   badge: {
+    alignSelf: "flex-start",
+    marginBottom: spacing.xs,
     borderRadius: radii.pill,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.accentSoft,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
+  },
+  pressed: {
+    opacity: 0.8,
   },
 });
