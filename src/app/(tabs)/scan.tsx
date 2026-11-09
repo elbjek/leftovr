@@ -9,9 +9,9 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleShe
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, DateField, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnitPicker } from "@/components";
+import { BackButton, BottomSheet, Button, Card, DateField, HouseholdSheet, Logo, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnitPicker } from "@/components";
 import { acceptAiDisclosure, hasAcceptedAiDisclosure, isPremium as resolvePremium, useAuth } from "@/features";
-import { useNotifications } from "@/hooks";
+import { useInventory, useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import {
   addInventoryItem,
@@ -91,6 +91,11 @@ export default function ScanRoute() {
   const params = useLocalSearchParams<{ mode?: string }>();
   const { profile, activeHousehold, refresh } = useAuth();
   const { preferences: notifPrefs } = useNotifications(activeHousehold?.id);
+  const { lots: inventory } = useInventory(activeHousehold?.id);
+  const [householdOpen, setHouseholdOpen] = useState(false);
+  // Household pill initial: first name when usable (not blank, not an email).
+  const rawName = profile?.display_name?.trim() ?? "";
+  const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
   // The post-scan notification prompt is a one-time ask. Skip it once the user
   // has answered (granted or denied), here or in a prior session.
   const [notifHandled, setNotifHandled] = useState(false);
@@ -1423,6 +1428,30 @@ export default function ScanRoute() {
 
   return (
     <Screen contentContainerStyle={styles.content}>
+      {/* Same top as the home: logo left, household pill right. */}
+      <View style={styles.headerRow}>
+        <Logo size={26} />
+        {activeHousehold ? (
+          <Tappable
+            label={t("settings.household.openSheet", { name: activeHousehold.name })}
+            onPress={() => setHouseholdOpen(true)}
+            style={styles.householdPill}
+          >
+            <View style={styles.householdAvatar}>
+              <Text variant="small" color={colors.primary} weight="extrabold">
+                {(firstName || activeHousehold.name).charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <Text variant="small" numberOfLines={1} weight="bold" style={styles.householdName}>
+              {activeHousehold.name}
+            </Text>
+            <Svg width={14} height={14} viewBox="0 0 24 24" accessible={false}>
+              <Path d="M6 9l6 6 6-6" fill="none" stroke={colors.text} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </Tappable>
+        ) : null}
+      </View>
+
       <View style={styles.header}>
         {!activeHousehold?.first_fill_completed_at ? (
           <BackButton
@@ -1481,6 +1510,12 @@ export default function ScanRoute() {
           void openSelectedChoice(choice, { skipGate: true });
         }}
         onDismiss={() => setScanPremiumVisible(false)}
+      />
+
+      <HouseholdSheet
+        visible={householdOpen}
+        onClose={() => setHouseholdOpen(false)}
+        itemCount={inventory.length}
       />
     </Screen>
   );
@@ -1542,6 +1577,35 @@ const styles = StyleSheet.create({
   },
   header: {
     gap: spacing.sm,
+  },
+  // Same header row and pill as the home's (recipes.tsx).
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  householdPill: {
+    flexShrink: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 5,
+    paddingLeft: 6,
+    paddingRight: spacing.md,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+  },
+  householdName: {
+    flexShrink: 1,
+  },
+  householdAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface3,
+    alignItems: "center",
+    justifyContent: "center",
   },
   backButton: {
     alignSelf: "flex-start",
