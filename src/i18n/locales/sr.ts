@@ -1063,9 +1063,6 @@ export const sr = {
       lastYear: "prošle godine",
     },
     summary: {
-      more: "{{amount}} više nego {{prev}}",
-      less: "{{amount}} manje nego {{prev}}",
-      same: "Isto kao {{prev}}",
       noPrice: "Dodaj cene kad unosiš namirnice (ili skeniraj račun) da vidiš koliko štediš.",
       used_one: "namirnica potrošena",
       used_few: "namirnice potrošene",
@@ -1106,6 +1103,8 @@ export const sr = {
       best: "Najbolje: {{label}}",
       weekOf: "nedelja od {{date}}",
       spoken: "{{used}} potrošeno i {{tossed}} bačeno u ovom periodu",
+      less: "Manje",
+      more: "Više",
     },
     groups: {
       title: "Grupe namirnica",

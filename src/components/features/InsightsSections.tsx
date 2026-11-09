@@ -4,7 +4,7 @@ import Svg, { Path } from "react-native-svg";
 import { foodIconKey } from "../../lib/foodIcons";
 import { colors, radii, shadows, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { Divider, GlyphTile, Tappable, Text } from "../primitives";
+import { Divider, GlyphTile, StatusPill, Tappable, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // The Insights tab's sections: each answers one question about your kitchen;
@@ -59,13 +59,14 @@ export type CalendarCell = {
   future?: boolean;
 };
 
-// Sage steps for "more used": none (outlined), a little, some, the most.
-const LEVELS = [undefined, colors.sageTint, colors.sageBorder, colors.sage] as const;
+// Tomato steps for "more used", dashboard heatmap style: nothing (peach), a
+// little, more, the most (dark). The darker two carry white labels.
+const LEVELS = [colors.surface2, colors.surface3, colors.primary, colors.text] as const;
 
 /**
- * The period as a grid instead of a bar chart: one cell per day (week,
- * month) or per month (year). Greener = more used up that day; a tomato
- * outline = something was tossed.
+ * The period as a heatmap: one cell per day (week, month) or per month
+ * (year). Hotter = more used up that day, the best one dark; a dark dot in
+ * the corner = something was tossed.
  */
 export function UsageCalendar({
   cells,
@@ -78,7 +79,7 @@ export function UsageCalendar({
   columns: number;
   /** Weekday letters over a month grid. */
   head?: string[];
-  legend: { used: string; tossed: string };
+  legend: { used: string; tossed: string; less: string; more: string };
   /** Spoken summary of the grid. */
   label: string;
 }) {
@@ -104,18 +105,11 @@ export function UsageCalendar({
               if (!cell || cell.label === "") return <View key={index} style={styles.cellSlot} />;
               const level = cell.used === 0 ? 0 : Math.ceil((cell.used / max) * 3);
               return (
-                <View
-                  key={index}
-                  style={[
-                    styles.cellSlot,
-                    styles.cell,
-                    level === 0 ? styles.cellEmpty : { backgroundColor: LEVELS[level] },
-                    cell.tossed > 0 && styles.cellTossed,
-                  ]}
-                >
-                  <Text variant="small" weight="bold" color={cell.future ? colors.muted2 : colors.text} numberOfLines={1}>
+                <View key={index} style={[styles.cellSlot, styles.cell, { backgroundColor: LEVELS[level] }, cell.future && styles.cellFuture]}>
+                  <Text variant="small" weight="bold" color={cell.future ? colors.muted2 : level >= 2 ? colors.onPrimary : colors.text} numberOfLines={1}>
                     {cell.label}
                   </Text>
+                  {cell.tossed > 0 ? <View style={[styles.tossedDot, styles.cellDot]} /> : null}
                 </View>
               );
             })}
@@ -124,13 +118,21 @@ export function UsageCalendar({
       </View>
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendSwatch, { backgroundColor: colors.sage }]} />
           <Text variant="small" muted>
-            {legend.used}
+            {legend.less}
+          </Text>
+          {LEVELS.map((level) => (
+            <View key={level} style={[styles.legendSwatch, { backgroundColor: level }]} />
+          ))}
+          <Text variant="small" muted>
+            {legend.more}
           </Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendSwatch, styles.cellTossed]} />
+          <Text variant="small" muted>
+            {legend.used}
+          </Text>
+          <View style={styles.tossedDot} />
           <Text variant="small" muted>
             {legend.tossed}
           </Text>
@@ -144,26 +146,32 @@ export function UsageCalendar({
 export function FoodGroups({
   rows,
   tip,
+  weakLabel,
 }: {
   rows: { category: string; label: string; detail: string; share: number; weak: boolean }[];
   tip?: string;
+  /** Pill beside the weakest group's name. */
+  weakLabel: string;
 }) {
   return (
     <View style={[styles.card, styles.listCard]}>
       {rows.map((row) => (
         <View key={row.category} style={styles.row}>
-          <GlyphTile name="" category={row.category} size="sm" round style={styles.well} />
+          <GlyphTile name="" category={row.category} size="sm" round />
           <View style={styles.rowBody}>
             <View style={styles.titleRow}>
-              <Text variant="small" weight="bold" color={row.weak ? colors.redInk : colors.text}>
-                {row.label}
-              </Text>
-              <Text variant="small" weight="bold" color={row.weak ? colors.redInk : colors.text}>
+              <View style={styles.nameRow}>
+                <Text variant="small" weight="bold" color={row.weak ? colors.redInk : colors.text}>
+                  {row.label}
+                </Text>
+                {row.weak ? <StatusPill label={weakLabel} tone="urgent" /> : null}
+              </View>
+              <Text variant="small" weight="bold" color={colors.primary}>
                 {`${Math.round(row.share * 100)}%`}
               </Text>
             </View>
             <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, row.weak && styles.progressWeak, { width: `${Math.round(row.share * 100)}%` }]} />
+              <View style={[styles.progressFill, { width: `${Math.round(row.share * 100)}%` }]} />
             </View>
             <Text variant="small" muted>
               {row.detail}
@@ -172,7 +180,7 @@ export function FoodGroups({
         </View>
       ))}
       {tip ? (
-        <Text variant="small" muted style={styles.tip}>
+        <Text variant="small" weight="bold" color={colors.accentInk} style={styles.tip}>
           {tip}
         </Text>
       ) : null}
@@ -192,7 +200,7 @@ export function GoingOffList({
         <View key={row.name}>
           {index > 0 ? <Divider /> : null}
           <View style={styles.row} accessible accessibilityLabel={row.label}>
-            <GlyphTile name={row.name} category={row.category} size="sm" round style={styles.well} />
+            <GlyphTile name={row.name} category={row.category} size="sm" round />
             <View style={styles.rowBody}>
               <Text variant="small" weight="bold">
                 {row.name}
@@ -234,7 +242,7 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
             <Text variant="small" weight="bold" numberOfLines={2} style={styles.rowBody}>
               {dinner.title}
             </Text>
-            <Text variant="small" muted>
+            <Text variant="small" weight="bold" color={colors.primary}>
               {dinner.detail}
             </Text>
           </Tappable>
@@ -256,9 +264,15 @@ const styles = StyleSheet.create({
   },
   titleRow: {
     flexDirection: "row",
-    alignItems: "baseline",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.sm,
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    flexShrink: 1,
   },
   card: {
     backgroundColor: colors.surface,
@@ -308,17 +322,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cellEmpty: {
-    borderWidth: 1.5,
-    borderColor: colors.cardLine,
+  cellFuture: {
+    opacity: 0.5,
   },
-  cellTossed: {
-    borderWidth: 2.5,
-    borderColor: colors.primary,
+  // Tossed: a dark dot, white-ringed so it shows on the dark cell too.
+  tossedDot: {
+    width: 9,
+    height: 9,
+    borderRadius: radii.pill,
+    borderWidth: 1.5,
+    borderColor: colors.onPrimary,
+    backgroundColor: colors.text,
+  },
+  cellDot: {
+    position: "absolute",
+    top: 3,
+    right: 3,
   },
   legend: {
     flexDirection: "row",
-    gap: spacing.lg,
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: spacing.xs,
+    columnGap: spacing.lg,
   },
   legendItem: {
     flexDirection: "row",
@@ -342,7 +368,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
     gap: 4,
   },
-  // Food sits on a round sage well so pale foods show.
+  // A dish sits on a round peach well so pale foods show.
   well: {
     width: 40,
     height: 40,
@@ -355,22 +381,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface2,
   },
   progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.surface3,
+    height: 8,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    borderRadius: 3,
-    backgroundColor: colors.sage,
-  },
-  progressWeak: {
+    borderRadius: radii.pill,
     backgroundColor: colors.primary,
   },
+  // The weakest group's tip as a butter note, like the home's streak pill.
   tip: {
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.md,
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    backgroundColor: colors.accentSoft,
   },
   dots: {
     flexDirection: "row",

@@ -26,7 +26,7 @@ import {
   WinsList,
 } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
-import type { ShareLook } from "@/components";
+import type { Delta, ShareLook } from "@/components";
 import { useDaySheet, useInventory, usePeriodInsights, useStreak, useWins } from "@/hooks";
 import { InventoryCategory, Period, periodAnchor, periodWindow, toUiCategory } from "@/services";
 import { formatMoney } from "@/lib/money";
@@ -206,23 +206,28 @@ export default function InsightsRoute() {
           <PeriodSummary
             rescued={{ label: t("insights.share.looks.rescued"), value: "••" }}
             saved={{ label: t("insights.stats.saved"), value: "••••" }}
+            dinners={{ label: t("insights.share.looks.dinners"), value: "–" }}
+            tossed={{ label: t("insights.stats.tossed"), value: "–" }}
             streak={{ label: t("insights.share.looks.streak"), value: "–" }}
           />
         </View>
         <View style={styles.lock}>
+          <View style={styles.lockMark} pointerEvents="none" />
           <View style={styles.lockSeal}>
             <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M4.5 10h15v10.5h-15zM8.2 10V7.6a3.8 3.8 0 017.6 0V10"
-                stroke={colors.primary}
+                stroke={colors.onPrimary}
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </Svg>
           </View>
-          <Text variant="h3">{t("insights.lock.title")}</Text>
-          <Text variant="small" muted>
+          <Text variant="h3" color={colors.onPrimary}>
+            {t("insights.lock.title")}
+          </Text>
+          <Text variant="small" color={colors.onPrimary} style={styles.lockBody}>
             {t("insights.lock.body")}
           </Text>
           <View style={styles.lockPoints}>
@@ -230,10 +235,10 @@ export default function InsightsRoute() {
               <View key={point} style={styles.lockPoint}>
                 <View style={styles.lockTick}>
                   <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-                    <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
+                    <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.onPrimary} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
                 </View>
-                <Text variant="small" style={styles.lockPointText}>
+                <Text variant="small" weight="bold" color={colors.onPrimary} style={styles.lockPointText}>
                   {t(`insights.lock.points.${point}`)}
                 </Text>
               </View>
@@ -272,15 +277,13 @@ export default function InsightsRoute() {
         : period === "year"
           ? String(span.prevStart.getFullYear())
           : t("insights.chart.weekOf", { date: dayMonth(span.prevStart) });
-  const savedSub =
-    summary.moneySaved > 0 || prevSummary.moneySaved > 0
-      ? savedDiff > 0
-        ? t("insights.summary.more", { amount: money(savedDiff), prev: prevName })
-        : savedDiff < 0
-          ? t("insights.summary.less", { amount: money(-savedDiff), prev: prevName })
-          : t("insights.summary.same", { prev: prevName })
-      : t("insights.summary.noPrice");
   const isEmpty = kitchen.used === 0 && summary.cookedEvents === 0;
+  // "+3" / "−€2.10" against the period before; nothing when it didn't move.
+  // Fewer tossed is the good direction.
+  const delta = (diff: number, label: string, lowerIsBetter = false): Delta | undefined =>
+    diff === 0 ? undefined : { label: `${diff > 0 ? "+" : "−"}${label}`, direction: diff > 0 ? "up" : "down", good: diff > 0 !== lowerIsBetter };
+  const cookedDiff = summary.cookedEvents - prevSummary.cookedEvents;
+  const tossedDiff = kitchen.tossed - prevKitchen.tossed;
 
   // One line on how the period moved against the one before.
   const usedDiff = kitchen.used - prevKitchen.used;
@@ -421,7 +424,15 @@ export default function InsightsRoute() {
       rescued={{ label: t("insights.share.looks.rescued"), value: String(kitchen.used), sub: storyLine }}
       trend={usedDiff > 0 ? "up" : usedDiff < 0 ? "down" : undefined}
       foods={data.usedFoods}
-      saved={{ label: t("insights.stats.saved"), value: money(summary.moneySaved), sub: savedSub }}
+      saved={{
+        label: t("insights.stats.saved"),
+        value: money(summary.moneySaved),
+        delta: delta(savedDiff, money(Math.abs(savedDiff))),
+        // With no prices in either period, how to get one.
+        sub: summary.moneySaved > 0 || prevSummary.moneySaved > 0 ? undefined : t("insights.summary.noPrice"),
+      }}
+      dinners={{ label: t("insights.share.looks.dinners"), value: String(summary.cookedEvents), delta: delta(cookedDiff, String(Math.abs(cookedDiff))) }}
+      tossed={{ label: t("insights.stats.tossed"), value: String(kitchen.tossed), delta: delta(tossedDiff, String(Math.abs(tossedDiff)), true) }}
       streak={{ label: t("insights.share.looks.streak"), value: t("insights.summary.days", { count: streak }) }}
       streakDays={streakDays.map((day) => day.state !== "none")}
     />
@@ -442,6 +453,8 @@ export default function InsightsRoute() {
           legend={{
             used: t("insights.chart.legendUsed", { count: kitchen.used }),
             tossed: t("insights.chart.legendTossed", { count: kitchen.tossed }),
+            less: t("insights.chart.less"),
+            more: t("insights.chart.more"),
           }}
           label={t("insights.chart.spoken", { used: kitchen.used, tossed: kitchen.tossed })}
         />
@@ -450,7 +463,7 @@ export default function InsightsRoute() {
       <View style={styles.section}>
         <SectionTitle title={t("insights.groups.title")} aside={groupRows.length > 0 ? t("insights.groups.aside") : undefined} />
         {groupRows.length > 0 ? (
-          <FoodGroups rows={groupRows} tip={kitchen.weakest ? t(`insights.tips.${kitchen.weakest.category}`) : undefined} />
+          <FoodGroups rows={groupRows} weakLabel={t("insights.goingOff.watch")} tip={kitchen.weakest ? t(`insights.tips.${kitchen.weakest.category}`) : undefined} />
         ) : (
           <EmptyNote text={t("insights.groups.empty")} />
         )}
@@ -563,18 +576,31 @@ const styles = StyleSheet.create({
   preview: {
     opacity: 0.35,
   },
+  // Dark like a dashboard's upgrade card, a tomato disc clipping the corner.
   lock: {
     gap: spacing.md,
     padding: spacing.xl,
     borderRadius: radii.xxl,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
+    backgroundColor: colors.text,
+    overflow: "hidden",
+  },
+  lockMark: {
+    position: "absolute",
+    top: -50,
+    right: -50,
+    width: 140,
+    height: 140,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
+  },
+  lockBody: {
+    opacity: 0.8,
   },
   lockSeal: {
     width: 48,
     height: 48,
     borderRadius: radii.lg,
-    backgroundColor: colors.surface2,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -590,7 +616,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: radii.pill,
-    backgroundColor: colors.sageTint,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },

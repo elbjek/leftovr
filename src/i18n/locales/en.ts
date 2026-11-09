@@ -1035,9 +1035,6 @@ export const en = {
       lastYear: "last year",
     },
     summary: {
-      more: "{{amount}} more than {{prev}}",
-      less: "{{amount}} less than {{prev}}",
-      same: "Same as {{prev}}",
       noPrice: "Add prices when you add food (or scan a receipt) to see what you save.",
       used_one: "item used",
       used_other: "items used",
@@ -1072,6 +1069,8 @@ export const en = {
       best: "Best: {{label}}",
       weekOf: "week of {{date}}",
       spoken: "{{used}} used up and {{tossed}} tossed in this period",
+      less: "Less",
+      more: "More",
     },
     groups: {
       title: "Food groups",
