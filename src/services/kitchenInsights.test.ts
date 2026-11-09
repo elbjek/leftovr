@@ -9,13 +9,13 @@ describe("periodWindow", () => {
     expect(w.prevUntil.getTime() - w.prevStart.getTime()).toBe(now.getTime() - w.start.getTime());
   });
 
-  it("compares a month so far with the same days of last month, in 7-day buckets", () => {
+  it("compares a month so far with the same days of last month, in day buckets", () => {
     const now = new Date(2026, 10, 10, 12, 0);
     const w = periodWindow("month", now);
     expect([w.start.getMonth(), w.prevStart.getMonth()]).toEqual([10, 9]);
     expect(w.prevUntil.getDate()).toBe(10);
-    expect(w.buckets.map((b) => b.start.getDate())).toEqual([1, 8, 15, 22, 29]);
-    expect(w.buckets[4].end.getDate()).toBe(1); // the 30th ends at 1 Dec
+    expect(w.buckets.map((b) => b.start.getDate())).toEqual(Array.from({ length: 30 }, (_, i) => i + 1));
+    expect(w.buckets[29].end.getDate()).toBe(1); // the 30th ends at 1 Dec
   });
 
   it("stays on this month in its first days, so a week never holds more than its month", () => {

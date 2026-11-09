@@ -1,13 +1,14 @@
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { categoryColors, colors, radii, shadows, spacing } from "../../theme";
-import { Card, Divider, GlyphTile, StatusPill, Tappable, Text } from "../primitives";
+import { foodIconKey } from "../../lib/foodIcons";
+import { colors, radii, shadows, spacing } from "../../theme";
+import { FoodGlyph } from "../illustrations";
+import { Divider, GlyphTile, Tappable, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
-// The Insights tab's sections, TinyMeals-style: each answers one question
-// about your kitchen; with no data yet, the screen shows an EmptyNote instead.
-
+// The Insights tab's sections: each answers one question about your kitchen;
+// with no data yet, the screen shows an EmptyNote instead.
 
 export function SectionTitle({ title, aside, caption }: { title: string; aside?: string; caption?: string }) {
   return (
@@ -49,83 +50,92 @@ export function EmptyNote({ text, good }: { text: string; good?: boolean }) {
   );
 }
 
-/** Used (green) stacked on tossed (red) per day or per week; the current bucket is darker. */
-export function UsedTossedChart({
-  title,
-  aside,
-  bars,
+export type CalendarCell = {
+  /** Day number, weekday letter or month name; "" for a blank lead-in cell. */
+  label: string;
+  used: number;
+  tossed: number;
+  /** Not reached yet: drawn empty and quiet. */
+  future?: boolean;
+};
+
+// Sage steps for "more used": none (outlined), a little, some, the most.
+const LEVELS = [undefined, colors.sageTint, colors.sageBorder, colors.sage] as const;
+
+/**
+ * The period as a grid instead of a bar chart: one cell per day (week,
+ * month) or per month (year). Greener = more used up that day; a tomato
+ * outline = something was tossed.
+ */
+export function UsageCalendar({
+  cells,
+  columns,
+  head,
   legend,
   label,
 }: {
-  title: string;
-  aside?: string;
-  bars: { label: string; used: number; tossed: number; current: boolean; best?: boolean }[];
+  cells: CalendarCell[];
+  columns: number;
+  /** Weekday letters over a month grid. */
+  head?: string[];
   legend: { used: string; tossed: string };
-  /** Spoken summary of the chart. */
+  /** Spoken summary of the grid. */
   label: string;
 }) {
-  const max = Math.max(1, ...bars.map((bar) => bar.used + bar.tossed));
-  const HEIGHT = 96;
+  const max = Math.max(1, ...cells.map((cell) => cell.used));
+  const rows: CalendarCell[][] = [];
+  for (let i = 0; i < cells.length; i += columns) rows.push(cells.slice(i, i + columns));
   return (
     <View style={styles.card} accessible accessibilityLabel={label}>
-      <View style={styles.titleRow}>
-        <Text variant="micro" muted uppercase>
-          {title}
-        </Text>
-        {aside ? (
-          <Text variant="small" muted>
-            {aside}
-          </Text>
-        ) : null}
-      </View>
-      <View style={[styles.bars, { height: HEIGHT + 20 }]}>
-        {bars.map((bar, index) => {
-          const total = bar.used + bar.tossed;
-          return (
-            <View key={index} style={styles.barColumn}>
-              <Text variant="small" weight="bold" style={total === 0 ? styles.hidden : undefined}>
-                {total}
+      <View style={styles.grid}>
+        {head ? (
+          <View style={styles.gridRow}>
+            {head.map((day, index) => (
+              <Text key={index} variant="small" muted center weight="bold" style={styles.cellSlot}>
+                {day}
               </Text>
-              <View style={[styles.barTrack, { height: HEIGHT }]}>
-                {bar.tossed > 0 ? <View style={[styles.barTossed, { height: (bar.tossed / max) * HEIGHT }]} /> : null}
-                {bar.used > 0 ? (
-                  <View
-                    style={[
-                      styles.barUsed,
-                      bar.current && styles.barCurrent,
-                      bar.best && styles.barBest,
-                      { height: (bar.used / max) * HEIGHT },
-                    ]}
-                  />
-                ) : null}
-                {total === 0 ? <View style={styles.barEmpty} /> : null}
-              </View>
-            </View>
-          );
-        })}
-      </View>
-      <View style={styles.barLabels}>
-        {bars.map((bar, index) => (
-          <Text key={index} variant="small" muted center weight={bar.current ? "bold" : undefined} style={styles.barLabel}>
-            {bar.label}
-          </Text>
+            ))}
+          </View>
+        ) : null}
+        {rows.map((row, rowIndex) => (
+          <View key={rowIndex} style={styles.gridRow}>
+            {Array.from({ length: columns }, (_, index) => {
+              const cell = row[index];
+              if (!cell || cell.label === "") return <View key={index} style={styles.cellSlot} />;
+              const level = cell.used === 0 ? 0 : Math.ceil((cell.used / max) * 3);
+              return (
+                <View
+                  key={index}
+                  style={[
+                    styles.cellSlot,
+                    styles.cell,
+                    level === 0 ? styles.cellEmpty : { backgroundColor: LEVELS[level] },
+                    cell.tossed > 0 && styles.cellTossed,
+                  ]}
+                >
+                  <Text variant="small" weight="bold" color={cell.future ? colors.muted2 : colors.text} numberOfLines={1}>
+                    {cell.label}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
         ))}
       </View>
       <View style={styles.legend}>
-        <LegendDot color={colors.sage} label={legend.used} />
-        <LegendDot color={colors.redInk} label={legend.tossed} />
+        <View style={styles.legendItem}>
+          <View style={[styles.legendSwatch, { backgroundColor: colors.sage }]} />
+          <Text variant="small" muted>
+            {legend.used}
+          </Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendSwatch, styles.cellTossed]} />
+          <Text variant="small" muted>
+            {legend.tossed}
+          </Text>
+        </View>
       </View>
-    </View>
-  );
-}
-
-function LegendDot({ color, label }: { color: string; label: string }) {
-  return (
-    <View style={styles.legendItem}>
-      <View style={[styles.legendSwatch, { backgroundColor: color }]} />
-      <Text variant="small" muted>
-        {label}
-      </Text>
     </View>
   );
 }
@@ -139,80 +149,61 @@ export function FoodGroups({
   tip?: string;
 }) {
   return (
-    <>
-      <View style={[styles.card, styles.listCard]}>
-        {rows.map((row, index) => (
-          <View key={row.category} style={[styles.groupRow, index > 0 && styles.divider]}>
-            <GlyphTile name="" category={row.category} size="sm" />
-            <View style={styles.groupBody}>
-              <Text variant="small" weight="bold">
+    <View style={[styles.card, styles.listCard]}>
+      {rows.map((row) => (
+        <View key={row.category} style={styles.row}>
+          <GlyphTile name="" category={row.category} size="sm" round style={styles.well} />
+          <View style={styles.rowBody}>
+            <View style={styles.titleRow}>
+              <Text variant="small" weight="bold" color={row.weak ? colors.redInk : colors.text}>
                 {row.label}
               </Text>
-              <Text variant="small" color={row.weak ? colors.redInk : colors.muted}>
-                {row.detail}
+              <Text variant="small" weight="bold" color={row.weak ? colors.redInk : colors.text}>
+                {`${Math.round(row.share * 100)}%`}
               </Text>
-              <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, row.weak && styles.progressWeak, { width: `${Math.round(row.share * 100)}%` }]} />
-              </View>
             </View>
-            <Text variant="small" weight="bold" color={row.weak ? colors.redInk : colors.primary}>
-              {`${Math.round(row.share * 100)}%`}
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, row.weak && styles.progressWeak, { width: `${Math.round(row.share * 100)}%` }]} />
+            </View>
+            <Text variant="small" muted>
+              {row.detail}
             </Text>
           </View>
-        ))}
-      </View>
-      {tip ? (
-        <View style={styles.tip}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"
-              stroke={colors.primary}
-              strokeWidth={2.2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
-          <Text variant="small" style={styles.tipText}>
-            {tip}
-          </Text>
         </View>
+      ))}
+      {tip ? (
+        <Text variant="small" muted style={styles.tip}>
+          {tip}
+        </Text>
       ) : null}
-    </>
+    </View>
   );
 }
 
-/** A food's last few purchases as dots: green used, red tossed. */
+/** A food's last few purchases as dots: sage used, tomato ring tossed. */
 export function GoingOffList({
   rows,
 }: {
-  rows: {
-    name: string;
-    category: string;
-    detail: string;
-    outcomes: ("used" | "tossed")[];
-    label: string;
-    /** "Watch" when the most recent one was tossed, "Better" when it wasn't. */
-    status: { label: string; improving: boolean };
-  }[];
+  rows: { name: string; category: string; detail: string; outcomes: ("used" | "tossed")[]; label: string }[];
 }) {
   return (
     <View style={[styles.card, styles.listCard]}>
       {rows.map((row, index) => (
-        <View key={row.name} style={[styles.groupRow, index > 0 && styles.divider]} accessible accessibilityLabel={row.label}>
-          <GlyphTile name={row.name} category={row.category} size="sm" />
-          <View style={styles.groupBody}>
-            <View style={styles.titleRow}>
+        <View key={row.name}>
+          {index > 0 ? <Divider /> : null}
+          <View style={styles.row} accessible accessibilityLabel={row.label}>
+            <GlyphTile name={row.name} category={row.category} size="sm" round style={styles.well} />
+            <View style={styles.rowBody}>
               <Text variant="small" weight="bold">
                 {row.name}
               </Text>
-              <StatusPill label={row.status.label} tone={row.status.improving ? "safe" : "urgent"} />
+              <Text variant="small" muted>
+                {row.detail}
+              </Text>
             </View>
-            <Text variant="small" color={colors.redInk}>
-              {row.detail}
-            </Text>
             <View style={styles.dots}>
               {row.outcomes.map((outcome, i) => (
-                <View key={i} style={[styles.dot, { backgroundColor: outcome === "tossed" ? colors.redInk : colors.sage }]} />
+                <View key={i} style={[styles.dot, outcome === "tossed" ? styles.dotTossed : styles.dotUsed]} />
               ))}
             </View>
           </View>
@@ -225,7 +216,7 @@ export function GoingOffList({
 /** The period's most-cooked dinners as a menu: the dish, then how often. */
 export function TopDinners({ dinners }: { dinners: { title: string; detail: string; onPress?: () => void }[] }) {
   return (
-    <Card style={styles.listCard}>
+    <View style={[styles.card, styles.listCard]}>
       {dinners.map((dinner, index) => (
         <View key={dinner.title}>
           {index > 0 ? <Divider /> : null}
@@ -234,12 +225,13 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
             disabled={!dinner.onPress}
             onPress={dinner.onPress}
             hitSlop={0}
-            style={styles.dinner}
+            style={styles.row}
           >
-            <View style={[styles.dinnerTile, { backgroundColor: thumbColorFor(dinner.title) }]}>
-              <RecipeGlyph size={26} />
+            <View style={[styles.well, styles.wellPeach]}>
+              {/* A dish named after a food we have an icon for wears it. */}
+              {foodIconKey(dinner.title) ? <FoodGlyph name={dinner.title} size={22} /> : <RecipeGlyph size={24} />}
             </View>
-            <Text variant="small" weight="bold" numberOfLines={2} style={styles.dinnerTitle}>
+            <Text variant="small" weight="bold" numberOfLines={2} style={styles.rowBody}>
               {dinner.title}
             </Text>
             <Text variant="small" muted>
@@ -248,24 +240,8 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
           </Tappable>
         </View>
       ))}
-    </Card>
+    </View>
   );
-}
-
-// Dinner thumbs borrow SavedRecipeRow's trick: a stable tint per title, so a
-// list of dishes carries the kitchen's warm colours instead of one flat sage.
-const THUMB_COLORS = [
-  categoryColors.vegetables.background,
-  categoryColors.meat.background,
-  categoryColors.dairy.background,
-  categoryColors.fruit.background,
-  categoryColors.bakery.background,
-];
-
-function thumbColorFor(title: string) {
-  let hash = 0;
-  for (let i = 0; i < title.length; i += 1) hash = (hash * 31 + title.charCodeAt(i)) % 9973;
-  return THUMB_COLORS[hash % THUMB_COLORS.length];
 }
 
 const styles = StyleSheet.create({
@@ -286,9 +262,9 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radii.xl,
+    borderRadius: radii.xxl,
     ...shadows.soft,
-    padding: spacing.lg,
+    padding: spacing.xl,
     gap: spacing.md,
   },
   note: {
@@ -312,55 +288,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listCard: {
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     gap: 0,
   },
-  bars: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: spacing.sm,
+  grid: {
+    gap: spacing.xs,
   },
-  barColumn: {
+  gridRow: {
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
+  cellSlot: {
     flex: 1,
+    minWidth: 0,
+  },
+  cell: {
+    height: 40,
+    borderRadius: radii.sm,
     alignItems: "center",
-    gap: 4,
+    justifyContent: "center",
   },
-  hidden: {
-    opacity: 0,
+  cellEmpty: {
+    borderWidth: 1.5,
+    borderColor: colors.cardLine,
   },
-  barTrack: {
-    width: "100%",
-    maxWidth: 40,
-    justifyContent: "flex-end",
-    gap: 2,
-  },
-  barUsed: {
-    borderRadius: radii.xs,
-    backgroundColor: colors.sage,
-  },
-  barCurrent: {
-    backgroundColor: colors.primary,
-  },
-  // The period's best bucket is the one gold hit in the chart.
-  barBest: {
-    backgroundColor: colors.accent,
-  },
-  barTossed: {
-    borderRadius: 4,
-    backgroundColor: colors.redInk,
-  },
-  barEmpty: {
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: colors.surface3,
-  },
-  barLabels: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginTop: -spacing.xs,
-  },
-  barLabel: {
-    flex: 1,
+  cellTossed: {
+    borderWidth: 2.5,
+    borderColor: colors.primary,
   },
   legend: {
     flexDirection: "row",
@@ -369,27 +323,36 @@ const styles = StyleSheet.create({
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: spacing.xs,
   },
   legendSwatch: {
-    width: 10,
-    height: 10,
-    borderRadius: 3,
+    width: 12,
+    height: 12,
+    borderRadius: 4,
   },
-  groupRow: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
+    minHeight: 56,
     paddingVertical: spacing.md,
   },
-  divider: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.hairline,
-  },
-  groupBody: {
+  rowBody: {
     flex: 1,
     minWidth: 0,
     gap: 4,
+  },
+  // Food sits on a round sage well so pale foods show.
+  well: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
+    backgroundColor: colors.sageTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  wellPeach: {
+    backgroundColor: colors.surface2,
   },
   progressTrack: {
     height: 6,
@@ -400,47 +363,29 @@ const styles = StyleSheet.create({
   progressFill: {
     height: "100%",
     borderRadius: 3,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.sage,
   },
   progressWeak: {
-    backgroundColor: colors.redInk,
+    backgroundColor: colors.primary,
   },
   tip: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.sm,
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    backgroundColor: colors.surface2,
-  },
-  tipText: {
-    flex: 1,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.md,
   },
   dots: {
     flexDirection: "row",
-    gap: 6,
+    gap: spacing.xs,
   },
   dot: {
-    width: 14,
-    height: 14,
-    borderRadius: radii.xs,
+    width: 12,
+    height: 12,
+    borderRadius: radii.pill,
   },
-  dinner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    minHeight: 56,
-    paddingVertical: spacing.md,
+  dotUsed: {
+    backgroundColor: colors.sage,
   },
-  dinnerTile: {
-    width: 42,
-    height: 42,
-    borderRadius: radii.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dinnerTitle: {
-    flex: 1,
-    minWidth: 0,
+  dotTossed: {
+    borderWidth: 2.5,
+    borderColor: colors.primary,
   },
 });

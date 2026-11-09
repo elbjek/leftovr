@@ -21,7 +21,7 @@ import {
   Tappable,
   Text,
   TopDinners,
-  UsedTossedChart,
+  UsageCalendar,
   WinsList,
 } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
@@ -103,7 +103,9 @@ export default function InsightsRoute() {
             hitSlop={8}
             style={styles.periodSwitch}
           >
-            <Text variant="h1">{t(`insights.period.this.${period}`)}</Text>
+            <Text variant="h1">
+              {period === "month" ? capitalize(new Date().toLocaleDateString(undefined, { month: "long" })) : t(`insights.period.this.${period}`)}
+            </Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path d="M8 9.5l4-4 4 4M8 14.5l4 4 4-4" stroke={colors.muted} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
@@ -154,14 +156,9 @@ export default function InsightsRoute() {
         {header()}
         <View style={styles.preview} pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
           <PeriodSummary
-            title="••••••••"
-            body="••••"
-            money={{ label: t("insights.stats.saved"), value: "••••" }}
-            stats={(["cooked", "streak"] as const).map((key) => ({
-              value: "–",
-              label: t(`insights.summary.${key}`, { count: 5 }),
-              icon: <StatGlyph kind={key} />,
-            }))}
+            rescued={{ label: t("insights.share.looks.rescued"), value: "••" }}
+            saved={{ label: t("insights.stats.saved"), value: "••••" }}
+            streak={{ label: t("insights.share.looks.streak"), value: "–", sub: t("insights.summary.streak", { count: 5 }) }}
           />
         </View>
         <View style={styles.lock}>
@@ -235,9 +232,7 @@ export default function InsightsRoute() {
       : t("insights.summary.noPrice");
   const isEmpty = kitchen.used === 0 && summary.cookedEvents === 0;
 
-  // TinyMeals-style headline and one line on how it moved and where the waste is.
-  const headline =
-    kitchen.used > 0 ? t(`insights.story.headline.${period}`, { count: kitchen.used }) : t(`insights.story.empty.${period}`);
+  // One line on how the period moved against the one before.
   const usedDiff = kitchen.used - prevKitchen.used;
   const storyLine =
     kitchen.used > 0 || prevKitchen.used > 0
@@ -247,29 +242,32 @@ export default function InsightsRoute() {
           ? t("insights.story.fewer", { count: -usedDiff, prev: prevName })
           : t("insights.story.same", { prev: prevName })
       : t("insights.story.start");
-  // Chart: days of the week, or 7-day runs of the month. A running period's
-  // `until` is when it loaded, so the bucket holding it is the current one.
-  const loadedAt = span.until.getTime() - 1;
-  const bars = span.buckets.map((bucket, index) => ({
+  // Calendar: a cell per day (week, month) or per month (year). A running
+  // period's `until` is when it loaded; cells after it haven't happened yet.
+  const cells = span.buckets.map((bucket, index) => ({
     label:
       period === "week"
         ? bucket.start.toLocaleDateString(undefined, { weekday: "narrow" })
         : period === "year"
-          ? bucket.start.toLocaleDateString(undefined, { month: "narrow" })
+          ? bucket.start.toLocaleDateString(undefined, { month: "short" })
           : String(bucket.start.getDate()),
     used: kitchen.chart[index].used,
     tossed: kitchen.chart[index].tossed,
-    current: loadedAt >= bucket.start.getTime() && loadedAt < bucket.end.getTime(),
-    best: false,
+    future: bucket.start.getTime() > span.until.getTime(),
   }));
+  // A month grid starts on Monday: blank cells up to the 1st, weekday letters on top.
+  const leadIn = period === "month" ? (span.start.getDay() + 6) % 7 : 0;
+  const calendarCells = [...Array.from({ length: leadIn }, () => ({ label: "", used: 0, tossed: 0 })), ...cells];
+  const weekdays =
+    period === "month"
+      ? Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(undefined, { weekday: "narrow" })) // 1 Jan 2024 was a Monday
+      : undefined;
   const bestIndex = kitchen.chart.reduce((best, bar, index) => (bar.used > kitchen.chart[best].used ? index : best), 0);
-  if (kitchen.chart[bestIndex].used > 0) bars[bestIndex].best = true;
   const best = kitchen.chart[bestIndex].used
-    ? period === "week"
-      ? span.buckets[bestIndex].start.toLocaleDateString(undefined, { weekday: "long" })
-      : period === "year"
-        ? span.buckets[bestIndex].start.toLocaleDateString(undefined, { month: "long" })
-        : t("insights.chart.weekOf", { date: span.buckets[bestIndex].start.toLocaleDateString(undefined, { day: "numeric", month: "short" }) })
+    ? span.buckets[bestIndex].start.toLocaleDateString(
+        undefined,
+        period === "week" ? { weekday: "long" } : period === "year" ? { month: "long" } : { weekday: "short", day: "numeric" },
+      )
     : null;
   const hasFinished = kitchen.used + kitchen.tossed > 0;
 
@@ -283,10 +281,7 @@ export default function InsightsRoute() {
   const goingOffRows = goingOff.map((food) => {
     const name = capitalize(food.name);
     const detail = t("insights.goingOff.detail", { tossed: food.tossed, total: food.outcomes.length });
-    // The newest outcome decides the pill: still slipping, or turning around.
-    const improving = food.outcomes[food.outcomes.length - 1] !== "tossed";
-    const status = { label: t(improving ? "insights.goingOff.better" : "insights.goingOff.watch"), improving };
-    return { name, category: food.category, detail, outcomes: food.outcomes, label: `${name}: ${detail}`, status };
+    return { name, category: food.category, detail, outcomes: food.outcomes, label: `${name}: ${detail}` };
   });
   const dinners = summary.cookedRecipes.map((recipe) => ({ title: recipe.title, detail: t("insights.dinners.times", { count: recipe.count }) }));
 
@@ -373,18 +368,10 @@ export default function InsightsRoute() {
 
   const summaryCard = (
     <PeriodSummary
-      ring={hasFinished ? { used: kitchen.used, total: kitchen.used + kitchen.tossed } : undefined}
-      title={headline}
-      body={storyLine}
-      money={isEmpty ? undefined : { label: t("insights.stats.saved"), value: money(summary.moneySaved), sub: savedSub }}
-      stats={
-        isEmpty
-          ? undefined
-          : [
-              { value: String(summary.cookedEvents), label: t("insights.summary.cooked", { count: summary.cookedEvents }), icon: <StatGlyph kind="cooked" /> },
-              { value: String(streak), label: t("insights.summary.streak", { count: streak }), icon: <StatGlyph kind="streak" /> },
-            ]
-      }
+      rescued={{ label: t("insights.share.looks.rescued"), value: String(kitchen.used), sub: storyLine }}
+      foods={data.usedFoods}
+      saved={{ label: t("insights.stats.saved"), value: money(summary.moneySaved), sub: savedSub }}
+      streak={{ label: t("insights.share.looks.streak"), value: String(streak), sub: t("insights.summary.streak", { count: streak }) }}
     />
   );
 
@@ -395,11 +382,11 @@ export default function InsightsRoute() {
       {summaryCard}
 
       <View style={styles.section}>
-        <SectionTitle title={t(`insights.chart.title.${period}`)} />
-        <UsedTossedChart
-          title={t("insights.chart.usedVsTossed")}
-          aside={best ? t("insights.chart.best", { label: best }) : undefined}
-          bars={bars}
+        <SectionTitle title={t(`insights.chart.title.${period}`)} aside={best ? t("insights.chart.best", { label: best }) : undefined} />
+        <UsageCalendar
+          cells={calendarCells}
+          columns={period === "year" ? 6 : 7}
+          head={weekdays}
           legend={{
             used: t("insights.chart.legendUsed", { count: kitchen.used }),
             tossed: t("insights.chart.legendTossed", { count: kitchen.tossed }),
@@ -427,7 +414,10 @@ export default function InsightsRoute() {
       </View>
 
       <View style={styles.section}>
-        <SectionTitle title={t("insights.dinners.title")} />
+        <SectionTitle
+          title={t("insights.dinners.title")}
+          aside={summary.cookedEvents > 0 ? `${summary.cookedEvents} ${t("insights.summary.cooked", { count: summary.cookedEvents })}` : undefined}
+        />
         {dinners.length > 0 ? <TopDinners dinners={dinners} /> : <EmptyNote text={t("insights.dinners.empty")} />}
       </View>
 
@@ -447,21 +437,6 @@ export default function InsightsRoute() {
       {shareSheet}
       {sheets}
     </Screen>
-  );
-}
-
-const STAT_PATHS = {
-  // A pot for what was cooked, a flame for the streak.
-  cooked: "M4 9h16l-1.3 9.2A2.5 2.5 0 0 1 16.2 20H7.8a2.5 2.5 0 0 1-2.5-1.8L4 9zM8.5 6c0-1.3 1.8-1.3 1.8-2.6M13.5 6c0-1.3 1.8-1.3 1.8-2.6",
-  streak: "M12 3c3 3.5 4.5 6 4.5 8.5a4.5 4.5 0 1 1-9 0C7.5 9 9 6.5 12 3z",
-} as const;
-
-
-function StatGlyph({ kind }: { kind: keyof typeof STAT_PATHS }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d={STAT_PATHS[kind]} stroke={colors.primary} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
   );
 }
 

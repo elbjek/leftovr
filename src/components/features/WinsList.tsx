@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     ...shadows.soft,
-    borderRadius: radii.xl,
+    borderRadius: radii.xxl,
   },
   row: {
     flexDirection: "row",

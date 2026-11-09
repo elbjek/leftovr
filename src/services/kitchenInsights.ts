@@ -14,7 +14,7 @@ export type PeriodWindow = {
   /** The comparison window, cut to the same length so "vs last week" is fair. */
   prevStart: Date;
   prevUntil: Date;
-  /** Chart buckets: days of the week, 7-day runs of the month, or months of the year. */
+  /** Calendar cells: days of the week, days of the month, or months of the year. */
   buckets: { start: Date; end: Date }[];
 };
 
@@ -52,9 +52,7 @@ export function periodWindow(period: Period, now: Date = new Date()): PeriodWind
   const prevUntil = new Date(Math.min(prevStart.getTime() + (until.getTime() - start.getTime()), start.getTime()));
   const monthEnd = new Date(start.getFullYear(), start.getMonth() + 1, 1);
   const buckets: { start: Date; end: Date }[] = [];
-  for (let day = start; day < monthEnd; day = addDays(day, 7)) {
-    buckets.push({ start: day, end: new Date(Math.min(addDays(day, 7).getTime(), monthEnd.getTime())) });
-  }
+  for (let day = start; day < monthEnd; day = addDays(day, 1)) buckets.push({ start: day, end: addDays(day, 1) });
   return { start, until, prevStart, prevUntil, buckets };
 }
 
