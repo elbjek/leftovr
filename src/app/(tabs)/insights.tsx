@@ -82,15 +82,16 @@ export default function InsightsRoute() {
     }
   }, [refreshPeriod, refreshWins, refreshStreak, refresh]);
 
-  // The period on show, named: "November" (with the year once it isn't this
-  // one), "This week" or its dates, "This year" or the year.
+  // The period on show, named: "This week / month / year" while it is the
+  // running one; an earlier one by its month (with the year once it isn't
+  // this one), its dates or its year.
   const shown = periodWindow(period, periodAnchor(period, offset));
   const dayMonth = (date: Date) => date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
   const periodTitle =
-    period === "month"
-      ? capitalize(shown.start.toLocaleDateString(undefined, shown.start.getFullYear() === new Date().getFullYear() ? { month: "long" } : { month: "long", year: "numeric" }))
-      : offset === 0
-        ? t(`insights.period.this.${period}`)
+    offset === 0
+      ? t(`insights.period.this.${period}`)
+      : period === "month"
+        ? capitalize(shown.start.toLocaleDateString(undefined, shown.start.getFullYear() === new Date().getFullYear() ? { month: "long" } : { month: "long", year: "numeric" }))
         : period === "year"
           ? String(shown.start.getFullYear())
           : `${dayMonth(shown.start)} – ${dayMonth(shown.until)}`;
@@ -123,10 +124,10 @@ export default function InsightsRoute() {
             hitSlop={8}
             style={styles.periodSwitch}
           >
-            <Text variant="h1" numberOfLines={1} adjustsFontSizeToFit style={styles.periodTitle}>
+            <Text variant="h3" numberOfLines={1} style={styles.periodTitle}>
               {periodTitle}
             </Text>
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
               <Path d="M8 9.5l4-4 4 4M8 14.5l4 4 4-4" stroke={colors.muted} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           </Tappable>
