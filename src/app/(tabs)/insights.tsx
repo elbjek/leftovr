@@ -62,7 +62,7 @@ export default function InsightsRoute() {
   const { data, refresh: refreshPeriod } = usePeriodInsights(activeHousehold?.id, profile?.id, period, scope, true, offset);
   const { wins, refresh: refreshWins } = useWins(activeHousehold?.id, profile?.id, scope);
   const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, undefined);
-  const { streak, refresh: refreshStreak } = useStreak(activeHousehold?.id);
+  const { streak, days: streakDays, refresh: refreshStreak } = useStreak(activeHousehold?.id);
 
   // Cooking happens on other tabs — refetch whenever this tab gains focus.
   useFocusEffect(
@@ -205,7 +205,7 @@ export default function InsightsRoute() {
           <PeriodSummary
             rescued={{ label: t("insights.share.looks.rescued"), value: "••" }}
             saved={{ label: t("insights.stats.saved"), value: "••••" }}
-            streak={{ label: t("insights.share.looks.streak"), value: "–", sub: t("insights.summary.streak", { count: 5 }) }}
+            streak={{ label: t("insights.share.looks.streak"), value: "–" }}
           />
         </View>
         <View style={styles.lock}>
@@ -421,7 +421,8 @@ export default function InsightsRoute() {
       trend={usedDiff > 0 ? "up" : usedDiff < 0 ? "down" : undefined}
       foods={data.usedFoods}
       saved={{ label: t("insights.stats.saved"), value: money(summary.moneySaved), sub: savedSub }}
-      streak={{ label: t("insights.share.looks.streak"), value: String(streak), sub: t("insights.summary.streak", { count: streak }) }}
+      streak={{ label: t("insights.share.looks.streak"), value: t("insights.summary.days", { count: streak }) }}
+      streakDays={streakDays.map((day) => day.state !== "none")}
     />
   );
 

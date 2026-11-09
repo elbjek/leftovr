@@ -1045,6 +1045,8 @@ export const en = {
       cooked_other: "dinners cooked",
       streak_one: "day streak",
       streak_other: "day streak",
+      days_one: "{{count}} day",
+      days_other: "{{count}} days",
       empty: {
         week: "Nothing used up or cooked yet this week.",
         month: "Nothing used up or cooked yet this month.",

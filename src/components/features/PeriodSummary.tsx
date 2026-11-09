@@ -17,6 +17,8 @@ type Props = {
   foods?: { name: string; category: string }[];
   saved: Figure;
   streak: Figure;
+  /** The last 7 days, oldest first: true where the streak was kept (used or frozen). */
+  streakDays?: boolean[];
 };
 
 const SHOWN_FOODS = 4;
@@ -24,7 +26,7 @@ const SHOWN_FOODS = 4;
 // The top of Insights as tiles: a wide one for what was rescued (the number
 // in tomato, the foods themselves as a cluster of icons), then money saved
 // and the streak side by side. No solid colour block: tomato is an accent.
-export function PeriodSummary({ rescued, trend, foods = [], saved, streak }: Props) {
+export function PeriodSummary({ rescued, trend, foods = [], saved, streak, streakDays = [] }: Props) {
   const trendColor = trend === "up" ? colors.green : trend === "down" ? colors.redInk : colors.text;
   const shown = foods.slice(0, SHOWN_FOODS);
   const more = foods.length - shown.length;
@@ -101,6 +103,13 @@ export function PeriodSummary({ rescued, trend, foods = [], saved, streak }: Pro
                 {streak.sub}
               </Text>
             ) : null}
+            {streakDays.length > 0 ? (
+              <View style={styles.days} accessible={false} importantForAccessibility="no-hide-descendants">
+                {streakDays.map((kept, index) => (
+                  <View key={index} style={[styles.day, kept && styles.dayKept]} />
+                ))}
+              </View>
+            ) : null}
           </View>
         </View>
       </View>
@@ -161,6 +170,20 @@ const styles = StyleSheet.create({
   },
   num: {
     fontVariant: ["tabular-nums"],
+  },
+  days: {
+    flexDirection: "row",
+    gap: spacing.xxs,
+    marginTop: spacing.sm,
+  },
+  day: {
+    flex: 1,
+    height: 6,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface,
+  },
+  dayKept: {
+    backgroundColor: colors.primary,
   },
   foods: {
     alignItems: "flex-end",

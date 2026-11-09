@@ -1076,6 +1076,9 @@ export const sr = {
       streak_one: "dan zaredom",
       streak_few: "dana zaredom",
       streak_other: "dana zaredom",
+      days_one: "{{count}} dan",
+      days_few: "{{count}} dana",
+      days_other: "{{count}} dana",
       empty: {
         week: "Ove nedelje još ništa nije potrošeno ni skuvano.",
         month: "Ovog meseca još ništa nije potrošeno ni skuvano.",
