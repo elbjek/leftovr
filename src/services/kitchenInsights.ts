@@ -20,6 +20,22 @@ export type PeriodWindow = {
 
 const addDays = (date: Date, days: number) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 
+/**
+ * The moment a period is seen from: now for the running one (offset 0), else
+ * the last millisecond of the week / month / year `offset` periods back
+ * (-1 = the previous one), so `periodWindow` returns that whole period.
+ */
+export function periodAnchor(period: Period, offset: number, now: Date = new Date()): Date {
+  if (offset >= 0) return now;
+  if (period === "week") {
+    const weekday = now.getDay();
+    const monday = addDays(new Date(now.getFullYear(), now.getMonth(), now.getDate()), weekday === 0 ? -6 : 1 - weekday);
+    return new Date(addDays(monday, 7 * (offset + 1)).getTime() - 1);
+  }
+  if (period === "year") return new Date(new Date(now.getFullYear() + offset + 1, 0, 1).getTime() - 1);
+  return new Date(new Date(now.getFullYear(), now.getMonth() + offset + 1, 1).getTime() - 1);
+}
+
 export function periodWindow(period: Period, now: Date = new Date()): PeriodWindow {
   if (period === "week") {
     const weekday = now.getDay();

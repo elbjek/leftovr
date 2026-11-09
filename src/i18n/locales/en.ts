@@ -1163,6 +1163,8 @@ export const en = {
         year: "This year",
       },
       change: "{{period}}. Change period",
+      previous: "Earlier",
+      next: "Later",
     },
     wins: {
       eyebrow: "Your wins",

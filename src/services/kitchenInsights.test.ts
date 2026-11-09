@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildKitchenInsights, foodsGoingOff, periodWindow } from "./kitchenInsights";
+import { buildKitchenInsights, foodsGoingOff, periodAnchor, periodWindow } from "./kitchenInsights";
 
 describe("periodWindow", () => {
   it("runs the week from Monday and compares with the same stretch of last week", () => {
@@ -21,6 +21,29 @@ describe("periodWindow", () => {
   it("stays on this month in its first days, so a week never holds more than its month", () => {
     const w = periodWindow("month", new Date(2026, 10, 2, 9, 0));
     expect([w.start.getMonth(), w.start.getDate(), w.prevStart.getMonth(), w.prevUntil.getDate()]).toEqual([10, 1, 9, 2]);
+  });
+});
+
+describe("periodAnchor", () => {
+  const now = new Date(2026, 10, 10, 12, 0); // Tue 10 Nov 2026
+
+  it("is now for the running period", () => {
+    expect(periodAnchor("month", 0, now)).toBe(now);
+  });
+
+  it("gives the whole of an earlier month, compared with the month before it", () => {
+    const w = periodWindow("month", periodAnchor("month", -10, now)); // January 2026
+    expect([w.start.getFullYear(), w.start.getMonth(), w.buckets.length]).toEqual([2026, 0, 31]);
+    expect(w.until.getTime()).toBe(new Date(2026, 1, 1).getTime() - 1);
+    expect([w.prevStart.getFullYear(), w.prevStart.getMonth()]).toEqual([2025, 11]);
+    expect(w.prevUntil.getTime()).toBe(new Date(2026, 0, 1).getTime() - 1);
+  });
+
+  it("gives the whole of an earlier week and year", () => {
+    const week = periodWindow("week", periodAnchor("week", -1, now));
+    expect([week.start.getDate(), week.until.getDate(), week.prevStart.getDate()]).toEqual([2, 8, 26]);
+    const year = periodWindow("year", periodAnchor("year", -1, now));
+    expect([year.start.getFullYear(), year.until.getFullYear(), year.until.getMonth(), year.prevStart.getFullYear()]).toEqual([2025, 2025, 11, 2024]);
   });
 });
 

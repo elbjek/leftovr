@@ -1199,6 +1199,8 @@ export const sr = {
         year: "Ove godine",
       },
       change: "{{period}}. Promeni period",
+      previous: "Ranije",
+      next: "Kasnije",
     },
     wins: {
       eyebrow: "Tvoji uspesi",

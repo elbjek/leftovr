@@ -27,7 +27,7 @@ import {
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import type { ShareLook } from "@/components";
 import { useDaySheet, useInventory, usePeriodInsights, useStreak, useWins } from "@/hooks";
-import { InventoryCategory, Period, toUiCategory } from "@/services";
+import { InventoryCategory, Period, periodAnchor, periodWindow, toUiCategory } from "@/services";
 import { formatMoney } from "@/lib/money";
 import { colors, radii, shadows, spacing } from "@/theme";
 
@@ -47,6 +47,8 @@ export default function InsightsRoute() {
   const [showPremium, setShowPremium] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<Period>("month");
+  // 0 = the running week / month / year, -1 = the one before it, and so on.
+  const [offset, setOffset] = useState(0);
   const [showShare, setShowShare] = useState(false);
   const [householdOpen, setHouseholdOpen] = useState(false);
   const { lots: inventory } = useInventory(activeHousehold?.id);
@@ -57,7 +59,7 @@ export default function InsightsRoute() {
   const currency = activeHousehold?.currency_code ?? "USD";
   const money = (value: number) => formatMoney(value, currency);
 
-  const { data, refresh: refreshPeriod } = usePeriodInsights(activeHousehold?.id, profile?.id, period, scope);
+  const { data, refresh: refreshPeriod } = usePeriodInsights(activeHousehold?.id, profile?.id, period, scope, true, offset);
   const { wins, refresh: refreshWins } = useWins(activeHousehold?.id, profile?.id, scope);
   const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, undefined);
   const { streak, refresh: refreshStreak } = useStreak(activeHousehold?.id);
@@ -80,9 +82,23 @@ export default function InsightsRoute() {
     }
   }, [refreshPeriod, refreshWins, refreshStreak, refresh]);
 
+  // The period on show, named: "November" (with the year once it isn't this
+  // one), "This week" or its dates, "This year" or the year.
+  const shown = periodWindow(period, periodAnchor(period, offset));
+  const dayMonth = (date: Date) => date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  const periodTitle =
+    period === "month"
+      ? capitalize(shown.start.toLocaleDateString(undefined, shown.start.getFullYear() === new Date().getFullYear() ? { month: "long" } : { month: "long", year: "numeric" }))
+      : offset === 0
+        ? t(`insights.period.this.${period}`)
+        : period === "year"
+          ? String(shown.start.getFullYear())
+          : `${dayMonth(shown.start)} – ${dayMonth(shown.until)}`;
+
   // Same top as the home: logo left, household pill right. Under it the
-  // period is the page's title: tap it to step Week → Month → Year, so there
-  // is no tab bar. Share sits beside it once there is something to share.
+  // period is the page's title: tap it to step Week → Month → Year, and the
+  // arrows walk back to earlier ones (and forward again, up to now). Share
+  // sits beside them once there is something to share.
   const header = (onShare?: () => void) => (
     <View style={styles.top}>
       <View style={styles.header}>
@@ -99,17 +115,33 @@ export default function InsightsRoute() {
       {isPremium ? (
         <View style={styles.header}>
           <Tappable
-            onPress={() => setPeriod(PERIODS[(PERIODS.indexOf(period) + 1) % PERIODS.length])}
+            label={t("insights.period.change", { period: periodTitle })}
+            onPress={() => {
+              setPeriod(PERIODS[(PERIODS.indexOf(period) + 1) % PERIODS.length]);
+              setOffset(0);
+            }}
             hitSlop={8}
             style={styles.periodSwitch}
           >
-            <Text variant="h1">
-              {period === "month" ? capitalize(new Date().toLocaleDateString(undefined, { month: "long" })) : t(`insights.period.this.${period}`)}
+            <Text variant="h1" numberOfLines={1} adjustsFontSizeToFit style={styles.periodTitle}>
+              {periodTitle}
             </Text>
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
               <Path d="M8 9.5l4-4 4 4M8 14.5l4 4 4-4" stroke={colors.muted} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
             </Svg>
           </Tappable>
+          <View style={styles.steps}>
+            <Tappable label={t("insights.period.previous")} onPress={() => setOffset(offset - 1)} hitSlop={0} style={styles.step}>
+              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                <Path d="M15 5l-7 7 7 7" stroke={colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            </Tappable>
+            <Tappable label={t("insights.period.next")} disabled={offset === 0} onPress={() => setOffset(offset + 1)} hitSlop={0} style={styles.step}>
+              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                <Path d="M9 5l7 7-7 7" stroke={offset === 0 ? colors.muted2 : colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            </Tappable>
+          </View>
           {onShare ? (
             <Tappable label={t(`insights.share.${period}Label`)} onPress={onShare} hitSlop={4} style={styles.share}>
               <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
@@ -217,11 +249,13 @@ export default function InsightsRoute() {
   // "€2.10 more than last week"; with no prices at all, how to get one.
   const savedDiff = summary.moneySaved - prevSummary.moneySaved;
   const prevName =
-    period === "week"
-      ? t("insights.story.lastWeek")
-      : period === "year"
-        ? t("insights.story.lastYear")
-        : span.prevStart.toLocaleDateString(undefined, { month: "long" });
+    period === "month"
+      ? span.prevStart.toLocaleDateString(undefined, { month: "long" })
+      : offset === 0
+        ? t(period === "week" ? "insights.story.lastWeek" : "insights.story.lastYear")
+        : period === "year"
+          ? String(span.prevStart.getFullYear())
+          : t("insights.chart.weekOf", { date: dayMonth(span.prevStart) });
   const savedSub =
     summary.moneySaved > 0 || prevSummary.moneySaved > 0
       ? savedDiff > 0
@@ -377,7 +411,7 @@ export default function InsightsRoute() {
 
   return (
     <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-      {header(shareSheet && !isEmpty ? () => setShowShare(true) : undefined)}
+      {header(shareSheet && !isEmpty && !(period === "week" && offset < 0) ? () => setShowShare(true) : undefined)}
 
       {summaryCard}
 
@@ -461,9 +495,23 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   periodSwitch: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
+  },
+  periodTitle: {
+    flexShrink: 1,
+  },
+  steps: {
+    flexDirection: "row",
+  },
+  step: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
   share: {
     width: 44,

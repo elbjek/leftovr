@@ -9,6 +9,7 @@ import {
   GoingOffFood,
   KitchenInsights,
   Period,
+  periodAnchor,
   periodWindow,
   PeriodWindow,
 } from "@/services/kitchenInsights";
@@ -54,14 +55,16 @@ export function usePeriodInsights(
   period: Period,
   scope: "you" | "household",
   enabled = true,
+  /** 0 = the running period, -1 = the one before it, and so on. */
+  offset = 0,
 ) {
   const [state, setState] = useState<State | null>(null);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
-  const key = `${period}:${scope}`;
+  const key = `${period}:${scope}:${offset}`;
 
   const load = useCallback(async () => {
     if (!enabled || !householdId || !userId) return;
-    const span = periodWindow(period);
+    const span = periodWindow(period, periodAnchor(period, offset));
     const who = scope === "you" ? userId : undefined;
     const iso = (date: Date) => date.toISOString();
     try {
@@ -81,11 +84,11 @@ export function usePeriodInsights(
         goingOff: foodsGoingOff(history),
         usedFoods: usedFoodsIn(history, span),
       });
-      setLoadedKey(`${period}:${scope}`);
+      setLoadedKey(`${period}:${scope}:${offset}`);
     } catch {
       // Keep the last figures; the next focus refresh retries.
     }
-  }, [enabled, householdId, period, scope, userId]);
+  }, [enabled, householdId, offset, period, scope, userId]);
 
   useEffect(() => {
     // setState happens after the awaits — the rule can't see through the call.
