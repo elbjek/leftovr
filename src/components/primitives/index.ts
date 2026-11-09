@@ -7,6 +7,7 @@ export * from "./DateField";
 export * from "./Divider";
 export * from "./ErrorBoundary";
 export * from "./FilterChip";
+export * from "./FoodLoader";
 export * from "./GeneratingOverlay";
 export * from "./GlyphTile";
 export * from "./IconButton";

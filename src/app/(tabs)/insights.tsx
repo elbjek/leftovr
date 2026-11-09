@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { ActivityIndicator, RefreshControl, StyleSheet, View } from "react-native";
+import { RefreshControl, StyleSheet, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
@@ -9,6 +9,7 @@ import {
   DaySheet,
   EmptyNote,
   FoodGroups,
+  FoodLoader,
   GoingOffList,
   HouseholdPill,
   HouseholdSheet,
@@ -250,7 +251,7 @@ export default function InsightsRoute() {
       <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
         {header()}
         <View style={styles.loading}>
-          <ActivityIndicator color={colors.primary} />
+          <FoodLoader />
         </View>
         {sheets}
       </Screen>

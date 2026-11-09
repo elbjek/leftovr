@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
 import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdPill, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, WeekStrip } from "@/components";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -379,7 +379,7 @@ export default function RecipesRoute() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.primary} />
+        <FoodLoader />
       </View>
     );
   }
