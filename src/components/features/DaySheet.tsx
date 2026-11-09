@@ -1,8 +1,8 @@
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { CategoryTone, categoryColors, colors, fonts, radii, shadows, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { BottomSheet, Text } from "../primitives";
+import { BottomSheet, FoodLoader, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 type Props = {
@@ -43,7 +43,9 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, soon, lab
         ) : null}
 
         {activity == null ? (
-          <ActivityIndicator color={colors.primary} style={styles.loading} />
+          <View style={styles.loading}>
+            <FoodLoader />
+          </View>
         ) : empty ? (
           <Text variant="small" muted style={styles.empty}>
             {labels.empty}

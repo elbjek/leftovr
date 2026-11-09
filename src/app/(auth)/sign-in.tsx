@@ -1,9 +1,9 @@
 import { Redirect, router } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { AuthLanding, Screen, Text } from "@/components";
+import { AuthLanding, FoodLoader, Screen, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useFirstRunOnboardingGate } from "@/features/onboardingGate";
 import { colors, spacing } from "@/theme";
@@ -42,7 +42,7 @@ export default function SignInRoute() {
     return (
       <Screen>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+          <FoodLoader />
           <Text variant="small" muted>
             {t("common.loading")}
           </Text>

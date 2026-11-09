@@ -1,8 +1,8 @@
 import { Redirect, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
-import { Screen } from "@/components";
+import { FoodLoader, Screen } from "@/components";
 import { setPendingInviteCode, useAuth } from "@/features";
 import { colors } from "@/theme";
 
@@ -24,7 +24,7 @@ export default function JoinRoute() {
     return (
       <Screen>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} />
+          <FoodLoader />
         </View>
       </Screen>
     );
