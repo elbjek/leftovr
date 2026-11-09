@@ -3,19 +3,17 @@ import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, radii, shadows, spacing } from "../../theme";
-import { Card, Tappable, Text } from "../primitives";
+import { FoodGlyph } from "../illustrations";
+import { Tappable, Text } from "../primitives";
 
-/** Each figure carries its own tile colour: rescue sage, cooking gold, streak red. */
+/** Each figure carries its own well colour: rescue sage, cooking butter, streak red. */
 export type StatTone = "green" | "gold" | "red";
 
-const TINTS: Record<StatTone, string> = {
-  green: colors.sage,
-  gold: colors.accent,
-  red: colors.red,
+const WELLS: Record<StatTone, string> = {
+  green: colors.sageTint,
+  gold: colors.accentSoft,
+  red: colors.redSoft,
 };
-
-// Quiet copy on the green panel. White text only on green — never amber.
-const ON_GREEN_MUTED = "rgba(255, 255, 255, 0.72)";
 
 type Props = {
   /** Label over the big number, e.g. "Saved". */
@@ -24,7 +22,7 @@ type Props = {
   value?: string;
   /** One quiet line under it: the trend or the household total. */
   sub?: string;
-  /** Small figures in one row (items used, dinners cooked, streak). */
+  /** Small figures as three tiles (items used, dinners cooked, streak). */
   stats: { value: string; label: string; tone: StatTone; icon: React.ReactNode }[];
   /** Shown instead of the figures when the period has nothing in it yet. */
   emptyText?: string;
@@ -33,30 +31,41 @@ type Props = {
   onShare: () => void;
 };
 
-// The top of Insights: the period's money as the page's one big number, with
-// the three figures under it. The one green slab on the tab — the landing
-// page's hero block, brought into the app.
+// The top of Insights in the home's tomato style: the period's money on a
+// tomato banner with food on a peach blob (like Add's lead card and the
+// home's goal strip), then the three figures as warm white tiles.
 export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel, onShare }: Props) {
   return (
-    <Card style={styles.card}>
-      <View style={styles.top}>
-        <View style={styles.headline}>
-          <Text variant="micro" uppercase color={colors.accent}>
-            {label}
-          </Text>
+    <View style={styles.wrap}>
+      <View style={styles.hero}>
+        <View style={styles.heroArt} pointerEvents="none" accessible={false}>
+          <View style={styles.heroBlob} />
+          <View style={styles.heroFoodBig}>
+            <FoodGlyph name="carrot" size={64} />
+          </View>
+          <View style={styles.heroFoodSmall}>
+            <FoodGlyph name="apple" size={46} />
+          </View>
+        </View>
+        <View style={styles.heroCopy}>
+          <View style={styles.badge}>
+            <Text variant="micro" uppercase color={colors.text}>
+              {label}
+            </Text>
+          </View>
           {emptyText ? (
-            <Text variant="small" color={ON_GREEN_MUTED}>
+            <Text variant="small" color={colors.onPrimary} style={styles.soft}>
               {emptyText}
             </Text>
           ) : (
             <>
               {value ? (
-                <Text variant="h1" color={colors.onPrimary} style={styles.value}>
+                <Text variant="h1" color={colors.onPrimary}>
                   {value}
                 </Text>
               ) : null}
               {sub ? (
-                <Text variant="small" color={ON_GREEN_MUTED}>
+                <Text variant="small" color={colors.onPrimary} style={styles.soft}>
                   {sub}
                 </Text>
               ) : null}
@@ -68,8 +77,8 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
             <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"
-                stroke={colors.onPrimary}
-                strokeWidth={2.2}
+                stroke={colors.primary}
+                strokeWidth={2.4}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -80,73 +89,111 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
 
       {emptyText ? null : (
         <View style={styles.stats}>
-          {stats.map((stat, index) => (
-            <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
-              <View style={[styles.statTile, { backgroundColor: TINTS[stat.tone] }]}>{stat.icon}</View>
-              <Text variant="h3" color={colors.onPrimary}>
-                {stat.value}
-              </Text>
-              <Text variant="small" color={ON_GREEN_MUTED}>
+          {stats.map((stat) => (
+            <View key={stat.label} style={styles.tile}>
+              <View style={styles.tileArt}>
+                <View style={[styles.tileBlob, { backgroundColor: WELLS[stat.tone] }]} />
+                {stat.icon}
+              </View>
+              <Text variant="h3">{stat.value}</Text>
+              <Text variant="small" muted numberOfLines={2}>
                 {stat.label}
               </Text>
             </View>
           ))}
         </View>
       )}
-    </Card>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
+  wrap: {
+    gap: spacing.sm,
+  },
+  // Solid tomato, no shadow, like the home's banner; the blob clips at its edge.
+  hero: {
+    minHeight: 160,
+    padding: spacing.lg,
+    borderRadius: radii.xxl,
     backgroundColor: colors.primary,
-    ...shadows.primaryButton,
-    padding: spacing.xl,
-    gap: spacing.lg,
+    overflow: "hidden",
   },
-  top: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.md,
+  heroArt: {
+    position: "absolute",
+    right: -28,
+    bottom: -30,
+    width: 168,
+    height: 150,
   },
-  headline: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
+  heroBlob: {
+    position: "absolute",
+    width: 168,
+    height: 150,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    transform: [{ rotate: "-14deg" }],
   },
-  value: {
-    marginVertical: 2,
+  heroFoodBig: {
+    position: "absolute",
+    left: 26,
+    top: 14,
+  },
+  heroFoodSmall: {
+    position: "absolute",
+    left: 88,
+    top: 6,
+  },
+  heroCopy: {
+    // Clear of the food blob and the share button on the right.
+    paddingRight: 112,
+    gap: spacing.xxs,
+  },
+  badge: {
+    alignSelf: "flex-start",
+    marginBottom: spacing.xs,
+    borderRadius: radii.pill,
+    backgroundColor: colors.accentSoft,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+  },
+  soft: {
+    opacity: 0.85,
   },
   share: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.lg,
-    backgroundColor: colors.inverseHairlineStrong,
+    position: "absolute",
+    top: spacing.lg,
+    right: spacing.lg,
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
+    backgroundColor: colors.onPrimary,
     alignItems: "center",
     justifyContent: "center",
   },
   stats: {
     flexDirection: "row",
-    paddingTop: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.inverseHairline,
+    gap: spacing.sm,
   },
-  stat: {
+  tile: {
     flex: 1,
     minWidth: 0,
     gap: 2,
+    padding: spacing.md,
+    borderRadius: radii.xl,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
   },
-  statTile: {
-    width: 28,
-    height: 28,
-    borderRadius: radii.xs,
+  tileArt: {
+    width: 40,
+    height: 36,
+    marginBottom: spacing.xs,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: spacing.xs,
   },
-  statDivider: {
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: colors.inverseHairline,
-    paddingLeft: spacing.md,
+  tileBlob: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: radii.pill,
+    transform: [{ rotate: "-14deg" }],
   },
 });

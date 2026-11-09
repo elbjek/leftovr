@@ -10,6 +10,8 @@ import {
   EmptyNote,
   FoodGroups,
   GoingOffList,
+  HouseholdPill,
+  HouseholdSheet,
   Logo,
   PeriodSummary,
   PremiumSheet,
@@ -25,7 +27,7 @@ import {
 } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import type { ShareLook } from "@/components";
-import { useDaySheet, usePeriodInsights, useStreak, useWins } from "@/hooks";
+import { useDaySheet, useInventory, usePeriodInsights, useStreak, useWins } from "@/hooks";
 import { InventoryCategory, Period, toUiCategory } from "@/services";
 import { formatMoney } from "@/lib/money";
 import { colors, radii, shadows, spacing } from "@/theme";
@@ -47,6 +49,11 @@ export default function InsightsRoute() {
   const [refreshing, setRefreshing] = useState(false);
   const [period, setPeriod] = useState<Period>("month");
   const [showShare, setShowShare] = useState(false);
+  const [householdOpen, setHouseholdOpen] = useState(false);
+  const { lots: inventory } = useInventory(activeHousehold?.id);
+  // Household pill initial: first name when usable (not blank, not an email).
+  const rawName = profile?.display_name?.trim() ?? "";
+  const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
   const scope = "household" as const;
   const currency = activeHousehold?.currency_code ?? "USD";
   const money = (value: number) => formatMoney(value, currency);
@@ -74,14 +81,20 @@ export default function InsightsRoute() {
     }
   }, [refreshPeriod, refreshWins, refreshStreak, refresh]);
 
-  // Logo on the left as on the home, and the period as a segmented control
-  // right under it: three visible choices instead of a dropdown.
+  // Same top as the home: logo left, household pill right, and the period as
+  // a segmented control right under it.
   const header = () => (
     <View style={styles.top}>
       <View style={styles.header}>
-        <View style={styles.brand}>
-          <Logo size={26} />
-        </View>
+        <Logo size={26} />
+        {activeHousehold ? (
+          <HouseholdPill
+            name={activeHousehold.name}
+            initial={firstName || activeHousehold.name}
+            label={t("settings.household.openSheet", { name: activeHousehold.name })}
+            onPress={() => setHouseholdOpen(true)}
+          />
+        ) : null}
       </View>
       {isPremium ? (
         <SegmentedControl
@@ -111,6 +124,7 @@ export default function InsightsRoute() {
         labels={{ cooked: t("recipes.week.dayCooked"), used: t("recipes.week.dayUsed"), empty: t("recipes.week.dayEmpty") }}
       />
       <PremiumSheet visible={showPremium} onPurchased={refresh} onDismiss={() => setShowPremium(false)} />
+      <HouseholdSheet visible={householdOpen} onClose={() => setHouseholdOpen(false)} itemCount={inventory.length} />
     </>
   );
 
@@ -456,10 +470,13 @@ const STAT_PATHS = {
 } as const;
 
 
+// Each mark in its tile's ink: green rescued, butter-brown cooked, red streak.
+const STAT_INKS = { used: colors.green, cooked: colors.accentInk, streak: colors.redInk } as const;
+
 function StatGlyph({ kind }: { kind: keyof typeof STAT_PATHS }) {
   return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-      <Path d={STAT_PATHS[kind]} stroke={colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path d={STAT_PATHS[kind]} stroke={STAT_INKS[kind]} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -483,11 +500,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
-  },
-  brand: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
   },
   section: {
     gap: spacing.sm,

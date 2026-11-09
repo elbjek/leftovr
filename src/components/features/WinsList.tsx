@@ -22,7 +22,7 @@ export function WinsList({ eyebrow, days, showAllLabel }: Props) {
   const visible = expanded ? days : days.slice(0, COLLAPSED_ROWS);
   return (
     <View style={styles.section}>
-      <Text variant="micro" muted uppercase>
+      <Text variant="h3" accessibilityRole="header">
         {eyebrow}
       </Text>
       <View style={styles.card}>

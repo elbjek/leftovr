@@ -13,7 +13,7 @@ export function SectionTitle({ title, aside, caption }: { title: string; aside?:
   return (
     <View style={styles.sectionHead}>
       <View style={styles.sectionRow}>
-        <Text variant="micro" muted uppercase accessibilityRole="header">
+        <Text variant="h3" accessibilityRole="header">
           {title}
         </Text>
         {aside ? (
