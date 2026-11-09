@@ -72,6 +72,7 @@ export function GoalRing({
   stroke = 4,
   track = colors.surface3,
   color = colors.primary,
+  label,
 }: {
   done: number;
   total: number;
@@ -79,12 +80,14 @@ export function GoalRing({
   stroke?: number;
   track?: string;
   color?: string;
+  /** Shown in the middle instead of "done/total". */
+  label?: string;
 }) {
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
   const progress = Math.min(done, total) / total;
   return (
-    <View style={[styles.ring, { width: size, height: size }]} accessible accessibilityLabel={`${Math.min(done, total)} / ${total}`}>
+    <View style={[styles.ring, { width: size, height: size }]} accessible accessibilityLabel={label ?? `${Math.min(done, total)} / ${total}`}>
       <Svg width={size} height={size}>
         <Circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
         {progress > 0 ? (
@@ -102,7 +105,7 @@ export function GoalRing({
         ) : null}
       </Svg>
       <Text variant={size >= 48 ? "title" : "micro"} color={colors.text} style={styles.ringLabel}>
-        {`${Math.min(done, total)}/${total}`}
+        {label ?? `${Math.min(done, total)}/${total}`}
       </Text>
     </View>
   );

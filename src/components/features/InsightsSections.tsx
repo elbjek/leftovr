@@ -31,42 +31,6 @@ export function SectionTitle({ title, aside, caption }: { title: string; aside?:
   );
 }
 
-/** The period in one sentence, with the strongest and weakest group as chips. */
-export function StoryCard({
-  title,
-  body,
-  chips,
-}: {
-  title: string;
-  body: string;
-  chips: { text: string; weak?: boolean }[];
-}) {
-  return (
-    <View style={styles.card}>
-      <View style={styles.storyText}>
-        <Text variant="title" accessibilityRole="header">
-          {title}
-        </Text>
-        <Text variant="small" muted>
-          {body}
-        </Text>
-      </View>
-      {chips.length > 0 ? (
-        <View style={styles.verdicts}>
-          {chips.map((chip) => (
-            <View key={chip.text} style={styles.verdict}>
-              <View style={[styles.verdictDot, { backgroundColor: chip.weak ? colors.redInk : colors.green }]} />
-              <Text variant="small" muted style={styles.verdictText}>
-                {chip.text}
-              </Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
 /** A section's line before there's data, or a green "all good" one. */
 export function EmptyNote({ text, good }: { text: string; good?: boolean }) {
   return (
@@ -202,13 +166,13 @@ export function FoodGroups({
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
             <Path
               d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"
-              stroke={colors.accentInk}
+              stroke={colors.primary}
               strokeWidth={2.2}
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </Svg>
-          <Text variant="small" color={colors.accentInk} style={styles.tipText}>
+          <Text variant="small" style={styles.tipText}>
             {tip}
           </Text>
         </View>
@@ -326,26 +290,6 @@ const styles = StyleSheet.create({
     ...shadows.soft,
     padding: spacing.lg,
     gap: spacing.md,
-  },
-  storyText: {
-    gap: spacing.xs,
-  },
-  verdicts: {
-    gap: spacing.xs,
-  },
-  verdict: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  verdictDot: {
-    width: 7,
-    height: 7,
-    borderRadius: radii.pill,
-  },
-  verdictText: {
-    flex: 1,
-    minWidth: 0,
   },
   note: {
     flexDirection: "row",
@@ -467,7 +411,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     padding: spacing.md,
     borderRadius: radii.lg,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.surface2,
   },
   tipText: {
     flex: 1,

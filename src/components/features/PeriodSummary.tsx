@@ -3,106 +3,90 @@ import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, radii, shadows, spacing } from "../../theme";
-import { FoodGlyph } from "../illustrations";
-import { Tappable, Text } from "../primitives";
-
-/** Each figure carries its own well colour: rescue sage, cooking butter, streak red. */
-export type StatTone = "green" | "gold" | "red";
-
-const WELLS: Record<StatTone, string> = {
-  green: colors.sageTint,
-  gold: colors.accentSoft,
-  red: colors.redSoft,
-};
+import { Text } from "../primitives";
+import { GoalRing } from "./WeekStrip";
 
 type Props = {
-  /** Label over the big number, e.g. "Saved". */
-  label: string;
-  /** The big number ("€38"); omitted when nothing was saved. */
-  value?: string;
-  /** One quiet line under it: the trend or the household total. */
-  sub?: string;
-  /** Small figures as three tiles (items used, dinners cooked, streak). */
-  stats: { value: string; label: string; tone: StatTone; icon: React.ReactNode }[];
-  /** Shown instead of the figures when the period has nothing in it yet. */
-  emptyText?: string;
-  /** Spoken label of the share button ("Share this week"). */
-  shareLabel: string;
-  onShare: () => void;
+  /** Used against everything finished; omitted (a leaf shows) when nothing was finished. */
+  ring?: { used: number; total: number };
+  /** "You rescued 12 things this month." */
+  title: string;
+  /** How that moved against the period before. */
+  body: string;
+  /** What the period saved, with its trend line. */
+  money?: { label: string; value: string; sub?: string };
+  /** Small figures as tiles under the block (dinners cooked, streak). */
+  stats?: { value: string; label: string; icon: React.ReactNode }[];
 };
 
-// The top of Insights in the home's tomato style: the period's money on a
-// tomato banner with food on a peach blob (like Add's lead card and the
-// home's goal strip), then the three figures as warm white tiles.
-export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel, onShare }: Props) {
+// The top of Insights, built like the home's goal strip: one tomato block
+// with the used-vs-finished ring in a white circle and the period in a
+// sentence, the money as its footer, then two quiet white tiles.
+export function PeriodSummary({ ring, title, body, money, stats = [] }: Props) {
   return (
     <View style={styles.wrap}>
       <View style={styles.hero}>
-        <View style={styles.heroArt} pointerEvents="none" accessible={false}>
-          <View style={styles.heroBlob} />
-          <View style={styles.heroFoodBig}>
-            <FoodGlyph name="carrot" size={64} />
+        <View style={styles.main}>
+          <View style={styles.ringTile}>
+            {ring ? (
+              <GoalRing done={ring.used} total={ring.total} size={64} stroke={8} track={colors.surface3} color={colors.text} label={`${Math.round((ring.used / ring.total) * 100)}%`} />
+            ) : (
+              <Svg width={30} height={30} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M4 20c0-8 6-14 16-14 0 10-6 15-13 15-1 0-3 0-3-1zM4 20c2-5 6-8 11-9"
+                  stroke={colors.primary}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            )}
           </View>
-          <View style={styles.heroFoodSmall}>
-            <FoodGlyph name="apple" size={46} />
-          </View>
-        </View>
-        <View style={styles.heroCopy}>
-          <View style={styles.badge}>
-            <Text variant="micro" uppercase color={colors.text}>
-              {label}
+          <View style={styles.text}>
+            <Text variant="h3" color={colors.onPrimary} accessibilityRole="header">
+              {title}
             </Text>
-          </View>
-          {emptyText ? (
             <Text variant="small" color={colors.onPrimary} style={styles.soft}>
-              {emptyText}
+              {body}
             </Text>
-          ) : (
-            <>
-              {value ? (
-                <Text variant="h1" color={colors.onPrimary}>
-                  {value}
-                </Text>
-              ) : null}
-              {sub ? (
-                <Text variant="small" color={colors.onPrimary} style={styles.soft}>
-                  {sub}
-                </Text>
-              ) : null}
-            </>
-          )}
+          </View>
         </View>
-        {emptyText ? null : (
-          <Tappable label={shareLabel} onPress={onShare} hitSlop={4} style={styles.share}>
-            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5"
-                stroke={colors.primary}
-                strokeWidth={2.4}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          </Tappable>
-        )}
+        {money ? (
+          <View style={styles.money}>
+            <View>
+              <Text variant="micro" uppercase color={colors.onPrimary} style={styles.soft}>
+                {money.label}
+              </Text>
+              <Text variant="h2" color={colors.onPrimary} style={styles.num}>
+                {money.value}
+              </Text>
+            </View>
+            {money.sub ? (
+              <Text variant="small" color={colors.onPrimary} style={[styles.soft, styles.moneySub]}>
+                {money.sub}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
       </View>
 
-      {emptyText ? null : (
+      {stats.length > 0 ? (
         <View style={styles.stats}>
           {stats.map((stat) => (
             <View key={stat.label} style={styles.tile}>
-              <View style={styles.tileArt}>
-                <View style={[styles.tileBlob, { backgroundColor: WELLS[stat.tone] }]} />
-                {stat.icon}
+              <View style={styles.tileIcon}>{stat.icon}</View>
+              <View style={styles.text}>
+                <Text variant="h3" style={styles.num}>
+                  {stat.value}
+                </Text>
+                <Text variant="small" muted numberOfLines={1}>
+                  {stat.label}
+                </Text>
               </View>
-              <Text variant="h3">{stat.value}</Text>
-              <Text variant="small" muted numberOfLines={2}>
-                {stat.label}
-              </Text>
             </View>
           ))}
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -111,65 +95,49 @@ const styles = StyleSheet.create({
   wrap: {
     gap: spacing.sm,
   },
-  // Solid tomato, no shadow, like the home's banner; the blob clips at its edge.
+  // Solid tomato, no shadow, like the home's goal strip.
   hero: {
-    minHeight: 160,
     padding: spacing.lg,
+    gap: spacing.lg,
     borderRadius: radii.xxl,
     backgroundColor: colors.primary,
-    overflow: "hidden",
   },
-  heroArt: {
-    position: "absolute",
-    right: -28,
-    bottom: -30,
-    width: 168,
-    height: 150,
+  main: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
   },
-  heroBlob: {
-    position: "absolute",
-    width: 168,
-    height: 150,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
-    transform: [{ rotate: "-14deg" }],
-  },
-  heroFoodBig: {
-    position: "absolute",
-    left: 26,
-    top: 14,
-  },
-  heroFoodSmall: {
-    position: "absolute",
-    left: 88,
-    top: 6,
-  },
-  heroCopy: {
-    // Clear of the food blob and the share button on the right.
-    paddingRight: 112,
-    gap: spacing.xxs,
-  },
-  badge: {
-    alignSelf: "flex-start",
-    marginBottom: spacing.xs,
-    borderRadius: radii.pill,
-    backgroundColor: colors.accentSoft,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-  },
-  soft: {
-    opacity: 0.85,
-  },
-  share: {
-    position: "absolute",
-    top: spacing.lg,
-    right: spacing.lg,
-    width: 40,
-    height: 40,
+  ringTile: {
+    width: 76,
+    height: 76,
     borderRadius: radii.pill,
     backgroundColor: colors.onPrimary,
     alignItems: "center",
     justifyContent: "center",
+  },
+  text: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  soft: {
+    opacity: 0.85,
+  },
+  money: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: spacing.lg,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.inverseHairlineStrong,
+  },
+  moneySub: {
+    flex: 1,
+    minWidth: 0,
+    textAlign: "right",
+  },
+  num: {
+    fontVariant: ["tabular-nums"],
   },
   stats: {
     flexDirection: "row",
@@ -178,22 +146,20 @@ const styles = StyleSheet.create({
   tile: {
     flex: 1,
     minWidth: 0,
-    gap: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
     padding: spacing.md,
     borderRadius: radii.xl,
     backgroundColor: colors.surface,
     ...shadows.soft,
   },
-  tileArt: {
+  tileIcon: {
     width: 40,
-    height: 36,
-    marginBottom: spacing.xs,
+    height: 40,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
-  },
-  tileBlob: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: radii.pill,
-    transform: [{ rotate: "-14deg" }],
   },
 });

@@ -17,9 +17,8 @@ import {
   PremiumSheet,
   Screen,
   SectionTitle,
-  SegmentedControl,
   ShareStatsSheet,
-  StoryCard,
+  Tappable,
   Text,
   TopDinners,
   UsedTossedChart,
@@ -81,9 +80,10 @@ export default function InsightsRoute() {
     }
   }, [refreshPeriod, refreshWins, refreshStreak, refresh]);
 
-  // Same top as the home: logo left, household pill right, and the period as
-  // a segmented control right under it.
-  const header = () => (
+  // Same top as the home: logo left, household pill right. Under it the
+  // period is the page's title: tap it to step Week → Month → Year, so there
+  // is no tab bar. Share sits beside it once there is something to share.
+  const header = (onShare?: () => void) => (
     <View style={styles.top}>
       <View style={styles.header}>
         <Logo size={26} />
@@ -97,11 +97,25 @@ export default function InsightsRoute() {
         ) : null}
       </View>
       {isPremium ? (
-        <SegmentedControl
-          options={PERIODS.map((option) => ({ value: option, label: t(`insights.period.${option}`) }))}
-          value={period}
-          onChange={setPeriod}
-        />
+        <View style={styles.header}>
+          <Tappable
+            onPress={() => setPeriod(PERIODS[(PERIODS.indexOf(period) + 1) % PERIODS.length])}
+            hitSlop={8}
+            style={styles.periodSwitch}
+          >
+            <Text variant="h1">{t(`insights.period.this.${period}`)}</Text>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+              <Path d="M8 9.5l4-4 4 4M8 14.5l4 4 4-4" stroke={colors.muted} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </Tappable>
+          {onShare ? (
+            <Tappable label={t(`insights.share.${period}Label`)} onPress={onShare} hitSlop={4} style={styles.share}>
+              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                <Path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5" stroke={colors.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            </Tappable>
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
@@ -140,16 +154,14 @@ export default function InsightsRoute() {
         {header()}
         <View style={styles.preview} pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
           <PeriodSummary
-            label={t("insights.stats.saved")}
-            value="••••"
-            stats={(["used", "cooked", "streak"] as const).map((key) => ({
+            title="••••••••"
+            body="••••"
+            money={{ label: t("insights.stats.saved"), value: "••••" }}
+            stats={(["cooked", "streak"] as const).map((key) => ({
               value: "–",
               label: t(`insights.summary.${key}`, { count: 5 }),
-              tone: STAT_TONES[key],
               icon: <StatGlyph kind={key} />,
             }))}
-            shareLabel={t(`insights.share.${period}Label`)}
-            onShare={() => {}}
           />
         </View>
         <View style={styles.lock}>
@@ -157,7 +169,7 @@ export default function InsightsRoute() {
             <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M4.5 10h15v10.5h-15zM8.2 10V7.6a3.8 3.8 0 017.6 0V10"
-                stroke={colors.accentInk}
+                stroke={colors.primary}
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -235,12 +247,6 @@ export default function InsightsRoute() {
           ? t("insights.story.fewer", { count: -usedDiff, prev: prevName })
           : t("insights.story.same", { prev: prevName })
       : t("insights.story.start");
-  // The two group verdicts read as chips under the line, not as more sentences.
-  const storyChips = [
-    kitchen.strongest ? { text: t("insights.story.chipStrong", { category: categoryLabel(kitchen.strongest.category) }) } : null,
-    kitchen.weakest ? { text: t("insights.story.chipWeak", { category: categoryLabel(kitchen.weakest.category) }), weak: true } : null,
-  ].filter((chip): chip is { text: string; weak?: boolean } => chip !== null);
-
   // Chart: days of the week, or 7-day runs of the month. A running period's
   // `until` is when it loaded, so the bucket holding it is the current one.
   const loadedAt = span.until.getTime() - 1;
@@ -367,42 +373,26 @@ export default function InsightsRoute() {
 
   const summaryCard = (
     <PeriodSummary
-      label={t("insights.stats.saved")}
-      value={money(summary.moneySaved)}
-      sub={savedSub}
-      stats={[
-        {
-          value: String(kitchen.used),
-          label: t("insights.summary.used", { count: kitchen.used }),
-          tone: "green" as const,
-          icon: <StatGlyph kind="used" />,
-        },
-        {
-          value: String(summary.cookedEvents),
-          label: t("insights.summary.cooked", { count: summary.cookedEvents }),
-          tone: "gold" as const,
-          icon: <StatGlyph kind="cooked" />,
-        },
-        {
-          value: String(streak),
-          label: t("insights.summary.streak", { count: streak }),
-          tone: "red" as const,
-          icon: <StatGlyph kind="streak" />,
-        },
-      ]}
-      emptyText={isEmpty ? t(`insights.summary.empty.${period}`) : undefined}
-      shareLabel={t(`insights.share.${period}Label`)}
-      onShare={() => setShowShare(true)}
+      ring={hasFinished ? { used: kitchen.used, total: kitchen.used + kitchen.tossed } : undefined}
+      title={headline}
+      body={storyLine}
+      money={isEmpty ? undefined : { label: t("insights.stats.saved"), value: money(summary.moneySaved), sub: savedSub }}
+      stats={
+        isEmpty
+          ? undefined
+          : [
+              { value: String(summary.cookedEvents), label: t("insights.summary.cooked", { count: summary.cookedEvents }), icon: <StatGlyph kind="cooked" /> },
+              { value: String(streak), label: t("insights.summary.streak", { count: streak }), icon: <StatGlyph kind="streak" /> },
+            ]
+      }
     />
   );
 
   return (
     <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
-      {header()}
+      {header(shareSheet && !isEmpty ? () => setShowShare(true) : undefined)}
 
       {summaryCard}
-
-      <StoryCard title={headline} body={storyLine} chips={storyChips} />
 
       <View style={styles.section}>
         <SectionTitle title={t(`insights.chart.title.${period}`)} />
@@ -460,23 +450,17 @@ export default function InsightsRoute() {
   );
 }
 
-const STAT_TONES = { used: "green", cooked: "gold", streak: "red" } as const;
-
 const STAT_PATHS = {
-  // A leaf for what was rescued, a pot for what was cooked, a flame for the streak.
-  used: "M4 20c0-8 6-14 16-14 0 10-6 15-13 15-1 0-3 0-3-1zM4 20c2-5 6-8 11-9",
+  // A pot for what was cooked, a flame for the streak.
   cooked: "M4 9h16l-1.3 9.2A2.5 2.5 0 0 1 16.2 20H7.8a2.5 2.5 0 0 1-2.5-1.8L4 9zM8.5 6c0-1.3 1.8-1.3 1.8-2.6M13.5 6c0-1.3 1.8-1.3 1.8-2.6",
   streak: "M12 3c3 3.5 4.5 6 4.5 8.5a4.5 4.5 0 1 1-9 0C7.5 9 9 6.5 12 3z",
 } as const;
 
 
-// Each mark in its tile's ink: green rescued, butter-brown cooked, red streak.
-const STAT_INKS = { used: colors.green, cooked: colors.accentInk, streak: colors.redInk } as const;
-
 function StatGlyph({ kind }: { kind: keyof typeof STAT_PATHS }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d={STAT_PATHS[kind]} stroke={STAT_INKS[kind]} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d={STAT_PATHS[kind]} stroke={colors.primary} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -501,6 +485,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.md,
   },
+  periodSwitch: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  share: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadows.soft,
+  },
   section: {
     gap: spacing.sm,
   },
@@ -524,7 +522,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radii.lg,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
   },
