@@ -4,7 +4,6 @@ import { StyleSheet, View } from "react-native";
 
 import { FoodLoader, Screen } from "@/components";
 import { setPendingInviteCode, useAuth } from "@/features";
-import { colors } from "@/theme";
 
 export default function JoinRoute() {
   const { code } = useLocalSearchParams<{ code?: string }>();
