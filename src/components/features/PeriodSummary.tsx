@@ -1,4 +1,5 @@
 import { StyleSheet, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
 import { colors, radii, shadows, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
@@ -10,6 +11,8 @@ type Figure = { label: string; value: string; sub?: string };
 type Props = {
   /** The period's headline number: things rescued, and how that moved. */
   rescued: Figure;
+  /** Rescued against the period before: an up or down caret on its line. */
+  trend?: "up" | "down";
   /** Foods used up in the period, newest first; the first few show as icons. */
   foods?: { name: string; category: string }[];
   saved: Figure;
@@ -21,7 +24,8 @@ const SHOWN_FOODS = 4;
 // The top of Insights as tiles: a wide one for what was rescued (the number
 // in tomato, the foods themselves as a cluster of icons), then money saved
 // and the streak side by side. No solid colour block: tomato is an accent.
-export function PeriodSummary({ rescued, foods = [], saved, streak }: Props) {
+export function PeriodSummary({ rescued, trend, foods = [], saved, streak }: Props) {
+  const trendColor = trend === "up" ? colors.green : trend === "down" ? colors.redInk : colors.text;
   const shown = foods.slice(0, SHOWN_FOODS);
   const more = foods.length - shown.length;
   return (
@@ -35,9 +39,16 @@ export function PeriodSummary({ rescued, foods = [], saved, streak }: Props) {
             {rescued.value}
           </Text>
           {rescued.sub ? (
-            <Text variant="small" weight="bold">
-              {rescued.sub}
-            </Text>
+            <View style={styles.trend}>
+              {trend ? (
+                <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                  <Path d={trend === "up" ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"} stroke={trendColor} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              ) : null}
+              <Text variant="small" weight="bold" color={trendColor} style={styles.trendText}>
+                {rescued.sub}
+              </Text>
+            </View>
           ) : null}
         </View>
         {shown.length > 0 ? (
@@ -138,6 +149,15 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     gap: 2,
+  },
+  trend: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xxs,
+  },
+  trendText: {
+    flex: 1,
+    minWidth: 0,
   },
   num: {
     fontVariant: ["tabular-nums"],

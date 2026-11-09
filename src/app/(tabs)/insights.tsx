@@ -96,10 +96,10 @@ export default function InsightsRoute() {
           ? String(shown.start.getFullYear())
           : `${dayMonth(shown.start)} – ${dayMonth(shown.until)}`;
 
-  // Same top as the home: logo left, household pill right. Under it the
-  // period is the page's title: tap it to step Week → Month → Year, and the
-  // arrows walk back to earlier ones (and forward again, up to now). Share
-  // sits beside them once there is something to share.
+  // Same top as the home: logo left, household pill right. Under it Week /
+  // Month / Year as plain text tabs (the active one underlined) with share on
+  // the right, then the period's name with arrows that walk back to earlier
+  // ones (and forward again, up to now).
   const header = (onShare?: () => void) => (
     <View style={styles.top}>
       <View style={styles.header}>
@@ -114,43 +114,57 @@ export default function InsightsRoute() {
         ) : null}
       </View>
       {isPremium ? (
-        <View style={styles.header}>
-          <Tappable
-            label={t("insights.period.change", { period: periodTitle })}
-            onPress={() => {
-              setPeriod(PERIODS[(PERIODS.indexOf(period) + 1) % PERIODS.length]);
-              setOffset(0);
-            }}
-            hitSlop={8}
-            style={styles.periodSwitch}
-          >
-            <Text variant="h3" numberOfLines={1} style={styles.periodTitle}>
+        <>
+          <View style={styles.header}>
+            <View style={styles.tabs} accessibilityRole="tablist">
+              {PERIODS.map((option) => {
+                const active = option === period;
+                return (
+                  <Tappable
+                    key={option}
+                    role="tab"
+                    selected={active}
+                    onPress={() => {
+                      setPeriod(option);
+                      setOffset(0);
+                    }}
+                    hitSlop={0}
+                    style={styles.tab}
+                  >
+                    <Text variant="label" color={active ? colors.text : colors.muted}>
+                      {t(`insights.period.${option}`)}
+                    </Text>
+                    <View style={[styles.tabLine, active && styles.tabLineActive]} />
+                  </Tappable>
+                );
+              })}
+            </View>
+            {onShare ? (
+              <Tappable label={t(`insights.share.${period}Label`)} onPress={onShare} hitSlop={4} style={styles.share}>
+                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                  <Path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5" stroke={colors.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              </Tappable>
+            ) : null}
+          </View>
+          <View style={styles.header}>
+            <Text variant="h3" numberOfLines={1} accessibilityRole="header" style={styles.periodTitle}>
               {periodTitle}
             </Text>
-            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-              <Path d="M8 9.5l4-4 4 4M8 14.5l4 4 4-4" stroke={colors.muted} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </Tappable>
-          <View style={styles.steps}>
-            <Tappable label={t("insights.period.previous")} onPress={() => setOffset(offset - 1)} hitSlop={0} style={styles.step}>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                <Path d="M15 5l-7 7 7 7" stroke={colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Tappable>
-            <Tappable label={t("insights.period.next")} disabled={offset === 0} onPress={() => setOffset(offset + 1)} hitSlop={0} style={styles.step}>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                <Path d="M9 5l7 7-7 7" stroke={offset === 0 ? colors.muted2 : colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Tappable>
+            <View style={styles.steps}>
+              <Tappable label={t("insights.period.previous")} onPress={() => setOffset(offset - 1)} hitSlop={0} style={styles.step}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path d="M15 5l-7 7 7 7" stroke={colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              </Tappable>
+              <Tappable label={t("insights.period.next")} disabled={offset === 0} onPress={() => setOffset(offset + 1)} hitSlop={0} style={styles.step}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path d="M9 5l7 7-7 7" stroke={offset === 0 ? colors.muted2 : colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              </Tappable>
+            </View>
           </View>
-          {onShare ? (
-            <Tappable label={t(`insights.share.${period}Label`)} onPress={onShare} hitSlop={4} style={styles.share}>
-              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-                <Path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5" stroke={colors.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Tappable>
-          ) : null}
-        </View>
+        </>
       ) : null}
     </View>
   );
@@ -404,6 +418,7 @@ export default function InsightsRoute() {
   const summaryCard = (
     <PeriodSummary
       rescued={{ label: t("insights.share.looks.rescued"), value: String(kitchen.used), sub: storyLine }}
+      trend={usedDiff > 0 ? "up" : usedDiff < 0 ? "down" : undefined}
       foods={data.usedFoods}
       saved={{ label: t("insights.stats.saved"), value: money(summary.moneySaved), sub: savedSub }}
       streak={{ label: t("insights.share.looks.streak"), value: String(streak), sub: t("insights.summary.streak", { count: streak }) }}
@@ -495,15 +510,26 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.md,
   },
-  periodSwitch: {
-    flex: 1,
-    minWidth: 0,
+  tabs: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
+    gap: spacing.xl,
+  },
+  tab: {
+    height: 44,
+    justifyContent: "center",
+    gap: spacing.xxs,
+  },
+  // Always there so the labels don't jump; only the active one is coloured.
+  tabLine: {
+    height: 3,
+    borderRadius: radii.pill,
+  },
+  tabLineActive: {
+    backgroundColor: colors.primary,
   },
   periodTitle: {
-    flexShrink: 1,
+    flex: 1,
+    minWidth: 0,
   },
   steps: {
     flexDirection: "row",
