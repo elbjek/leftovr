@@ -166,7 +166,7 @@ export function DateField({ label, value, onChange, placeholder, onClear, clearL
               }}
               style={({ pressed }) => [styles.titleButton, pressed && styles.pressed]}
             >
-              <Text variant="label" weight="extrabold" style={styles.title}>
+              <Text variant="title" style={styles.title}>
                 {panel === "years" ? t("calendar.year") : panel === "months" ? String(pickYear) : title}
               </Text>
               <Chevron rotate={0} size={10} />
@@ -223,7 +223,7 @@ export function DateField({ label, value, onChange, placeholder, onClear, clearL
               <View style={styles.weekRow}>
                 {weekdays.map((day, i) => (
                   <View key={`${day}-${i}`} style={styles.weekCell}>
-                    <Text variant="micro" weight="extrabold" style={styles.weekday} color={colors.muted}>
+                    <Text variant="micro" style={styles.weekday} color={colors.muted}>
                       {day}
                     </Text>
                   </View>

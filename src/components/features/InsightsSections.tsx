@@ -13,7 +13,7 @@ export function SectionTitle({ title, aside, caption }: { title: string; aside?:
   return (
     <View style={styles.sectionHead}>
       <View style={styles.sectionRow}>
-        <Text variant="micro" muted uppercase weight="extrabold" accessibilityRole="header">
+        <Text variant="micro" muted uppercase accessibilityRole="header">
           {title}
         </Text>
         {aside ? (
@@ -44,7 +44,7 @@ export function StoryCard({
   return (
     <View style={styles.card}>
       <View style={styles.storyText}>
-        <Text variant="label" weight="bold" accessibilityRole="header">
+        <Text variant="title" accessibilityRole="header">
           {title}
         </Text>
         <Text variant="small" muted>
@@ -105,7 +105,7 @@ export function UsedTossedChart({
   return (
     <View style={styles.card} accessible accessibilityLabel={label}>
       <View style={styles.titleRow}>
-        <Text variant="micro" muted uppercase weight="extrabold">
+        <Text variant="micro" muted uppercase>
           {title}
         </Text>
         {aside ? (
@@ -191,7 +191,7 @@ export function FoodGroups({
                 <View style={[styles.progressFill, row.weak && styles.progressWeak, { width: `${Math.round(row.share * 100)}%` }]} />
               </View>
             </View>
-            <Text variant="small" weight="extrabold" color={row.weak ? colors.redInk : colors.primary}>
+            <Text variant="small" weight="bold" color={row.weak ? colors.redInk : colors.primary}>
               {`${Math.round(row.share * 100)}%`}
             </Text>
           </View>

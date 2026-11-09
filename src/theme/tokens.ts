@@ -60,6 +60,15 @@ export const fonts = {
   fallback: "System",
 } as const;
 
+// The type scale. Each step has one job and one weight; reach for `weight`
+// only for emphasis inside `small` (bold) or a state change.
+//   display / h1 / h2 / h3  headings, extra bold: h1 once per screen, h2 for
+//                           sheet and hero titles, h3 for sections and cards
+//   title    the name of a thing: recipe, food, card, empty state
+//   label    actions and controls: buttons, links, tabs, list rows
+//   body     running text
+//   small    meta and supporting lines; `weight="bold"` to emphasise
+//   micro    uppercase eyebrows and badges
 export const typography = {
   display: {
     fontFamily: fonts.bodyExtraBold,
@@ -80,7 +89,7 @@ export const typography = {
     letterSpacing: -0.2,
   },
   h3: {
-    fontFamily: fonts.bodyBold,
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 19,
     lineHeight: 24,
   },
@@ -89,8 +98,13 @@ export const typography = {
     fontSize: 16,
     lineHeight: 24,
   },
+  title: {
+    fontFamily: fonts.bodyExtraBold,
+    fontSize: 16,
+    lineHeight: 20,
+  },
   label: {
-    fontFamily: fonts.bodySemiBold,
+    fontFamily: fonts.bodyBold,
     fontSize: 16,
     lineHeight: 20,
   },
@@ -100,7 +114,7 @@ export const typography = {
     lineHeight: 18,
   },
   micro: {
-    fontFamily: fonts.bodyBold,
+    fontFamily: fonts.bodyExtraBold,
     fontSize: 11,
     lineHeight: 14,
     letterSpacing: 0.66,

@@ -48,7 +48,7 @@ export default function Gallery() {
 
       <Section title="Typography">
         <Card>
-          {(["display", "h1", "h2", "h3", "body", "label", "small", "micro", "numeral"] as const).map(
+          {(["display", "h1", "h2", "h3", "title", "label", "body", "small", "micro", "numeral"] as const).map(
             (v) => (
               <View key={v} style={styles.typeRow}>
                 <Text variant="micro" muted style={styles.typeName}>

@@ -45,7 +45,7 @@ export function ScanMethodCard({ method, body, recommended = false, featured = f
         <View style={styles.heroCopy}>
           {recommended ? (
             <View style={styles.badge}>
-              <Text variant="micro" uppercase weight="extrabold" color={colors.text}>
+              <Text variant="micro" uppercase color={colors.text}>
                 {t("scanMethods.recommended")}
               </Text>
             </View>
@@ -53,7 +53,7 @@ export function ScanMethodCard({ method, body, recommended = false, featured = f
           <View style={styles.heroIcon}>
             <ScanMethodIcon method={method} size={26} />
           </View>
-          <Text variant="h2" weight="extrabold" color={colors.onPrimary}>
+          <Text variant="h2" color={colors.onPrimary}>
             {title}
           </Text>
           <Text variant="small" color={colors.onPrimary} style={styles.heroBody}>
@@ -78,12 +78,12 @@ export function ScanMethodCard({ method, body, recommended = false, featured = f
         <View style={styles.tileBlob} />
         <ScanMethodIcon method={method} size={24} />
       </View>
-      <Text variant="label" weight="extrabold">
+      <Text variant="title">
         {title}
       </Text>
       {recommended ? (
         <View style={styles.badge}>
-          <Text variant="micro" uppercase weight="extrabold" color={colors.text}>
+          <Text variant="micro" uppercase color={colors.text}>
             {t("scanMethods.recommended")}
           </Text>
         </View>

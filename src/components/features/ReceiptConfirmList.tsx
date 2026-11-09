@@ -324,7 +324,7 @@ function QuickLookCard({
                 {t("scan.confirm.quickLookBadge")}
               </Text>
             </View>
-            <Text variant="label" weight="extrabold" style={styles.quickLookQuestion} numberOfLines={1}>
+            <Text variant="title" style={styles.quickLookQuestion} numberOfLines={1}>
               {t("scan.confirm.quickLookQuestion")}
             </Text>
           </View>
@@ -353,7 +353,7 @@ function QuickLookCard({
             onPress={() => onPick(suggestion)}
             style={({ pressed }) => [styles.suggestionChip, pressed && styles.iconBoxPressed]}
           >
-            <Text variant="label" weight="extrabold">
+            <Text variant="label">
               {suggestion.name}
             </Text>
           </Pressable>

@@ -266,7 +266,7 @@ export default function SettingsRoute() {
           style={styles.profileHeader}
         >
           <View style={styles.avatar}>
-            <Text variant="h3" weight="bold" color={colors.accent}>
+            <Text variant="h3" color={colors.accent}>
               {profile?.avatar_initials ?? (profile?.display_name ?? "?").slice(0, 1).toUpperCase()}
             </Text>
           </View>
@@ -906,7 +906,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
-    paddingVertical: 14,
+    paddingVertical: spacing.md,
     minHeight: 48,
   },
   groupRowDivider: {

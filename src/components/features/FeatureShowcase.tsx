@@ -434,7 +434,7 @@ function CookScene({ demo, active }: SceneProps<CookDemo>) {
       <Reveal active={active}>
         <View style={[styles.card, styles.cardGap]}>
           <View>
-            <Text variant="h3" weight="extrabold">
+            <Text variant="h3">
               {demo.title}
             </Text>
             <Text variant="small" muted>
@@ -450,7 +450,7 @@ function CookScene({ demo, active }: SceneProps<CookDemo>) {
                 <View style={styles.checkbox}>
                   <Check color={colors.text} size={11} />
                 </View>
-                <Text variant="label" weight="bold" style={styles.flex1}>
+                <Text variant="title" style={styles.flex1}>
                   {row.name}
                 </Text>
                 <Text variant="small" color={colors.muted2} style={styles.struck}>
@@ -459,7 +459,7 @@ function CookScene({ demo, active }: SceneProps<CookDemo>) {
                 <Reveal active={active} delay={600 + index * 150}>
                   <Text
                     variant="label"
-                    color={row.usedUp ? colors.redInk : colors.text} weight="bold"
+                    color={row.usedUp ? colors.redInk : colors.text}
                   >
                     {row.now}
                   </Text>

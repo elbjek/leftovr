@@ -35,7 +35,7 @@ export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
         <GoalRing done={goal.done} total={goal.total} size={52} stroke={7} track={colors.accent} color={colors.text} />
       </View>
       <View style={styles.text}>
-        <Text variant="h3" weight="extrabold" color={colors.onPrimary} numberOfLines={1}>
+        <Text variant="h3" color={colors.onPrimary} numberOfLines={1}>
           {headline}
         </Text>
         <Text variant="small" color={colors.onPrimary} numberOfLines={1} style={styles.detail}>
@@ -44,7 +44,7 @@ export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
       </View>
       <View style={styles.streak}>
         <FlameIcon size={18} color={active ? colors.primary : colors.muted2} />
-        <Text variant="label" weight="extrabold" color={active ? colors.text : colors.muted} style={styles.num}>
+        <Text variant="title" color={active ? colors.text : colors.muted} style={styles.num}>
           {streak.count}
         </Text>
       </View>
@@ -101,7 +101,7 @@ export function GoalRing({
           />
         ) : null}
       </Svg>
-      <Text variant={size >= 48 ? "label" : "micro"} weight={size >= 48 ? "extrabold" : "bold"} color={colors.text} style={styles.ringLabel}>
+      <Text variant={size >= 48 ? "title" : "micro"} color={colors.text} style={styles.ringLabel}>
         {`${Math.min(done, total)}/${total}`}
       </Text>
     </View>

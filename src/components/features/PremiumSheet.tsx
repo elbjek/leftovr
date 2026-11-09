@@ -153,7 +153,7 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
   return (
     <BottomSheet visible={visible} onDismiss={handleDismiss}>
       <View style={styles.badge}>
-        <Text variant="micro" color={colors.primary} weight="bold">
+        <Text variant="micro" color={colors.primary}>
           ★ {t("premium.title")}
         </Text>
       </View>
@@ -299,7 +299,7 @@ function PlanCard({
     >
       {badge ? (
         <View style={styles.planBadge}>
-          <Text variant="micro" color={colors.text} weight="bold">{badge}</Text>
+          <Text variant="micro" color={colors.text}>{badge}</Text>
         </View>
       ) : null}
       <Text variant="micro" color={colors.muted} style={styles.planPeriod}>

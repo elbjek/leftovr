@@ -7,6 +7,7 @@ export * from "./DinnerHero";
 export * from "./EatFirstShelf";
 export * from "./EmptyFridge";
 export * from "./FeatureShowcase";
+export * from "./HouseholdPill";
 export * from "./HouseholdSection";
 export * from "./HouseholdSheet";
 export * from "./InsightsSections";

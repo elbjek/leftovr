@@ -9,7 +9,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleShe
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, DateField, HouseholdSheet, Logo, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnitPicker } from "@/components";
+import { BackButton, BottomSheet, Button, Card, DateField, HouseholdPill, HouseholdSheet, Logo, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnitPicker } from "@/components";
 import { acceptAiDisclosure, hasAcceptedAiDisclosure, isPremium as resolvePremium, useAuth } from "@/features";
 import { useInventory, useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
@@ -1433,23 +1433,12 @@ export default function ScanRoute() {
       <View style={styles.headerRow}>
         <Logo size={26} />
         {activeHousehold ? (
-          <Tappable
+          <HouseholdPill
+            name={activeHousehold.name}
+            initial={firstName || activeHousehold.name}
             label={t("settings.household.openSheet", { name: activeHousehold.name })}
             onPress={() => setHouseholdOpen(true)}
-            style={styles.householdPill}
-          >
-            <View style={styles.householdAvatar}>
-              <Text variant="small" color={colors.primary} weight="extrabold">
-                {(firstName || activeHousehold.name).charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            <Text variant="small" numberOfLines={1} weight="bold" style={styles.householdName}>
-              {activeHousehold.name}
-            </Text>
-            <Svg width={14} height={14} viewBox="0 0 24 24" accessible={false}>
-              <Path d="M6 9l6 6 6-6" fill="none" stroke={colors.text} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </Tappable>
+          />
         ) : null}
       </View>
 
@@ -1593,28 +1582,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
-  },
-  householdPill: {
-    flexShrink: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 5,
-    paddingLeft: 6,
-    paddingRight: spacing.md,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
-  },
-  householdName: {
-    flexShrink: 1,
-  },
-  householdAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface3,
-    alignItems: "center",
-    justifyContent: "center",
   },
   backButton: {
     alignSelf: "flex-start",

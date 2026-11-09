@@ -117,7 +117,7 @@ export default function HookCarouselRoute() {
                     ),
                   )}
                 </Text>
-                <Text variant="body" weight="medium" color={slideTheme.muted}>
+                <Text variant="body" color={slideTheme.muted}>
                   {item.body}
                 </Text>
               </View>
@@ -161,7 +161,7 @@ export default function HookCarouselRoute() {
           disabled={last}
           style={[styles.skip, last && styles.hidden]}
         >
-          <Text variant="label" weight="extrabold" color={theme.ink}>
+          <Text variant="label" color={theme.ink}>
             {t("onboarding.hook.skip")}
           </Text>
         </Tappable>
@@ -182,7 +182,7 @@ export default function HookCarouselRoute() {
             onPress={() => router.push("/(onboarding)/invite")}
             style={styles.inviteLink}
           >
-            <Text variant="label" weight="extrabold">
+            <Text variant="label">
               {t("onboarding.hook.inviteCode")}
             </Text>
           </Tappable>
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     left: spacing.screenX,
     right: spacing.screenX,
     flexDirection: "row",
-    gap: 10,
+    gap: spacing.md,
   },
   back: {
     width: 56,
@@ -303,10 +303,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: spacing.screenX,
     right: spacing.screenX,
-    gap: 12,
+    gap: spacing.md,
   },
   inviteLink: {
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: spacing.md,
   },
 });

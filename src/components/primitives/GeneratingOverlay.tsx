@@ -141,7 +141,7 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps }: Generati
       accessibilityLiveRegion="polite"
     >
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]} scrollEnabled={false}>
-        <Text variant="micro" uppercase muted weight="extrabold" style={styles.eyebrow}>
+        <Text variant="micro" uppercase muted style={styles.eyebrow}>
           {eyebrow}
         </Text>
         <Text variant="h1" style={styles.title}>
@@ -158,7 +158,7 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps }: Generati
             />
           ))}
         </View>
-        <Text variant="micro" uppercase muted weight="extrabold" style={[styles.eyebrow, styles.listLabel]}>
+        <Text variant="micro" uppercase muted style={[styles.eyebrow, styles.listLabel]}>
           {listLabel}
         </Text>
         {[0, 1, 2].map((i) => (

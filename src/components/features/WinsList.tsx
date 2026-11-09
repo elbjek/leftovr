@@ -37,7 +37,7 @@ export function WinsList({ eyebrow, days, showAllLabel }: Props) {
               {day.date}
             </Text>
             <View style={styles.body}>
-              <Text variant="label" weight="bold">
+              <Text variant="title">
                 {day.title}
               </Text>
               {day.detail ? (
@@ -47,7 +47,7 @@ export function WinsList({ eyebrow, days, showAllLabel }: Props) {
               ) : null}
             </View>
             {day.money ? (
-              <Text variant="label" color={colors.green} weight="bold">
+              <Text variant="label" color={colors.green}>
                 {day.money}
               </Text>
             ) : null}
@@ -56,7 +56,7 @@ export function WinsList({ eyebrow, days, showAllLabel }: Props) {
       </View>
       {!expanded && days.length > COLLAPSED_ROWS ? (
         <Pressable accessibilityRole="button" onPress={() => setExpanded(true)} hitSlop={8} style={styles.more}>
-          <Text variant="label" color={colors.primary} weight="bold">
+          <Text variant="label" color={colors.primary}>
             {showAllLabel}
           </Text>
         </Pressable>

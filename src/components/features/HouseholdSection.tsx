@@ -368,7 +368,7 @@ export function HouseholdSection({
 
             {showJoinChoice && currentItemCount > 0 ? (
               <View style={styles.joinChoices}>
-                <Text variant="small" weight="semibold">
+                <Text variant="small" weight="bold">
                   {t("settings.household.joinChoiceTitle")}
                 </Text>
                 <Text variant="small" muted>

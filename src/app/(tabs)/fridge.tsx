@@ -3,7 +3,7 @@ import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdSheet, PlusIcon, PremiumSheet, Screen, SegmentedControl, Tappable, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdPill, HouseholdSheet, PlusIcon, PremiumSheet, Screen, SegmentedControl, Tappable, Text, TextField, UnitPicker } from "@/components";
 import { isPremium as resolvePremium, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory } from "@/hooks";
@@ -226,23 +226,12 @@ export default function FridgeRoute() {
           </View>
           <View style={styles.headerActions}>
             {activeHousehold ? (
-              <Tappable
+              <HouseholdPill
+                name={activeHousehold.name}
+                initial={firstName || activeHousehold.name}
                 label={t("settings.household.openSheet", { name: activeHousehold.name })}
                 onPress={() => setHouseholdOpen(true)}
-                style={[styles.householdPill]}
-              >
-                <View style={styles.householdAvatar}>
-                  <Text variant="small" color={colors.primary} weight="extrabold">
-                    {(firstName || activeHousehold.name).charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <Text variant="small" numberOfLines={1} weight="bold" style={styles.householdName}>
-                  {activeHousehold.name}
-                </Text>
-                <Svg width={14} height={14} viewBox="0 0 24 24" accessible={false}>
-                  <Path d="M6 9l6 6 6-6" fill="none" stroke={colors.text} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
-                </Svg>
-              </Tappable>
+              />
             ) : null}
             <Tappable
               label={t("fridge.addItem")}
@@ -305,7 +294,7 @@ export default function FridgeRoute() {
               </Svg>
             </Tappable>
             <View style={styles.resultsCopy}>
-              <Text variant="h2" numberOfLines={1} weight="extrabold">
+              <Text variant="h2" numberOfLines={1}>
                 {resultsTitle}
               </Text>
               <Text variant="small" muted>
@@ -315,7 +304,7 @@ export default function FridgeRoute() {
           </View>
           {resultShelves.length === 0 ? (
             <View style={styles.centerState}>
-              <Text variant="label" weight="extrabold">
+              <Text variant="title">
                 {t("fridge.noMatchTitle")}
               </Text>
               <Text variant="small" muted center>
@@ -459,7 +448,7 @@ export default function FridgeRoute() {
                       style={[styles.tile, { backgroundColor: `${tone.background}55` }]}
                     >
                       <FoodGlyph name="" category={tile.category} color={tone.mark} size={52} />
-                      <Text variant="small" numberOfLines={1} weight="extrabold" center>
+                      <Text variant="small" numberOfLines={1} weight="bold" center>
                         {tile.label}
                       </Text>
                       <Text variant="micro" muted numberOfLines={1} center>
@@ -548,7 +537,7 @@ function CookNextCard({ title, body, cta, onPress }: { title: string; body: stri
           </View>
         </View>
         <View style={styles.cookNextCopy}>
-          <Text variant="h3" weight="extrabold">
+          <Text variant="h3">
             {title}
           </Text>
           <Text variant="small" muted>
@@ -556,7 +545,7 @@ function CookNextCard({ title, body, cta, onPress }: { title: string; body: stri
           </Text>
         </View>
         <Tappable label={cta} onPress={onPress} style={[styles.cookNextButton]}>
-          <Text variant="label" weight="extrabold" color={colors.onPrimary}>
+          <Text variant="label" color={colors.onPrimary}>
             {cta}
           </Text>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
@@ -705,7 +694,7 @@ function CheckTheseSheet({
     <BottomSheet visible={visible} onDismiss={onDismiss}>
       <View style={styles.sheetContent}>
         <View style={styles.checkHeadCopy}>
-          <Text variant="h1" weight="extrabold">
+          <Text variant="h2">
             {labels.title}
           </Text>
           <Text variant="small" muted>
@@ -718,14 +707,14 @@ function CheckTheseSheet({
             return (
               <View key={section.key} style={styles.checkSection}>
                 <View style={styles.checkSectionHead}>
-                  <Text variant="micro" muted uppercase weight="extrabold">
+                  <Text variant="micro" muted uppercase>
                     {section.name} · {section.items.length}
                   </Text>
                   <Tappable
                     onPress={() => toggleSection(section.items)}
                     hitSlop={spacing.sm}
                   >
-                    <Text variant="small" weight="extrabold" color={colors.primary}>
+                    <Text variant="small" weight="bold" color={colors.primary}>
                       {allSelected ? labels.clearSelection : labels.selectAll}
                     </Text>
                   </Tappable>
@@ -747,10 +736,10 @@ function CheckTheseSheet({
                       <View style={styles.checkFood}>
                         <FoodGlyph name={item.name} category={item.category} size={38} />
                       </View>
-                      <Text variant="label" weight="extrabold" color={colors.text} numberOfLines={1} style={styles.checkPickName}>
+                      <Text variant="title" color={colors.text} numberOfLines={1} style={styles.checkPickName}>
                         {item.name}
                       </Text>
-                      <Text variant="small" weight="semibold" muted numberOfLines={1}>
+                      <Text variant="small" muted numberOfLines={1}>
                         {item.shortLabel ?? item.label}
                       </Text>
                       <Tappable
@@ -779,11 +768,11 @@ function CheckTheseSheet({
               }}
               style={[styles.checkActionBtn, styles.checkKeepBtn]}
             >
-              <Text variant="label" weight="extrabold">{labels.stillGoodCount(selected.size)}</Text>
+              <Text variant="label">{labels.stillGoodCount(selected.size)}</Text>
             </Tappable>
           ) : (
             <Tappable onPress={onDismiss} style={[styles.checkActionBtn, styles.checkKeepBtn]}>
-              <Text variant="label" weight="extrabold">{labels.cancel}</Text>
+              <Text variant="label">{labels.cancel}</Text>
             </Tappable>
           )}
           <Tappable
@@ -791,7 +780,7 @@ function CheckTheseSheet({
             onPress={() => setConfirmingToss(true)}
             style={[styles.checkActionBtn, styles.checkTossBtn, selected.size === 0 && styles.checkTossIdle]}
           >
-            <Text variant="label" weight="extrabold" color={colors.onPrimary}>{labels.tossCount(selected.size)}</Text>
+            <Text variant="label" color={colors.onPrimary}>{labels.tossCount(selected.size)}</Text>
           </Tappable>
         </View>
       </View>
@@ -1009,7 +998,7 @@ function ItemActionSheet({
           style={[styles.removeRow]}
         >
           <TrashIcon />
-          <Text variant="label" color={colors.redInk} weight="bold">
+          <Text variant="label" color={colors.redInk}>
             {labels.remove}
           </Text>
         </Tappable>
@@ -1261,29 +1250,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  // Same pill as the home's (recipes.tsx).
-  householdPill: {
-    flexShrink: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 5,
-    paddingLeft: 6,
-    paddingRight: spacing.md,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
-  },
-  householdName: {
-    flexShrink: 1,
-  },
-  householdAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface3,
-    alignItems: "center",
-    justifyContent: "center",
   },
   summary: {
     marginTop: spacing.md,

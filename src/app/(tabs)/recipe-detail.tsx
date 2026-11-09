@@ -670,9 +670,8 @@ export default function RecipeDetailRoute() {
                       </View>
                       <View style={styles.ingredientText}>
                         <Text
-                          variant="body"
+                          variant="label"
                           color={missingRequired ? colors.redInk : colors.text}
-                          weight="semibold"
                         >
                           {ing.name}
                         </Text>
@@ -1032,7 +1031,7 @@ function MetaChip({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <View style={styles.metaChip}>
       {icon}
-      <Text variant="small" weight="semibold" color={colors.primary}>
+      <Text variant="small" weight="bold" color={colors.primary}>
         {label}
       </Text>
     </View>

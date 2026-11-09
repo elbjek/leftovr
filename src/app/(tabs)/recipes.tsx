@@ -5,7 +5,7 @@ import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, WeekStrip } from "@/components";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, GeneratingOverlay, HouseholdPill, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { formatMoney } from "@/lib";
@@ -414,23 +414,12 @@ export default function RecipesRoute() {
             <Logo size={26} />
           </View>
           {activeHousehold ? (
-            <Tappable
+            <HouseholdPill
+              name={activeHousehold.name}
+              initial={firstName || activeHousehold.name}
               label={t("settings.household.openSheet", { name: activeHousehold.name })}
               onPress={() => setHouseholdOpen(true)}
-              style={[styles.householdPill]}
-            >
-              <View style={styles.householdAvatar}>
-                <Text variant="small" color={colors.primary} weight="extrabold">
-                  {(firstName || activeHousehold.name).charAt(0).toUpperCase()}
-                </Text>
-              </View>
-              <Text variant="small" numberOfLines={1} weight="bold" style={styles.householdName}>
-                {activeHousehold.name}
-              </Text>
-              <Svg width={14} height={14} viewBox="0 0 24 24" accessible={false}>
-                <Path d="M6 9l6 6 6-6" fill="none" stroke={colors.text} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Tappable>
+            />
           ) : null}
         </View>
 
@@ -444,7 +433,7 @@ export default function RecipesRoute() {
                 </Svg>
               ) : null}
               <View style={styles.limitCopy}>
-                <Text variant="label" color={canGenerate ? colors.text : colors.redInk} weight="bold">
+                <Text variant="title" color={canGenerate ? colors.text : colors.redInk}>
                   {t(canGenerate ? "recipes.freeGenerationLeft" : "recipes.freeGenerationUsed")}
                 </Text>
                 <Text variant="small" color={canGenerate ? colors.muted : colors.redInk} style={styles.limitSub}>
@@ -537,7 +526,7 @@ export default function RecipesRoute() {
         {listRecipes.length > 0 ? (
           <View style={styles.sectionBlock}>
             <View style={styles.listHead}>
-              <Text variant="h3" weight="extrabold">
+              <Text variant="h3">
                 {t("recipes.list.title")}
               </Text>
               <Text variant="small" muted>
@@ -584,7 +573,7 @@ export default function RecipesRoute() {
                 onPress={() => router.push("/(tabs)/all-recipes")}
                 style={[styles.browseAll, styles.listMore]}
               >
-                <Text variant="label" color={colors.primary} weight="bold">
+                <Text variant="label" color={colors.primary}>
                   {t("recipes.shelves.browseAll")}
                 </Text>
               </Tappable>
@@ -800,28 +789,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  householdPill: {
-    flexShrink: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingVertical: 5,
-    paddingLeft: 6,
-    paddingRight: spacing.md,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
-  },
-  householdName: {
-    flexShrink: 1,
-  },
-  householdAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface3,
-    alignItems: "center",
-    justifyContent: "center",
   },
   limitBanner: {
     marginHorizontal: spacing.screenX,

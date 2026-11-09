@@ -33,7 +33,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, soon, lab
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text variant="h2" weight="extrabold">
+        <Text variant="h2">
           {title}
         </Text>
         {saved ? (
@@ -86,7 +86,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, soon, lab
                     <View style={styles.recipeTile}>
                       <RecipeGlyph size={30} />
                     </View>
-                    <Text variant="label" numberOfLines={2} weight="bold" style={styles.recipeTitle}>
+                    <Text variant="title" numberOfLines={2} style={styles.recipeTitle}>
                       {recipe.title}
                     </Text>
                     {onOpenRecipe ? (
@@ -121,7 +121,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, soon, lab
                   <View style={[styles.soonTile, { backgroundColor: tone.background }]}>
                     <FoodGlyph name={food.name} category={food.category} color={tone.mark} size={22} />
                   </View>
-                  <Text variant="label" weight="bold" numberOfLines={1} style={styles.recipeTitle}>
+                  <Text variant="title" numberOfLines={1} style={styles.recipeTitle}>
                     {food.name}
                   </Text>
                   <Text variant="small" weight="bold" color={food.today ? colors.redInk : colors.muted}>

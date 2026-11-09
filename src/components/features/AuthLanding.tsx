@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   body: {
-    marginTop: 18,
+    marginTop: spacing.lg,
     maxWidth: 260,
   },
   buttons: {
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
+    gap: spacing.sm,
   },
   pressed: {
     transform: [{ scale: 0.985 }],

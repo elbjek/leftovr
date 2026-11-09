@@ -59,7 +59,7 @@ export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIco
         ) : (
           <>
             {ctaIcon}
-            <Text variant="label" color={colors.onPrimary} weight="bold">
+            <Text variant="label" color={colors.onPrimary}>
               {ctaLabel}
             </Text>
           </>

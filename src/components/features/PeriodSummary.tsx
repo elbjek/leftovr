@@ -83,7 +83,7 @@ export function PeriodSummary({ label, value, sub, stats, emptyText, shareLabel,
           {stats.map((stat, index) => (
             <View key={stat.label} style={[styles.stat, index > 0 && styles.statDivider]}>
               <View style={[styles.statTile, { backgroundColor: TINTS[stat.tone] }]}>{stat.icon}</View>
-              <Text variant="h3" weight="extrabold" color={colors.onPrimary}>
+              <Text variant="h3" color={colors.onPrimary}>
                 {stat.value}
               </Text>
               <Text variant="small" color={ON_GREEN_MUTED}>

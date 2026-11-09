@@ -203,7 +203,7 @@ export function CookPromptSheet({
           <View style={styles.stepperRow}>
             <View style={styles.stepperLabel}>
               <PeopleIcon />
-              <Text variant="body" weight="semibold">
+              <Text variant="label">
                 {labels.peopleCount(servings)}
               </Text>
             </View>
@@ -366,7 +366,7 @@ function Chip({
       style={({ pressed }) => [styles.chip, active && styles.chipActive, pressed && styles.pressed]}
     >
       {active ? <CheckIcon /> : null}
-      <Text variant="small" color={colors.text} weight="semibold">
+      <Text variant="small" color={colors.text}>
         {label}
       </Text>
     </Pressable>

@@ -66,21 +66,21 @@ export function TryNextCard({
         </View>
         <View style={styles.heroCopy}>
           <View style={styles.eyebrowPill}>
-            <Text variant="micro" uppercase weight="extrabold" color={colors.primary} numberOfLines={1}>
+            <Text variant="micro" uppercase color={colors.primary} numberOfLines={1}>
               {eyebrow}
             </Text>
           </View>
-          <Text variant="h3" weight="extrabold" style={styles.heroTitle}>{title}</Text>
+          <Text variant="h3" style={styles.heroTitle}>{title}</Text>
           <View style={styles.heroMeta}>
             <ClockIcon size={16} />
-            <Text variant="small" weight="semibold" color={colors.text}>
+            <Text variant="small" color={colors.text}>
               {time}
             </Text>
             <Text variant="small" muted>
               ·
             </Text>
             <View style={styles.metaDot} />
-            <Text variant="small" weight="semibold" color={colors.text}>
+            <Text variant="small" color={colors.text}>
               {complexity}
             </Text>
           </View>
@@ -96,7 +96,7 @@ export function TryNextCard({
         {why ? (
           <View style={styles.why}>
             <SparkIcon />
-            <Text variant="small" color={colors.text} weight="semibold" style={styles.whyText}>
+            <Text variant="small" color={colors.text} style={styles.whyText}>
               {why}
             </Text>
           </View>
@@ -109,11 +109,11 @@ export function TryNextCard({
         {ingredients.length > 0 ? (
           <>
             <View style={styles.rowBetween}>
-              <Text variant="label" weight="extrabold">
+              <Text variant="title">
                 {ingredientsLabel}
               </Text>
               {stepsLabel ? (
-                <Text variant="small" color={colors.primary} weight="extrabold">
+                <Text variant="small" color={colors.primary} weight="bold">
                   {stepsLabel}
                 </Text>
               ) : null}
@@ -127,7 +127,7 @@ export function TryNextCard({
                   </Text>
                   {chip.tag ? (
                     <View style={styles.chipTag}>
-                      <Text variant="micro" color={colors.primary} weight="bold">
+                      <Text variant="micro" color={colors.primary}>
                         {chip.tag}
                       </Text>
                     </View>
@@ -144,7 +144,7 @@ export function TryNextCard({
               onPress={onPress}
               style={({ pressed }) => [styles.cook, pressed && styles.pressed]}
             >
-              <Text variant="label" weight="extrabold" color={colors.onPrimary} numberOfLines={1}>
+              <Text variant="label" color={colors.onPrimary} numberOfLines={1}>
                 {ctaLabel}
               </Text>
               <ArrowIcon />
@@ -156,7 +156,7 @@ export function TryNextCard({
                 style={({ pressed }) => [styles.soft, pressed && styles.pressed]}
               >
                 <BulbIcon />
-                <Text variant="label" weight="bold" numberOfLines={1}>
+                <Text variant="label" numberOfLines={1}>
                   {secondaryLabel}
                 </Text>
               </Pressable>
@@ -204,7 +204,7 @@ export function RecipeListCard({
         <Text variant="micro" uppercase numberOfLines={1} color={badgeAccent ? colors.primary : colors.muted} style={styles.eyebrow}>
           {badge}
         </Text>
-        <Text variant="label" weight="extrabold" numberOfLines={2} style={styles.listTitle}>
+        <Text variant="title" numberOfLines={2} style={styles.listTitle}>
           {title}
         </Text>
         <MetaLine text={meta} />
@@ -255,7 +255,7 @@ export function IdeasResults({
         <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
           <Path d="M15 5l-7 7 7 7" stroke={colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
-        <Text variant="label" weight="bold">
+        <Text variant="label">
           {backLabel}
         </Text>
       </Pressable>
@@ -277,7 +277,7 @@ export function IdeasResults({
               <Text variant="micro" uppercase color={colors.accentInk} style={styles.eyebrow}>
                 {bestLabel}
               </Text>
-              <Text variant="h3" weight="extrabold" style={styles.heroTitle}>{best.title}</Text>
+              <Text variant="h3" style={styles.heroTitle}>{best.title}</Text>
               <Text variant="small" muted>
                 {best.meta}
               </Text>
@@ -289,7 +289,7 @@ export function IdeasResults({
           {best.description ? <Text variant="body">{best.description}</Text> : null}
           {best.pill ? <Pill label={best.pill} /> : null}
           <Pressable accessibilityRole="button" onPress={best.onPress} style={({ pressed }) => [styles.view, pressed && styles.pressed]}>
-            <Text variant="label" weight="bold" color={colors.onPrimary}>
+            <Text variant="label" color={colors.onPrimary}>
               {viewLabel}
             </Text>
           </Pressable>
@@ -312,7 +312,7 @@ export function IdeasResults({
                 <RecipeCover path={idea.coverPath} glyphSize={28} />
               </View>
               <View style={[styles.copy, styles.otherCopy]}>
-                <Text variant="label" weight="extrabold" numberOfLines={2} style={styles.listTitle}>
+                <Text variant="title" numberOfLines={2} style={styles.listTitle}>
                   {idea.title}
                 </Text>
                 <Text variant="small" muted>
@@ -330,7 +330,7 @@ export function IdeasResults({
         <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
           <Path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4.5h-4.5" stroke={colors.accentInk} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
-        <Text variant="label" weight="bold">
+        <Text variant="label">
           {moreLabel}
         </Text>
       </Pressable>
@@ -342,7 +342,7 @@ function MetaLine({ text }: { text: string }) {
   return (
     <View style={styles.meta}>
       <ClockIcon size={14} />
-      <Text variant="small" color={colors.text} numberOfLines={1} weight="semibold" style={styles.copy}>
+      <Text variant="small" color={colors.text} numberOfLines={1} style={styles.copy}>
         {text}
       </Text>
     </View>
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
   pill: {
     alignSelf: "flex-start",
     minHeight: 28,
-    paddingHorizontal: 11,
+    paddingHorizontal: spacing.md,
     borderRadius: radii.md,
     justifyContent: "center",
     backgroundColor: colors.sageTint,

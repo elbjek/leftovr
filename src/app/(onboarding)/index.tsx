@@ -340,10 +340,10 @@ const styles = StyleSheet.create({
   },
   choices: {
     flexGrow: 1,
-    gap: 10,
+    gap: spacing.md,
   },
   footer: {
-    gap: 8,
+    gap: spacing.sm,
     marginTop: 16,
   },
   errorBox: {

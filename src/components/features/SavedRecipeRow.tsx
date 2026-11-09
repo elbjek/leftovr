@@ -51,7 +51,7 @@ export function SavedRecipeRow({ recipe, onPress, onFavorite, cookedSummary, mem
         <RecipeCover path={recipe.cover_path} glyphSize={38} glyphVariant="simple" />
       </View>
       <View style={styles.savedRowCopy}>
-        <Text variant="label" weight="extrabold" numberOfLines={2}>{recipe.title}</Text>
+        <Text variant="title" numberOfLines={2}>{recipe.title}</Text>
         <View style={styles.savedRowMeta}>
           {time ? (
             <View style={styles.inlineMeta}>
@@ -62,14 +62,14 @@ export function SavedRecipeRow({ recipe, onPress, onFavorite, cookedSummary, mem
           {coverageLabel ? (
             <View style={styles.coverageWrap}>
               {haveAll ? <View style={styles.coverageDot} /> : null}
-              <Text variant="micro" color={haveAll ? colors.green : colors.muted} weight="semibold">
+              <Text variant="micro" color={haveAll ? colors.green : colors.muted}>
                 {coverageLabel}
               </Text>
             </View>
           ) : null}
           {tagLabel ? (
             <View style={styles.tagPill}>
-              <Text variant="micro" color={colors.primary} weight="bold">{tagLabel}</Text>
+              <Text variant="micro" color={colors.primary}>{tagLabel}</Text>
             </View>
           ) : null}
           {cookedLabel ? (
@@ -155,10 +155,10 @@ const styles = StyleSheet.create({
   savedRow: {
     backgroundColor: colors.surface,
     borderRadius: radii.xxl,
-    padding: 14,
+    padding: spacing.md,
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: spacing.md,
     ...shadows.soft,
   },
   savedRowPressed: {

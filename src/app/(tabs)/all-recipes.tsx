@@ -177,7 +177,6 @@ export default function AllRecipesRoute() {
               <Text
                 variant="label"
                 color={tab === t_ ? colors.text : colors.muted}
-                weight="extrabold"
                 numberOfLines={1}
               >
                 {label}

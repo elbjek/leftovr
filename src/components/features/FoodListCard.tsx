@@ -52,17 +52,17 @@ export function FoodListCard({
   return (
     <View style={styles.wrap}>
       <View style={styles.head}>
-        <Text variant="h2" weight="extrabold" accessibilityRole="header">
+        <Text variant="h2" accessibilityRole="header">
           {title}
         </Text>
         {showSeeAll ? (
           <Tappable role="link" label={seeAllLabel} onPress={onSeeAll}>
-            <Text variant="label" weight="extrabold" color={colors.primary}>
+            <Text variant="label" color={colors.primary}>
               {seeAllLabel}
             </Text>
           </Tappable>
         ) : (
-          <Text variant="label" weight="extrabold" color={colors.primary}>
+          <Text variant="label" color={colors.primary}>
             {items.length}
           </Text>
         )}
@@ -97,10 +97,10 @@ export function FoodListCard({
                 <View style={styles.leading}>
                   {item.date ? (
                     <View style={styles.date}>
-                      <Text variant="small" weight="semibold" muted>
+                      <Text variant="small" muted>
                         {item.date.weekday}
                       </Text>
-                      <Text variant="h3" weight="extrabold" color={colors.text}>
+                      <Text variant="h3" color={colors.text}>
                         {item.date.day}
                       </Text>
                     </View>
