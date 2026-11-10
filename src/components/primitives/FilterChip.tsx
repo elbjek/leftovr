@@ -8,8 +8,6 @@ type Props = {
   active?: boolean;
   count?: string;
   disabled?: boolean;
-  /** "dark": resting chips are dark with white text, the active one stays tomato. */
-  tone?: "light" | "dark";
   onPress?: () => void;
 };
 
@@ -21,8 +19,7 @@ type Props = {
  * control. A short label on a solid fill is unambiguous in a way a 1px
  * border changing colour never was.
  */
-export function FilterChip({ label, active = false, count, disabled = false, tone = "light", onPress }: Props) {
-  const dark = tone === "dark" && !active;
+export function FilterChip({ label, active = false, count, disabled = false, onPress }: Props) {
   return (
     <Tappable
       selected={active}
@@ -32,9 +29,9 @@ export function FilterChip({ label, active = false, count, disabled = false, ton
       // 36 high, so 4 each side brings the target to Apple's 44pt minimum
       // without eating into the 8pt gap between chips.
       hitSlop={4}
-      style={[styles.chip, dark && styles.chipDark, active && styles.chipActive]}
+      style={[styles.chip, active && styles.chipActive]}
     >
-      <Text variant="small" color={active || dark ? colors.onPrimary : colors.text}>
+      <Text variant="small" color={active ? colors.onPrimary : colors.text}>
         {label}
       </Text>
       {count ? (
@@ -57,9 +54,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-  },
-  chipDark: {
-    backgroundColor: colors.text,
   },
   chipActive: {
     backgroundColor: colors.primary,

@@ -539,7 +539,6 @@ export default function RecipesRoute() {
                   key={filter}
                   label={t(`recipes.list.filters.${filter}`)}
                   active={filter === activeFilter}
-                  tone="dark"
                   onPress={() => setListFilter(filter)}
                 />
               ))}
