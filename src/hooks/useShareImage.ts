@@ -4,6 +4,8 @@ import { captureRef } from "react-native-view-shot";
 
 import { SHARE_IMAGE, type ShareFormat } from "@/components/features/ShareCard";
 
+const CAPTURE_TIMEOUT_MS = 4000;
+
 /**
  * Share a ShareCardExport as a PNG, with `message` as its caption. Attach
  * `ref` to the export's `viewRef`, and pass the same `format` the export is
@@ -20,12 +22,17 @@ export function useShareImage() {
       try {
         // iOS scales the requested size by the pixel ratio, so ask in points for exact pixels.
         const size = SHARE_IMAGE[format];
-        url = await captureRef(ref, {
-          format: "png",
-          result: "tmpfile",
-          width: size.width / PixelRatio.get(),
-          height: size.height / PixelRatio.get(),
-        });
+        // A capture that never settles must not swallow the tap: after
+        // CAPTURE_TIMEOUT_MS the text goes on its own.
+        url = await Promise.race([
+          captureRef(ref, {
+            format: "png",
+            result: "tmpfile",
+            width: size.width / PixelRatio.get(),
+            height: size.height / PixelRatio.get(),
+          }),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("capture timed out")), CAPTURE_TIMEOUT_MS)),
+        ]);
       } catch (error) {
         if (__DEV__) console.warn("[share] capture failed", error);
       }

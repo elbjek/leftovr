@@ -497,9 +497,17 @@ export default function RecipeDetailRoute() {
     router.replace("/(tabs)/fridge");
   }
 
-  function shareReward() {
+  // Awaited by the reward's Share button (its spinner); a failure says so
+  // instead of looking like a dead button.
+  async function shareReward() {
     if (!reward) return;
-    void rewardImage.share(t("recipes.reward.shareMessage", { count: reward.items.length, title }), rewardFormat);
+    try {
+      await rewardImage.share(t("recipes.reward.shareMessage", { count: reward.items.length, title }), rewardFormat);
+    } catch (error) {
+      if (__DEV__) console.warn("[share] reward share failed", error);
+      // An alert, not a toast: the toast host sits under this sheet's Modal.
+      Alert.alert(t("common.error"));
+    }
   }
 
   // This dinner's saving leads; the all-time total sits under it. A cook of
