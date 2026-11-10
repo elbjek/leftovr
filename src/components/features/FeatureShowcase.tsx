@@ -9,7 +9,7 @@ import { KitchenPulse } from "./KitchenPulse";
 import { ScanMethod, ScanMethodIcon } from "./ScanMethodCard";
 
 // Pre-sign-in feature tour. Each slide has its own page colour from the app's
-// tints (peach, sage, cream, white) with white lifted cards on top, like the
+// tints, alternating pink and white, with white lifted cards on top, like the
 // home; Recipes is the one tomato slide. Each "stage" is built from app components fed with demo copy
 // from the locale files (`onboarding.hook.slides[].demo`), so the deck always
 // looks like the app.
@@ -54,11 +54,9 @@ const light = (bg: string, chip: string = colors.surface): ShowcaseTheme => ({
   chip,
   dark: false,
 });
-const cream = light(colors.bg);
-const peach = light(colors.surface3);
+const pink = light(colors.surface3);
 // White chips would vanish on the white page, so they take the peach well.
 const white = light(colors.white, colors.surface2);
-const sage = light(colors.sageTint);
 const dark: ShowcaseTheme = {
   bg: colors.primary,
   ink: colors.onPrimary,
@@ -69,14 +67,15 @@ const dark: ShowcaseTheme = {
 };
 
 export const showcaseThemes: Record<ShowcaseSceneKey, ShowcaseTheme> = {
-  welcome: peach,
+  // Pink and white take turns; Recipes keeps the tomato slot in the rhythm.
+  welcome: pink,
   add: white,
-  kitchen: cream,
+  kitchen: pink,
   recipes: dark,
-  cook: sage,
-  insights: peach,
+  cook: white,
+  insights: pink,
   household: white,
-  start: cream,
+  start: pink,
 };
 
 export function ShowcaseStage({ slide, active }: { slide: ShowcaseSlide; active: boolean }) {
