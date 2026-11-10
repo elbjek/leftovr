@@ -4,7 +4,7 @@ import Svg, { Path } from "react-native-svg";
 import { foodIconKey } from "../../lib/foodIcons";
 import { colors, radii, shadows, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { Divider, GlyphTile, StatusPill, Text } from "../primitives";
+import { Divider, GlyphTile, StatusPill, Tappable, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // The Insights tab's sections: each answers one question about your kitchen;
@@ -222,15 +222,15 @@ export function GoingOffList({
   );
 }
 
-/** The period's most-cooked dinners as a menu on a white card: the dish, then how often. */
-export function TopDinners({ dinners }: { dinners: { title: string; detail: string }[] }) {
+/** The period's most-cooked dinners as a menu on a white card: the dish, then
+ *  how often and a chevron. Each row opens its recipe. */
+export function TopDinners({ dinners }: { dinners: { title: string; detail: string; onPress: () => void }[] }) {
   return (
     <View style={[styles.card, styles.listCard]}>
       {dinners.map((dinner, index) => (
         <View key={dinner.title}>
           {index > 0 ? <Divider /> : null}
-          {/* A plain row: a Tappable with no onPress drew as disabled (45%). */}
-          <View style={styles.row}>
+          <Tappable label={`${dinner.title}, ${dinner.detail}`} onPress={dinner.onPress} hitSlop={0} style={styles.row}>
             <View style={styles.well}>
               {/* A dish named after a food we have an icon for wears it. */}
               {foodIconKey(dinner.title) ? <FoodGlyph name={dinner.title} size={22} /> : <RecipeGlyph size={24} />}
@@ -241,10 +241,19 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
             <Text variant="small" weight="bold" color={colors.primary}>
               {dinner.detail}
             </Text>
-          </View>
+            <Chevron />
+          </Tappable>
         </View>
       ))}
     </View>
+  );
+}
+
+function Chevron() {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
+      <Path d="M5 2.5 9.5 7 5 11.5" stroke={colors.muted2} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
   );
 }
 

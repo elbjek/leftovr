@@ -770,7 +770,9 @@ export default function RecipeDetailRoute() {
         // group, router.back() can land on whichever tab was visited before.
         // Tab screens stay mounted, so All recipes keeps its search and scroll.
         onPress={() =>
-          router.replace(params.returnTo === "all-recipes" ? "/(tabs)/all-recipes" : "/(tabs)/recipes")
+          router.replace(
+            params.returnTo === "all-recipes" ? "/(tabs)/all-recipes" : params.returnTo === "insights" ? "/(tabs)/insights" : "/(tabs)/recipes",
+          )
         }
         style={[styles.roundButton, { top: insets.top + spacing.sm, left: spacing.xl }]}
       >

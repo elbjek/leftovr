@@ -11,7 +11,7 @@ export type InsightsRawData = {
   itemsUsed: number;
   /** Category counts of the USED items, not the added ones. */
   categoryBreakdown: Record<string, number>;
-  cookedRecipes: { title: string; count: number }[];
+  cookedRecipes: { recipeId: string; title: string; count: number }[];
   /** The food used up most often in the window (its inventory key), if any. */
   topUsedFood: { name: string; count: number } | null;
   /** Real money in the window, summed from value_events (household currency). */
@@ -137,16 +137,19 @@ export async function getInsightsData(
   }
   const [topFood] = [...foodCounts.entries()].sort((a, b) => b[1] - a[1]);
 
-  const cookedRecipeCounts = new Map<string, number>();
+  // Counted per recipe, so a row can open the recipe it names.
+  const cookedRecipeCounts = new Map<string, { recipeId: string; title: string; count: number }>();
   if (cookedRecipeRows.data) {
-    for (const row of cookedRecipeRows.data as { recipes?: { title?: string } | { title?: string }[] | null }[]) {
+    for (const row of cookedRecipeRows.data as { recipe_id: string | null; recipes?: { title?: string } | { title?: string }[] | null }[]) {
       const title = Array.isArray(row.recipes) ? row.recipes[0]?.title : row.recipes?.title;
-      if (title) cookedRecipeCounts.set(title, (cookedRecipeCounts.get(title) ?? 0) + 1);
+      if (!title || !row.recipe_id) continue;
+      const entry = cookedRecipeCounts.get(row.recipe_id) ?? { recipeId: row.recipe_id, title, count: 0 };
+      entry.count += 1;
+      cookedRecipeCounts.set(row.recipe_id, entry);
     }
   }
 
-  const cookedRecipes = [...cookedRecipeCounts.entries()]
-    .map(([title, count]) => ({ title, count }))
+  const cookedRecipes = [...cookedRecipeCounts.values()]
     .sort((a, b) => b.count - a.count)
     .slice(0, 3);
 

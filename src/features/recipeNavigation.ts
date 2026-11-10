@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import type { RecipeRow } from "@/repositories/recipeRepository";
 
 /** Where the recipe screen's back button returns to. */
-export type RecipeReturnTo = "recipes" | "all-recipes";
+export type RecipeReturnTo = "recipes" | "all-recipes" | "insights";
 
 type RecipeDetailInput = {
   title: string;

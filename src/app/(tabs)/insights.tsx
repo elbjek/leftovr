@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { RefreshControl, StyleSheet, View } from "react-native";
+import { Alert, RefreshControl, StyleSheet, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
@@ -25,7 +25,8 @@ import {
   UsageCalendar,
   WinsList,
 } from "@/components";
-import { isPremium as resolvePremium, useAuth } from "@/features";
+import { isPremium as resolvePremium, openSavedRecipe, useAuth } from "@/features";
+import { getRecipeRow } from "@/repositories/recipeRepository";
 import type { Delta, ShareLook } from "@/components";
 import { useDaySheet, useInventory, usePeriodInsights, useStreak, useWins } from "@/hooks";
 import { InventoryCategory, Period, periodAnchor, periodWindow, toUiCategory } from "@/services";
@@ -336,7 +337,21 @@ export default function InsightsRoute() {
     const detail = t("insights.goingOff.detail", { tossed: food.tossed, total: food.outcomes.length });
     return { name, category: food.category, detail, outcomes: food.outcomes, label: `${name}: ${detail}` };
   });
-  const dinners = summary.cookedRecipes.map((recipe) => ({ title: recipe.title, detail: t("insights.dinners.times", { count: recipe.count }) }));
+  // Tapping a dinner loads that recipe and opens it; Back returns here.
+  const openDinner = async (recipeId: string) => {
+    try {
+      const row = await getRecipeRow(recipeId);
+      if (row) openSavedRecipe(row, "insights");
+      else Alert.alert(t("common.error"));
+    } catch {
+      Alert.alert(t("common.error"));
+    }
+  };
+  const dinners = summary.cookedRecipes.map((recipe) => ({
+    title: recipe.title,
+    detail: t("insights.dinners.times", { count: recipe.count }),
+    onPress: () => void openDinner(recipe.recipeId),
+  }));
 
   // Each card is a receipt of its own kind — a list of what was rescued, a
   // column of totals, a punched streak, a menu — and is offered only when it

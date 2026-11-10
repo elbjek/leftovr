@@ -12,7 +12,7 @@ export type InsightsSummary = {
   moneyWasted: number;
   mostUsedCategory: string | null;
   isSparse: boolean;
-  cookedRecipes: { title: string; count: number }[];
+  cookedRecipes: { recipeId: string; title: string; count: number }[];
   topUsedFood: { name: string; count: number } | null;
 };
 

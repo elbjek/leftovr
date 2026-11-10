@@ -191,6 +191,24 @@ export async function listCookedEventRows(householdId: string) {
   return (data ?? []) as CookedEventRow[];
 }
 
+// One recipe as a RecipeRow ready to open: the row, the caller's favorite flag
+// and how often the household has cooked it (what useRecipes adds to a row).
+export async function getRecipeRow(recipeId: string): Promise<RecipeRow | null> {
+  const supabase = getSupabaseClient();
+
+  const [recipe, favorite, cooked] = await Promise.all([
+    supabase.from("recipes").select("*").eq("id", recipeId).maybeSingle<RecipeRow>(),
+    supabase.from("recipe_favorites").select("recipe_id").eq("recipe_id", recipeId).maybeSingle(),
+    supabase.from("cooked_events").select("id", { count: "exact", head: true }).eq("recipe_id", recipeId),
+  ]);
+
+  if (recipe.error) throw recipe.error;
+  if (favorite.error) throw favorite.error;
+  if (cooked.error) throw cooked.error;
+  if (!recipe.data) return null;
+  return { ...recipe.data, is_favorite: Boolean(favorite.data), cooked_count: cooked.count ?? 0 };
+}
+
 // Favorites are per user (recipe_favorites join table); RLS limits rows to auth.uid().
 export async function listUserFavoriteRecipeIds() {
   const supabase = getSupabaseClient();
