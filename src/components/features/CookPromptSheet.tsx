@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { FoodGlyph } from "../illustrations";
-import { BottomSheet, Button, FilterChip, IconButton, Tappable, Text } from "../primitives";
+import { BottomSheet, Button, IconButton, Tappable, Text } from "../primitives";
 import { colors, radii, shadows, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
 import { BasePreference } from "@/services";
@@ -246,13 +246,20 @@ export function CookPromptSheet({
 
         <Section label={labels.cuisine}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.chipRow}>
+            {/* Text-only white tiles, the same surface as the tiles above. */}
             {CUISINE_OPTIONS.map((option) => (
-              <FilterChip
+              <Tappable
                 key={option}
                 label={labels.cuisineOptions[option]}
-                active={cuisine === option}
+                selected={cuisine === option}
                 onPress={() => setCuisine(option)}
-              />
+                hitSlop={0}
+                style={[styles.cuisine, cuisine === option && styles.tileActive]}
+              >
+                <Text variant="small" weight="extrabold" color={cuisine === option ? colors.onPrimary : colors.text}>
+                  {labels.cuisineOptions[option]}
+                </Text>
+              </Tappable>
             ))}
           </ScrollView>
           <Text variant="small" muted>
@@ -310,7 +317,7 @@ function Tile({
     return (
       <Tappable label={label} selected={active} onPress={onPress} hitSlop={0} style={[styles.bare, { width: TILE_WIDTHS[width] }]}>
         <View style={[styles.well, styles.wellBare, active && styles.wellBareActive]}>{icon(active ? colors.onPrimary : colors.primary)}</View>
-        <Text variant="small" weight="bold" center numberOfLines={1}>
+        <Text variant="small" weight="extrabold" center numberOfLines={1}>
           {label}
         </Text>
       </Tappable>
@@ -325,7 +332,7 @@ function Tile({
       style={[styles.tile, { width: TILE_WIDTHS[width] }, active && styles.tileActive]}
     >
       <View style={[styles.well, active && styles.wellActive]}>{icon(colors.primary)}</View>
-      <Text variant="small" weight="bold" center numberOfLines={1} color={active ? colors.onPrimary : colors.text}>
+      <Text variant="small" weight="extrabold" center numberOfLines={1} color={active ? colors.onPrimary : colors.text}>
         {label}
       </Text>
       {detail ? (
@@ -551,13 +558,23 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.surface2,
   },
-  // The chip row runs to the screen edges, like the home's filter row.
+  // The cuisine row runs to the screen edges; vertical padding keeps the
+  // tiles' shadow inside the scroller.
   bleed: {
     marginHorizontal: -spacing.xxl,
   },
   chipRow: {
     gap: spacing.sm,
     paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.xs,
+  },
+  cuisine: {
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: spacing.lg,
+    borderRadius: radii.lg,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
   },
   cta: {
     paddingTop: spacing.md,
