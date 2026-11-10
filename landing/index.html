@@ -926,6 +926,8 @@
     margin: 0 auto 40px; gap: 4px;
   }
   .toggle-wrap { display: flex; justify-content: center; }
+  .trial-note { text-align: center; font-size: 14.5px; color: var(--muted); margin: -24px 0 36px; }
+  .trial-note b { color: var(--text); font-weight: 800; }
   .price-toggle button {
     height: 40px; padding: 0 22px; border: none; border-radius: 999px;
     background: transparent; color: var(--muted); cursor: pointer;
@@ -1188,7 +1190,7 @@
           "name": "Premium (yearly)",
           "price": "44.99",
           "priceCurrency": "USD",
-          "description": "Unlimited scanning and recipes, daily suggestion, insights. Billed yearly."
+          "description": "Unlimited scanning and recipes, daily suggestion, insights. Billed yearly after a 7-day free trial."
         },
         {
           "@type": "Offer",
@@ -1202,7 +1204,7 @@
           "name": "Household (yearly)",
           "price": "69.99",
           "priceCurrency": "USD",
-          "description": "Everything in Premium plus one shared kitchen for up to three people. Billed yearly."
+          "description": "Everything in Premium plus one shared kitchen for up to three people. Billed yearly after a 7-day free trial."
         }
       ]
     },
@@ -1284,7 +1286,7 @@
           "name": "Is leftovr free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, to start. Your first scan (a pantry photo or a receipt) and first recipe are free, and manual add and barcode scan stay free forever. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is $6.99/month ($44.99/year) and Household is $9.99/month ($69.99/year) for up to three people."
+            "text": "Yes, to start. Your first scan (a pantry photo or a receipt) and first recipe are free, and manual add and barcode scan stay free forever. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is $6.99/month ($44.99/year) and Household is $9.99/month ($69.99/year) for up to three people. Yearly plans start with a 7-day free trial."
           }
         },
         {
@@ -1964,6 +1966,7 @@
           <button data-period="yearly"><span data-i18n="price.yearly">Yearly</span> <span class="save-pill" data-i18n="price.save">Save 40%+</span></button>
         </div>
       </div>
+      <p class="trial-note" data-i18n-html="price.trial">Yearly plans start with a <b>7-day free trial</b>.</p>
 
       <div class="plans">
         <!-- Free -->
@@ -1982,8 +1985,7 @@
         </div>
 
         <!-- Premium Individual -->
-        <div class="plan featured">
-          <div class="plan-flag" data-i18n="plan.prem.flag">Most popular</div>
+        <div class="plan">
           <div class="plan-name" data-i18n="plan.prem.name">Premium</div>
           <div class="plan-for" data-i18n="plan.prem.for">For one cook</div>
           <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.prem.amtM" data-yearly="plan.prem.amtY">$6.99</span><span class="per" data-i18n="plan.per">/month</span></div>
@@ -1994,11 +1996,12 @@
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li3">Daily "what to cook" suggestion</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li4">Weekly insights</span></li>
           </ul>
-          <a class="btn btn-primary" href="#get" data-i18n="plan.prem.cta">Get early access</a>
+          <a class="btn btn-ghost" href="#get" data-i18n="plan.prem.cta">Get early access</a>
         </div>
 
         <!-- Household -->
-        <div class="plan">
+        <div class="plan featured">
+          <div class="plan-flag" data-i18n="plan.house.flag">Best value</div>
           <div class="plan-name" data-i18n="plan.house.name">Household</div>
           <div class="plan-for" data-i18n="plan.house.for">Share with up to 3</div>
           <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.house.amtM" data-yearly="plan.house.amtY">$9.99</span><span class="per" data-i18n="plan.per">/month</span></div>
@@ -2009,7 +2012,7 @@
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li3">Up to 3 people, synced</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li4">Shared recipes and insights</span></li>
           </ul>
-          <a class="btn btn-ghost" href="#get" data-i18n="plan.house.cta">Get early access</a>
+          <a class="btn btn-primary" href="#get" data-i18n="plan.house.cta">Get early access</a>
         </div>
       </div>
     </div>
@@ -2042,7 +2045,7 @@
         </div>
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q1">Is leftovr free?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a1">Yes, to start. Your <b>first scan</b> (a pantry photo or a receipt) and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$6.99/month</b> ($44.99/year) and Household is <b>$9.99/month</b> ($69.99/year) for up to three people.</div></div>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a1">Yes, to start. Your <b>first scan</b> (a pantry photo or a receipt) and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$6.99/month</b> ($44.99/year) and Household is <b>$9.99/month</b> ($69.99/year) for up to three people. Yearly plans start with a <b>7-day free trial</b>.</div></div>
         </div>
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q2">Do I have to log everything by hand?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -2594,6 +2597,7 @@
       "price.monthly": "Monthly",
       "price.yearly": "Yearly",
       "price.save": "Save 40%+",
+      "price.trial": "Yearly plans start with a <b>7-day free trial</b>.",
       "plan.per": "/month",
       "plan.free.name": "Free",
       "plan.free.for": "Try the whole flow",
@@ -2604,24 +2608,24 @@
       "plan.free.li3": "Unlimited manual + barcode add",
       "plan.free.li4": "Your kitchen, kept current",
       "plan.free.cta": "Start free",
-      "plan.prem.flag": "Most popular",
       "plan.prem.name": "Premium",
       "plan.prem.for": "For one cook",
       "plan.prem.amtM": "$6.99",
       "plan.prem.amtY": "$3.75",
       "plan.prem.noteM": "Billed monthly",
-      "plan.prem.noteY": "$44.99 billed yearly",
+      "plan.prem.noteY": "7 days free, then $44.99 a year",
       "plan.prem.li1": "Unlimited pantry and receipt scans",
       "plan.prem.li2": "Unlimited recipes, expiry-ranked",
       "plan.prem.li3": 'Daily "what to cook" suggestion',
       "plan.prem.li4": "Weekly insights",
       "plan.prem.cta": "Get early access",
+      "plan.house.flag": "Best value",
       "plan.house.name": "Household",
       "plan.house.for": "Share with up to 3",
       "plan.house.amtM": "$9.99",
       "plan.house.amtY": "$5.83",
       "plan.house.noteM": "Billed monthly",
-      "plan.house.noteY": "$69.99 billed yearly",
+      "plan.house.noteY": "7 days free, then $69.99 a year",
       "plan.house.li1": "Everything in Premium",
       "plan.house.li2": "One shared kitchen for the home",
       "plan.house.li3": "Up to 3 people, synced",
@@ -2638,7 +2642,7 @@
       "faq.q16": "Are the recipes written by AI?",
       "faq.a16": "Yes. AI writes each recipe from the food in your kitchen. Recipes are kept to <b>8 steps and 12 ingredients</b> so they are easy to follow on a phone. On Premium you can ask for three more if none of them appeal.",
       "faq.q1": "Is leftovr free?",
-      "faq.a1": "Yes, to start. Your <b>first scan</b> (a pantry photo or a receipt) and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$6.99/month</b> ($44.99/year) and Household is <b>$9.99/month</b> ($69.99/year) for up to three people.",
+      "faq.a1": "Yes, to start. Your <b>first scan</b> (a pantry photo or a receipt) and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$6.99/month</b> ($44.99/year) and Household is <b>$9.99/month</b> ($69.99/year) for up to three people. Yearly plans start with a <b>7-day free trial</b>.",
       "faq.q2": "Do I have to log everything by hand?",
       "faq.a2": "No. A <b>pantry photo</b> reads a whole shelf at a time (up to three shots), and a receipt scan adds 20 to 30 items in about ten seconds. For a single thing you can <b>scan a barcode</b> or <b>add it manually</b>, both free and unlimited.",
       "faq.q12": "How does the pantry photo work?",
@@ -2870,6 +2874,7 @@
       "price.monthly": "Mesečno",
       "price.yearly": "Godišnje",
       "price.save": "Ušteda 40%+",
+      "price.trial": "Godišnji paketi kreću sa <b>7 dana besplatno</b>.",
       "plan.per": "/mesec",
       "plan.free.name": "Besplatno",
       "plan.free.for": "Probaj sve",
@@ -2880,24 +2885,24 @@
       "plan.free.li3": "Neograničen ručni unos i bar-kod",
       "plan.free.li4": "Tvoja kuhinja, uvek ažurna",
       "plan.free.cta": "Počni besplatno",
-      "plan.prem.flag": "Najpopularnije",
       "plan.prem.name": "Premium",
       "plan.prem.for": "Za jednog kuvara",
       "plan.prem.amtM": "6,99 €",
       "plan.prem.amtY": "3,75 €",
       "plan.prem.noteM": "Plaća se mesečno",
-      "plan.prem.noteY": "44,99 € godišnje",
+      "plan.prem.noteY": "7 dana besplatno, zatim 44,99 € godišnje",
       "plan.prem.li1": "Neograničeno skeniranje ostave i računa",
       "plan.prem.li2": "Neograničeni recepti, poređani po roku trajanja",
       "plan.prem.li3": "Dnevni predlog šta da skuvaš",
       "plan.prem.li4": "Nedeljni pregled",
       "plan.prem.cta": "Rani pristup",
+      "plan.house.flag": "Najisplativije",
       "plan.house.name": "Domaćinstvo",
       "plan.house.for": "Deli sa do 3 osobe",
       "plan.house.amtM": "9,99 €",
       "plan.house.amtY": "5,83 €",
       "plan.house.noteM": "Plaća se mesečno",
-      "plan.house.noteY": "69,99 € godišnje",
+      "plan.house.noteY": "7 dana besplatno, zatim 69,99 € godišnje",
       "plan.house.li1": "Sve iz paketa Premium",
       "plan.house.li2": "Jedna zajednička kuhinja za ceo dom",
       "plan.house.li3": "Do 3 osobe, sinhronizovano",
@@ -2914,7 +2919,7 @@
       "faq.q16": "Da li recepte piše veštačka inteligencija?",
       "faq.a16": "Da. Veštačka inteligencija piše svaki recept od hrane iz tvoje kuhinje. Recepti imaju najviše <b>8 koraka i 12 sastojaka</b>, da ih je lako pratiti na telefonu. Uz Premium možeš da tražiš još tri ako ti se nijedan ne dopada.",
       "faq.q1": "Da li je leftovr besplatan?",
-      "faq.a1": "Da, za početak. Tvoje <b>prvo skeniranje</b> (slika ostave ili račun) i <b>prvi recept</b> su besplatni, a <b>ručni unos i bar-kod ostaju besplatni zauvek</b>. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i nedeljni pregled, Premium košta <b>6,99 €/mesec</b> (44,99 € godišnje), a Domaćinstvo <b>9,99 €/mesec</b> (69,99 € godišnje) za do tri osobe.",
+      "faq.a1": "Da, za početak. Tvoje <b>prvo skeniranje</b> (slika ostave ili račun) i <b>prvi recept</b> su besplatni, a <b>ručni unos i bar-kod ostaju besplatni zauvek</b>. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i nedeljni pregled, Premium košta <b>6,99 €/mesec</b> (44,99 € godišnje), a Domaćinstvo <b>9,99 €/mesec</b> (69,99 € godišnje) za do tri osobe. Godišnji paketi kreću sa <b>7 dana besplatno</b>.",
       "faq.q2": "Moram li sve ručno da unosim?",
       "faq.a2": "Ne. <b>Slika ostave</b> pročita celu policu odjednom, do tri slike, a skeniranje računa doda 20 do 30 stavki za desetak sekundi. Za jednu stvar možeš da <b>skeniraš bar-kod</b> ili <b>dodaš ručno</b>, oboje besplatno i neograničeno.",
       "faq.q12": "Kako radi slika ostave?",

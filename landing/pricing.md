@@ -14,6 +14,7 @@ iPhone app. Prices in USD, billed through the App Store. Last updated 2026-11-10
 ## Premium
 
 - Price: $6.99/month, or $44.99/year (≈ $3.75/month, 46% less)
+- Trial: 7 days free on the yearly plan
 - For: one cook
 - Limits: 100 scans/month and 30/day; 150 recipe generations/month and 50/day
 - Included: unlimited pantry-photo, receipt and e-receipt scanning; unlimited recipes ranked by what
@@ -22,6 +23,7 @@ iPhone app. Prices in USD, billed through the App Store. Last updated 2026-11-10
 ## Household
 
 - Price: $9.99/month, or $69.99/year (≈ $5.83/month, 42% less)
+- Trial: 7 days free on the yearly plan
 - For: up to 3 people in one home
 - Limits: same per-person scan and generation limits as Premium
 - Included: everything in Premium, one shared kitchen synced across up to 3 people, shared
