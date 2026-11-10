@@ -9,10 +9,12 @@ import { consumePendingInviteCode, useAuth } from "@/features";
 import {
   acceptHouseholdInvite,
   completeCurrentProfileOnboarding,
+  InviteLookup,
+  lookupHouseholdInvite,
   OnboardingPersonalization,
   updateProfileField,
 } from "@/repositories";
-import { colors, spacing } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 type StepKey = "name" | "people" | "shopping" | "currency" | "invite";
 type Choice = {
@@ -60,6 +62,7 @@ export default function OnboardingRoute() {
   const [shoppingStyle, setShoppingStyle] = useState(profile?.shopping_style ?? "weekly");
   const [currency, setCurrency] = useState<string>(activeHousehold?.currency_code ?? guessCurrency());
   const [inviteCode, setInviteCode] = useState("");
+  const [invitePreview, setInvitePreview] = useState<InviteLookup | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,7 +100,28 @@ export default function OnboardingRoute() {
       return;
     }
 
+    // A code (often prefilled from a link) is only joined after showing whose
+    // kitchen it is: the first tap looks it up, "Join household" accepts.
+    if (inviteCode.trim() && !invitePreview) {
+      void previewInvite();
+      return;
+    }
+
     void handleSubmit(false);
+  }
+
+  async function previewInvite() {
+    setSubmitting(true);
+    try {
+      const found = await lookupHouseholdInvite(inviteCode);
+      if (!found) setError(t("onboarding.personalization.invite.invalidCode"));
+      else if (found.member_count >= 3) setError(t("settings.household.householdFull"));
+      else setInvitePreview(found);
+    } catch {
+      setError(t("onboarding.personalization.invite.invalidCode"));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleSubmit(skipInvite: boolean) {
@@ -121,7 +145,7 @@ export default function OnboardingRoute() {
 
       await completeCurrentProfileOnboarding(personalization);
 
-      if (!skipInvite && inviteCode.trim()) {
+      if (!skipInvite && invitePreview) {
         try {
           await acceptHouseholdInvite(inviteCode.trim(), false);
         } catch {
@@ -238,9 +262,23 @@ export default function OnboardingRoute() {
             label={t("onboarding.personalization.invite.inputLabel")}
             placeholder={t("onboarding.personalization.invite.placeholder")}
             value={inviteCode}
-            onChangeText={setInviteCode}
+            onChangeText={(code) => {
+              setInviteCode(code);
+              setInvitePreview(null);
+            }}
             autoCapitalize="characters"
           />
+        ) : null}
+
+        {step === "invite" && invitePreview ? (
+          <View style={styles.invitePreview}>
+            <Text variant="h3">
+              {t("settings.household.lookupTitle", { name: invitePreview.household_name })}
+            </Text>
+            <Text variant="small" muted>
+              {t("settings.household.lookupMembers", { count: invitePreview.member_count })}
+            </Text>
+          </View>
         ) : null}
 
         {error ? (
@@ -254,7 +292,9 @@ export default function OnboardingRoute() {
         <View style={styles.footer}>
           <Button
             title={
-  t("common.continue")
+              step === "invite" && invitePreview
+                ? t("settings.household.joinButton")
+                : t("common.continue")
             }
             disabled={!canContinue}
             loading={submitting}
@@ -348,5 +388,12 @@ const styles = StyleSheet.create({
   },
   errorBox: {
     marginTop: 12,
+  },
+  invitePreview: {
+    marginTop: spacing.md,
+    backgroundColor: colors.primary50,
+    borderRadius: radii.md,
+    padding: spacing.lg,
+    gap: spacing.xs,
   },
 });
