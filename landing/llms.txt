@@ -1,10 +1,10 @@
 # leftovr
 
 > leftovr is an iPhone app that turns the food a household already owns into dinner.
-> Photograph your fridge or pantry — up to three shots — or scan a grocery receipt, and
+> Photograph your fridge or pantry (up to three shots) or scan a grocery receipt, and
 > leftovr fills your kitchen, ranks everything by what should be eaten first, generates
 > recipes using only those ingredients, and removes them when you cook. Made by Two Brick
-> Labs. Last updated 2026-11-06.
+> Labs. Last updated 2026-11-10.
 
 ## What it does
 
@@ -14,14 +14,28 @@
   Barcode and manual add are free and unlimited.
 - **Eat-first ranking**: every item carries an estimated freshness window ("best today", "this
   week"). The items closest to spoiling sit on top.
-- **Recipes from your kitchen only**: required ingredients come from what the household already
-  has, led by the food that needs using. No "buy nine more things" recipes.
+- **Recipe generation from your kitchen only**: you pick the meal (breakfast, lunch, dinner,
+  snack or side), how long you have, the type of food and the number of servings. AI writes up
+  to three recipes (one on the free plan) using ingredients the household already has, starting
+  with the food that needs using first. It assumes only water, salt, pepper, cooking oil and
+  common dried herbs. Recipes are capped at 8 steps and 12 ingredients.
 - **Automatic depletion**: tapping "I cooked this" removes or reduces those ingredients. No
   re-tracking by hand.
 - **Shared household**: up to three people share one synced kitchen (Household plan).
 - **Insights**: money saved, items used vs. tossed, go-to dinners, per week / month / year.
 - **Languages**: English and Serbian, including generated recipes.
 - **Platform**: iPhone only. No smart fridge, sensors or scales needed.
+
+## Questions leftovr answers
+
+- **What can I cook with what I already have?** leftovr writes recipes from the food in your
+  kitchen, so every main ingredient is something you own.
+- **Is there an app that makes recipes from what's in my fridge?** Yes, leftovr, on iPhone. You
+  photograph the fridge or scan a receipt once instead of typing ingredients each time.
+- **How do I use up food before it goes off?** Everything is ranked by how soon it should be
+  eaten, and recipes start with those items.
+- **How do I stop throwing food away?** Cooking a recipe removes what you used, so the kitchen
+  list stays true and the next suggestion uses what is left.
 
 ## What it is not
 

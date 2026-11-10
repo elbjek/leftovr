@@ -1155,6 +1155,8 @@
       "featureList": [
         "Pantry photo scanning, up to three shelves at once",
         "Recipes generated only from food you already own",
+        "AI recipe generation by meal, cooking time and type of food, up to three ideas at a time",
+        "Recipes capped at 8 steps and 12 ingredients",
         "Receipt photo and PDF e-receipt scanning (20 to 30 items in about ten seconds)",
         "Free barcode scanning and manual add",
         "Eat-first ranking by estimated freshness",
@@ -1242,6 +1244,38 @@
       "@type": "FAQPage",
       "@id": "https://leftovr.co/#faq",
       "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is there an app that makes recipes from what's in my fridge?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. leftovr is an iPhone app that does this. You photograph your fridge or pantry, or scan a grocery receipt, and it keeps a list of the food you have. Recipes are written from that list, so you don't type your ingredients in each time."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What can I cook with what I already have?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Open leftovr, pick the meal and how long you have, and it writes up to three recipes from the food in your kitchen. Every main ingredient is something you already own. It only assumes basics like water, salt, pepper, cooking oil and dried herbs."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I use up food before it goes off?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "leftovr sorts everything in your kitchen by how soon it should be eaten, and recipes start with those items. When you cook one, what you used comes off your list, so the next suggestion is based on what is left."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are the recipes written by AI?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. AI writes each recipe from the food in your kitchen. Recipes are kept to 8 steps and 12 ingredients so they are easy to follow on a phone. On Premium you can ask for three more if none of them appeal."
+          }
+        },
         {
           "@type": "Question",
           "name": "Is leftovr free?",
@@ -1732,7 +1766,8 @@
             <li><span class="gen-dot" aria-hidden="true"></span><span data-i18n="gen.step4">Writing the steps</span></li>
             </ol>
           </div>
-          <div class="gen-ideas" id="gen-ideas" aria-live="polite"></div>
+          <!-- Default ideas in the markup so crawlers that run no JS still read them. -->
+          <div class="gen-ideas" id="gen-ideas" aria-live="polite"><h3 class="gen-h">3 ideas</h3><p class="gen-subline">Made from what&#39;s in your kitchen, starting with what&#39;s going off first.</p><div class="gen-best"><div class="micro">Best match</div><h4>Spinach &amp; feta pasta</h4><div class="gen-meta">20 min &middot; Easy</div><p>Uses the spinach before it turns, with feta melted into the sauce.</p><div class="gen-foot"><div class="gen-icons"><span><img src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span><span><img src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span><span><img src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span></div><span class="gen-pill">You have everything</span></div></div><div class="micro gen-also">Also good</div><div class="gen-row"><span class="gen-thumb"><img src="/food/chicken_breast.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span><span><b>Seared chicken with burst tomatoes</b><span class="gen-meta">15 min &middot; Easy</span></span></div><div class="gen-row"><span class="gen-thumb"><img src="/food/chicken_breast.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span><span><b>Chicken traybake</b><span class="gen-meta">35 min &middot; Easy</span></span></div></div>
         </div>
       </div>
 
@@ -1970,7 +2005,7 @@
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li1">Everything in Premium</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li2">One shared kitchen for the home</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li3">Up to 3 people, synced</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li4">Shared shopping + insights</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li4">Shared recipes and insights</span></li>
           </ul>
           <a class="btn btn-ghost" href="#get" data-i18n="plan.house.cta">Get early access</a>
         </div>
@@ -1987,6 +2022,22 @@
       </div>
 
       <div class="faq-list" id="faq-list">
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q13">Is there an app that makes recipes from what&#39;s in my fridge?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a13">Yes. <b>leftovr</b> is an iPhone app that does this. You photograph your fridge or pantry, or scan a grocery receipt, and it keeps a list of the food you have. Recipes are written from that list, so you don&#39;t type your ingredients in each time.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q14">What can I cook with what I already have?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a14">Open leftovr, pick the meal and how long you have, and it writes up to three recipes from the food in your kitchen. <b>Every main ingredient is something you already own.</b> It only assumes basics like water, salt, pepper, cooking oil and dried herbs.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q15">How do I use up food before it goes off?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a15">leftovr sorts everything in your kitchen by how soon it should be eaten, and <b>recipes start with those items</b>. When you cook one, what you used comes off your list, so the next suggestion is based on what is left.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q16">Are the recipes written by AI?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a16">Yes. AI writes each recipe from the food in your kitchen. Recipes are kept to <b>8 steps and 12 ingredients</b> so they are easy to follow on a phone. On Premium you can ask for three more if none of them appeal.</div></div>
+        </div>
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q1">Is leftovr free?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a1">Yes, to start. Your <b>first scan</b> (a pantry photo or a receipt) and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$7.99/month</b> ($54.99/year) and Household is <b>$14.99/month</b> ($99.99/year) for up to three people.</div></div>
@@ -2568,10 +2619,18 @@
       "plan.house.li1": "Everything in Premium",
       "plan.house.li2": "One shared kitchen for the home",
       "plan.house.li3": "Up to 3 people, synced",
-      "plan.house.li4": "Shared shopping + insights",
+      "plan.house.li4": "Shared recipes and insights",
       "plan.house.cta": "Get early access",
       "faq.eyebrow": "Good questions",
       "faq.title": "What people ask first.",
+      "faq.q13": "Is there an app that makes recipes from what's in my fridge?",
+      "faq.a13": "Yes. <b>leftovr</b> is an iPhone app that does this. You photograph your fridge or pantry, or scan a grocery receipt, and it keeps a list of the food you have. Recipes are written from that list, so you don't type your ingredients in each time.",
+      "faq.q14": "What can I cook with what I already have?",
+      "faq.a14": "Open leftovr, pick the meal and how long you have, and it writes up to three recipes from the food in your kitchen. <b>Every main ingredient is something you already own.</b> It only assumes basics like water, salt, pepper, cooking oil and dried herbs.",
+      "faq.q15": "How do I use up food before it goes off?",
+      "faq.a15": "leftovr sorts everything in your kitchen by how soon it should be eaten, and <b>recipes start with those items</b>. When you cook one, what you used comes off your list, so the next suggestion is based on what is left.",
+      "faq.q16": "Are the recipes written by AI?",
+      "faq.a16": "Yes. AI writes each recipe from the food in your kitchen. Recipes are kept to <b>8 steps and 12 ingredients</b> so they are easy to follow on a phone. On Premium you can ask for three more if none of them appeal.",
       "faq.q1": "Is leftovr free?",
       "faq.a1": "Yes, to start. Your <b>first scan</b> (a pantry photo or a receipt) and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$7.99/month</b> ($54.99/year) and Household is <b>$14.99/month</b> ($99.99/year) for up to three people.",
       "faq.q2": "Do I have to log everything by hand?",
@@ -2735,7 +2794,7 @@
       "gen.loadEyebrow": "Nove ideje",
       "gen.loadTitle": "Smišljamo ideje",
       "gen.step1": "Proveravamo kuhinju",
-      "gen.step2": "Spasavamo šta treba pojesti",
+      "gen.step2": "Tražimo šta treba prvo pojesti",
       "gen.step3": "Spajamo ukuse koji se slažu",
       "gen.step4": "Zapisujemo korake",
       "gen.count1": "Jedna ideja",
@@ -2796,7 +2855,7 @@
       "recipe2.meta": "10 min · 3 sastojka",
       "recipe2.note": "Troši 3 stvari koje se kvare",
       "price.eyebrow": "Cene",
-      "price.title": 'Besplatno za početak. <span class="mark">Iskreno i posle.</span>',
+      "price.title": 'Besplatno za početak. <span class="mark">Plati kad poželiš više.</span>',
       "price.honest": "Tvoje <b>prvo skeniranje</b> (slika ostave ili račun) i <b>prvi recept</b> su na nas. <b>Ručni unos i bar-kod ostaju besplatni zauvek.</b> Pređi na neograničeno kad ti zatreba.",
       "price.monthly": "Mesečno",
       "price.yearly": "Godišnje",
@@ -2832,10 +2891,18 @@
       "plan.house.li1": "Sve iz paketa Premium",
       "plan.house.li2": "Jedna zajednička kuhinja za ceo dom",
       "plan.house.li3": "Do 3 osobe, sinhronizovano",
-      "plan.house.li4": "Zajednička kupovina i pregled",
+      "plan.house.li4": "Zajednički recepti i pregled",
       "plan.house.cta": "Rani pristup",
       "faq.eyebrow": "Dobra pitanja",
-      "faq.title": "Iskreni odgovori.",
+      "faq.title": "Šta ljudi prvo pitaju.",
+      "faq.q13": "Postoji li aplikacija koja pravi recepte od onoga što imam u frižideru?",
+      "faq.a13": "Da. <b>leftovr</b> je iPhone aplikacija koja radi baš to. Uslikaš frižider ili ostavu, ili skeniraš račun iz prodavnice, i ona vodi listu hrane koju imaš. Recepti se prave od te liste, pa ne moraš svaki put da kucaš sastojke.",
+      "faq.q14": "Šta mogu da skuvam od onoga što već imam?",
+      "faq.a14": "Otvori leftovr, izaberi obrok i koliko imaš vremena, i dobićeš do tri recepta od hrane iz svoje kuhinje. <b>Svaki glavni sastojak je nešto što već imaš.</b> Podrazumeva se samo osnovno: voda, so, biber, ulje i suvi začini.",
+      "faq.q15": "Kako da potrošim hranu pre nego što se pokvari?",
+      "faq.a15": "leftovr ređa sve u tvojoj kuhinji po tome šta treba prvo pojesti, i <b>recepti kreću od tih namirnica</b>. Kad nešto skuvaš, ono što potrošiš skida se sa liste, pa se sledeći predlog pravi od onoga što je ostalo.",
+      "faq.q16": "Da li recepte piše veštačka inteligencija?",
+      "faq.a16": "Da. Veštačka inteligencija piše svaki recept od hrane iz tvoje kuhinje. Recepti imaju najviše <b>8 koraka i 12 sastojaka</b>, da ih je lako pratiti na telefonu. Uz Premium možeš da tražiš još tri ako ti se nijedan ne dopada.",
       "faq.q1": "Da li je leftovr besplatan?",
       "faq.a1": "Da, za početak. Tvoje <b>prvo skeniranje</b> (slika ostave ili račun) i <b>prvi recept</b> su besplatni, a <b>ručni unos i bar-kod ostaju besplatni zauvek</b>. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i nedeljni pregled, Premium košta <b>7,99 €/mesec</b> (54,99 € godišnje), a Domaćinstvo <b>14,99 €/mesec</b> (99,99 € godišnje) za do tri osobe.",
       "faq.q2": "Moram li sve ručno da unosim?",
