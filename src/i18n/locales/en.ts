@@ -844,6 +844,7 @@ export const en = {
       savedTotal: "{{amount}} saved since you started",
       done: "Done",
       share: "Share",
+      shareAs: "Share as",
       receiptKicker: "Cooked tonight",
       shareMessage_one: "I just cooked {{title}} with leftovr and saved {{count}} thing from the bin.",
       shareMessage_other: "I just cooked {{title}} with leftovr and saved {{count}} things from the bin.",

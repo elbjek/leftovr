@@ -866,6 +866,7 @@ export const sr = {
       savedTotal: "Ukupno ušteđeno: {{amount}}",
       done: "Gotovo",
       share: "Podeli",
+      shareAs: "Podeli kao",
       receiptKicker: "Skuvano večeras",
       shareMessage_one: "Upravo sam skuvao/la {{title}} uz leftovr i spasio/la {{count}} namirnicu od bacanja.",
       shareMessage_few: "Upravo sam skuvao/la {{title}} uz leftovr i spasio/la {{count}} namirnice od bacanja.",

@@ -1,17 +1,27 @@
 import { useEffect, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, ScrollView, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, ActionSheetIOS, Alert, Animated, Easing, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
 import { formatMoney } from "../../lib/money";
 import { colors, radii, shadows, spacing, typography } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { Button, SegmentedControl, Text } from "../primitives";
+import { Button, Text } from "../primitives";
 import type { ShareFormat } from "./ShareCard";
-import { FlameIcon, GoalRing } from "./WeekStrip";
+import { FlameIcon } from "./WeekStrip";
 
-// More than this and the chips crowd the screen; the rest fold into "+N".
-const MAX_CHIPS = 6;
+// More than this and the row runs off a small phone; the rest fold into "+N".
+const MAX_FOODS = 4;
+// Each food sits a little off the line and a little tilted, so the row looks
+// tossed rather than lined up.
+const SCATTER = [
+  { y: 6, rotate: "-8deg" },
+  { y: -10, rotate: "6deg" },
+  { y: 4, rotate: "-4deg" },
+  { y: -8, rotate: "8deg" },
+  { y: 8, rotate: "-6deg" },
+  { y: -4, rotate: "4deg" },
+];
 
 type Props = {
   visible: boolean;
@@ -29,44 +39,58 @@ type Props = {
   streak: { value: number; label: string } | null;
   doneLabel: string;
   shareLabel: string;
-  /** The shape the share image is drawn in: Instagram post or story. */
-  format: ShareFormat;
-  formatLabels: { post: string; story: string };
-  onFormat: (format: ShareFormat) => void;
+  /** The Post / Story question asked when Share is tapped. */
+  shareAs: { title: string; post: string; story: string; cancel: string };
   onDone: () => void;
-  /** May be async: the Share button shows a spinner until it settles. */
-  onShare: () => void | Promise<void>;
+  /** Shares the image in the picked shape; the Share button spins until it settles. */
+  onShare: (format: ShareFormat) => void | Promise<void>;
 };
 
-// The payoff right after a cook, built from the home's pieces: a tomato block
-// for the win (check, what was cooked, the money counting up), then white
-// lifted cards for what was used up and for today's goal and streak, and the
-// home's button pair at the foot. The check pops with one ring burst, the
-// cards follow in a short stagger and the money counts up once. Reduce Motion
+// The payoff right after a cook, kept minimal: no cards, no colour blocks.
+// The foods you saved pop in as a scattered row of white bubbles (the fun
+// part), then one line on what was saved, the money counting up in tomato,
+// a quiet goal and streak line, and Done / Share at the foot. Reduce Motion
 // shows the end state. A full-screen layer, not a Modal: it rides in the cook
 // sheet's Modal (BottomSheet `overlay`) so iOS never has to stack two.
-export function CookReward({ visible, eyebrow, title, items, money, goal, streak, doneLabel, shareLabel, format, formatLabels, onFormat, onDone, onShare }: Props) {
+export function CookReward({ visible, eyebrow, title, items, money, goal, streak, doneLabel, shareLabel, shareAs, onDone, onShare }: Props) {
   const insets = useSafeAreaInsets();
   const [pop] = useState(() => new Animated.Value(0));
-  const [burst] = useState(() => new Animated.Value(0));
   const [enter] = useState(() => new Animated.Value(0));
   const [count] = useState(() => new Animated.Value(0));
   const [shown, setShown] = useState(0);
   const target = money?.value ?? 0;
   const [sharing, setSharing] = useState(false);
-  const share = async () => {
+  const share = async (format: ShareFormat) => {
     setSharing(true);
     try {
-      await onShare();
+      await onShare(format);
     } finally {
       setSharing(false);
     }
+  };
+  // Post or story is asked on the tap, not with a switch on the screen.
+  const pickFormat = () => {
+    const formats: ShareFormat[] = ["post", "story"];
+    const options = [shareAs.post, shareAs.story];
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { title: shareAs.title, options: [...options, shareAs.cancel], cancelButtonIndex: 2 },
+        (index) => {
+          if (index < 2) void share(formats[index]);
+        },
+      );
+      return;
+    }
+    Alert.alert(shareAs.title, undefined, [
+      ...formats.map((format, index) => ({ text: options[index], onPress: () => void share(format) })),
+      { text: shareAs.cancel, style: "cancel" as const },
+    ]);
   };
 
   useEffect(() => {
     if (!visible) return;
     let cancelled = false;
-    const values = [pop, burst, enter, count];
+    const values = [pop, enter, count];
     // Listen first, so the reset also clears the last cook's figure.
     const listener = count.addListener(({ value }) => setShown(value));
     values.forEach((v) => v.setValue(0));
@@ -74,15 +98,13 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
       if (cancelled) return;
       if (reduce) {
         pop.setValue(1);
-        burst.setValue(1);
         enter.setValue(1);
         count.setValue(target);
         return;
       }
       Animated.parallel([
         Animated.timing(pop, { toValue: 1, duration: 320, easing: Easing.out(Easing.back(1.6)), useNativeDriver: true }),
-        Animated.timing(burst, { toValue: 1, delay: 120, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-        Animated.timing(enter, { toValue: 1, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(enter, { toValue: 1, duration: 1100, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
         // Drives text, so JS-driven; it starts once the money card is in.
         Animated.timing(count, { toValue: target, delay: 300, duration: 900, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
       ]).start();
@@ -92,110 +114,95 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
       count.removeListener(listener);
       values.forEach((v) => v.stopAnimation());
     };
-  }, [burst, count, enter, pop, target, visible]);
+  }, [count, enter, pop, target, visible]);
 
   if (!visible) return null;
 
-  const scale = pop.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
   // A slice of `enter` per element, so they arrive one after another.
   const slice = (start: number, end: number) => ({
     opacity: enter.interpolate({ inputRange: [start, end], outputRange: [0, 1], extrapolate: "clamp" }),
     transform: [{ translateY: enter.interpolate({ inputRange: [start, end], outputRange: [12, 0], extrapolate: "clamp" }) }],
   });
+  // Foods pop: each scales up from nothing with a little overshoot.
+  const popAt = (index: number) => {
+    const start = Math.min(index * 0.08, 0.5);
+    return enter.interpolate({ inputRange: [start, start + 0.25, start + 0.35], outputRange: [0, 1.12, 1], extrapolate: "clamp" });
+  };
 
-  const chips = items.slice(0, MAX_CHIPS);
-  const more = items.length - chips.length;
+  const foods = items.slice(0, MAX_FOODS);
+  const more = items.length - foods.length;
+  const bubbles = [...foods.map((name) => ({ key: name, name })), ...(more > 0 ? [{ key: "more", name: null }] : [])];
 
   return (
-    <Animated.View style={[styles.screen, { opacity: pop, paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg }]}>
-      {/* Scrolls on a small phone or with large text, so the buttons below
-          always stay on screen. */}
+    <Animated.View style={[styles.screen, { opacity: pop, paddingTop: insets.top, paddingBottom: insets.bottom + spacing.lg }]}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.hero}>
-          <View style={styles.blob} pointerEvents="none" />
-          <View style={styles.checkSlot}>
-            <Animated.View
-              style={[
-                styles.burst,
-                {
-                  opacity: burst.interpolate({ inputRange: [0, 1], outputRange: [0.6, 0] }),
-                  transform: [{ scale: burst.interpolate({ inputRange: [0, 1], outputRange: [1, 1.7] }) }],
-                },
-              ]}
-            />
-            <Animated.View style={[styles.check, { transform: [{ scale }] }]}>
-              <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-                <Path d="M5 12l5 5 9-10" stroke={colors.primary} strokeWidth={2.8} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Animated.View>
-          </View>
-          <Text variant="micro" uppercase center color={colors.onPrimary} style={styles.soft}>
-            {eyebrow}
-          </Text>
-          <Text variant="h3" center color={colors.onPrimary} accessibilityRole="header">
-            {title}
-          </Text>
-          {money ? (
-            <Animated.View
-              style={[styles.money, slice(0.3, 0.75)]}
-              accessible
-              accessibilityLabel={`${money.label} ${formatMoney(money.value, money.currency)}${money.note ? `. ${money.note}` : ""}`}
-            >
-              <Text variant="micro" uppercase color={colors.text}>
-                {money.label}
-              </Text>
-              <Text color={colors.text} style={styles.moneyValue} numberOfLines={1} adjustsFontSizeToFit>
-                {formatMoney(shown, money.currency)}
-              </Text>
-              {money.note ? (
-                <Text variant="small" color={colors.accentInk} center>
-                  {money.note}
-                </Text>
-              ) : null}
-            </Animated.View>
-          ) : null}
+        <View style={styles.foods} accessible={false} importantForAccessibility="no-hide-descendants">
+          <Sparks style={styles.sparksLeft} />
+          {bubbles.map((bubble, index) => {
+            const scale = popAt(index);
+            const spot = SCATTER[index % SCATTER.length];
+            return (
+              <Animated.View
+                key={`${index}-${bubble.key}`}
+                style={[styles.bubble, index > 0 && styles.overlap, { transform: [{ translateY: spot.y }, { rotate: spot.rotate }, { scale }] }]}
+              >
+                {bubble.name ? (
+                  <FoodGlyph name={bubble.name} size={36} />
+                ) : (
+                  <Text variant="label" muted>
+                    {`+${more}`}
+                  </Text>
+                )}
+              </Animated.View>
+            );
+          })}
+          <Sparks style={styles.sparksRight} flip />
         </View>
 
-        {chips.length > 0 ? (
-          <Animated.View style={[styles.card, styles.chips, slice(0.1, 0.5)]}>
-            {chips.map((name, index) => (
-              <Animated.View key={`${index}-${name}`} style={[styles.chip, slice(0.15 + index * 0.06, 0.45 + index * 0.06)]}>
-                <FoodGlyph name={name} size={18} color={colors.text} />
-                <Text variant="small" color={colors.text} weight="bold" numberOfLines={1} style={styles.shrink}>
-                  {name}
-                </Text>
-              </Animated.View>
-            ))}
-            {more > 0 ? (
-              <Animated.View style={[styles.chip, slice(0.15 + chips.length * 0.06, 0.45 + chips.length * 0.06)]}>
-                <Text variant="small" muted>
-                  {`+${more}`}
-                </Text>
-              </Animated.View>
+        <Animated.View style={[styles.copy, slice(0.3, 0.6)]}>
+          <Text variant="small" muted center>
+            {eyebrow}
+          </Text>
+          <Text variant="h3" center accessibilityRole="header">
+            {title}
+          </Text>
+        </Animated.View>
+
+        {money ? (
+          <Animated.View
+            style={[styles.money, slice(0.4, 0.75)]}
+            accessible
+            accessibilityLabel={`${money.label} ${formatMoney(money.value, money.currency)}${money.note ? `. ${money.note}` : ""}`}
+          >
+            <Text variant="small" muted center>
+              {money.label}
+            </Text>
+            <Text color={colors.primary} style={styles.moneyValue} numberOfLines={1} adjustsFontSizeToFit>
+              {formatMoney(shown, money.currency)}
+            </Text>
+            {money.note ? (
+              <Text variant="small" muted center>
+                {money.note}
+              </Text>
             ) : null}
           </Animated.View>
         ) : null}
 
         {goal || streak ? (
-          <Animated.View style={[styles.card, styles.progress, slice(0.45, 0.9)]}>
-            <View style={styles.goal}>
-              {goal ? (
-                <>
-                  <GoalRing done={goal.done} total={goal.total} size={52} stroke={7} track={colors.accent} color={colors.text} />
-                  <Text variant="label" style={styles.shrink}>
-                    {goal.label}
-                  </Text>
-                </>
-              ) : null}
-            </View>
-            {streak ? (
-              <View style={styles.streak} accessible accessibilityLabel={`${streak.value} ${streak.label}`}>
-                <FlameIcon size={18} color={colors.primary} />
-                <Text variant="title" style={styles.number}>
-                  {streak.value}
+          <Animated.View style={[styles.status, slice(0.55, 0.9)]}>
+            {goal ? (
+              <View style={styles.statusItem}>
+                <CheckIcon />
+                <Text variant="small" weight="bold">
+                  {goal.label}
                 </Text>
-                <Text variant="small" color={colors.accentInk}>
-                  {streak.label}
+              </View>
+            ) : null}
+            {streak ? (
+              <View style={styles.statusItem} accessible accessibilityLabel={`${streak.value} ${streak.label}`}>
+                <FlameIcon size={16} color={colors.primary} />
+                <Text variant="small" weight="bold">
+                  {`${streak.value} ${streak.label}`}
                 </Text>
               </View>
             ) : null}
@@ -204,169 +211,117 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
       </ScrollView>
 
       <View style={styles.actions}>
-        {/* The share shape sits with the share action, not with the figures. */}
-        <SegmentedControl<ShareFormat>
-          value={format}
-          onChange={onFormat}
-          options={[
-            { value: "post", label: formatLabels.post },
-            { value: "story", label: formatLabels.story },
-          ]}
+        <Button title={doneLabel} onPress={onDone} style={styles.button} />
+        <Button
+          title={shareLabel}
+          variant="ghost"
+          loading={sharing}
+          onPress={pickFormat}
+          iconLeft={
+            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+              <Path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5" stroke={colors.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          }
+          style={[styles.button, styles.shareButton]}
         />
-        <View style={styles.buttons}>
-          <Button title={doneLabel} onPress={onDone} style={styles.button} />
-          <Button
-            title={shareLabel}
-            variant="ghost"
-            loading={sharing}
-            onPress={() => void share()}
-            iconLeft={
-              <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-                <Path d="M12 3v12M7 8l5-5 5 5M5 14v5h14v-5" stroke={colors.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            }
-            style={[styles.button, styles.shareButton]}
-          />
-        </View>
       </View>
     </Animated.View>
   );
 }
 
-const CHECK = 60;
+// Three gold strokes, the Kitchen's "What to cook next?" spark.
+function Sparks({ style, flip }: { style: object; flip?: boolean }) {
+  return (
+    <View style={[style, flip && styles.flip]} pointerEvents="none">
+      <Svg width={26} height={24} viewBox="0 0 30 26">
+        <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
+      </Svg>
+    </View>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.green} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+const BUBBLE = 60;
 
 const styles = StyleSheet.create({
   screen: {
     ...StyleSheet.absoluteFill,
     backgroundColor: colors.appBackground,
-    gap: spacing.md,
   },
   scroll: {
     flex: 1,
   },
+  // Centred in the space above the buttons.
   content: {
-    paddingHorizontal: spacing.screenX,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-    gap: spacing.lg,
-  },
-  // Solid tomato, no shadow, like the home's goal block; the darker blob
-  // clips at its edge.
-  hero: {
+    flexGrow: 1,
+    justifyContent: "center",
     alignItems: "center",
-    gap: spacing.sm,
-    padding: spacing.xl,
-    borderRadius: radii.xxl,
-    backgroundColor: colors.primary,
-    overflow: "hidden",
+    paddingHorizontal: spacing.screenX,
+    paddingVertical: spacing.xxl,
+    gap: spacing.xl,
   },
-  blob: {
-    position: "absolute",
-    right: -60,
-    top: -70,
-    width: 200,
-    height: 200,
-    borderRadius: radii.pill,
-    backgroundColor: colors.primary700,
-  },
-  checkSlot: {
-    width: CHECK,
-    height: CHECK,
-    marginBottom: spacing.xs,
-  },
-  check: {
-    width: CHECK,
-    height: CHECK,
-    borderRadius: CHECK / 2,
-    backgroundColor: colors.onPrimary,
+  foods: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-  },
-  burst: {
-    ...StyleSheet.absoluteFill,
-    borderRadius: CHECK / 2,
-    borderWidth: 2,
-    borderColor: colors.onPrimary,
-  },
-  soft: {
-    opacity: 0.85,
-  },
-  // Butter on tomato, like the home's streak pill, with the figure in ink.
-  money: {
-    alignSelf: "stretch",
-    alignItems: "center",
-    gap: spacing.xxs,
-    marginTop: spacing.sm,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.xl,
-    backgroundColor: colors.accentSoft,
+  },
+  bubble: {
+    width: BUBBLE,
+    height: BUBBLE,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadows.soft,
+  },
+  overlap: {
+    marginLeft: -12,
+  },
+  sparksLeft: {
+    alignSelf: "flex-start",
+    marginRight: spacing.xs,
+  },
+  sparksRight: {
+    alignSelf: "flex-end",
+    marginLeft: spacing.xs,
+  },
+  flip: {
+    transform: [{ scaleX: -1 }, { scaleY: -1 }],
+  },
+  copy: {
+    gap: spacing.xxs,
+  },
+  money: {
+    alignItems: "center",
   },
   moneyValue: {
     ...typography.display,
     fontVariant: ["tabular-nums"],
   },
-  // RecipeListCard's surface: white, 24pt corners, the soft lift.
-  card: {
-    padding: spacing.lg,
-    borderRadius: radii.xxl,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
-  },
-  chips: {
+  status: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
-    gap: spacing.xs,
+    columnGap: spacing.lg,
+    rowGap: spacing.xs,
   },
-  // The home's ingredient chip: outlined, the food's icon, its name.
-  chip: {
+  statusItem: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
-    maxWidth: "100%",
-    minHeight: 34,
-    paddingLeft: spacing.sm,
-    paddingRight: spacing.md,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    backgroundColor: colors.bg,
-  },
-  progress: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.md,
-  },
-  goal: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-  },
-  shrink: {
-    flexShrink: 1,
-  },
-  streak: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xxs,
-    height: 40,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    backgroundColor: colors.accentSoft,
-  },
-  number: {
-    fontVariant: ["tabular-nums"],
   },
   actions: {
-    paddingHorizontal: spacing.screenX,
-    gap: spacing.md,
-  },
-  buttons: {
     flexDirection: "row",
     gap: spacing.sm,
+    paddingHorizontal: spacing.screenX,
   },
   button: {
     flex: 1,

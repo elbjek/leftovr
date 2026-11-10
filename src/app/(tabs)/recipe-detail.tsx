@@ -7,7 +7,7 @@ import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
 import { BottomSheet, Button, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
-import type { ShareFormat } from "@/components";
+import type { ShareCardProps, ShareFormat } from "@/components";
 import { isPremium, useAuth } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
 import { asCountedPack, foodIconKey, formatMoney, newClientId } from "@/lib";
@@ -259,8 +259,10 @@ export default function RecipeDetailRoute() {
   const [extraAmount, setExtraAmount] = useState("1");
   const [extraUnit, setExtraUnit] = useState("item");
   const [cooking, setCooking] = useState(false);
-  const rewardImage = useShareImage();
-  const [rewardFormat, setRewardFormat] = useState<ShareFormat>("post");
+  // One export per shape, both drawn off screen, so the picked one is ready
+  // to capture the moment Post or Story is chosen.
+  const rewardPost = useShareImage();
+  const rewardStory = useShareImage();
   // The after-cook reward: what this cook used up, plus the figures it
   // moved (null when they couldn't be loaded).
   const [reward, setReward] = useState<{
@@ -497,12 +499,27 @@ export default function RecipeDetailRoute() {
     router.replace("/(tabs)/fridge");
   }
 
+  // The receipt the reward shares, the same in both shapes.
+  const rewardCard = (done: NonNullable<typeof reward>): ShareCardProps => ({
+    kind: "items",
+    kicker: t("recipes.reward.receiptKicker"),
+    title,
+    items: done.items.map((name) => ({ name })),
+    more: (count) => t("insights.share.receipt.more", { count }),
+    totals: done.streak ? [{ label: t("insights.share.receipt.streak"), value: String(done.streak.streak) }] : [],
+    hero: rewardMoney
+      ? { label: rewardMoney.label, value: formatMoney(rewardMoney.value, rewardMoney.currency) }
+      : { label: t("insights.share.receipt.rescued"), value: String(done.items.length) },
+    footnote: t("insights.share.receipt.footnote"),
+  });
+
   // Awaited by the reward's Share button (its spinner); a failure says so
   // instead of looking like a dead button.
-  async function shareReward() {
+  async function shareReward(format: ShareFormat) {
     if (!reward) return;
     try {
-      await rewardImage.share(t("recipes.reward.shareMessage", { count: reward.items.length, title }), rewardFormat);
+      const image = format === "story" ? rewardStory : rewardPost;
+      await image.share(t("recipes.reward.shareMessage", { count: reward.items.length, title }), format);
     } catch (error) {
       if (__DEV__) console.warn("[share] reward share failed", error);
       // An alert, not a toast: the toast host sits under this sheet's Modal.
@@ -815,29 +832,20 @@ export default function RecipeDetailRoute() {
               money={rewardMoney}
               doneLabel={t("recipes.reward.done")}
               shareLabel={t("recipes.reward.share")}
-              format={rewardFormat}
-              formatLabels={{ post: t("insights.share.post"), story: t("insights.share.story") }}
-              onFormat={setRewardFormat}
+              shareAs={{
+                title: t("recipes.reward.shareAs"),
+                post: t("insights.share.post"),
+                story: t("insights.share.story"),
+                cancel: t("common.cancel"),
+              }}
               onDone={finishReward}
               onShare={shareReward}
             />
             {reward ? (
-              <ShareCardExport
-                viewRef={rewardImage.ref}
-                format={rewardFormat}
-                kind="items"
-                kicker={t("recipes.reward.receiptKicker")}
-                title={title}
-                items={reward.items.map((name) => ({ name }))}
-                more={(count) => t("insights.share.receipt.more", { count })}
-                totals={reward.streak ? [{ label: t("insights.share.receipt.streak"), value: String(reward.streak.streak) }] : []}
-                hero={
-                  rewardMoney
-                    ? { label: rewardMoney.label, value: formatMoney(rewardMoney.value, rewardMoney.currency) }
-                    : { label: t("insights.share.receipt.rescued"), value: String(reward.items.length) }
-                }
-                footnote={t("insights.share.receipt.footnote")}
-              />
+              <>
+                <ShareCardExport viewRef={rewardPost.ref} format="post" {...rewardCard(reward)} />
+                <ShareCardExport viewRef={rewardStory.ref} format="story" {...rewardCard(reward)} />
+              </>
             ) : null}
           </>
         }
