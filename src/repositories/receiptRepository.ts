@@ -206,7 +206,7 @@ export async function confirmPantryScan(input: {
     throw scanError;
   }
 
-  if (kept.length > 0) {
+  if (kept.length > 0 && !(await scanAlreadyStocked(input.scanId))) {
     const inventoryRows = buildConfirmedReceiptInventoryRows(kept, {
       householdId: input.householdId,
       scanId: input.scanId,
@@ -223,6 +223,21 @@ export async function confirmPantryScan(input: {
   }
 
   return { scanId: input.scanId, addedCount: kept.length };
+}
+
+// Confirm can run twice for one scan: tapped again after a later step failed,
+// or a saved draft reopened after the app died mid-confirm. Items already
+// saved for the scan mean it was confirmed, so nothing is added (or spent)
+// twice. ponytail: if the first run saved items but not its spend events,
+// that spend stays missing; one confirm RPC in a transaction would close it.
+async function scanAlreadyStocked(scanId: string): Promise<boolean> {
+  const { data, error } = await getSupabaseClient()
+    .from("inventory_items")
+    .select("id")
+    .eq("source_scan_id", scanId)
+    .limit(1);
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
 }
 
 // The completed scan that owns this scan's receipt signature.
@@ -290,7 +305,7 @@ export async function confirmNormalizedReceiptScan(input: {
     throw scanError;
   }
 
-  if (kept.length > 0) {
+  if (kept.length > 0 && !(await scanAlreadyStocked(input.scanId))) {
     const inventoryRows = buildConfirmedReceiptInventoryRows(kept, {
       householdId: input.householdId,
       scanId: input.scanId,
