@@ -4,7 +4,7 @@ import Svg, { Path } from "react-native-svg";
 import { foodIconKey } from "../../lib/foodIcons";
 import { colors, radii, shadows, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { Divider, GlyphTile, StatusPill, Tappable, Text } from "../primitives";
+import { Divider, GlyphTile, StatusPill, Text } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 // The Insights tab's sections: each answers one question about your kitchen;
@@ -223,19 +223,14 @@ export function GoingOffList({
 }
 
 /** The period's most-cooked dinners as a menu on a white card: the dish, then how often. */
-export function TopDinners({ dinners }: { dinners: { title: string; detail: string; onPress?: () => void }[] }) {
+export function TopDinners({ dinners }: { dinners: { title: string; detail: string }[] }) {
   return (
     <View style={[styles.card, styles.listCard]}>
       {dinners.map((dinner, index) => (
         <View key={dinner.title}>
           {index > 0 ? <Divider /> : null}
-          <Tappable
-            role={dinner.onPress ? "button" : "text"}
-            disabled={!dinner.onPress}
-            onPress={dinner.onPress}
-            hitSlop={0}
-            style={styles.row}
-          >
+          {/* A plain row: a Tappable with no onPress drew as disabled (45%). */}
+          <View style={styles.row}>
             <View style={styles.well}>
               {/* A dish named after a food we have an icon for wears it. */}
               {foodIconKey(dinner.title) ? <FoodGlyph name={dinner.title} size={22} /> : <RecipeGlyph size={24} />}
@@ -246,7 +241,7 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
             <Text variant="small" weight="bold" color={colors.primary}>
               {dinner.detail}
             </Text>
-          </Tappable>
+          </View>
         </View>
       ))}
     </View>
