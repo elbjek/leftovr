@@ -209,7 +209,7 @@ export const en = {
         {
           key: "start",
           title: "Let's fill *your kitchen.*",
-          body: "Your first scan and first recipe are free.",
+          body: "Sign in to save your kitchen and keep it in sync across your devices. Your first scan and first recipe are free.",
           demo: {},
         },
       ],

@@ -9,7 +9,7 @@ import { KitchenPulse } from "./KitchenPulse";
 import { ScanMethod, ScanMethodIcon } from "./ScanMethodCard";
 
 // Pre-sign-in feature tour. Each slide has its own page colour from the app's
-// tints (peach, butter, sage, cream) with white lifted cards on top, like the
+// tints (peach, sage, cream, white) with white lifted cards on top, like the
 // home; Recipes is the one tomato slide. Each "stage" is built from app components fed with demo copy
 // from the locale files (`onboarding.hook.slides[].demo`), so the deck always
 // looks like the app.
@@ -41,36 +41,41 @@ export type ShowcaseTheme = {
   ink: string;
   muted: string;
   eyebrow: string;
+  /** Fill for small controls sitting straight on the page (Back, plan badge). */
+  chip: string;
   dark: boolean;
 };
 
-const light = (bg: string): ShowcaseTheme => ({
+const light = (bg: string, chip: string = colors.surface): ShowcaseTheme => ({
   bg,
   ink: colors.text,
   muted: colors.muted,
   eyebrow: colors.muted,
+  chip,
   dark: false,
 });
 const cream = light(colors.bg);
 const peach = light(colors.surface3);
-const butter = light(colors.accentSoft);
+// White chips would vanish on the white page, so they take the peach well.
+const white = light(colors.white, colors.surface2);
 const sage = light(colors.sageTint);
 const dark: ShowcaseTheme = {
   bg: colors.primary,
   ink: colors.onPrimary,
   muted: colors.onPrimary,
   eyebrow: colors.onPrimary,
+  chip: colors.inverseHairline,
   dark: true,
 };
 
 export const showcaseThemes: Record<ShowcaseSceneKey, ShowcaseTheme> = {
   welcome: peach,
-  add: butter,
+  add: white,
   kitchen: cream,
   recipes: dark,
   cook: sage,
   insights: peach,
-  household: butter,
+  household: white,
   start: cream,
 };
 
@@ -963,7 +968,7 @@ const styles = StyleSheet.create({
     height: 76,
     borderRadius: radii.xxl,
     borderWidth: 5,
-    borderColor: butter.bg,
+    borderColor: white.bg,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -209,7 +209,7 @@ export const sr = {
         {
           key: "start",
           title: "Hajde da napunimo *tvoju kuhinju.*",
-          body: "Prvo skeniranje i prvi recept su besplatni.",
+          body: "Prijavi se da sačuvaš svoju kuhinju i da ostane sinhronizovana na svim uređajima. Prvo skeniranje i prvi recept su besplatni.",
           demo: {},
         },
       ],

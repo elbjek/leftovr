@@ -96,7 +96,7 @@ export default function HookCarouselRoute() {
                       {item.eyebrow}
                     </Text>
                     {item.badge ? (
-                      <View style={styles.badge}>
+                      <View style={[styles.badge, { backgroundColor: slideTheme.chip }]}>
                         <Text variant="micro" color={colors.text}>
                           {item.badge}
                         </Text>
@@ -104,7 +104,7 @@ export default function HookCarouselRoute() {
                     ) : null}
                   </View>
                 ) : null}
-                <Text variant="h3" weight="regular" style={{ color: slideTheme.ink }}>
+                <Text variant="h3" weight="regular" center={index === lastIndex} style={{ color: slideTheme.ink }}>
                   {/* Words wrapped in *asterisks* in the locale copy render bold. */}
                   {item.title.split("*").map((part, partIndex) =>
                     partIndex % 2 ? (
@@ -116,7 +116,7 @@ export default function HookCarouselRoute() {
                     ),
                   )}
                 </Text>
-                <Text variant="body" color={slideTheme.muted}>
+                <Text variant="body" color={slideTheme.muted} center={index === lastIndex}>
                   {item.body}
                 </Text>
               </View>
@@ -198,9 +198,7 @@ export default function HookCarouselRoute() {
               hitSlop={0}
               style={[
                 styles.back,
-                {
-                  backgroundColor: theme.dark ? colors.inverseHairline : colors.surface,
-                },
+                { backgroundColor: theme.chip },
               ]}
             >
               <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
@@ -273,7 +271,6 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    backgroundColor: colors.surface,
     borderRadius: radii.pill,
   },
   footer: {
