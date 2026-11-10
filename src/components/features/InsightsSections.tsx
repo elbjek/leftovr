@@ -35,7 +35,7 @@ export function SectionTitle({ title, aside, caption }: { title: string; aside?:
 /** A section's line before there's data, or a green "all good" one. */
 export function EmptyNote({ text, good }: { text: string; good?: boolean }) {
   return (
-    <View style={[styles.card, styles.note, good && styles.noteGood]}>
+    <View style={[styles.card, styles.note]}>
       {good ? (
         <View style={styles.noteCheck}>
           <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
@@ -59,14 +59,15 @@ export type CalendarCell = {
   future?: boolean;
 };
 
-// Heat steps on the dark card for "more used": nothing (a faint white), a
-// little (deep tomato), more (tomato), the most (butter, dark label).
-const LEVELS = [colors.inverseHairline, colors.primary700, colors.primary, colors.accent] as const;
+// Heat steps on the white card for "more used", butter warming to tomato:
+// nothing (peach), a little (pale butter), more (butter), the most (tomato,
+// white label).
+const LEVELS = [colors.surface2, colors.accentSoft, colors.accent, colors.primary] as const;
 
 /**
  * The period as a heatmap: one cell per day (week, month) or per month
- * (year), on a dark card like the Premium one. Hotter = more used up that
- * day, the best one butter; a white dot in the corner = something was tossed.
+ * (year), on a white card like the home's. Hotter = more used up that
+ * day, the best one tomato; a dark dot in the corner = something was tossed.
  */
 export function UsageCalendar({
   cells,
@@ -87,12 +88,12 @@ export function UsageCalendar({
   const rows: CalendarCell[][] = [];
   for (let i = 0; i < cells.length; i += columns) rows.push(cells.slice(i, i + columns));
   return (
-    <View style={[styles.card, styles.darkCard]} accessible accessibilityLabel={label}>
+    <View style={styles.card} accessible accessibilityLabel={label}>
       <View style={styles.grid}>
         {head ? (
           <View style={styles.gridRow}>
             {head.map((day, index) => (
-              <Text key={index} variant="small" color={colors.muted2} center weight="bold" style={styles.cellSlot}>
+              <Text key={index} variant="small" muted center weight="bold" style={styles.cellSlot}>
                 {day}
               </Text>
             ))}
@@ -106,7 +107,7 @@ export function UsageCalendar({
               const level = cell.used === 0 ? 0 : Math.ceil((cell.used / max) * 3);
               return (
                 <View key={index} style={[styles.cellSlot, styles.cell, { backgroundColor: LEVELS[level] }, cell.future && styles.cellFuture]}>
-                  <Text variant="small" weight="bold" color={level === 3 ? colors.text : level === 0 ? colors.muted2 : colors.onPrimary} numberOfLines={1}>
+                  <Text variant="small" weight="bold" color={level === 3 ? colors.onPrimary : level === 0 ? colors.muted : colors.text} numberOfLines={1}>
                     {cell.label}
                   </Text>
                   {cell.tossed > 0 ? <View style={[styles.tossedDot, styles.cellDot]} /> : null}
@@ -118,22 +119,22 @@ export function UsageCalendar({
       </View>
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <Text variant="small" color={colors.muted2}>
+          <Text variant="small" muted>
             {legend.less}
           </Text>
           {LEVELS.map((level) => (
             <View key={level} style={[styles.legendSwatch, { backgroundColor: level }]} />
           ))}
-          <Text variant="small" color={colors.muted2}>
+          <Text variant="small" muted>
             {legend.more}
           </Text>
         </View>
         <View style={styles.legendItem}>
-          <Text variant="small" color={colors.muted2}>
+          <Text variant="small" muted>
             {legend.used}
           </Text>
           <View style={styles.tossedDot} />
-          <Text variant="small" color={colors.muted2}>
+          <Text variant="small" muted>
             {legend.tossed}
           </Text>
         </View>
@@ -195,7 +196,7 @@ export function GoingOffList({
   rows: { name: string; category: string; detail: string; outcomes: ("used" | "tossed")[]; label: string }[];
 }) {
   return (
-    <View style={[styles.card, styles.listCard, styles.peachCard]}>
+    <View style={[styles.card, styles.listCard]}>
       {rows.map((row, index) => (
         <View key={row.name}>
           {index > 0 ? <Divider /> : null}
@@ -221,13 +222,13 @@ export function GoingOffList({
   );
 }
 
-/** The period's most-cooked dinners as a menu on solid tomato: the dish, then how often. */
+/** The period's most-cooked dinners as a menu on a white card: the dish, then how often. */
 export function TopDinners({ dinners }: { dinners: { title: string; detail: string; onPress?: () => void }[] }) {
   return (
-    <View style={[styles.card, styles.listCard, styles.tomatoCard]}>
+    <View style={[styles.card, styles.listCard]}>
       {dinners.map((dinner, index) => (
         <View key={dinner.title}>
-          {index > 0 ? <Divider style={styles.tomatoRule} /> : null}
+          {index > 0 ? <Divider /> : null}
           <Tappable
             role={dinner.onPress ? "button" : "text"}
             disabled={!dinner.onPress}
@@ -235,14 +236,14 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
             hitSlop={0}
             style={styles.row}
           >
-            <View style={[styles.well, styles.wellWhite]}>
+            <View style={styles.well}>
               {/* A dish named after a food we have an icon for wears it. */}
               {foodIconKey(dinner.title) ? <FoodGlyph name={dinner.title} size={22} /> : <RecipeGlyph size={24} />}
             </View>
-            <Text variant="small" weight="bold" color={colors.onPrimary} numberOfLines={2} style={styles.rowBody}>
+            <Text variant="small" weight="bold" numberOfLines={2} style={styles.rowBody}>
               {dinner.title}
             </Text>
-            <Text variant="small" weight="bold" color={colors.onPrimary}>
+            <Text variant="small" weight="bold" color={colors.primary}>
               {dinner.detail}
             </Text>
           </Tappable>
@@ -286,15 +287,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
   },
-  noteGood: {
-    backgroundColor: colors.sageTint,
-    borderColor: colors.sageTint,
-  },
   noteCheck: {
     width: 26,
     height: 26,
     borderRadius: radii.md,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -325,17 +322,14 @@ const styles = StyleSheet.create({
   cellFuture: {
     opacity: 0.5,
   },
-  darkCard: {
-    backgroundColor: colors.text,
-  },
-  // Tossed: a white dot, dark-ringed so it shows on the butter cell too.
+  // Tossed: a dark dot, white-ringed so it shows on the tomato cell too.
   tossedDot: {
     width: 9,
     height: 9,
     borderRadius: radii.pill,
     borderWidth: 1.5,
-    borderColor: colors.text,
-    backgroundColor: colors.onPrimary,
+    borderColor: colors.surface,
+    backgroundColor: colors.text,
   },
   cellDot: {
     position: "absolute",
@@ -379,20 +373,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
-  },
-  wellWhite: {
-    backgroundColor: colors.surface,
-  },
-  peachCard: {
-    backgroundColor: colors.surface2,
-    boxShadow: undefined,
-  },
-  tomatoCard: {
-    backgroundColor: colors.primary,
-    boxShadow: undefined,
-  },
-  tomatoRule: {
-    backgroundColor: colors.inverseHairlineStrong,
   },
   progressTrack: {
     height: 8,

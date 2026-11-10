@@ -217,7 +217,7 @@ export default function InsightsRoute() {
             <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M4.5 10h15v10.5h-15zM8.2 10V7.6a3.8 3.8 0 017.6 0V10"
-                stroke={colors.onPrimary}
+                stroke={colors.primary}
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -235,7 +235,7 @@ export default function InsightsRoute() {
               <View key={point} style={styles.lockPoint}>
                 <View style={styles.lockTick}>
                   <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-                    <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.onPrimary} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
+                    <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
                 </View>
                 <Text variant="small" weight="bold" color={colors.onPrimary} style={styles.lockPointText}>
@@ -244,7 +244,7 @@ export default function InsightsRoute() {
               </View>
             ))}
           </View>
-          <Button title={t("insights.lock.action")} onPress={() => setShowPremium(true)} />
+          <Button title={t("insights.lock.action")} variant="accent" onPress={() => setShowPremium(true)} />
         </View>
         {sheets}
       </Screen>
@@ -576,12 +576,13 @@ const styles = StyleSheet.create({
   preview: {
     opacity: 0.35,
   },
-  // Dark like a dashboard's upgrade card, a tomato disc clipping the corner.
+  // Solid tomato like the home's goal block, a darker disc clipping the
+  // corner; the Unlock button is butter so it reads on tomato.
   lock: {
     gap: spacing.md,
     padding: spacing.xl,
     borderRadius: radii.xxl,
-    backgroundColor: colors.text,
+    backgroundColor: colors.primary,
     overflow: "hidden",
   },
   lockMark: {
@@ -591,7 +592,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: radii.pill,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary700,
   },
   lockBody: {
     opacity: 0.8,
@@ -600,7 +601,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radii.lg,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.onPrimary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -616,7 +617,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: radii.pill,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.onPrimary,
     alignItems: "center",
     justifyContent: "center",
   },
