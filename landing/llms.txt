@@ -59,10 +59,24 @@ $69.99/year. Yearly plans start with a 7-day free trial. Full detail: https://le
 - [Home](https://leftovr.co/): what it is, how it works, pricing, FAQ
 - [Home in Serbian](https://leftovr.co/sr/): the same page in Serbian (srpski)
 - [Pricing as data](https://leftovr.co/pricing.md): plans, limits, prices
-- [Blog](https://leftovr.co/blog/): food waste, meal planning and pantry guides
+- [Blog](https://leftovr.co/blog/): guides on cooking from what you already have, food waste, storage and pantry apps
 - [Privacy](https://leftovr.co/privacy/): receipt data is never sold; deletable any time
 - [Terms](https://leftovr.co/terms/)
 - [Refunds](https://leftovr.co/refund/)
+
+## Guides
+
+- [Meal Planner, Pantry App or Ingredient Search: Which Fits?](https://leftovr.co/blog/meal-planner-vs-pantry-app-vs-ingredient-search/): Four kinds of tools solve dinner differently. Here is what each asks of you, where each breaks, and who each one suits.
+- [How to Stop Throwing Away Food: 7 Habits That Work](https://leftovr.co/blog/stop-throwing-away-food/): Most food that gets thrown out was perfectly good on the day you bought it. The fix is mostly about attention, not willpower.
+- [The Real Cost of Food Waste for Your Household](https://leftovr.co/blog/real-cost-of-food-waste/): Food waste is easy to ignore because it is spread across many small bin trips. Added up, it is a real line in the budget.
+- [Meal Planning From What You Already Have](https://leftovr.co/blog/meal-planning-from-what-you-have/): Look at the kitchen first, plan two to four dinners around what needs eating, and shop only for what is missing.
+- [Photo, Receipt or Manual Entry for a Pantry Inventory](https://leftovr.co/blog/photo-receipt-or-manual-pantry-inventory/): Three ways to build a kitchen inventory, what each one misses, and why you should always check the list.
+- [How Long Does Food Last? A Practical Storage Guide](https://leftovr.co/blog/how-long-does-food-last/): Dates on packs are a starting point. Storage, temperature and what you do with food matter more than the printed day.
+- [Seven Dinners From an Almost Empty Fridge](https://leftovr.co/blog/seven-dinner-ideas-empty-fridge/): An empty fridge is rarely an empty kitchen. Five staples and a few seasonings cover a full week of dinners.
+- [Shop Smarter: Buy Less and Cook More](https://leftovr.co/blog/shopping-smarter-buy-less-cook-more/): Smarter shopping is not buying less of everything. It is buying on purpose, so more of what you pay for becomes dinner.
+- [Sharing a Kitchen Without the Food Chaos](https://leftovr.co/blog/sharing-kitchen-roommates-family/): Shared kitchens fail on information, not goodwill: nobody knows what is there, so everyone buys it again.
+- [How to Use Leftover Ingredients Before They Spoil](https://leftovr.co/blog/use-leftover-ingredients/): Leftover ingredients are unfinished meals, not failures. Here is how to give each odd and end a job.
+- [Why "What's for Dinner?" Is the Wrong Question](https://leftovr.co/blog/whats-for-dinner-wrong-question/): Dinner gets easier when you stop searching the whole world of recipes and start from the food that needs eating.
 
 ## Contact
 

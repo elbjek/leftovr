@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/blog/receipt-scanning-vs-manual-pantry/:path*",
+      "destination": "/blog/photo-receipt-or-manual-pantry-inventory/",
+      "permanent": true
+    }
+  ]
+}

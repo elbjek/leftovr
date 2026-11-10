@@ -1,21 +1,27 @@
 /* leftovr blog — shared styles matching landing design system */
 :root {
-  --primary: #1B4332;
-  --primary-700: #163829;
-  --primary-50: rgba(27, 67, 50, 0.06);
-  --primary-100: rgba(27, 67, 50, 0.12);
-  --surface: #F8F4EE;
-  --surface-2: #F1ECE2;
-  --accent: #D4A843;
-  --accent-soft: #F0DDA8;
-  --text: #1C1C1A;
-  --muted: #6B7A6D;
-  --muted-2: #9AA59C;
-  --page: #EFE9DD;
-  --card: #FFFEFB;
-  --hairline: rgba(27, 67, 50, 0.10);
-  --hairline-strong: rgba(27, 67, 50, 0.18);
-  --sans: "Plus Jakarta Sans", -apple-system, system-ui, sans-serif;
+  --primary: #D9503A;
+  --primary-700: #B8402C;
+  --primary-50: rgba(217, 80, 58, 0.06);
+  --primary-100: rgba(217, 80, 58, 0.12);
+  --surface: #FFF9F4;
+  --surface-2: #FBE3D6;
+  --accent: #F2B640;
+  --accent-soft: #FFE7A6;
+  --text: #1E1B19;
+  --muted: #6B5F57;
+  --muted-2: #B3A79E;
+  --page: #FDF1E8;
+  --card: #FFF9F4;
+  --card-line: #F3D9CB;
+  --hairline: rgba(30, 27, 25, 0.08);
+  --hairline-strong: rgba(30, 27, 25, 0.16);
+  --shadow-soft: 0 10px 26px rgba(170, 90, 50, 0.10);
+  --shadow-btn: 0 8px 24px rgba(217, 80, 58, 0.24);
+  --r-btn: 16px;
+  --r-card: 20px;
+  --sans: "Nunito Sans", -apple-system, system-ui, sans-serif;
+  --logo: "Plus Jakarta Sans", -apple-system, system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,13 +52,13 @@ img { max-width: 100%; display: block; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   height: 52px; padding: 0 24px;
-  border-radius: 999px; border: none; cursor: pointer;
-  font-family: inherit; font-weight: 600; font-size: 15px;
+  border-radius: var(--r-btn); border: none; cursor: pointer;
+  font-family: inherit; font-weight: 700; font-size: 16px;
   letter-spacing: -0.005em;
   transition: transform 0.15s ease, background 0.15s ease;
   white-space: nowrap;
 }
-.btn-primary { background: var(--primary); color: var(--surface); }
+.btn-primary { background: var(--primary); color: #fff; box-shadow: var(--shadow-btn); }
 .btn-primary:hover { background: var(--primary-700); }
 .btn-primary:active { transform: scale(0.98); }
 .btn-ghost {
@@ -65,7 +71,7 @@ img { max-width: 100%; display: block; }
 /* Header */
 header.bar {
   position: sticky; top: 0; z-index: 50;
-  background: rgba(239, 233, 221, 0.82);
+  background: rgba(253, 241, 232, 0.86);
   backdrop-filter: saturate(140%) blur(12px);
   border-bottom: 1px solid var(--hairline);
 }
@@ -75,12 +81,12 @@ header.bar {
 }
 .nav-brand { display: flex; flex-direction: column; gap: 1px; line-height: 1; }
 .nav-logo {
-  font-size: 25px; font-weight: 700;
-  letter-spacing: -0.01em; color: var(--primary);
+  font-family: var(--logo); font-size: 25px; font-weight: 800;
+  letter-spacing: -0.01em; color: var(--text);
   display: inline-flex; align-items: baseline; line-height: 1;
 }
 .nav-logo .logo-r {
-  color: var(--accent); display: inline-block;
+  color: var(--primary); display: inline-block;
   transform: rotate(9deg) translateY(0.03em); transform-origin: 50% 60%;
 }
 .nav-sub { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); }
@@ -97,7 +103,7 @@ header.bar {
   overflow: hidden;
 }
 .page-hero .eyebrow {
-  color: var(--accent);
+  color: var(--primary-700);
   display: inline-block;
   margin-bottom: 14px;
 }
@@ -128,7 +134,7 @@ header.bar {
 .blog-card {
   background: var(--card);
   border: 1px solid var(--hairline);
-  border-radius: 22px;
+  border-radius: var(--r-card);
   padding: 28px 26px;
   display: flex;
   flex-direction: column;
@@ -138,7 +144,7 @@ header.bar {
 }
 a.blog-card:hover {
   border-color: var(--hairline-strong);
-  box-shadow: 0 18px 40px -24px rgba(27, 67, 50, 0.28);
+  box-shadow: 0 18px 40px -24px rgba(170, 90, 50, 0.22);
   transform: translateY(-2px);
 }
 .blog-card .card-tag {
@@ -146,7 +152,7 @@ a.blog-card:hover {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--primary-700);
 }
 .blog-card h2 {
   font-family: var(--sans);
@@ -194,7 +200,7 @@ article.post {
   font-weight: 600;
 }
 .article-meta .tag {
-  color: var(--accent);
+  color: var(--primary-700);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-size: 11px;
@@ -233,7 +239,7 @@ article.post .deck {
 article.post .intro-card {
   background: var(--card);
   border: 1px solid var(--hairline);
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid var(--primary);
   border-radius: 16px;
   padding: 20px 22px;
   margin-bottom: 32px;
@@ -281,7 +287,7 @@ article.post a.inline {
   text-underline-offset: 2px;
   font-weight: 600;
 }
-article.post a.inline:hover { color: var(--accent); }
+article.post a.inline:hover { color: var(--primary); }
 
 .tip-box {
   background: var(--card);
@@ -295,7 +301,7 @@ article.post a.inline:hover { color: var(--accent); }
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--primary-700);
   margin-bottom: 8px;
 }
 .tip-box p:last-child { margin-bottom: 0; }
@@ -303,7 +309,7 @@ article.post a.inline:hover { color: var(--accent); }
 /* CTA band */
 .cta-band {
   background: var(--primary);
-  color: var(--surface);
+  color: #fff;
   border-radius: 24px;
   padding: 40px 36px;
   margin: 48px 0 0;
@@ -384,7 +390,7 @@ article.post a.inline:hover { color: var(--accent); }
   margin: 0 0 14px !important;
   letter-spacing: 0.06em !important;
   text-transform: uppercase;
-  color: var(--accent) !important;
+  color: var(--primary-700) !important;
   font-weight: 700 !important;
 }
 .takeaways ul { margin: 0 0 0 18px; }
@@ -488,3 +494,15 @@ footer {
   .cta-band { padding: 32px 22px; }
   .nav-sub { display: none; }
 }
+
+/* Comparison tables inside articles */
+article.post table {
+  width: 100%; border-collapse: collapse; margin: 0 0 24px; font-size: 15px;
+  background: var(--card); border: 1px solid var(--card-line); border-radius: var(--r-card);
+  overflow: hidden; display: block; overflow-x: auto;
+}
+article.post th, article.post td { padding: 12px 14px; text-align: left; vertical-align: top; }
+article.post thead th {
+  background: var(--surface-2); font-weight: 800; border-bottom: 1px solid var(--card-line);
+}
+article.post tbody tr + tr td { border-top: 1px solid var(--hairline); }
