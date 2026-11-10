@@ -46,7 +46,11 @@ Deno.serve(async (req) => {
       supabase.from("recipe_expand_events").select("*").eq("user_id", userId),
     ]);
 
-  const householdIds = (memberships.data ?? []).map((m) => m.household_id);
+  // Only kitchens the user is still in: leaving or removal keeps the member
+  // row (status 'removed'), and must end access to that kitchen's data.
+  const householdIds = (memberships.data ?? [])
+    .filter((m) => m.status === "active")
+    .map((m) => m.household_id);
   // Every household-scoped table the app keeps (C10: export used to stop at
   // inventory + recipes).
   const byHousehold = (table: string, column = "household_id") =>
