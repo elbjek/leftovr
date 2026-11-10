@@ -199,7 +199,7 @@ export default function HookCarouselRoute() {
               style={[
                 styles.back,
                 {
-                  backgroundColor: theme.dark ? colors.inverseHairline : colors.surface2,
+                  backgroundColor: theme.dark ? colors.inverseHairline : colors.surface,
                 },
               ]}
             >
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.surface,
     borderRadius: radii.pill,
   },
   footer: {

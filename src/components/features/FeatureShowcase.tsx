@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { AccessibilityInfo, Animated, Easing, Image, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { colors, fonts, radii, shadows, spacing, Urgency, urgencyColors } from "../../theme";
 import { Logo } from "../illustrations";
@@ -8,9 +8,9 @@ import { FoodCard } from "./FoodCard";
 import { KitchenPulse } from "./KitchenPulse";
 import { ScanMethod, ScanMethodIcon } from "./ScanMethodCard";
 
-// Pre-sign-in feature tour. Slides sit on the app's cream page with white
-// lifted cards and peach wells, like the home and Kitchen; Recipes is the one
-// tomato slide. Each "stage" is built from app components fed with demo copy
+// Pre-sign-in feature tour. Each slide has its own page colour from the app's
+// tints (peach, butter, sage, cream) with white lifted cards on top, like the
+// home; Recipes is the one tomato slide. Each "stage" is built from app components fed with demo copy
 // from the locale files (`onboarding.hook.slides[].demo`), so the deck always
 // looks like the app.
 
@@ -44,13 +44,17 @@ export type ShowcaseTheme = {
   dark: boolean;
 };
 
-const light: ShowcaseTheme = {
-  bg: colors.bg,
+const light = (bg: string): ShowcaseTheme => ({
+  bg,
   ink: colors.text,
   muted: colors.muted,
   eyebrow: colors.muted,
   dark: false,
-};
+});
+const cream = light(colors.bg);
+const peach = light(colors.surface3);
+const butter = light(colors.accentSoft);
+const sage = light(colors.sageTint);
 const dark: ShowcaseTheme = {
   bg: colors.primary,
   ink: colors.onPrimary,
@@ -60,14 +64,14 @@ const dark: ShowcaseTheme = {
 };
 
 export const showcaseThemes: Record<ShowcaseSceneKey, ShowcaseTheme> = {
-  welcome: light,
-  add: light,
-  kitchen: light,
+  welcome: peach,
+  add: butter,
+  kitchen: cream,
   recipes: dark,
-  cook: light,
-  insights: light,
-  household: light,
-  start: light,
+  cook: sage,
+  insights: peach,
+  household: butter,
+  start: cream,
 };
 
 export function ShowcaseStage({ slide, active }: { slide: ShowcaseSlide; active: boolean }) {
@@ -500,9 +504,9 @@ type InsightsDemo = {
 };
 
 const tileTone = {
-  spent: { bg: colors.surface2, ink: colors.text, label: colors.muted },
-  saved: { bg: colors.sageTint, ink: colors.primary, label: colors.primary },
-  wasted: { bg: colors.redSoft, ink: colors.redInk, label: colors.redInk },
+  spent: { ink: colors.text, label: colors.muted },
+  saved: { ink: colors.primary, label: colors.primary },
+  wasted: { ink: colors.redInk, label: colors.redInk },
 };
 
 function InsightsScene({ demo, active }: SceneProps<InsightsDemo>) {
@@ -542,7 +546,7 @@ function InsightsScene({ demo, active }: SceneProps<InsightsDemo>) {
           const tone = tileTone[tile.kind];
           return (
             <Reveal key={tile.label} active={active} delay={350 + index * 100} style={styles.flex1}>
-              <View style={[styles.statTile, { backgroundColor: tone.bg }]}>
+              <View style={styles.statTile}>
                 <Text variant="micro" color={tone.label}>
                   {tile.label}
                 </Text>
@@ -640,12 +644,15 @@ function StartScene({ active }: { active: boolean }) {
   return (
     <View style={[styles.stage, styles.startStage]}>
       <Reveal active={active}>
-        <Logo size={64} />
-      </Reveal>
-      <Reveal active={active} delay={300} style={styles.startDots}>
-        {[urgencyColors.urgent, urgencyColors.useSoon, urgencyColors.safe].map((color) => (
-          <View key={color} style={[styles.startDot, { backgroundColor: color }]} />
-        ))}
+        {/* The app icon: the stacked badge with its steam wisps. */}
+        <View style={styles.startBadgeLift}>
+          <Image
+            source={require("../../../assets/images/icon.png")}
+            style={styles.startBadge}
+            accessibilityRole="image"
+            accessibilityLabel="leftovr"
+          />
+        </View>
       </Reveal>
     </View>
   );
@@ -942,6 +949,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
     borderRadius: radii.md,
+    backgroundColor: colors.surface,
   },
   // household
   avatars: {
@@ -955,7 +963,7 @@ const styles = StyleSheet.create({
     height: 76,
     borderRadius: radii.xxl,
     borderWidth: 5,
-    borderColor: colors.bg,
+    borderColor: butter.bg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -991,15 +999,15 @@ const styles = StyleSheet.create({
   // start
   startStage: {
     alignItems: "center",
-    gap: spacing.lg,
   },
-  startDots: {
-    flexDirection: "row",
-    gap: spacing.sm,
+  // The shadow sits on a wrapper: the image clips to its rounded corners.
+  startBadgeLift: {
+    borderRadius: radii.xxl + spacing.sm,
+    ...shadows.soft,
   },
-  startDot: {
-    width: 12,
-    height: 12,
-    borderRadius: radii.xs,
+  startBadge: {
+    width: 148,
+    height: 148,
+    borderRadius: radii.xxl + spacing.sm,
   },
 });
