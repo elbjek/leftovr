@@ -292,6 +292,7 @@ export const en = {
     noMatchTitle: "Nothing matches.",
     noMatchBody: "Try another spelling, or check the other groups.",
     tiles: {
+      title: "Your kitchen",
       itemsSoon_one: "{{count}} item · {{soon}} soon",
       itemsSoon_other: "{{count}} items · {{soon}} soon",
     },

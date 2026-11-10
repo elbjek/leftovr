@@ -295,6 +295,7 @@ export const sr = {
     noMatchTitle: "Ništa ne odgovara.",
     noMatchBody: "Probaj drugačije da napišeš ili pogledaj ostale grupe.",
     tiles: {
+      title: "Tvoja kuhinja",
       itemsSoon_one: "{{count}} namirnica · {{soon}} uskoro",
       itemsSoon_few: "{{count}} namirnice · {{soon}} uskoro",
       itemsSoon_other: "{{count}} namirnica · {{soon}} uskoro",

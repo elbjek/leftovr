@@ -17,7 +17,7 @@ import {
   toUiCategory,
   toUiUrgency,
 } from "@/services";
-import { CategoryTone, Urgency, categoryColors, colors, radii, shadows, spacing, typography } from "@/theme";
+import { CategoryTone, Urgency, categoryColors, colors, radii, shadows, spacing, typography, urgencyColors } from "@/theme";
 import { router, useFocusEffect } from "expo-router";
 import { FoodGlyph, Logo } from "@/components/illustrations";
 
@@ -337,30 +337,28 @@ export default function FridgeRoute() {
             />
           ) : null}
 
-          {isPremium && groups.length > 0 ? (
-            <FoodListCard
+          {isPremium && useSoonGroups.length > 0 ? (
+            <UseSoonStrip
               title={t("fridge.shelves.useSoon")}
-              maxVisible={3}
               seeAllLabel={t("fridge.shelves.seeAllCount", { count: useSoonGroups.length })}
               onSeeAll={() => setView("soon")}
+              items={useSoonGroups.slice(0, 8).map((group) => ({
+                id: group.key,
+                name: group.name,
+                category: toUiCategory(group.category),
+                urgency: toUiUrgency(group.urgency),
+                meta: computeBestByLabel(group, t),
+              }))}
+              onItemPress={(id) => setActionGroup(groups.find((group) => group.key === id) ?? null)}
+            />
+          ) : null}
+
+          {isPremium && groups.length > 0 && useSoonGroups.length === 0 ? (
+            <FoodListCard
+              title={t("fridge.shelves.useSoon")}
               emptyText={t("fridge.useSoonEmpty")}
-              items={useSoonGroups.map((group) => {
-                const today = new Date();
-                const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + Math.max(0, groupDaysLeft(group)));
-                return {
-                  id: group.key,
-                  name: group.name,
-                  category: toUiCategory(group.category),
-                  meta: computeBestByLabel(group, t) || getCardMetaLines(group.meta).join(" · "),
-                  urgency: toUiUrgency(group.urgency),
-                  status: statusLabels[toUiUrgency(group.urgency)],
-                  date: {
-                    weekday: date.toLocaleDateString(undefined, { weekday: "short" }),
-                    day: String(date.getDate()),
-                  },
-                };
-              })}
-              onItemPress={(item) => setActionGroup(groups.find((group) => group.key === item.id) ?? null)}
+              items={[]}
+              onItemPress={() => undefined}
             />
           ) : null}
 
@@ -389,17 +387,6 @@ export default function FridgeRoute() {
           ) : null}
 
 
-          {/* Guideline 1.4.1: the dates here are estimates, not printed
-              best-before dates, so never let the app be the last word on
-              whether food is safe. */}
-          {groups.length > 0 ? (
-            <View style={styles.safetyNote}>
-              <Text variant="micro" muted>
-                {t("fridge.safetyNote")}
-              </Text>
-            </View>
-          ) : null}
-
           {loading ? (
             <View style={styles.centerState}>
               <GeneratingLoader size={110} />
@@ -419,6 +406,44 @@ export default function FridgeRoute() {
 
           {!loading && !error && groups.length === 0 ? <EmptyFridge /> : null}
 
+          {/* The kitchen itself, the screen's main block: one white tile per
+              category, three across, each opening its list. */}
+          {categoryTiles.length > 0 ? (
+            <View style={styles.tilesSection}>
+              <View style={styles.tilesHead}>
+                <Text variant="h2" accessibilityRole="header">
+                  {t("fridge.tiles.title")}
+                </Text>
+                <Tappable role="link" onPress={() => setView("all")}>
+                  <Text variant="label" color={colors.primary}>
+                    {t("fridge.shelves.seeAllCount", { count: activeGroups.length })}
+                  </Text>
+                </Tappable>
+              </View>
+              <View style={styles.tiles}>
+                {categoryTiles.map((tile) => {
+                  const tone = categoryColors[toUiCategory(tile.category) as CategoryTone] ?? categoryColors.other;
+                  return (
+                    <Tappable
+                      key={tile.category}
+                      label={`${tile.label}, ${tile.detail}`}
+                      onPress={() => setView(tile.category)}
+                      style={[styles.tile]}
+                    >
+                      <FoodGlyph name="" category={tile.category} color={tone.mark} size={68} />
+                      <Text variant="label" numberOfLines={1} center>
+                        {tile.label}
+                      </Text>
+                      <Text variant="micro" muted numberOfLines={1} center>
+                        {tile.detail}
+                      </Text>
+                    </Tappable>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
           {runningLowGroups.length > 0 ? (
             <CategoryShelf
               name={t("fridge.shelves.runningLow")}
@@ -432,33 +457,17 @@ export default function FridgeRoute() {
             />
           ) : null}
 
-          {/* The food library: one tinted tile per category, four across,
-              each opening its list. */}
-          {categoryTiles.length > 0 ? (
-            <View style={styles.tilesSection}>
-              <View style={styles.tiles}>
-                {categoryTiles.map((tile) => {
-                  const tone = categoryColors[toUiCategory(tile.category) as CategoryTone] ?? categoryColors.other;
-                  return (
-                    <Tappable
-                      key={tile.category}
-                      label={`${tile.label}, ${tile.detail}`}
-                      onPress={() => setView(tile.category)}
-                      style={[styles.tile]}
-                    >
-                      <FoodGlyph name="" category={tile.category} color={tone.mark} size={52} />
-                      <Text variant="small" numberOfLines={1} weight="bold" center>
-                        {tile.label}
-                      </Text>
-                      <Text variant="micro" muted numberOfLines={1} center>
-                        {tile.detail}
-                      </Text>
-                    </Tappable>
-                  );
-                })}
-              </View>
+          {/* Guideline 1.4.1: the dates here are estimates, not printed
+              best-before dates, so never let the app be the last word on
+              whether food is safe. */}
+          {groups.length > 0 ? (
+            <View style={styles.safetyNote}>
+              <Text variant="micro" muted>
+                {t("fridge.safetyNote")}
+              </Text>
             </View>
           ) : null}
+
         </>
       )}
 
@@ -551,6 +560,63 @@ function CookNextCard({ title, body, cta, onPress }: { title: string; body: stri
           </Svg>
         </Tappable>
       </View>
+    </View>
+  );
+}
+
+// "Use soon", kept small so the kitchen below leads: a title row and one
+// sideways strip of little white cards (food, name, best-by line, an urgency dot).
+function UseSoonStrip({
+  title,
+  seeAllLabel,
+  onSeeAll,
+  items,
+  onItemPress,
+}: {
+  title: string;
+  seeAllLabel: string;
+  onSeeAll: () => void;
+  items: { id: string; name: string; category: string; urgency: Urgency; meta: string }[];
+  onItemPress: (id: string) => void;
+}) {
+  return (
+    <View style={styles.soon}>
+      <View style={styles.soonHead}>
+        <Text variant="h3" accessibilityRole="header">
+          {title}
+        </Text>
+        <Tappable role="link" label={seeAllLabel} onPress={onSeeAll}>
+          <Text variant="label" color={colors.primary}>
+            {seeAllLabel}
+          </Text>
+        </Tappable>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.soonRow}>
+        {items.map((item) => (
+          <Tappable
+            key={item.id}
+            label={`${item.name}, ${item.meta}`}
+            onPress={() => onItemPress(item.id)}
+            hitSlop={0}
+            style={[styles.soonCard]}
+          >
+            <View style={styles.soonFood}>
+              <FoodGlyph name={item.name} category={item.category} size={34} />
+            </View>
+            <View style={styles.soonCopy}>
+              <Text variant="label" numberOfLines={1}>
+                {item.name}
+              </Text>
+              <View style={styles.soonMeta}>
+                <View style={[styles.soonDot, { backgroundColor: urgencyColors[item.urgency] }]} />
+                <Text variant="small" muted numberOfLines={1}>
+                  {item.meta}
+                </Text>
+              </View>
+            </View>
+          </Tappable>
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -1286,8 +1352,62 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
+  soon: {
+    gap: spacing.xs,
+  },
+  soonHead: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.screenX,
+  },
+  // Vertical padding leaves room for the cards' shadow inside the scroller.
+  soonRow: {
+    gap: spacing.sm,
+    paddingHorizontal: spacing.screenX,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.lg,
+  },
+  soonCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: spacing.sm,
+    paddingRight: spacing.lg,
+    borderRadius: radii.xl,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
+  },
+  soonFood: {
+    width: 44,
+    height: 44,
+    borderRadius: radii.md,
+    backgroundColor: colors.sageTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  soonCopy: {
+    maxWidth: 148,
+    gap: 2,
+  },
+  soonMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  soonDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
   tilesSection: {
     marginHorizontal: spacing.screenX,
+    gap: spacing.md,
+  },
+  tilesHead: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
   },
   tiles: {
     flexDirection: "row",
@@ -1295,13 +1415,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   tile: {
-    // Four per row: a quarter of the row minus the gaps.
-    width: "23.4%",
+    // Three per row: a third of the row minus the gaps.
+    width: "31.3%",
     alignItems: "center",
     gap: 2,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xxs,
-    borderRadius: radii.xl,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radii.xxl,
     backgroundColor: colors.surface,
     ...shadows.soft,
   },
