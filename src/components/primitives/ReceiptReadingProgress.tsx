@@ -153,7 +153,7 @@ export function ReceiptReadingProgress({
     <View style={styles.wrap}>
       <ReceiptPulse />
       <View style={styles.copy}>
-        <Text variant="h1" center>
+        <Text variant="h3" center>
           {t(titleKey)}
         </Text>
         <Text variant="body" muted center style={styles.body}>

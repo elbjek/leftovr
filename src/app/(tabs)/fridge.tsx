@@ -294,7 +294,7 @@ export default function FridgeRoute() {
               </Svg>
             </Tappable>
             <View style={styles.resultsCopy}>
-              <Text variant="h2" numberOfLines={1}>
+              <Text variant="h3" numberOfLines={1}>
                 {resultsTitle}
               </Text>
               <Text variant="small" muted>
@@ -407,11 +407,11 @@ export default function FridgeRoute() {
           {!loading && !error && groups.length === 0 ? <EmptyFridge /> : null}
 
           {/* The kitchen itself, the screen's main block: one white tile per
-              category, three across, each opening its list. */}
+              category, four across, each opening its list. */}
           {categoryTiles.length > 0 ? (
             <View style={styles.tilesSection}>
               <View style={styles.tilesHead}>
-                <Text variant="h2" accessibilityRole="header">
+                <Text variant="h3" accessibilityRole="header">
                   {t("fridge.tiles.title")}
                 </Text>
                 <Tappable role="link" onPress={() => setView("all")}>
@@ -430,8 +430,8 @@ export default function FridgeRoute() {
                       onPress={() => setView(tile.category)}
                       style={[styles.tile]}
                     >
-                      <FoodGlyph name="" category={tile.category} color={tone.mark} size={68} />
-                      <Text variant="label" numberOfLines={1} center>
+                      <FoodGlyph name="" category={tile.category} color={tone.mark} size={52} />
+                      <Text variant="small" numberOfLines={1} weight="bold" center>
                         {tile.label}
                       </Text>
                       <Text variant="micro" muted numberOfLines={1} center>
@@ -732,7 +732,7 @@ function CheckTheseSheet({
       <BottomSheet visible={visible} onDismiss={onDismiss}>
         <View style={styles.sheetContent}>
           <View style={styles.sheetCopy}>
-            <Text variant="h2">{labels.tossConfirmTitle(selected.size)}</Text>
+            <Text variant="h3">{labels.tossConfirmTitle(selected.size)}</Text>
             <Text variant="body" muted>
               {labels.tossConfirmBody}
             </Text>
@@ -758,7 +758,7 @@ function CheckTheseSheet({
     <BottomSheet visible={visible} onDismiss={onDismiss}>
       <View style={styles.sheetContent}>
         <View style={styles.checkHeadCopy}>
-          <Text variant="h2">
+          <Text variant="h3">
             {labels.title}
           </Text>
           <Text variant="small" muted>
@@ -941,7 +941,7 @@ function ItemActionSheet({
       <BottomSheet visible={Boolean(group)} onDismiss={onDismiss}>
         <View style={styles.sheetContent}>
           <View style={styles.sheetCopy}>
-            <Text variant="h2">{labels.removeTitle}</Text>
+            <Text variant="h3">{labels.removeTitle}</Text>
             <Text variant="body" muted>
               {group ? labels.removeBody.replace("{{item}}", group.name) : labels.removeBody}
             </Text>
@@ -966,7 +966,7 @@ function ItemActionSheet({
             <FoodGlyph name={group?.name ?? ""} category={group?.category} color={tone.mark} size={34} />
           </View>
           <View style={styles.itemHeadCopy}>
-            <Text variant="h2" numberOfLines={2}>
+            <Text variant="h3" numberOfLines={2}>
               {group?.name}
             </Text>
             {group?.meta ? (
@@ -1402,7 +1402,7 @@ const styles = StyleSheet.create({
   },
   tilesSection: {
     marginHorizontal: spacing.screenX,
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   tilesHead: {
     flexDirection: "row",
@@ -1415,13 +1415,13 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   tile: {
-    // Three per row: a third of the row minus the gaps.
-    width: "31.3%",
+    // Four per row: a quarter of the row minus the gaps.
+    width: "23.4%",
     alignItems: "center",
     gap: 2,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xs,
-    borderRadius: radii.xxl,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xxs,
+    borderRadius: radii.xl,
     backgroundColor: colors.surface,
     ...shadows.soft,
   },

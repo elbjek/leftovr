@@ -551,7 +551,7 @@ export default function SettingsRoute() {
       {/* Edit name sheet */}
       <BottomSheet visible={editingName} onDismiss={() => setEditingName(false)}>
         <View style={styles.sheetContent}>
-          <Text variant="h2">{t("settings.displayNameLabel")}</Text>
+          <Text variant="h3">{t("settings.displayNameLabel")}</Text>
           <TextField
             label={t("settings.displayNameLabel")}
             placeholder={t("settings.displayNamePlaceholder")}
@@ -566,7 +566,7 @@ export default function SettingsRoute() {
       {/* Language sheet */}
       <BottomSheet visible={editingLanguage} onDismiss={() => setEditingLanguage(false)}>
         <View style={styles.sheetContent}>
-          <Text variant="h2">{t("settings.languageTitle")}</Text>
+          <Text variant="h3">{t("settings.languageTitle")}</Text>
           <View style={styles.choiceList}>
             {languageOptions.map((option) => (
               <ChoiceCard
@@ -587,7 +587,7 @@ export default function SettingsRoute() {
       {/* Units sheet */}
       <BottomSheet visible={editingUnits} onDismiss={() => setEditingUnits(false)}>
         <View style={styles.sheetContent}>
-          <Text variant="h2">{t("settings.unitsTitle")}</Text>
+          <Text variant="h3">{t("settings.unitsTitle")}</Text>
           <View style={styles.choiceList}>
             {(["metric", "imperial"] as const).map((value) => (
               <ChoiceCard
@@ -608,7 +608,7 @@ export default function SettingsRoute() {
       {/* Currency sheet */}
       <BottomSheet visible={editingCurrency} onDismiss={() => setEditingCurrency(false)}>
         <View style={styles.sheetContent}>
-          <Text variant="h2">{t("settings.currencyTitle")}</Text>
+          <Text variant="h3">{t("settings.currencyTitle")}</Text>
           <View style={styles.choiceList}>
             {CURRENCY_OPTIONS.map((code) => (
               <ChoiceCard
@@ -626,7 +626,7 @@ export default function SettingsRoute() {
       {/* Edit primary goal sheet */}
       <BottomSheet visible={editingGoal} onDismiss={() => setEditingGoal(false)}>
         <View style={styles.sheetContent}>
-          <Text variant="h2">{t("settings.primaryGoalLabel")}</Text>
+          <Text variant="h3">{t("settings.primaryGoalLabel")}</Text>
           <View style={styles.choiceList}>
             {PRIMARY_GOAL_OPTIONS.map((value) => (
               <ChoiceCard
@@ -644,7 +644,7 @@ export default function SettingsRoute() {
       {/* Edit shopping style sheet */}
       <BottomSheet visible={editingStyle} onDismiss={() => setEditingStyle(false)}>
         <View style={styles.sheetContent}>
-          <Text variant="h2">{t("settings.shoppingStyleLabel")}</Text>
+          <Text variant="h3">{t("settings.shoppingStyleLabel")}</Text>
           <View style={styles.choiceList}>
             {SHOPPING_STYLE_OPTIONS.map((value) => (
               <ChoiceCard
@@ -662,7 +662,7 @@ export default function SettingsRoute() {
       {/* Edit avoidances sheet */}
       <BottomSheet visible={editingAvoidances} onDismiss={() => setEditingAvoidances(false)}>
         <View style={styles.sheetContent}>
-          <Text variant="h2">{t("settings.avoidancesLabel")}</Text>
+          <Text variant="h3">{t("settings.avoidancesLabel")}</Text>
           <Text variant="small" muted>{t("settings.avoidancesBody")}</Text>
           <View style={styles.choiceList}>
             {AVOIDANCE_OPTIONS.map((value) => (
@@ -682,7 +682,7 @@ export default function SettingsRoute() {
       {/* Edit servings sheet */}
       <BottomSheet visible={editingServings} onDismiss={() => setEditingServings(false)}>
         <View style={styles.sheetContent}>
-          <Text variant="h2">{t("settings.servingsTitle")}</Text>
+          <Text variant="h3">{t("settings.servingsTitle")}</Text>
           <Text variant="small" muted>{t("settings.servingsBody")}</Text>
           <View style={styles.servingsGrid}>
             {SERVINGS_OPTIONS.map((count) => (
@@ -714,7 +714,7 @@ export default function SettingsRoute() {
         onDismiss={() => setWindowPicker(null)}
       >
         <View style={styles.sheetContent}>
-          <Text variant="h2">
+          <Text variant="h3">
             {windowPicker === "end" ? t("notifications.sendWindowEnd") : t("notifications.sendWindowStart")}
           </Text>
           {windowPicker !== null ? (

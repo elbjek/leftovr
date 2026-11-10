@@ -10,7 +10,9 @@ type Props = {
   subtitle?: string;
   /** A count, a "See all", an icon button — rendered at the trailing edge. */
   actions?: React.ReactNode;
-  /** "sheet" is the bigger title a BottomSheet opens with. */
+  /** "sheet" gives a BottomSheet title a body-size subtitle. The title itself
+   *  is h3 either way: no heading in the app is bigger than the home's
+   *  "More for you". */
   level?: Level;
   style?: StyleProp<ViewStyle>;
 };
@@ -20,7 +22,7 @@ type Props = {
  * the same shape of API.
  *
  * Two patterns in the app collapse into this one. The larger is the sheet
- * title: `<Text variant="h2">` at the top of a BottomSheet, 16 times, often
+ * title: `<Text variant="h3">` at the top of a BottomSheet, 16 times, often
  * with a muted line under it. The smaller is the section head row — title
  * left, count or action right, baseline-aligned — written eight times under
  * five different names (sectionHead, titleRow, headerRow, head, resultsHead).
@@ -34,7 +36,7 @@ export function SectionHeader({ title, subtitle, actions, level = "section", sty
   return (
     <View style={[styles.wrap, style]}>
       <View style={styles.copy}>
-        <Text variant={isSheet ? "h2" : "h3"} accessibilityRole="header">
+        <Text variant="h3" accessibilityRole="header">
           {title}
         </Text>
         {subtitle ? (

@@ -777,7 +777,7 @@ export default function ScanRoute() {
         <Screen>
           <View style={styles.center}>
             <ScanMethodIcon method="receipt" />
-            <Text variant="display" center>
+            <Text variant="h3" center>
               {t("scan.cameraTitle")}
             </Text>
             <Text variant="body" muted center>
@@ -856,7 +856,7 @@ export default function ScanRoute() {
         <Screen>
           <View style={styles.center}>
             <ScanMethodIcon method="pantry" />
-            <Text variant="display" center>
+            <Text variant="h3" center>
               {t("scan.pantry.cameraTitle")}
             </Text>
             <Text variant="body" muted center>
@@ -964,7 +964,7 @@ export default function ScanRoute() {
         <Screen>
           <View style={styles.center}>
             <ScanMethodIcon method="barcode" />
-            <Text variant="display" center>
+            <Text variant="h3" center>
               {t("scan.barcodeCameraTitle")}
             </Text>
             <Text variant="body" muted center>
@@ -1039,7 +1039,7 @@ export default function ScanRoute() {
       <Screen>
         <View style={styles.center}>
           <ScanMethodIcon method="barcode" />
-          <Text variant="display" center>
+          <Text variant="h3" center>
             {t("scan.unknownBarcodeTitle")}
           </Text>
           <Text variant="body" muted center>
@@ -1062,7 +1062,7 @@ export default function ScanRoute() {
           <ScanMethodIcon
             method={choice === "ereceipt" ? "ereceipt" : choice === "pantry" ? "pantry" : "receipt"}
           />
-          <Text variant="display" center>
+          <Text variant="h3" center>
             {choice === "pantry" ? t("scan.pantry.emptyTitle") : t("scan.emptyScanTitle")}
           </Text>
           <Text variant="body" muted center>
@@ -1330,7 +1330,7 @@ export default function ScanRoute() {
       <Screen>
         <View style={styles.center}>
           <ReceiptToFridgeIllustration />
-          <Text variant="display" center>
+          <Text variant="h3" center>
             {t("scan.duplicateTitle")}
           </Text>
           <Text variant="body" muted center>
@@ -1358,8 +1358,8 @@ export default function ScanRoute() {
           <Text variant="micro" center style={styles.successKicker}>
             {t("scan.successTitle")}
           </Text>
-          <Text variant="display" center>
-            <Text variant="display" style={styles.successCount}>
+          <Text variant="h3" center>
+            <Text variant="h3" style={styles.successCount}>
               {result?.addedCount ?? 0}
             </Text>{" "}
             {t("scan.successItems")}
@@ -1383,7 +1383,7 @@ export default function ScanRoute() {
       <Screen>
         <View style={styles.center}>
           <AliveIcon />
-          <Text variant="display" center>
+          <Text variant="h3" center>
             {t("scan.addSuccessTitle")}
           </Text>
           <Text variant="body" muted center>
@@ -1405,7 +1405,7 @@ export default function ScanRoute() {
           <Card style={styles.notificationIcon}>
             <BellIcon />
           </Card>
-          <Text variant="display" center>
+          <Text variant="h3" center>
             {t("scan.notificationsTitle")}
           </Text>
           <Text variant="body" muted center>

@@ -158,7 +158,7 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
         </Text>
       </View>
 
-      <Text variant="h1" center style={styles.headline}>
+      <Text variant="h3" center style={styles.headline}>
         {hasAnyPremium ? t("premium.manageHeadline") : t("premium.headline")}
       </Text>
       <Text variant="body" muted center style={styles.subtitle}>

@@ -236,7 +236,7 @@ export default function AllRecipesRoute() {
       />
 
       <BottomSheet visible={showFilters} onDismiss={() => setShowFilters(false)}>
-        <Text variant="h2" style={styles.filterSheetTitle}>{t("recipes.filterSheet.title")}</Text>
+        <Text variant="h3" style={styles.filterSheetTitle}>{t("recipes.filterSheet.title")}</Text>
 
         <Text variant="small" muted style={styles.filterSectionLabel}>
           {t("recipes.filterSheet.category")}

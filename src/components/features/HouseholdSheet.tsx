@@ -83,7 +83,7 @@ export function HouseholdSheet({ visible, onClose, itemCount, initialJoinCode }:
           automaticallyAdjustKeyboardInsets
           showsVerticalScrollIndicator={false}
         >
-          <Text variant="h2">{currentName}</Text>
+          <Text variant="h3">{currentName}</Text>
           <TextField
             label={t("settings.household.kitchenName")}
             value={name}

@@ -105,11 +105,11 @@ export default function HookCarouselRoute() {
                     ) : null}
                   </View>
                 ) : null}
-                <Text variant="h1" weight="regular" style={{ color: slideTheme.ink }}>
+                <Text variant="h3" weight="regular" style={{ color: slideTheme.ink }}>
                   {/* Words wrapped in *asterisks* in the locale copy render bold. */}
                   {item.title.split("*").map((part, partIndex) =>
                     partIndex % 2 ? (
-                      <Text key={partIndex} variant="h1" weight="extrabold" style={{ color: slideTheme.ink }}>
+                      <Text key={partIndex} variant="h3" weight="extrabold" style={{ color: slideTheme.ink }}>
                         {part}
                       </Text>
                     ) : (

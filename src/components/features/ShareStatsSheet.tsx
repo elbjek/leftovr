@@ -58,7 +58,7 @@ export function ShareStatsSheet({ visible, onDismiss, title, looks, labels }: Pr
       overlay={<ShareCardExport viewRef={image.ref} format={format} {...look.card} />}
     >
       <View style={styles.content}>
-        <Text variant="h2" accessibilityRole="header">
+        <Text variant="h3" accessibilityRole="header">
           {title}
         </Text>
 

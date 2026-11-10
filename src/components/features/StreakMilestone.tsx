@@ -51,7 +51,7 @@ export function StreakMilestone({ visible, onDismiss, days, title, body, freezeN
           </Text>
         </Animated.View>
 
-        <Text variant="h2" style={styles.title}>
+        <Text variant="h3" style={styles.title}>
           {title}
         </Text>
         <Text variant="small" muted style={styles.body}>

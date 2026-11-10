@@ -596,7 +596,7 @@ export default function RecipeDetailRoute() {
             ) : null}
           </View>
         ) : null}
-        <Text variant="h1">{title}</Text>
+        <Text variant="h3">{title}</Text>
         {description ? (
           <Text variant="body" muted style={styles.description}>
             {description}
@@ -839,7 +839,7 @@ export default function RecipeDetailRoute() {
             <Text variant="micro" color={colors.accent} style={styles.cookedEyebrow}>
               {t("recipes.cooked.eyebrow")}
             </Text>
-            <Text variant="h1" style={styles.cookedTitle}>{t("recipes.cooked.title")}</Text>
+            <Text variant="h3" style={styles.cookedTitle}>{t("recipes.cooked.title")}</Text>
             <Text variant="body" muted style={styles.cookedBody}>{t("recipes.cooked.body")}</Text>
 
             <ScrollView
@@ -951,7 +951,7 @@ export default function RecipeDetailRoute() {
           </>
         ) : extraTarget ? (
           <>
-            <Text variant="h2" style={styles.cookedTitle}>
+            <Text variant="h3" style={styles.cookedTitle}>
               {t("recipes.cooked.swapAmountTitle", { item: extraTarget.name })}
             </Text>
             <View style={styles.extraAmountRow}>
@@ -997,7 +997,7 @@ export default function RecipeDetailRoute() {
           </>
         ) : (
           <>
-            <Text variant="h2" style={styles.cookedTitle}>
+            <Text variant="h3" style={styles.cookedTitle}>
               {swapIndex === "add"
                 ? t("recipes.cooked.swapAddTitle")
                 : t("recipes.cooked.swapTitle", { item: cookedItems[swapIndex]?.name ?? "" })}

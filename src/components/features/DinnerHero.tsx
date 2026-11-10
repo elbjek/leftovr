@@ -30,7 +30,7 @@ export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIco
           <Text variant="micro" uppercase color={colors.primary} style={styles.eyebrow}>
             {eyebrow}
           </Text>
-          <Text variant="h2" style={styles.title}>
+          <Text variant="h3" style={styles.title}>
             {title}
           </Text>
           {body ? (

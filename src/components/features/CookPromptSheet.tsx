@@ -135,7 +135,7 @@ export function CookPromptSheet({
             <Text variant="micro" muted uppercase>
               {labels.eyebrow}
             </Text>
-            <Text variant="h1">{labels.title}</Text>
+            <Text variant="h3">{labels.title}</Text>
           </View>
           <IconButton label="Close" transparent onPress={onDismiss}>
             <CloseIcon />

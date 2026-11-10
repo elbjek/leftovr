@@ -46,9 +46,9 @@ export default function LanguageRoute() {
         </View>
 
         <View style={styles.copy}>
-          <Text variant="display">
+          <Text variant="h3">
             {t("onboarding.language.title")}
-            <Text variant="display" color={colors.primary} italic>
+            <Text variant="h3" color={colors.primary} italic>
               {"\n"}
               {t("onboarding.language.titleAccent")}
             </Text>

@@ -201,7 +201,7 @@ function WelcomeScene({ demo, active }: SceneProps<WelcomeDemo>) {
                 {demo.recipe.time}
               </Text>
             </View>
-            <Text variant="h2" color={colors.onPrimary}>
+            <Text variant="h3" color={colors.onPrimary}>
               {demo.recipe.title}
             </Text>
           </View>
@@ -372,7 +372,7 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
                 {demo.time}
               </Text>
             </View>
-            <Text variant="h2" color={colors.onPrimary}>
+            <Text variant="h3" color={colors.onPrimary}>
               {demo.title}
             </Text>
             <View style={styles.ingredients}>

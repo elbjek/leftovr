@@ -53,7 +53,7 @@ export function ScanMethodCard({ method, body, recommended = false, featured = f
           <View style={styles.heroIcon}>
             <ScanMethodIcon method={method} size={26} />
           </View>
-          <Text variant="h2" color={colors.onPrimary}>
+          <Text variant="h3" color={colors.onPrimary}>
             {title}
           </Text>
           <Text variant="small" color={colors.onPrimary} style={styles.heroBody}>

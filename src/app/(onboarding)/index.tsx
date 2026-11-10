@@ -175,7 +175,7 @@ export default function OnboardingRoute() {
               {stepCopy.eyebrow}
             </Text>
           ) : null}
-          <Text variant="h1">
+          <Text variant="h3">
             {stepCopy.title}
           </Text>
           {stepCopy.body ? (

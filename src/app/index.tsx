@@ -30,7 +30,7 @@ export default function IndexRoute() {
     return (
       <Screen>
         <View style={styles.block}>
-          <Text variant="display">{t("auth.configTitle")}</Text>
+          <Text variant="h3">{t("auth.configTitle")}</Text>
           <Text variant="body" muted>
             {t("auth.configBody")}
           </Text>

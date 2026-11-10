@@ -32,7 +32,7 @@ export function EatFirstShelf({ count, labels, onUpgradePress }: Props) {
                 {labels.kicker}
               </Text>
             </View>
-            <Text variant="h2" style={styles.title}>
+            <Text variant="h3" style={styles.title}>
               {labels.previewTitle}
             </Text>
             <Text variant="small" muted style={styles.body}>

@@ -45,7 +45,7 @@ export function UnitPicker({ label, value, onChange, containerStyle, boxStyle }:
       </Pressable>
 
       <BottomSheet visible={open} onDismiss={() => setOpen(false)}>
-        <Text variant="h2" style={styles.sheetTitle}>
+        <Text variant="h3" style={styles.sheetTitle}>
           {t("units.selectTitle")}
         </Text>
         <ScrollView showsVerticalScrollIndicator={false}>

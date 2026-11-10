@@ -144,7 +144,7 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps }: Generati
         <Text variant="micro" uppercase muted style={styles.eyebrow}>
           {eyebrow}
         </Text>
-        <Text variant="h1" style={styles.title}>
+        <Text variant="h3" style={styles.title}>
           {title}
         </Text>
         <View style={styles.steps}>

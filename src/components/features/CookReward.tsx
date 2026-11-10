@@ -117,7 +117,7 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
         <Text variant="micro" muted uppercase center>
           {eyebrow}
         </Text>
-        <Text variant="h1" center accessibilityRole="header">
+        <Text variant="h3" center accessibilityRole="header">
           {title}
         </Text>
         {chips.length > 0 ? (

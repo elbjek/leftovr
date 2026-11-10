@@ -115,7 +115,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
       </View>
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {quickLookRows.length > 0 ? (
-          <Text variant="h2" style={styles.quickLookTitle}>
+          <Text variant="h3" style={styles.quickLookTitle}>
             {t("scan.confirm.quickLookTitle", { count: quickLookRows.length })}
           </Text>
         ) : null}
@@ -251,7 +251,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
 
       <BottomSheet visible={categoryRow != null} onDismiss={() => setCategoryRowId(null)}>
         <View style={styles.categorySheet}>
-          <Text variant="h2">{t("scan.confirm.categoryTitle")}</Text>
+          <Text variant="h3">{t("scan.confirm.categoryTitle")}</Text>
           <Text variant="small" muted>{categoryRow?.name}</Text>
           <View style={styles.categoryChips}>
             {INVENTORY_CATEGORIES.map((category) => (

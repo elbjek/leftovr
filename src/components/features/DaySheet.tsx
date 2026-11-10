@@ -33,7 +33,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, soon, lab
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text variant="h2">
+        <Text variant="h3">
           {title}
         </Text>
         {saved ? (

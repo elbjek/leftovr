@@ -22,7 +22,7 @@ export function ScreenHeader({ title, eyebrow, subtitle, actions, style }: Props
             {eyebrow}
           </Text>
         ) : null}
-        <Text variant="h1" accessibilityRole="header" style={eyebrow ? styles.titleWithEyebrow : undefined}>
+        <Text variant="h3" accessibilityRole="header" style={eyebrow ? styles.titleWithEyebrow : undefined}>
           {title}
         </Text>
         {subtitle ? (

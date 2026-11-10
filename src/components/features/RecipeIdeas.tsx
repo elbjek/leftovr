@@ -260,7 +260,7 @@ export function IdeasResults({
         </Text>
       </Pressable>
       <View style={styles.resultsHead}>
-        <Text variant="h1" accessibilityRole="header">
+        <Text variant="h3" accessibilityRole="header">
           {title}
         </Text>
         {subtitle ? (

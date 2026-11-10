@@ -27,7 +27,7 @@ export function EmptyFridge({ title, body, ctaLabel, style }: Props) {
         <ReceiptToFridgeIllustration width={240} height={172} />
       </View>
       <View style={styles.copy}>
-        <Text variant="h2" center>
+        <Text variant="h3" center>
           {title ?? t("fridge.emptyTitle")}
         </Text>
         <Text variant="body" muted center style={styles.body}>

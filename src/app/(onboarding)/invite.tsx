@@ -30,7 +30,7 @@ export default function InviteCodeRoute() {
             <Text variant="micro" color={colors.accentInk} uppercase>
               {t("onboarding.invite.eyebrow")}
             </Text>
-            <Text variant="h1">{t("onboarding.invite.title")}</Text>
+            <Text variant="h3">{t("onboarding.invite.title")}</Text>
             <Text variant="body" muted>
               {t("onboarding.invite.body")}
             </Text>

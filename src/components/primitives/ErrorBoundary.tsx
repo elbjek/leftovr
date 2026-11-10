@@ -38,7 +38,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     }
     return (
       <View style={styles.container}>
-        <Text variant="h2" center>
+        <Text variant="h3" center>
           {i18n.t("errorBoundary.title")}
         </Text>
         <Text variant="body" muted center style={styles.body}>

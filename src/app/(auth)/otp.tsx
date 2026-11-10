@@ -88,7 +88,7 @@ export default function OtpRoute() {
     <Screen scroll>
       <View style={styles.wrap}>
         <View style={styles.copy}>
-          <Text variant="display">{title}</Text>
+          <Text variant="h3">{title}</Text>
           <Text variant="body" muted>
             {body}
           </Text>
