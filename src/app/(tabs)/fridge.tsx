@@ -444,8 +444,7 @@ export default function FridgeRoute() {
                       key={tile.category}
                       label={`${tile.label}, ${tile.detail}`}
                       onPress={() => setView(tile.category)}
-                      // A light wash of the category tint (hex alpha).
-                      style={[styles.tile, { backgroundColor: `${tone.background}55` }]}
+                      style={[styles.tile]}
                     >
                       <FoodGlyph name="" category={tile.category} color={tone.mark} size={52} />
                       <Text variant="small" numberOfLines={1} weight="bold" center>
@@ -516,8 +515,8 @@ export default function FridgeRoute() {
 }
 
 // "What to cook next?": the Kitchen's way into recipes that use what's going
-// off — copy and a tomato button on the left, broccoli and avocado on a
-// peach blob right.
+// off. The home's goal block, taller: solid tomato, white copy and a butter
+// button on the left, broccoli and avocado on a darker tomato blob right.
 function CookNextCard({ title, body, cta, onPress }: { title: string; body: string; cta: string; onPress: () => void }) {
   return (
     <View style={styles.cookNextWrap}>
@@ -527,8 +526,7 @@ function CookNextCard({ title, body, cta, onPress }: { title: string; body: stri
           <Svg width={34} height={30} viewBox="0 0 30 26" style={styles.cookNextSpark}>
             <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
           </Svg>
-          {/* Greens: they stand out on peach, where the red tomato and pale
-              mushrooms blended in. */}
+          {/* Greens: they stand out on tomato. */}
           <View style={styles.cookNextTomato}>
             <FoodGlyph name="broccoli" size={72} />
           </View>
@@ -537,19 +535,19 @@ function CookNextCard({ title, body, cta, onPress }: { title: string; body: stri
           </View>
         </View>
         <View style={styles.cookNextCopy}>
-          <Text variant="h3">
+          <Text variant="h3" color={colors.onPrimary}>
             {title}
           </Text>
-          <Text variant="small" muted>
+          <Text variant="small" color={colors.onPrimary} style={styles.cookNextBody}>
             {body}
           </Text>
         </View>
         <Tappable label={cta} onPress={onPress} style={[styles.cookNextButton]}>
-          <Text variant="label" color={colors.onPrimary}>
+          <Text variant="label" color={colors.text}>
             {cta}
           </Text>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Path d="M5 12h14M13 6l6 6-6 6" stroke={colors.onPrimary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+            <Path d="M5 12h14M13 6l6 6-6 6" stroke={colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
         </Tappable>
       </View>
@@ -1144,17 +1142,20 @@ const styles = StyleSheet.create({
   cookNextWrap: {
     paddingHorizontal: spacing.screenX,
   },
-  // Compact: one-line title, the two foods stacked tight.
+  // Solid tomato, no shadow, like the home's goal block.
   cookNext: {
     overflow: "hidden",
-    borderRadius: radii.xxl,
-    backgroundColor: colors.surface2,
+    borderRadius: radii.xl,
+    backgroundColor: colors.primary,
     padding: spacing.lg,
     gap: spacing.md,
   },
   cookNextCopy: {
     width: "64%",
     gap: spacing.xxs,
+  },
+  cookNextBody: {
+    opacity: 0.85,
   },
   cookNextArt: {
     position: "absolute",
@@ -1170,7 +1171,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: radii.pill,
-    backgroundColor: colors.surface3,
+    backgroundColor: colors.primary700,
   },
   cookNextSpark: {
     position: "absolute",
@@ -1192,10 +1193,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    minHeight: 44,
+    minHeight: 48,
     paddingHorizontal: spacing.lg,
-    borderRadius: radii.pill,
-    backgroundColor: colors.primary,
+    borderRadius: radii.lg,
+    backgroundColor: colors.accentSoft,
   },
   safetyNote: {
     paddingHorizontal: spacing.screenX,
@@ -1207,9 +1208,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.cardLine,
-    borderRadius: radii.pill,
-    minHeight: 50,
+    borderColor: colors.surface,
+    borderRadius: radii.lg,
+    minHeight: 52,
+    ...shadows.soft,
   },
   searchFieldFocused: {
     borderColor: colors.primary,
@@ -1286,9 +1288,6 @@ const styles = StyleSheet.create({
   },
   tilesSection: {
     marginHorizontal: spacing.screenX,
-    paddingTop: spacing.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.hairline,
   },
   tiles: {
     flexDirection: "row",
@@ -1303,6 +1302,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xxs,
     borderRadius: radii.xl,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
   },
   refreshButton: {
     minHeight: 38,
@@ -1447,7 +1448,7 @@ const styles = StyleSheet.create({
   checkActionBtn: {
     flex: 1,
     minHeight: 54,
-    borderRadius: radii.pill,
+    borderRadius: radii.lg,
     alignItems: "center",
     justifyContent: "center",
   },

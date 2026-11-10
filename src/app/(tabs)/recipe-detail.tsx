@@ -1381,7 +1381,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
     backgroundColor: colors.primary50,
-    borderRadius: radii.pill,
+    borderRadius: radii.lg,
   },
   addExtraRow: {
     alignItems: "center",

@@ -858,7 +858,7 @@ const styles = StyleSheet.create({
   },
   windowPill: {
     backgroundColor: colors.primary50,
-    borderRadius: radii.pill,
+    borderRadius: radii.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     minHeight: 32,

@@ -2,9 +2,9 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { Urgency, colors, radii, spacing, urgencyColors } from "../../theme";
+import { Urgency, colors, radii, shadows, spacing, urgencyColors } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { Divider, ListRow, StatusPill, Tappable, Text } from "../primitives";
+import { ListRow, StatusPill, Tappable, Text } from "../primitives";
 
 export type FoodListItem = {
   id: string;
@@ -33,9 +33,9 @@ type Props = {
   emptyText?: string;
 };
 
-/** A shelf on the Kitchen home: a big title, then food rows straight on the
- *  page — a peach date tile (when dated), the food on its round tint, name
- *  over meta, the status pill and a chevron. */
+/** A shelf on the Kitchen: the home's list pattern. A section title, then
+ *  one white card per food — an outlined date tile (when dated), the food on
+ *  a sage rounded tile, name over meta, and the status pill. */
 export function FoodListCard({
   title,
   items,
@@ -52,7 +52,7 @@ export function FoodListCard({
   return (
     <View style={styles.wrap}>
       <View style={styles.head}>
-        <Text variant="h2" accessibilityRole="header">
+        <Text variant="h3" accessibilityRole="header">
           {title}
         </Text>
         {showSeeAll ? (
@@ -62,15 +62,16 @@ export function FoodListCard({
             </Text>
           </Tappable>
         ) : (
-          <Text variant="label" color={colors.primary}>
+          <Text variant="small" muted>
             {items.length}
           </Text>
         )}
       </View>
 
-      <View>
+      <View style={styles.cards}>
         {items.length === 0 && emptyText ? (
           <ListRow
+            style={styles.card}
             title={emptyText}
             leading={
               <View style={styles.emptyCheck}>
@@ -91,6 +92,8 @@ export function FoodListCard({
         {visible.map((item) => (
           <React.Fragment key={item.id}>
             <ListRow
+              style={styles.card}
+              chevron={false}
               title={item.name}
               subtitle={item.addedBy ? `${item.meta} · ${item.addedBy}` : item.meta}
               leading={
@@ -105,8 +108,8 @@ export function FoodListCard({
                       </Text>
                     </View>
                   ) : null}
-                  {/* One sage well and a big icon: category tints and peach
-                      both hid pale foods (white cheese on cream). */}
+                  {/* The home's thumbnail shape in sage: category tints and
+                      peach both hid pale foods (white cheese on cream). */}
                   <View style={styles.food}>
                     <FoodGlyph name={item.name} category={item.category} size={50} />
                   </View>
@@ -131,10 +134,7 @@ export function FoodListCard({
         ))}
 
         {footer && items.length > 0 ? (
-          <>
-            {visible.length > 0 ? <Divider /> : null}
-            <ListRow title={footer.label} onPress={footer.onPress} style={styles.footer} />
-          </>
+          <ListRow title={footer.label} onPress={footer.onPress} style={[styles.card, styles.footer]} />
         ) : null}
       </View>
     </View>
@@ -150,7 +150,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "baseline",
     justifyContent: "space-between",
-    paddingHorizontal: spacing.xxs,
+  },
+  cards: {
+    gap: spacing.sm,
+  },
+  // RecipeListCard's surface: white, 24pt corners, the soft lift.
+  card: {
+    padding: spacing.md,
+    borderRadius: radii.xxl,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
   },
   leading: {
     flexDirection: "row",
@@ -160,19 +169,19 @@ const styles = StyleSheet.create({
   food: {
     width: 64,
     height: 64,
-    borderRadius: radii.pill,
+    borderRadius: radii.lg,
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
   },
-  // Neutral, so the row's only red is the status pill.
+  // Outlined on the page cream, like the home's ingredient chips.
   date: {
     width: 48,
-    height: 56,
-    borderRadius: radii.md,
+    height: 64,
+    borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.cardLine,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.bg,
     alignItems: "center",
     justifyContent: "center",
   },

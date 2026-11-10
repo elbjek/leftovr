@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
   choice: {
     flex: 1,
     height: 40,
-    borderRadius: radii.pill,
+    borderRadius: radii.sm,
     alignItems: "center",
     justifyContent: "center",
   },
