@@ -736,12 +736,14 @@ export const sr = {
         lunch: "Rucak",
         dinner: "Vecera",
         snack: "Uzina",
+        side: "Prilog",
       },
       mealSubtitles: {
         breakfast: "Ujutru",
         lunch: "U podne",
         dinner: "Veceras",
         snack: "Bilo kad",
+        side: "Uz glavno jelo",
       },
       buildAround: "Napravi od",
       baseOptions: {

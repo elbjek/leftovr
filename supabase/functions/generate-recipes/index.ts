@@ -26,7 +26,7 @@ type GenerateRecipesRequest = {
   // BCP-47 language code from the user's device locale (e.g. "sr", "es").
   language?: string;
   filters?: {
-    mealType?: "breakfast" | "lunch" | "dinner" | "snack";
+    mealType?: "breakfast" | "lunch" | "dinner" | "snack" | "side";
     maxMinutes?: number;
     minMinutes?: number;
     vibe?: string;
@@ -634,7 +634,7 @@ const SYSTEM_PROMPT = [
   "Snacks, drinks and finished sweet products (a chocolate croissant, a candy bar, soda) aren't cooking ingredients. Use them only as themselves, or in a dessert where they make sense.",
   "Only suggest dishes the household can make right now. Every essential ingredient, meaning one the dish can't be made without (flour in pancakes, rice in fried rice), must be in the household list. You can assume water, salt, pepper, cooking oil and common dried herbs and spices. Optional extras like a garnish or a squeeze of lemon can be missing.",
   "If the food can't make a real dish (for example, the kitchen holds only snacks and drinks), return an empty list rather than inventing one. When there is a real dish to make, return it, even if it leaves some items unused.",
-  "Unless the meal type is snack, each suggestion is a dish that makes the meal on its own: a main course, not a side (coleslaw, a side salad, plain rice or mash) and not a dessert. A salad or soup is fine when it's a full meal (a chicken Caesar, a lentil soup).",
+  "When the meal type is side, suggest side dishes that go with a main (coleslaw, roasted potatoes, a side salad). Otherwise, unless the meal type is snack, each suggestion is a dish that makes the meal on its own: a main course, not a side (coleslaw, a side salad, plain rice or mash) and not a dessert. A salad or soup is fine when it's a full meal (a chicken Caesar, a lentil soup).",
   "A recipe's title, description and ingredients all describe the same dish, made from the same household food. Leave out every avoided ingredient. Respect the filters: the meal type, the time limit, and the vibe as a tag when one is set.",
   "Titles name the dish the way a friend would say it, in the requested language: two to five words, leading with the dish and its main ingredient or technique. Use the real name of a recognised dish (Shakshuka, Carbonara, Tortilla de patatas); otherwise describe it plainly. Sentence case, with no punctuation, emoji, quotes, filler adjectives (delicious, easy, hearty) or lists of ingredients. For example: \"Garlic butter chicken\", \"Spinach feta scramble\", \"Tomato basil pasta\".",
   "Descriptions are one short sentence. Use up to three tags.",

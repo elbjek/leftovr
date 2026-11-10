@@ -719,12 +719,14 @@ export const en = {
         lunch: "Lunch",
         dinner: "Dinner",
         snack: "Snack",
+        side: "Side",
       },
       mealSubtitles: {
         breakfast: "Morning",
         lunch: "Midday",
         dinner: "Tonight",
         snack: "Anytime",
+        side: "With a main",
       },
       buildAround: "Build around",
       baseOptions: {

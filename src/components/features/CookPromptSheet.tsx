@@ -28,14 +28,14 @@ export type Cuisine =
   | "eastern_european";
 
 export type CookFilters = {
-  mealType?: "breakfast" | "lunch" | "dinner" | "snack";
+  mealType?: "breakfast" | "lunch" | "dinner" | "snack" | "side";
   maxMinutes?: number;
   minMinutes?: number;
   cuisine?: Cuisine;
   basePreference?: BasePreference;
 };
 
-type Meal = "breakfast" | "lunch" | "dinner" | "snack";
+type Meal = "breakfast" | "lunch" | "dinner" | "snack" | "side";
 type MealOption = "any" | Meal;
 type TimeOption = "any" | "15" | "30" | "norush";
 
@@ -73,7 +73,7 @@ type Props = {
   onGenerate: (filters?: CookFilters) => void;
 };
 
-const MEAL_OPTIONS: Meal[] = ["breakfast", "lunch", "dinner", "snack"];
+const MEAL_OPTIONS: Meal[] = ["breakfast", "lunch", "dinner", "snack", "side"];
 const TIME_OPTIONS: Exclude<TimeOption, "any">[] = ["15", "30", "norush"];
 // Single-select cuisine guide, sent to the AI as a soft preference.
 const CUISINE_OPTIONS: Cuisine[] = [
@@ -416,6 +416,15 @@ function MealIcon({ meal, color }: { meal: Meal; color: string }) {
       <Svg width={22} height={22} viewBox="0 0 24 24">
         <Path d="M8 4v6m-1.6-6v6M9.6 4v6M8 10v10" {...props} />
         <Path d="M16 4c-1.6 0-2.4 2-2.4 4.5S14.4 13 16 13v7" {...props} />
+      </Svg>
+    );
+  }
+  if (meal === "side") {
+    // Small side bowl beside a plate
+    return (
+      <Svg width={22} height={22} viewBox="0 0 24 24">
+        <Circle cx={9} cy={12} r={6} {...props} />
+        <Path d="M15.5 15h6a3 3 0 0 1-6 0Z" {...props} />
       </Svg>
     );
   }

@@ -58,7 +58,7 @@ export type RecipeMatcherInput = {
   isPremium: boolean;
   servings?: number;
   filters?: {
-    mealType?: "breakfast" | "lunch" | "dinner" | "snack";
+    mealType?: "breakfast" | "lunch" | "dinner" | "snack" | "side";
     maxMinutes?: number;
     minMinutes?: number;
     vibe?: string;
@@ -92,7 +92,8 @@ export function matchRecipes(
   const filters = input.filters;
   const filtered = library.filter((recipe) => {
     if (violatesAvoidances(recipe, avoidances)) return false;
-    if (filters?.mealType && recipe.mealType !== filters.mealType) return false;
+    // ponytail: the mock library has no sides, so "side" doesn't filter it.
+    if (filters?.mealType && filters.mealType !== "side" && recipe.mealType !== filters.mealType) return false;
     if (filters?.maxMinutes != null && recipe.timeMinutes > filters.maxMinutes) return false;
     if (filters?.minMinutes != null && recipe.timeMinutes < filters.minMinutes) return false;
     if (filters?.vibe && !recipe.tags.includes(filters.vibe)) return false;

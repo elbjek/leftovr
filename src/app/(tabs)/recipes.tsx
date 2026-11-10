@@ -637,12 +637,14 @@ export default function RecipesRoute() {
             lunch: t("recipes.cookPrompt.mealOptions.lunch"),
             dinner: t("recipes.cookPrompt.mealOptions.dinner"),
             snack: t("recipes.cookPrompt.mealOptions.snack"),
+            side: t("recipes.cookPrompt.mealOptions.side"),
           },
           mealSubtitles: {
             breakfast: t("recipes.cookPrompt.mealSubtitles.breakfast"),
             lunch: t("recipes.cookPrompt.mealSubtitles.lunch"),
             dinner: t("recipes.cookPrompt.mealSubtitles.dinner"),
             snack: t("recipes.cookPrompt.mealSubtitles.snack"),
+            side: t("recipes.cookPrompt.mealSubtitles.side"),
           },
           buildAround: t("recipes.cookPrompt.buildAround"),
           baseOptions: {
