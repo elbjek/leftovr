@@ -603,6 +603,13 @@
   .sec-sub { font-size: 18px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
 
   /* How it works */
+  .how-film {
+    max-width: 980px; margin: 0 auto 28px;
+    border-radius: 32px; overflow: hidden;
+    background: var(--page); box-shadow: var(--shadow-soft);
+    aspect-ratio: 16 / 9;
+  }
+  .how-film video { display: block; width: 100%; height: 100%; object-fit: cover; }
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
   .step-card {
     background: var(--card); box-shadow: var(--shadow-soft);
@@ -970,6 +977,7 @@
     .final h2 { font-size: 34px; }
     .final { padding: 0 12px 56px; }
     .final .sec-pad { padding-block: 52px; border-radius: 28px; }
+    .how-film { border-radius: 20px; }
     .capture-row { flex-direction: column; }
     .capture-row .btn { width: 100%; height: 56px; }
     /* Full width + 16px font stops iOS Safari zooming on focus; taller for presence. */
@@ -1489,6 +1497,14 @@
         <div class="micro eyebrow" data-i18n="how.eyebrow">How it works</div>
         <h2 class="sec-title" data-i18n-html="how.title">Shelves in. <span class="mark">Dinner out.</span></h2>
         <p class="sec-sub" data-i18n="how.sub">Three steps, one of which you already do every time you shop.</p>
+      </div>
+
+      <!-- The loop the three steps describe, as one 15s film. Source:
+           video/landing-loop (HyperFrames). No sound; plays only in view. -->
+      <div class="how-film">
+        <video muted loop playsinline preload="none" poster="/video/leftovr-loop-poster.jpg" width="1920" height="1080" data-i18n-aria="how.film" aria-label="leftovr in fifteen seconds: photograph your shelves, see what to eat first, cook a recipe from it, and your kitchen updates itself.">
+          <source src="/video/leftovr-loop.mp4" type="video/mp4">
+        </video>
       </div>
 
       <div class="steps">
@@ -2088,6 +2104,23 @@
     cards.forEach(function (c) { io.observe(c); });
   })();
 
+  // ---------- How-it-works film: plays while it is on screen ----------
+  // Nothing is downloaded until it scrolls into view. Under reduced motion,
+  // or without IntersectionObserver, it stays a poster with controls.
+  (function () {
+    var film = document.querySelector('.how-film video');
+    if (!film) return;
+    if (!('IntersectionObserver' in window) ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      film.controls = true;
+      return;
+    }
+    new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) film.play().catch(function () { film.controls = true; });
+      else film.pause();
+    }, { threshold: 0.3 }).observe(film);
+  })();
+
   // ---------- Header: show its hairline only once content is under it ----------
   (function () {
     var header = document.querySelector('header');
@@ -2162,6 +2195,7 @@
       "how.eyebrow": "How it works",
       "how.title": 'Shelves in. <span class="mark">Dinner out.</span>',
       "how.sub": "Three steps, one of which you already do every time you shop.",
+      "how.film": "leftovr in fifteen seconds: photograph your shelves, see what to eat first, cook a recipe from it, and your kitchen updates itself.",
       "step1.title": "Snap your shelves",
       "step1.body": "Photograph your fridge, a shelf or the counter, up to three shots. A receipt or PDF e-receipt works too, adding 20 to 30 items at once.",
       "step2.n1": "Baby spinach",
@@ -2369,6 +2403,7 @@
       "how.eyebrow": "Kako radi",
       "how.title": 'Police unutra. <span class="mark">Večera napolje.</span>',
       "how.sub": "Tri koraka, a jedan već radiš svaki put kad kupuješ.",
+      "how.film": "leftovr za petnaest sekundi: slikaj police, vidi šta prvo treba pojesti, skuvaj recept od toga i kuhinja se sama ažurira.",
       "step1.title": "Slikaj police",
       "step1.body": "Slikaj frižider, policu ili pult, do tri slike. Slika računa ili PDF e-račun takođe radi i doda 20 do 30 stavki odjednom.",
       "step2.n1": "Mladi spanać",
