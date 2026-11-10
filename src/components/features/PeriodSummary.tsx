@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-import { colors, radii, shadows, spacing } from "../../theme";
+import { colors, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
 import { Text } from "../primitives";
 import { FlameIcon } from "./WeekStrip";
@@ -30,9 +30,8 @@ type Props = {
 const SHOWN_FOODS = 4;
 
 // The top of Insights, dashboard-style like the home: a solid tomato block for
-// what was rescued (the foods themselves as white wells), then four stat tiles
-// with a tomato icon square and how each moved. The streak tile is butter, like
-// the home's streak pill.
+// what was rescued (the foods themselves as white wells), then four coloured
+// stat tiles with a tomato icon square and how each moved.
 export function PeriodSummary({ rescued, trend, foods = [], saved, dinners, tossed, streak, streakDays = [] }: Props) {
   const shown = foods.slice(0, SHOWN_FOODS);
   const more = foods.length - shown.length;
@@ -75,12 +74,12 @@ export function PeriodSummary({ rescued, trend, foods = [], saved, dinners, toss
       </View>
 
       <View style={styles.row}>
-        <StatTile figure={saved} icon={<WalletIcon />} />
-        <StatTile figure={dinners} icon={<PotIcon />} />
+        <StatTile figure={saved} icon={<WalletIcon />} tone="dark" />
+        <StatTile figure={dinners} icon={<PotIcon />} tone="sage" />
       </View>
       <View style={styles.row}>
-        <StatTile figure={tossed} icon={<BinIcon />} />
-        <StatTile figure={streak} icon={<FlameIcon size={18} color={colors.onPrimary} />} butter>
+        <StatTile figure={tossed} icon={<BinIcon />} tone="peach" />
+        <StatTile figure={streak} icon={<FlameIcon size={18} color={colors.onPrimary} />} tone="butter">
           {streakDays.length > 0 ? (
             <View style={styles.days} accessible={false} importantForAccessibility="no-hide-descendants">
               {streakDays.map((kept, index) => (
@@ -94,18 +93,30 @@ export function PeriodSummary({ rescued, trend, foods = [], saved, dinners, toss
   );
 }
 
-function StatTile({ figure, icon, butter, children }: { figure: Figure; icon: ReactNode; butter?: boolean; children?: ReactNode }) {
+type Tone = "dark" | "sage" | "peach" | "butter";
+
+// Each tile its own flat colour, none plain white: saved dark like the
+// Premium card, dinners sage, tossed peach, the streak butter.
+const TONES: Record<Tone, string> = {
+  dark: colors.text,
+  sage: colors.sageTint,
+  peach: colors.surface2,
+  butter: colors.accentSoft,
+};
+
+function StatTile({ figure, icon, tone, children }: { figure: Figure; icon: ReactNode; tone: Tone; children?: ReactNode }) {
   const { delta } = figure;
+  const dark = tone === "dark";
   return (
-    <View style={[styles.tile, butter && styles.butter]}>
+    <View style={[styles.tile, { backgroundColor: TONES[tone] }]}>
       <View style={styles.tileHead}>
         <View style={styles.iconSquare}>{icon}</View>
-        <Text variant="small" weight="bold" muted numberOfLines={1} style={styles.tileLabel}>
+        <Text variant="small" weight="bold" color={dark ? colors.onPrimary : colors.muted} numberOfLines={1} style={[styles.tileLabel, dark && styles.soft]}>
           {figure.label}
         </Text>
       </View>
       <View style={styles.tileBody}>
-        <Text variant="h2" style={styles.num} numberOfLines={1} adjustsFontSizeToFit>
+        <Text variant="h2" color={dark ? colors.onPrimary : colors.text} style={styles.num} numberOfLines={1} adjustsFontSizeToFit>
           {figure.value}
         </Text>
         {delta ? (
@@ -117,7 +128,7 @@ function StatTile({ figure, icon, butter, children }: { figure: Figure; icon: Re
           </View>
         ) : null}
         {figure.sub ? (
-          <Text variant="small" muted>
+          <Text variant="small" color={dark ? colors.onPrimary : colors.muted} style={dark && styles.soft}>
             {figure.sub}
           </Text>
         ) : null}
@@ -214,12 +225,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     padding: spacing.lg,
     borderRadius: radii.xxl,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
-  },
-  butter: {
-    backgroundColor: colors.accentSoft,
-    boxShadow: undefined,
   },
   tileHead: {
     flexDirection: "row",

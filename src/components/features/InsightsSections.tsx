@@ -59,14 +59,14 @@ export type CalendarCell = {
   future?: boolean;
 };
 
-// Tomato steps for "more used", dashboard heatmap style: nothing (peach), a
-// little, more, the most (dark). The darker two carry white labels.
-const LEVELS = [colors.surface2, colors.surface3, colors.primary, colors.text] as const;
+// Heat steps on the dark card for "more used": nothing (a faint white), a
+// little (deep tomato), more (tomato), the most (butter, dark label).
+const LEVELS = [colors.inverseHairline, colors.primary700, colors.primary, colors.accent] as const;
 
 /**
  * The period as a heatmap: one cell per day (week, month) or per month
- * (year). Hotter = more used up that day, the best one dark; a dark dot in
- * the corner = something was tossed.
+ * (year), on a dark card like the Premium one. Hotter = more used up that
+ * day, the best one butter; a white dot in the corner = something was tossed.
  */
 export function UsageCalendar({
   cells,
@@ -87,12 +87,12 @@ export function UsageCalendar({
   const rows: CalendarCell[][] = [];
   for (let i = 0; i < cells.length; i += columns) rows.push(cells.slice(i, i + columns));
   return (
-    <View style={styles.card} accessible accessibilityLabel={label}>
+    <View style={[styles.card, styles.darkCard]} accessible accessibilityLabel={label}>
       <View style={styles.grid}>
         {head ? (
           <View style={styles.gridRow}>
             {head.map((day, index) => (
-              <Text key={index} variant="small" muted center weight="bold" style={styles.cellSlot}>
+              <Text key={index} variant="small" color={colors.muted2} center weight="bold" style={styles.cellSlot}>
                 {day}
               </Text>
             ))}
@@ -106,7 +106,7 @@ export function UsageCalendar({
               const level = cell.used === 0 ? 0 : Math.ceil((cell.used / max) * 3);
               return (
                 <View key={index} style={[styles.cellSlot, styles.cell, { backgroundColor: LEVELS[level] }, cell.future && styles.cellFuture]}>
-                  <Text variant="small" weight="bold" color={cell.future ? colors.muted2 : level >= 2 ? colors.onPrimary : colors.text} numberOfLines={1}>
+                  <Text variant="small" weight="bold" color={level === 3 ? colors.text : level === 0 ? colors.muted2 : colors.onPrimary} numberOfLines={1}>
                     {cell.label}
                   </Text>
                   {cell.tossed > 0 ? <View style={[styles.tossedDot, styles.cellDot]} /> : null}
@@ -118,22 +118,22 @@ export function UsageCalendar({
       </View>
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <Text variant="small" muted>
+          <Text variant="small" color={colors.muted2}>
             {legend.less}
           </Text>
           {LEVELS.map((level) => (
             <View key={level} style={[styles.legendSwatch, { backgroundColor: level }]} />
           ))}
-          <Text variant="small" muted>
+          <Text variant="small" color={colors.muted2}>
             {legend.more}
           </Text>
         </View>
         <View style={styles.legendItem}>
-          <Text variant="small" muted>
+          <Text variant="small" color={colors.muted2}>
             {legend.used}
           </Text>
           <View style={styles.tossedDot} />
-          <Text variant="small" muted>
+          <Text variant="small" color={colors.muted2}>
             {legend.tossed}
           </Text>
         </View>
@@ -195,7 +195,7 @@ export function GoingOffList({
   rows: { name: string; category: string; detail: string; outcomes: ("used" | "tossed")[]; label: string }[];
 }) {
   return (
-    <View style={[styles.card, styles.listCard]}>
+    <View style={[styles.card, styles.listCard, styles.peachCard]}>
       {rows.map((row, index) => (
         <View key={row.name}>
           {index > 0 ? <Divider /> : null}
@@ -221,13 +221,13 @@ export function GoingOffList({
   );
 }
 
-/** The period's most-cooked dinners as a menu: the dish, then how often. */
+/** The period's most-cooked dinners as a menu on solid tomato: the dish, then how often. */
 export function TopDinners({ dinners }: { dinners: { title: string; detail: string; onPress?: () => void }[] }) {
   return (
-    <View style={[styles.card, styles.listCard]}>
+    <View style={[styles.card, styles.listCard, styles.tomatoCard]}>
       {dinners.map((dinner, index) => (
         <View key={dinner.title}>
-          {index > 0 ? <Divider /> : null}
+          {index > 0 ? <Divider style={styles.tomatoRule} /> : null}
           <Tappable
             role={dinner.onPress ? "button" : "text"}
             disabled={!dinner.onPress}
@@ -235,14 +235,14 @@ export function TopDinners({ dinners }: { dinners: { title: string; detail: stri
             hitSlop={0}
             style={styles.row}
           >
-            <View style={[styles.well, styles.wellPeach]}>
+            <View style={[styles.well, styles.wellWhite]}>
               {/* A dish named after a food we have an icon for wears it. */}
               {foodIconKey(dinner.title) ? <FoodGlyph name={dinner.title} size={22} /> : <RecipeGlyph size={24} />}
             </View>
-            <Text variant="small" weight="bold" numberOfLines={2} style={styles.rowBody}>
+            <Text variant="small" weight="bold" color={colors.onPrimary} numberOfLines={2} style={styles.rowBody}>
               {dinner.title}
             </Text>
-            <Text variant="small" weight="bold" color={colors.primary}>
+            <Text variant="small" weight="bold" color={colors.onPrimary}>
               {dinner.detail}
             </Text>
           </Tappable>
@@ -325,14 +325,17 @@ const styles = StyleSheet.create({
   cellFuture: {
     opacity: 0.5,
   },
-  // Tossed: a dark dot, white-ringed so it shows on the dark cell too.
+  darkCard: {
+    backgroundColor: colors.text,
+  },
+  // Tossed: a white dot, dark-ringed so it shows on the butter cell too.
   tossedDot: {
     width: 9,
     height: 9,
     borderRadius: radii.pill,
     borderWidth: 1.5,
-    borderColor: colors.onPrimary,
-    backgroundColor: colors.text,
+    borderColor: colors.text,
+    backgroundColor: colors.onPrimary,
   },
   cellDot: {
     position: "absolute",
@@ -368,7 +371,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
     gap: 4,
   },
-  // A dish sits on a round peach well so pale foods show.
+  // A dish sits on a round well so pale foods show.
   well: {
     width: 40,
     height: 40,
@@ -377,8 +380,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  wellPeach: {
+  wellWhite: {
+    backgroundColor: colors.surface,
+  },
+  peachCard: {
     backgroundColor: colors.surface2,
+    boxShadow: undefined,
+  },
+  tomatoCard: {
+    backgroundColor: colors.primary,
+    boxShadow: undefined,
+  },
+  tomatoRule: {
+    backgroundColor: colors.inverseHairlineStrong,
   },
   progressTrack: {
     height: 8,
