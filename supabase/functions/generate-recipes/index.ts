@@ -1045,6 +1045,11 @@ async function handleExpand(
   }
   const auth = await authenticate(authHeader);
   if (auth.response) return auth.response;
+  // Expand only dishes this household was served as cards; otherwise any
+  // title could be turned into a full recipe, bypassing the generation gate.
+  if (!(await cardWasServed(auth.supabase, auth.userId, card.title))) {
+    return Response.json({ error: "unknown_expand_card" }, { status: 403 });
+  }
   const limited = await consumeExpandQuota(auth.supabase, auth.userId);
   if (limited) return limited;
 
@@ -1145,6 +1150,30 @@ const MAX_BODY_CHARS = 100_000;
 // saved recipes.
 const EXPAND_DAILY_LIMIT_PREMIUM = 200;
 const EXPAND_DAILY_LIMIT_FREE = 20;
+
+// True when a completed generation in the caller's active household returned
+// a card with this title (attempt rows are written by this function only).
+async function cardWasServed(
+  supabase: SupabaseClient,
+  userId: string,
+  title: string,
+): Promise<boolean> {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("active_household_id")
+    .eq("id", userId)
+    .maybeSingle();
+  const householdId = (profile as { active_household_id: string | null } | null)?.active_household_id;
+  if (!householdId) return false;
+  const { data } = await supabase
+    .from("recipe_generation_attempts")
+    .select("id")
+    .eq("household_id", householdId)
+    .eq("status", "completed")
+    .contains("response_json", { recipes: [{ title }] })
+    .limit(1);
+  return (data?.length ?? 0) > 0;
+}
 
 // Per-user rolling 24h cap on expand calls; records this call when allowed.
 // ponytail: count-then-insert, so parallel calls can overshoot by a few; use an
