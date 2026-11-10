@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
-import { colors, fonts, radii, shadows, spacing } from "../../theme";
+import { colors, fonts, radii, spacing } from "../../theme";
 import { Text } from "../primitives";
 
 type Props = {
@@ -21,25 +21,27 @@ type Props = {
 };
 
 // The app's home moment: one card that answers what's for dinner — a dish
-// when there is one, the question when there isn't — with one action.
+// when there is one, the question when there isn't — with one action. Dark
+// with a tomato disc in the corner, like Insights' Premium card.
 export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIcon, loading = false, onPress, secondary }: Props) {
   return (
     <View style={styles.card}>
+      <View style={styles.mark} pointerEvents="none" />
       <View style={styles.top}>
         <View style={styles.copy}>
-          <Text variant="micro" uppercase color={colors.primary} style={styles.eyebrow}>
+          <Text variant="micro" uppercase color={colors.accent} style={styles.eyebrow}>
             {eyebrow}
           </Text>
-          <Text variant="h2" style={styles.title}>
+          <Text variant="h2" color={colors.onPrimary} style={styles.title}>
             {title}
           </Text>
           {body ? (
-            <Text variant="small" muted style={styles.body}>
+            <Text variant="small" color={colors.onPrimary} style={[styles.body, styles.soft]}>
               {body}
             </Text>
           ) : null}
           {meta ? (
-            <Text variant="micro" muted style={styles.meta}>
+            <Text variant="micro" color={colors.onPrimary} style={[styles.meta, styles.soft]}>
               {meta}
             </Text>
           ) : null}
@@ -69,7 +71,7 @@ export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIco
       {secondary ? (
         <View style={styles.secondary}>
           {secondary.prefix ? (
-            <Text variant="small" muted>
+            <Text variant="small" color={colors.muted2}>
               {secondary.prefix}
             </Text>
           ) : null}
@@ -79,7 +81,7 @@ export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIco
             hitSlop={8}
             style={({ pressed }) => pressed && styles.pressed}
           >
-            <Text variant="small" color={colors.primary} weight="bold">
+            <Text variant="small" color={colors.accent} weight="bold">
               {secondary.label}
             </Text>
           </Pressable>
@@ -91,10 +93,22 @@ export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIco
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.text,
     borderRadius: radii.xxl,
-    ...shadows.soft,
     padding: spacing.lg,
+    overflow: "hidden",
+  },
+  mark: {
+    position: "absolute",
+    top: -50,
+    right: -50,
+    width: 140,
+    height: 140,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
+  },
+  soft: {
+    opacity: 0.8,
   },
   top: {
     flexDirection: "row",
