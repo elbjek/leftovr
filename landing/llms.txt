@@ -57,6 +57,7 @@ $99.99/year. Full detail: https://leftovr.co/pricing.md
 ## Pages
 
 - [Home](https://leftovr.co/): what it is, how it works, pricing, FAQ
+- [Home in Serbian](https://leftovr.co/sr/): the same page in Serbian (srpski)
 - [Pricing as data](https://leftovr.co/pricing.md): plans, limits, prices
 - [Blog](https://leftovr.co/blog/): food waste, meal planning and pantry guides
 - [Privacy](https://leftovr.co/privacy/): receipt data is never sold; deletable any time

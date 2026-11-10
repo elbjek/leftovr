@@ -1,0 +1,2982 @@
+<!DOCTYPE html>
+<!-- Generated from landing/index.html by scripts/build-landing-sr.mjs. Do not edit: change index.html and re-run. -->
+<html lang="sr" data-i18n-title="meta.title" data-i18n-desc="meta.desc">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Slikaj ostavu, dobij recepte | leftovr</title>
+<meta name="description" content="leftovr od slike frižidera ili ostave pravi recepte od hrane koju već imaš. Kuhinju ti pune i računi i bar-kodovi. Za iPhone, besplatno za početak." />
+<meta property="og:title" content="Slikaj ostavu, dobij recepte | leftovr" />
+<meta property="og:description" content="leftovr od slike frižidera ili ostave pravi recepte od hrane koju već imaš. Kuhinju ti pune i računi i bar-kodovi. Za iPhone, besplatno za početak." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://leftovr.co/sr/" />
+<meta property="og:site_name" content="leftovr" />
+<meta property="og:image" content="https://leftovr.co/og-image-2.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:type" content="image/png" />
+<meta property="og:image:alt" content="leftovr. Waste less, cook more. Turn forgotten ingredients into today's meal." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Slikaj ostavu, dobij recepte | leftovr" />
+<meta name="twitter:description" content="leftovr od slike frižidera ili ostave pravi recepte od hrane koju već imaš. Kuhinju ti pune i računi i bar-kodovi. Za iPhone, besplatno za početak." />
+<meta name="twitter:image" content="https://leftovr.co/og-image-2.png" />
+<meta name="twitter:image:alt" content="leftovr. Waste less, cook more. Turn forgotten ingredients into today's meal." />
+<link rel="canonical" href="https://leftovr.co/sr/" />
+<link rel="alternate" hreflang="en" href="https://leftovr.co/" />
+<link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/" />
+<link rel="alternate" hreflang="x-default" href="https://leftovr.co/" />
+<script>
+  // English lives at /, Serbian at /sr/ (built from this file by
+  // scripts/build-landing-sr.mjs: re-run it after every edit here).
+  // Someone who picked a language with the toggle goes back to it. With no
+  // stored pick (first visits, crawlers) the URL decides and nothing redirects.
+  (function () {
+    var pick = "";
+    try { pick = localStorage.getItem("leftovr-lang"); } catch (e) {}
+    if ((pick === "en" || pick === "sr") && pick !== document.documentElement.lang) {
+      location.replace((pick === "sr" ? "/sr/" : "/") + location.search + location.hash);
+    }
+  })();
+</script>
+<meta name="robots" content="index, follow" />
+<meta name="author" content="Two Brick Labs" />
+<meta property="og:locale" content="sr_RS" />
+<meta property="og:locale:alternate" content="en_US" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<link rel="preload" as="image" href="/splash-logo.png" />
+<meta name="theme-color" content="#D9503A" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700;6..12,800&family=Plus+Jakarta+Sans:wght@800&display=swap" rel="stylesheet">
+<style>
+  /* Mirrors src/theme/tokens.ts. Keep them in step: the app is the source. */
+  :root {
+    /* Theme D: tomato primary, butter accent, cream page, peach wells. */
+    --primary: #D9503A;
+    --primary-700: #B8402C;
+    --primary-50: rgba(217, 80, 58, 0.06);
+    --primary-100: rgba(217, 80, 58, 0.12);
+    --surface: #FFF9F4;
+    --surface-2: #FBE3D6;
+    --surface-3: #F6D3C2;
+    --accent: #F2B640;
+    --accent-soft: #FFE7A6;
+    --accent-ink: #8A5A0B;
+    --text: #1E1B19;
+    --muted: #6B5F57;
+    --muted-2: #B3A79E;
+    --green: #5E9A64;
+    --sage: #72967D;
+    --sage-tint: #D9E5DC;
+    --red: #E76F51;
+    --red-soft: #F9E4DC;
+    --red-ink: #9A3F27;
+    --page: #FDF1E8;
+    --card: #FFF9F4;
+    --paper: #FFF9F4;
+    --card-line: #F3D9CB;
+    --inverse-hairline: rgba(255, 255, 255, 0.16);
+    --inverse-hairline-strong: rgba(255, 255, 255, 0.32);
+    --hairline: rgba(30, 27, 25, 0.08);
+    --hairline-strong: rgba(30, 27, 25, 0.16);
+    /* shadows.soft / primaryButton from tokens.ts */
+    --shadow-soft: 0 10px 26px rgba(170, 90, 50, 0.10);
+    --shadow-btn: 0 8px 24px rgba(217, 80, 58, 0.24);
+    /* radii.lg / xl / xxl from tokens.ts */
+    --r-btn: 16px;
+    --r-card: 20px;
+    --r-lg: 24px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
+    background: var(--page);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.005em;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3 { margin: 0; }
+  p { margin: 0; }
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+  .serif { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; }
+  .italic { font-style: italic; }
+
+  .micro {
+    font-weight: 800; font-size: 12px; line-height: 1.2;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .sr-only {
+    position: absolute !important; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0;
+  }
+
+  /* ── Launch splash ─────────────────────────────────────────────────
+     The app's launch screen (SteamSplash.tsx), same numbers: the mark at
+     200px on tomato, two wisps over "left" that rise 400ms apart and wobble
+     in opposite directions. Shown once per browser session. */
+  .splash {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--primary);
+    transition: opacity 0.25s ease;
+  }
+  .splash.out { opacity: 0; pointer-events: none; }
+  .splash-mark { position: relative; width: 200px; height: 200px; }
+  .splash-mark img { display: block; width: 200px; height: 200px; }
+  /* Reaches one wisp-height above the resting spot; its bottom edge hides the
+     wisp before it rises. */
+  .wisp-clip { position: absolute; top: 8px; width: 16px; height: 34px; overflow: hidden; }
+  .wisp { position: absolute; left: 3px; bottom: 0; width: 10px; height: 17px; animation: wispRise 1.5s linear infinite; }
+  .wisp svg { display: block; width: 10px; height: 17px; transform-origin: 50% 100%; animation: wispSway 0.6s linear infinite; }
+  .wisp-clip + .wisp-clip .wisp { animation-delay: 0.4s; }
+  .wisp-clip + .wisp-clip svg { animation-direction: reverse; }
+  /* Drift up and fade out, drop below the clip, slide back up into place. */
+  @keyframes wispRise {
+    0%    { opacity: 1;   transform: translateY(0); }
+    30%   { opacity: 0.6; transform: translateY(-4px); }
+    55%   { opacity: 0;   transform: translateY(-6px); }
+    55.1% { opacity: 1;   transform: translateY(17px); }
+    80%   { opacity: 1;   transform: translateY(2.5px); }
+    100%  { opacity: 1;   transform: translateY(0); }
+  }
+  @keyframes wispSway {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(7deg); }
+    75% { transform: rotate(-7deg); }
+  }
+  /* The hero's entrance waits behind the splash instead of playing unseen. */
+  .splashing .stage-copy > *, .splashing .demo, .splashing .k-ing, .splashing .demo-foot { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) {
+    .wisp, .wisp svg { animation: none; }
+  }
+
+  /* ── Buttons ───────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 52px; padding: 0 26px;
+    border-radius: var(--r-btn); border: none; cursor: pointer;
+    font-family: inherit; font-weight: 700; font-size: 16px;
+    letter-spacing: -0.005em;
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--primary); color: #fff; box-shadow: var(--shadow-btn);
+  }
+  .btn-primary:hover { background: var(--primary-700); }
+  .btn:active { transform: scale(0.97); transition: transform 100ms ease-out; }
+  .btn-light { background: var(--surface); color: var(--text); }
+  .btn-light:hover { background: #fff; }
+  .btn-ghost {
+    background: transparent; color: var(--text);
+    border: 1.5px solid var(--hairline-strong);
+  }
+  .btn-ghost:hover { background: var(--card); }
+  .btn-sm { height: 44px; padding: 0 18px; font-size: 14px; }
+
+  /* ── Header ────────────────────────────── */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(253, 241, 232, 0.86);
+    backdrop-filter: saturate(140%) blur(14px);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.25s ease;
+  }
+  /* The hairline only appears once content is actually underneath the bar. */
+  header.scrolled { border-bottom-color: var(--hairline); }
+  @media (prefers-reduced-transparency: reduce) {
+    header { background: var(--page); backdrop-filter: none; }
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 70px; }
+  .nav-brand { display: flex; flex-direction: column; gap: 1px; line-height: 1; }
+  .nav-logo {
+    font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-size: 25px; font-weight: 800;
+    letter-spacing: -0.01em; color: var(--text);
+    display: inline-flex; align-items: baseline; line-height: 1;
+  }
+  .nav-logo .logo-r {
+    color: var(--primary); display: inline-block;
+    transform: rotate(9deg) translateY(0.03em); transform-origin: 50% 60%;
+  }
+  .nav-sub { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+
+  /* Language toggle */
+  .lang-toggle {
+    display: inline-flex; gap: 2px; padding: 3px;
+    border-radius: 999px; background: var(--surface-2);
+    border: 1px solid transparent;
+  }
+  .lang-toggle a {
+    display: inline-flex; align-items: center;
+    height: 32px; padding: 0 12px; border-radius: 999px;
+    font-weight: 800; font-size: 13px; color: var(--muted);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .lang-toggle a[aria-current] { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(170, 90, 50, 0.18); }
+  .lang-toggle a:not([aria-current]):hover { color: var(--text); }
+
+  /* ── Hero ──────────────────────────────────────────────────────────
+     An open fridge. The promise is "dinner from what's already in your
+     fridge", so the first thing on the page is the fridge: your food on its
+     shelves, and a ticket on the door that names tonight's dinner. What the
+     dish uses lifts off the shelf. Cream ground, a peach well behind the
+     fridge, tomato only where something is happening. */
+  .stage { position: relative; overflow: hidden; background: var(--page); }
+  /* The well the fridge stands in: one flat disc, cropped by the viewport. */
+  .stage::before {
+    content: ""; position: absolute; z-index: 0;
+    width: min(980px, 74vw); aspect-ratio: 1; border-radius: 50%;
+    right: max(-260px, -18vw); top: 50%; transform: translateY(-46%);
+    background: var(--surface-2);
+  }
+
+  .stage-grid {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: clamp(28px, 5vw, 84px); align-items: center;
+    min-height: min(820px, calc(100svh - 70px));
+    padding-block: clamp(36px, 6vh, 72px);
+  }
+  .stage-copy { display: flex; flex-direction: column; align-items: flex-start; }
+
+  .stage-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--red-ink); margin-bottom: 22px;
+    padding: 7px 14px 7px 12px; border-radius: 999px;
+    background: var(--surface-2);
+  }
+  .stage-eyebrow::before {
+    content: ""; width: 7px; height: 7px; border-radius: 999px;
+    background: var(--primary);
+  }
+
+  h1.stage-h1 {
+    font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(40px, 5.9vw, 84px);
+    line-height: 0.98; letter-spacing: -0.045em;
+    color: var(--text); margin: 0 0 24px;
+    max-width: 11ch; text-wrap: balance;
+  }
+  .stage-h1 em { font-style: normal; color: var(--primary); }
+
+  .stage-sub {
+    font-size: 19px; line-height: 1.55;
+    color: var(--muted);
+    max-width: 30rem; margin: 0 0 30px;
+  }
+  .stage-copy .capture { max-width: 480px; width: 100%; }
+
+  /* ── The fridge ──────────────────────────────────────────────────── */
+  .stage-fridge { position: relative; display: flex; justify-content: center; padding: 0 0 100px; }
+  .demo {
+    position: relative; width: min(100%, 440px);
+    background: var(--card); color: var(--text);
+    border-radius: 44px; padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 40px 80px -30px rgba(150, 70, 40, 0.42), var(--shadow-soft);
+  }
+  /* The door handle: the one piece of hardware, and it is tomato. */
+  .fr-handle {
+    position: absolute; left: -7px; top: 116px;
+    width: 14px; height: 132px; border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 6px 14px rgba(217, 80, 58, 0.35);
+  }
+  /* Freezer drawer: carries the label. */
+  .fr-top {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    padding: 16px 22px; border-radius: 30px 30px 14px 14px;
+    background: var(--page);
+  }
+  .demo-label { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; color: var(--text); }
+  .demo-count { font-size: 13px; font-weight: 700; color: var(--muted); }
+
+  /* Three shelves, two things on each. The bottom border of a row is the
+     shelf, so the two cells join into one board. */
+  .k-list {
+    list-style: none; margin: 0; padding: 6px 0 0;
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-radius: 14px 14px 30px 30px; background: var(--page);
+    overflow: hidden;
+  }
+  .k-ing {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 14px 8px 12px;
+    border-bottom: 5px solid var(--surface-3);
+    font-size: 13px; font-weight: 700; color: var(--muted);
+  }
+  .k-ing:nth-last-child(-n+2) { border-bottom: none; padding-bottom: 26px; }
+  .k-ing img {
+    width: clamp(64px, 7.4vw, 92px); height: auto; aspect-ratio: 1; object-fit: contain;
+    opacity: 0.5; filter: saturate(0.55);
+    transition: opacity 0.4s ease, filter 0.4s ease,
+                transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .k-ing span {
+    padding: 4px 11px; border-radius: 999px;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  /* What tonight's dish uses comes forward and gets tagged. */
+  .k-ing.on img { opacity: 1; filter: none; transform: translateY(-6px) scale(1.12); }
+  .k-ing.on span { background: var(--primary); color: #fff; }
+
+  /* The ticket on the door. */
+  .demo-foot {
+    position: absolute; z-index: 2;
+    left: clamp(-170px, -10vw, -40px); top: calc(100% - 36px);
+    width: min(360px, 92%);
+    padding: 16px 16px 18px 20px; border-radius: 24px;
+    background: var(--card);
+    box-shadow: 0 24px 50px -18px rgba(150, 70, 40, 0.5), 0 2px 0 rgba(255,255,255,0.8) inset;
+    transform: rotate(-3deg); transform-origin: 20% 0;
+  }
+  .demo-foot .demo-label {
+    display: inline-block; margin-bottom: 12px;
+    padding: 4px 11px; border-radius: 999px;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--surface-2); color: var(--red-ink);
+  }
+  /* Dinner is hot: the app icon's steam, rising off the ticket. */
+  .steam { position: absolute; right: 26px; top: -24px; width: 44px; height: 30px; overflow: visible; }
+  .steam path {
+    fill: none; stroke: var(--primary); stroke-width: 3; stroke-linecap: round;
+    opacity: 0; animation: steam 3.2s ease-in-out infinite;
+  }
+  .steam path:nth-child(2) { animation-delay: 0.5s; }
+  .steam path:nth-child(3) { animation-delay: 1s; }
+  @keyframes steam {
+    0%   { opacity: 0; transform: translateY(8px); }
+    35%  { opacity: 0.55; }
+    100% { opacity: 0; transform: translateY(-12px); }
+  }
+
+  .pick { display: flex; align-items: center; gap: 13px; }
+  .pick-icons { display: flex; flex-shrink: 0; }
+  .pick-icons span {
+    width: 46px; height: 46px; border-radius: 999px;
+    background: var(--surface-2); border: 2px solid var(--card);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pick-icons span[hidden] { display: none; }
+  .pick-icons span + span { margin-left: -12px; }
+  .pick-icons img { width: 30px; height: 30px; object-fit: contain; }
+  .pick-icons.swap span { animation: pickIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .pick-icons.swap span:nth-child(2) { animation-delay: 0.06s; }
+  .pick-icons.swap span:nth-child(3) { animation-delay: 0.12s; }
+  @keyframes pickIn { from { opacity: 0; transform: scale(0.72); } to { opacity: 1; transform: none; } }
+
+  .pick-text { flex: 1; min-width: 0; }
+  .dish {
+    font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
+    font-weight: 800; font-size: 20px; line-height: 1.15;
+    letter-spacing: -0.02em; color: var(--primary);
+  }
+  .dish-meta { font-size: 13px; line-height: 1.4; color: var(--muted); margin-top: 4px; }
+  .dish.swap { animation: dishIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .dish-meta.swap { animation: dishIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.07s both; }
+  @keyframes dishIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .dish-next {
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 999px; padding: 0;
+    background: var(--primary); color: #fff; border: none;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: var(--shadow-btn);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .dish-next svg { width: 16px; height: 16px; }
+  .dish-next:hover { background: var(--primary-700); }
+  .dish-next:active { transform: scale(0.94); }
+  .dish-next:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+  /* Entrance: the message assembles, the fridge arrives, the food lands on
+     its shelves one by one, and the ticket swings onto the door last. */
+  @keyframes riseIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes fridgeIn { from { opacity: 0; transform: translateY(36px) scale(0.97); } to { opacity: 1; transform: none; } }
+  @keyframes landIn { from { opacity: 0; transform: translateY(-22px); } to { opacity: 1; transform: none; } }
+  @keyframes ticketIn { from { opacity: 0; transform: rotate(-12deg) translateY(26px); } to { opacity: 1; transform: rotate(-3deg); } }
+  .stage-copy > * { animation: riseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .stage-copy > .stage-eyebrow { animation-delay: 0.02s; }
+  .stage-copy > .stage-h1 { animation-delay: 0.08s; }
+  .stage-copy > .stage-sub { animation-delay: 0.14s; }
+  .stage-copy > .capture  { animation-delay: 0.20s; }
+  .demo { animation: fridgeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both; }
+  .k-ing { animation: landIn 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) both; animation-delay: calc(0.5s + var(--i) * 70ms); }
+  .demo-foot { animation: ticketIn 0.7s cubic-bezier(0.34, 1.3, 0.64, 1) 1.05s both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage-copy > *, .demo, .k-ing, .demo-foot { animation: none; }
+    .k-ing img, .k-ing span, .pick-icons.swap span, .dish, .dish-meta { animation: none; transition: none; }
+    .steam path { animation: none; opacity: 0.4; }
+  }
+
+  @media (max-width: 980px) {
+    .stage::before { width: 760px; right: 50%; top: auto; bottom: -260px; transform: translateX(50%); }
+    .stage-grid { grid-template-columns: 1fr; gap: 44px; min-height: 0; padding-block: 40px 56px; }
+    .stage-copy { align-items: center; text-align: center; }
+    .stage-copy .capture-row, .stage-copy .privacy { justify-content: center; }
+    h1.stage-h1 { max-width: 14ch; }
+    .stage-sub { margin-inline: auto; }
+    .demo-foot { left: 0; right: 0; margin-inline: auto; }
+  }
+  @media (max-width: 560px) {
+    .stage-fridge { padding-bottom: 132px; }
+    .demo { border-radius: 36px; padding: 11px; }
+    .fr-top { border-radius: 26px 26px 12px 12px; padding: 14px 18px; }
+    .k-list { border-radius: 12px 12px 26px 26px; }
+    .k-ing { padding: 14px 6px 12px; font-size: 12px; }
+    .fr-handle { top: 96px; height: 104px; }
+    .dish { font-size: 18px; }
+  }
+
+  .define-device { display: flex; justify-content: center; margin: 44px 0 8px; overflow: hidden; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .phone-stage, .lo-head, .lo-urgent, .lo-week, .lo-try
+      { animation: none; opacity: 1; transform: none; filter: none; }
+  }
+
+  @media (max-width: 860px) {
+    .phone-glow { width: 360px; height: 360px; }
+  }
+
+  /* Inline email capture */
+  .capture { max-width: 470px; }
+  .capture-label { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 8px; display: block; }
+  .capture-row { display: flex; gap: 10px; }
+  .field {
+    flex: 1; height: 52px; padding: 0 18px;
+    background: #fff; color: var(--text);
+    border: 1.5px solid var(--hairline-strong); border-radius: var(--r-btn);
+    font-family: inherit; font-size: 16px; outline: none;
+    transition: border 0.15s ease, box-shadow 0.15s ease;
+  }
+  .field::placeholder { color: var(--muted-2); }
+  .captcha-widget { margin-top: 12px; min-height: 65px; }
+  .field:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-50); }
+  .privacy {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; color: var(--muted); margin-top: 12px;
+  }
+  .privacy svg { flex-shrink: 0; }
+  .form-msg { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .form-msg.err { color: var(--red-ink); }
+  .form-msg.ok { color: #3E6B45; }
+  .form-success {
+    display: none;
+    align-items: center; gap: 12px;
+    padding: 16px 20px; border-radius: 16px;
+    background: var(--primary-50); border: 1px solid var(--hairline);
+    max-width: 470px;
+  }
+  .form-success.show { display: flex; }
+  .form-success .tick { width: 34px; height: 34px; border-radius: 999px; background: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* Entrance: the hero assembles itself once, on load. */
+  @keyframes riseIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  /* The device materializes: blur and scale together, so it reads as a real
+     object arriving rather than an opacity fade. */
+  @keyframes phoneIn {
+    from { opacity: 0; transform: translateY(26px) scale(0.965); filter: blur(10px); }
+    to   { opacity: 1; transform: none; filter: blur(0); }
+  }
+  /* The app assembles itself once, top down, after the device lands. */
+  .lo-head, .lo-urgent, .lo-week, .lo-try { animation: riseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .lo-head   { animation-delay: 0.46s; }
+  .lo-urgent { animation-delay: 0.58s; }
+  .lo-week   { animation-delay: 0.70s; }
+  .lo-try    { animation-delay: 0.82s; }
+  .phone-stage { animation: phoneIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
+  @media (prefers-reduced-motion: reduce) {
+    .phone-stage,
+    .lo-head, .lo-urgent, .lo-week, .lo-try { animation: none; opacity: 1; filter: none; }
+    .phone { --rx: 0deg; --ry: 0deg; }
+  }
+
+  /* ── Phone mockup ──────────────────────── */
+  .phone-stage { position: relative; display: flex; align-items: center; justify-content: center; }
+  /* Rest pose. JS writes --rx/--ry/--tx/--ty from two critically damped
+     springs (Apple: damping 1.0, response 0.4), so the device keeps following
+     the pointer and can be redirected at any frame. */
+
+  .phone-glow {
+    position: absolute; width: 560px; height: 560px; border-radius: 50%;
+    background: var(--surface-2);
+    top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 0;
+  }
+  /* Contact shadow: the device sits on the page rather than hovering over it. */
+  .phone-stage::after {
+    content: ""; position: absolute; z-index: 0;
+    left: 50%; bottom: -26px; width: 300px; height: 52px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(170, 90, 50, 0.3), transparent 70%);
+    filter: blur(14px); pointer-events: none;
+  }
+  .phone {
+    position: relative; z-index: 1;
+    width: 300px; height: 616px;
+    background: #1E1B19;
+    border-radius: 52px; padding: 9px;
+    box-shadow: 0 50px 90px -28px rgba(120, 50, 25, 0.45), 0 14px 36px rgba(120, 50, 25, 0.14), inset 0 0 0 1.5px rgba(255,255,255,0.06);
+  }
+  .phone::before { content: ""; position: absolute; left: -3px; top: 132px; width: 3px; height: 62px; border-radius: 3px 0 0 3px; background: #1E1B19; }
+  .phone::after { content: ""; position: absolute; right: -3px; top: 156px; width: 3px; height: 40px; border-radius: 0 3px 3px 0; background: #1E1B19; }
+  .phone-screen {
+    width: 100%; height: 100%; background: var(--page);
+    border-radius: 44px; overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+  }
+  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 86px; height: 24px; background: #1E1B19; border-radius: 999px; z-index: 6; }
+
+  /* Refined phone content */
+  .sb { display: flex; align-items: center; justify-content: space-between; padding: 15px 24px 0; }
+  .sb .t { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
+  .sb .ic { display: flex; align-items: center; gap: 6px; color: var(--text); }
+  /* ── Phone screen: the app's Recipes tab (the home), slot for slot.
+     Source: src/app/(tabs)/recipes.tsx — header, Use-first strip, WeekStrip,
+     TryNextCard, dock (Recipes · Kitchen · Add · Insights · Settings). ── */
+  .lo-body { flex: 1; display: flex; flex-direction: column; padding: 10px 14px 0; overflow: hidden; gap: 10px; }
+  .lo-head { display: flex; align-items: center; justify-content: space-between; }
+  .lo-logo { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; color: var(--text); display: inline-flex; align-items: baseline; }
+  .lo-logo i { font-style: normal; color: var(--primary); display: inline-block; transform: rotate(9deg) translateY(0.03em); }
+  .lo-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--primary); margin-left: 5px; align-self: flex-start; margin-top: 2px; }
+  .lo-hh { display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--card-line); font-size: 10.5px; font-weight: 600; color: var(--muted); }
+  .lo-hh b { width: 20px; height: 20px; border-radius: 999px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+  /* Use-first strip (yellow tint, only when something is urgent) */
+  .lo-urgent { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 14px; background: var(--red-soft); color: var(--red-ink); font-size: 11.5px; font-weight: 700; }
+  .lo-urgent span { flex: 1; min-width: 0; }
+
+  /* WeekStrip: today's goal ring, streak, last seven days */
+  .lo-week { background: var(--paper); border: 1px solid var(--card-line); border-radius: 16px; padding: 11px 12px; }
+  .lo-goal { display: flex; align-items: center; gap: 10px; }
+  .lo-ring { width: 36px; height: 36px; flex-shrink: 0; position: relative; }
+  .lo-ring span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; color: var(--text); }
+  .lo-goal .gl { font-size: 11.5px; font-weight: 600; color: var(--text); line-height: 1.25; }
+  .lo-wmeta { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-2); }
+  .lo-wmeta .st { display: flex; align-items: center; gap: 5px; color: var(--muted); }
+  .lo-days { display: flex; justify-content: space-between; gap: 3px; margin-top: 7px; }
+  .lo-day { flex: 1; border-radius: 999px; padding: 5px 0 6px; text-align: center; font-size: 9px; font-weight: 700; color: var(--muted-2); background: var(--surface-2); }
+  .lo-day i { display: block; width: 4px; height: 4px; border-radius: 999px; background: var(--sage); margin: 3px auto 0; }
+  .lo-day.off i { background: transparent; }
+  .lo-day.today { background: var(--primary); color: #fff; }
+  .lo-day.today i { background: #fff; }
+  .lo-wfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--card-line); font-size: 10px; color: var(--muted); }
+  .lo-pill { padding: 3px 9px; border-radius: 999px; border: 1px solid var(--card-line); font-weight: 700; font-size: 9.5px; color: var(--text); flex-shrink: 0; }
+
+  /* TryNextCard — tonight's dish */
+  .lo-try { background: var(--card); border: 1px solid var(--card-line); border-radius: 16px; padding: 11px; }
+  .lo-tryhead { display: flex; gap: 10px; }
+  .lo-tile { width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0; background: var(--sage-tint); display: flex; align-items: center; justify-content: center; color: var(--primary); }
+  .lo-trymeta { flex: 1; min-width: 0; }
+  .lo-trymeta .eb { font-size: 8.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
+  .lo-trymeta .tt { font-weight: 800; font-size: 14.5px; letter-spacing: -0.01em; margin-top: 2px; }
+  .lo-trymeta .mt { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+  .lo-trymeta .mt em { width: 4px; height: 4px; border-radius: 999px; background: var(--muted-2); font-style: normal; }
+  .lo-why { margin-top: 9px; padding: 7px 9px; border-radius: 10px; background: var(--surface-2); font-size: 10.5px; font-weight: 700; color: var(--red-ink); }
+  .lo-chips { display: flex; align-items: center; gap: 4px; margin-top: 8px; flex-wrap: nowrap; }
+  .lo-chip { padding: 4px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--card-line); font-size: 9.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .lo-chip.soon { background: var(--accent-soft); border-color: transparent; color: var(--accent-ink); }
+  .lo-chips .steps { margin-left: auto; font-size: 9.5px; font-weight: 700; color: var(--muted-2); white-space: nowrap; }
+  .lo-tryfoot { display: flex; gap: 7px; margin-top: 10px; }
+  .lo-btn { flex: 1; height: 32px; border-radius: 10px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; }
+  .lo-btn.ghost { flex: 0 0 auto; padding: 0 11px; background: transparent; color: var(--text); border: 1px solid var(--hairline-strong); }
+
+  /* Dock: Recipes · Kitchen · Add · Insights · Settings */
+  .lo-tabbar { margin-top: auto; height: 60px; border-top: 1px solid var(--card-line); background: var(--surface); display: flex; align-items: center; justify-content: space-around; color: var(--muted-2); }
+  .lo-tabbar .on { color: var(--primary); }
+  .lo-add { width: 46px; height: 46px; border-radius: 999px; background: var(--primary); border: 4px solid var(--surface); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 18px rgba(217, 80, 58, 0.3); transform: translateY(-12px); }
+
+  /* ── Section scaffolding ───────────────── */
+  section { position: relative; }
+  .sec-pad { padding-block: 84px; }
+  .sec-head { max-width: 680px; margin-bottom: 52px; }
+  .sec-head.wide-title { max-width: 1120px; }
+  .sec-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+  .eyebrow { color: var(--red-ink); margin-bottom: 14px; }
+  h2.sec-title {
+    font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800;
+    font-size: 42px; line-height: 1.08; letter-spacing: -0.025em;
+  }
+  .sec-title .mark { color: var(--primary); }
+  .sec-sub { font-size: 18px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+
+  /* How it works */
+  .how-film {
+    max-width: 980px; margin: 0 auto 28px;
+    border-radius: 32px; overflow: hidden;
+    background: var(--page); box-shadow: var(--shadow-soft);
+    aspect-ratio: 16 / 9;
+  }
+  .how-film video { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .step-card {
+    background: var(--card); box-shadow: var(--shadow-soft);
+    border-radius: var(--r-lg); padding: 30px 26px;
+  }
+  .step-num {
+    width: 40px; height: 40px; border-radius: 12px; background: var(--surface-2);
+    color: var(--primary); font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 20px;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+  }
+  .step-ill {
+    position: relative; height: 164px; border-radius: 16px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+    background: var(--surface-2);
+  }
+  .fi { width: 56px; height: 56px; object-fit: contain; display: block; }
+
+  /* 1. Taking the photo: an open fridge on the left, the phone held up to it
+     on the right, screen showing the same shelf it is pointed at. */
+  .ill-capture { background: var(--sage-tint); gap: 0; }
+  .fridge {
+    width: 112px; height: 126px; flex-shrink: 0;
+    border-radius: 10px; background: var(--paper);
+    border: 1px solid var(--card-line);
+    padding: 11px 9px; display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 14px 26px -14px rgba(60, 90, 70, 0.5);
+  }
+  .fridge-shelf {
+    display: flex; align-items: flex-end; justify-content: center; gap: 6px;
+    padding-bottom: 5px; border-bottom: 2px solid var(--surface-3);
+  }
+  .fridge .fi { width: 31px; height: 31px; }
+
+  .snap-phone {
+    position: relative; z-index: 2;
+    width: 78px; height: 134px; flex-shrink: 0;
+    margin-left: -13px; transform: rotate(5deg);
+    border-radius: 15px; background: #1E1B19; padding: 5px;
+    display: flex; flex-direction: column;
+    box-shadow: 0 18px 32px -14px rgba(40, 60, 50, 0.7), inset 0 0 0 1px rgba(255,255,255,0.07);
+  }
+  .snap-screen {
+    flex: 1; position: relative; overflow: hidden;
+    border-radius: 11px; background: var(--paper);
+    display: flex; align-items: flex-end; justify-content: center; padding: 0 8px 10px;
+  }
+  .snap-shelf {
+    display: flex; align-items: flex-end; justify-content: center; gap: 5px;
+    width: 100%; padding-bottom: 5px; border-bottom: 2px solid var(--surface-3);
+  }
+  .snap-screen .fi { width: 24px; height: 24px; }
+  /* The app's scan guide, which is what tells you it is a camera. */
+  .snap-guide {
+    position: absolute; inset: 6px; border-radius: 7px;
+    border: 1.5px solid var(--primary); opacity: 0.9;
+  }
+  .snap-shutter {
+    width: 15px; height: 15px; border-radius: 999px; margin: 5px auto 0;
+    background: var(--surface); box-shadow: 0 0 0 2px rgba(255,255,255,0.32);
+  }
+
+  /* 2. The kitchen list: what you have, in the order it should be eaten,
+     each with a window rather than a countdown. */
+  .ill-kitchen { background: var(--surface-2); padding: 12px 20px; }
+  .k-card {
+    width: 100%; background: var(--card); border: 1px solid var(--card-line);
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 10px 20px -14px rgba(170, 90, 50, 0.4);
+  }
+  .k-row { display: flex; align-items: center; gap: 10px; padding: 7px 11px; }
+  .k-row + .k-row { border-top: 1px solid var(--card-line); }
+  .k-thumb {
+    width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ill-kitchen .fi { width: 22px; height: 22px; }
+  .k-name { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; color: var(--text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .k-tag {
+    flex-shrink: 0; font-size: 9px; font-weight: 800; letter-spacing: 0.03em;
+    padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+  }
+  .k-tag.today { background: var(--red-soft); color: var(--red-ink); }
+  .k-tag.soon  { background: var(--accent-soft); color: var(--accent-ink); }
+  .k-tag.fresh { background: var(--sage-tint); color: #3E6B45; }
+
+  /* 3. The recipe the kitchen already covers, and what cooking it spends. */
+  .ill-recipe { background: var(--primary); padding: 12px 20px; }
+  .r-card {
+    width: 100%; background: var(--card); border: 1px solid var(--card-line);
+    border-radius: 16px; padding: 11px;
+    box-shadow: 0 10px 20px -12px rgba(110, 30, 15, 0.5);
+  }
+  .r-head { display: flex; align-items: center; gap: 10px; }
+  .r-dish {
+    width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+    background: var(--sage-tint); display: flex; align-items: center; justify-content: center;
+  }
+  .r-dish .fi { width: 26px; height: 26px; }
+  .r-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .r-meta b { font-size: 12.5px; font-weight: 800; letter-spacing: -0.01em; color: var(--text); }
+  .r-meta i { font-size: 10.5px; font-style: normal; color: var(--muted); }
+
+  .r-chips { display: flex; gap: 6px; margin: 10px 0 10px; }
+  .r-chip {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 30px; border-radius: 9px;
+    background: var(--surface-2); border: 1px solid var(--card-line);
+    transition: opacity 0.5s ease;
+  }
+  .r-chip .fi { width: 20px; height: 20px; }
+  .r-tick {
+    position: absolute; right: -3px; bottom: -3px; width: 14px; height: 14px;
+    padding: 2px; border-radius: 999px;
+    background: var(--green); color: #fff;
+    opacity: 0; transform: scale(0.6);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .r-cta {
+    display: flex; align-items: center; justify-content: center;
+    height: 28px; border-radius: 10px;
+    background: var(--primary); color: #fff;
+    font-size: 11.5px; font-weight: 700;
+  }
+
+  /* The food settles in when the step scrolls into view: sequence matches
+     the step it illustrates. */
+  @keyframes foodIn { from { opacity: 0; transform: translateY(14px) scale(0.92); } to { opacity: 1; } }
+  /* Shots fade only: each one carries its own rotation, which a transform
+     keyframe would wipe out. */
+  /* Fade only: both carry their own transform, which a transform keyframe
+     would wipe out. */
+  @keyframes shotIn { from { opacity: 0; } to { opacity: 1; } }
+  .step-card.seen .fridge,
+  .step-card.seen .snap-phone { animation: shotIn 0.45s ease both; }
+  .step-card.seen .snap-phone { animation-delay: 0.14s; }
+  .step-card:not(.seen) .fridge,
+  .step-card:not(.seen) .snap-phone { opacity: 0; }
+  .ill-capture .fi { animation-delay: calc(0.28s + var(--i) * 80ms) !important; }
+  .step-card.seen .k-row { animation: shotIn 0.45s ease both; animation-delay: calc(var(--r, 0) * 110ms); }
+  /* Cooking spends them: tick, then settle back. Transition-only so reduced
+     motion simply shows the ticked state. */
+  .step-card.seen .r-tick { opacity: 1; transform: none; }
+  .step-card.seen .r-chip { opacity: 0.55; }
+  .step-card.seen .r-chip:nth-child(1) .r-tick { transition-delay: 0.65s; }
+  .step-card.seen .r-chip:nth-child(2) .r-tick { transition-delay: 0.8s; }
+  .step-card.seen .r-chip:nth-child(3) .r-tick { transition-delay: 0.95s; }
+  .step-card.seen .r-chip:nth-child(1) { transition-delay: 0.85s; }
+  .step-card.seen .r-chip:nth-child(2) { transition-delay: 1s; }
+  .step-card.seen .r-chip:nth-child(3) { transition-delay: 1.15s; }
+  .step-card:not(.seen) .k-row { opacity: 0; }
+  .k-row:nth-child(2) { --r: 1; }
+  .k-row:nth-child(3) { --r: 2; }
+  .step-card.seen .fi { animation: foodIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 90ms); }
+  .step-card:not(.seen) .fi { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .step-card .fi, .step-card.seen .fi,
+    .step-card .fridge, .step-card.seen .fridge,
+    .step-card .snap-phone, .step-card.seen .snap-phone,
+    .step-card .k-row, .step-card.seen .k-row { animation: none; opacity: 1; }
+    .r-chip, .r-tick { transition: none !important; }
+  }
+  .step-card h3 { font-size: 20px; font-weight: 800; letter-spacing: -0.015em; margin-bottom: 8px; }
+  .step-card p { font-size: 15px; color: var(--muted); line-height: 1.5; }
+
+  /* Recipe generation: the cook prompt and what it returns, as two cream
+     screens standing in one peach well. Tiles follow CookPromptSheet: white
+     lifted tile, peach icon well, the picked one fills tomato. */
+  .gen {
+    display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 20px;
+    padding: 20px; border-radius: 36px; background: var(--surface-2);
+  }
+  .gen-screen {
+    display: flex; flex-direction: column;
+    padding: 26px 24px 24px; border-radius: 24px; background: var(--page);
+  }
+  .gen-eb { color: var(--muted); margin-bottom: 6px; }
+  .gen-h { font-size: 22px; line-height: 1.2; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 16px; }
+  .gen-q { font-size: 15px; font-weight: 800; margin: 22px 0 10px; }
+  .gen-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .gen-tile {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 12px; border: none; border-radius: 20px; cursor: pointer;
+    background: var(--card); color: var(--text); box-shadow: var(--shadow-soft);
+    font-family: inherit; text-align: left;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease;
+  }
+  .gen-tile:active { transform: scale(0.97); }
+  .gen-tile:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  .gen-well {
+    width: 44px; height: 44px; border-radius: 12px; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); color: var(--red-ink);
+    transition: background 0.18s ease;
+  }
+  .gen-well svg { width: 22px; height: 22px; }
+  .gen-tile b { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+  .gen-tile i { font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .gen-tile[aria-pressed="true"] { background: var(--primary); color: #fff; }
+  .gen-tile[aria-pressed="true"] i { color: #fff; }
+  .gen-tile[aria-pressed="true"] .gen-well { background: #fff; color: var(--primary); }
+  .gen-note { font-size: 13px; color: var(--muted); margin: 18px 0 16px; }
+  .gen-go { width: 100%; margin-top: auto; }
+
+  /* Right screen: either the four steps ticking, or the ideas. */
+  .gen-out { position: relative; min-height: 468px; }
+  .gen-loading { display: none; }
+  .gen-out.busy .gen-loading { display: block; }
+  .gen-out.busy .gen-ideas { display: none; }
+  .gen-steps { list-style: none; margin: 0; padding: 6px 18px; border-radius: 20px; background: var(--card); box-shadow: var(--shadow-soft); }
+  .gen-steps li { display: flex; align-items: center; gap: 12px; padding: 14px 0; font-size: 15px; font-weight: 700; color: var(--muted-2); transition: color 0.2s ease; }
+  .gen-steps li + li { border-top: 1px solid var(--card-line); }
+  .gen-dot { width: 22px; height: 22px; border-radius: 999px; flex-shrink: 0; border: 2px solid var(--surface-3); transition: background 0.2s ease, border-color 0.2s ease; }
+  .gen-steps li.on { color: var(--text); }
+  .gen-steps li.on .gen-dot { border-color: var(--primary); animation: genPulse 0.7s ease-in-out infinite alternate; }
+  .gen-steps li.done { color: var(--text); }
+  .gen-steps li.done .gen-dot {
+    border-color: var(--green);
+    background: var(--green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.4 5 8.8 9.5 3.6' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat;
+  }
+  @keyframes genPulse { from { box-shadow: 0 0 0 0 rgba(217, 80, 58, 0.35); } to { box-shadow: 0 0 0 7px rgba(217, 80, 58, 0); } }
+
+  .gen-ideas .gen-h { margin-bottom: 4px; }
+  .gen-subline { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+  .gen-best { padding: 18px; border-radius: 20px; background: var(--card); box-shadow: var(--shadow-soft); }
+  .gen-best .micro { color: var(--red-ink); font-size: 11px; }
+  .gen-best h4 { font-size: 21px; line-height: 1.2; font-weight: 800; letter-spacing: -0.02em; margin: 6px 0 4px; }
+  .gen-meta { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .gen-best p { font-size: 14.5px; line-height: 1.5; color: var(--muted); margin: 10px 0 14px; }
+  .gen-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .gen-icons { display: flex; }
+  .gen-icons span { width: 42px; height: 42px; border-radius: 999px; background: var(--surface-2); border: 2px solid var(--card); display: flex; align-items: center; justify-content: center; }
+  .gen-icons span + span { margin-left: -10px; }
+  .gen-icons img { width: 27px; height: 27px; object-fit: contain; }
+  .gen-pill { padding: 6px 12px; border-radius: 999px; background: var(--sage-tint); color: #3E6B45; font-size: 12px; font-weight: 800; white-space: nowrap; }
+  .gen-also { color: var(--muted); font-size: 11px; margin: 18px 0 8px; }
+  .gen-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 10px; border-radius: 16px; background: var(--card); box-shadow: var(--shadow-soft); }
+  .gen-row + .gen-row { margin-top: 8px; }
+  .gen-row .gen-thumb { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; background: var(--surface-2); display: flex; align-items: center; justify-content: center; }
+  .gen-row .gen-thumb img { width: 30px; height: 30px; object-fit: contain; }
+  .gen-row b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; }
+  .gen-ideas > * { animation: riseIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .gen-ideas > :nth-child(3) { animation-delay: 0.06s; }
+  .gen-ideas > :nth-child(n+4) { animation-delay: 0.12s; }
+  .gen-facts { margin-top: 26px; }
+  @media (prefers-reduced-motion: reduce) {
+    .gen-ideas > *, .gen-steps li.on .gen-dot { animation: none; }
+    .gen-tile, .gen-well { transition: none; }
+  }
+  @media (max-width: 860px) {
+    .gen { grid-template-columns: 1fr; padding: 12px; border-radius: 28px; gap: 12px; }
+    .gen-screen { padding: 22px 16px 18px; border-radius: 20px; }
+    .gen-out { min-height: 0; }
+    .gen-tile { padding: 10px; border-radius: 16px; }
+    .gen-tile i { font-size: 10px; letter-spacing: 0.02em; }
+  }
+
+  /* Stats band */
+  .stats { background: var(--surface-2); color: var(--text); }
+  .stats .sec-pad { padding-block: 76px; }
+  .stats-head { max-width: 660px; margin-bottom: 52px; }
+  .stats-head h2 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: clamp(30px, 3.4vw, 40px); line-height: 1.12; letter-spacing: -0.025em; color: var(--text); }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  /* Flex column so the three source lines sit on one baseline even when the
+     descriptions run to different depths. */
+  .stat-card { display: flex; flex-direction: column; padding: 4px 38px 0; }
+  .stat-card:first-child { padding-left: 0; }
+  .stat-card:last-child { padding-right: 0; }
+  .stat-card + .stat-card { border-left: 1px solid var(--surface-3); }
+  .stat-num {
+    font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
+    font-weight: 800; font-size: clamp(48px, 5vw, 68px);
+    line-height: 0.95; letter-spacing: -0.035em; color: var(--primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-desc { font-size: 16.5px; line-height: 1.5; margin-top: 18px; max-width: 30ch; }
+  .stat-src { font-size: 13px; margin-top: auto; padding-top: 20px; color: var(--muted); }
+  .stat-src a { border-bottom: 1px solid var(--hairline-strong); }
+  .stat-src a:hover { border-bottom-color: var(--primary); }
+
+  /* Feature showcase */
+  .feat { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .feat + .feat { margin-top: 72px; }
+  .feat-flip .feat-copy { order: 2; }
+  .feat-copy h3 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 30px; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 14px; }
+  .feat-copy p { font-size: 17px; color: var(--muted); line-height: 1.55; margin-bottom: 20px; }
+  .feat-list { display: flex; flex-direction: column; gap: 12px; }
+  .feat-li { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 600; }
+  .feat-li .lic { width: 24px; height: 24px; border-radius: 999px; background: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .feat-visual {
+    border-radius: 24px; padding: 36px; min-height: 320px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .eatfirst-lab { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red-ink); }
+  .eatfirst-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .ef-card { background: var(--card); border-radius: 14px; padding: 7px; box-shadow: var(--shadow-soft); }
+  .ef-thumb { aspect-ratio: 1/1; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .ef-name { font-weight: 700; font-size: 10px; line-height: 1.1; margin-top: 5px; }
+  .ef-when { font-size: 9px; font-weight: 700; color: var(--red-ink); margin-top: 1px; }
+  .udot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; }
+
+  /* Pricing */
+  .pricing { background: var(--page); }
+  .honest-strip {
+    max-width: 760px; margin: 0 auto 40px; text-align: center;
+    font-size: 16px; color: var(--muted); line-height: 1.55;
+  }
+  .honest-strip b { color: var(--text); font-weight: 700; }
+  .price-toggle {
+    display: inline-flex; padding: 4px; border-radius: 999px;
+    background: var(--surface-2);
+    margin: 0 auto 40px; gap: 4px;
+  }
+  .toggle-wrap { display: flex; justify-content: center; }
+  .price-toggle button {
+    height: 40px; padding: 0 22px; border: none; border-radius: 999px;
+    background: transparent; color: var(--muted); cursor: pointer;
+    font-family: inherit; font-weight: 800; font-size: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .price-toggle button.on { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(170, 90, 50, 0.18); }
+  .save-pill { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: var(--primary); color: #fff; }
+
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
+  .plan {
+    background: var(--card); box-shadow: var(--shadow-soft);
+    border-radius: var(--r-lg); padding: 32px 28px;
+    display: flex; flex-direction: column;
+  }
+  .plan.featured { outline: 2px solid var(--primary); box-shadow: 0 20px 50px rgba(217, 80, 58, 0.16); position: relative; }
+  .plan-flag { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; padding: 5px 14px; border-radius: 999px; white-space: nowrap; }
+  .plan-name { font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
+  .plan-for { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  .plan-price { display: flex; align-items: baseline; gap: 4px; margin: 22px 0 4px; }
+  .plan-price .amt { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 46px; letter-spacing: -0.03em; }
+  .plan-price .per { font-size: 15px; color: var(--muted); }
+  .plan-note { font-size: 13px; color: var(--muted); min-height: 18px; }
+  .plan ul { list-style: none; padding: 0; margin: 24px 0; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .plan li { display: flex; align-items: flex-start; gap: 11px; font-size: 14.5px; line-height: 1.4; }
+  .plan li .lic { width: 20px; height: 20px; border-radius: 999px; color: var(--primary); background: var(--surface-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .plan li.off { color: var(--muted-2); }
+  .plan li.off .lic { background: transparent; }
+  .plan .btn { width: 100%; }
+
+  /* FAQ */
+  .faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .faq-item { background: var(--card); border: 1px solid var(--card-line); border-radius: var(--r-card); overflow: hidden; }
+  .faq-q {
+    width: 100%; text-align: left; background: none; border: none; cursor: default;
+    padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    font-family: inherit; font-weight: 700; font-size: 17px; color: var(--text); letter-spacing: -0.01em;
+  }
+  .faq-q .chev { display: none; }
+  .faq-a { max-height: none; overflow: visible; }
+  .faq-a-inner { padding: 0 24px 22px; font-size: 15.5px; color: var(--muted); line-height: 1.6; }
+  .faq-a-inner b { color: var(--text); font-weight: 700; }
+
+  /* What is leftovr (definition block) */
+  .define { background: var(--page); }
+  .define-card { max-width: 820px; margin: 0 auto; text-align: center; }
+  .define-card p.lede { font-size: 20px; line-height: 1.55; color: var(--text); }
+  .define-facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
+  .define-facts span { background: var(--surface-2); border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 700; color: var(--red-ink); }
+  .updated { margin-top: 24px; font-size: 13px; color: var(--muted-2); }
+
+  /* Ways to add food */
+  .ways { max-width: 760px; margin: 30px auto 0; text-align: center; font-size: 16px; color: var(--muted); line-height: 1.6; }
+  .ways b { color: var(--text); font-weight: 700; }
+
+  /* Comparison table */
+  .stats-grid.three { grid-template-columns: repeat(3, 1fr); }
+  .compare-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.compare { width: 100%; min-width: 760px; border-collapse: collapse; background: var(--card); border: 1px solid var(--card-line); border-radius: var(--r-lg); overflow: hidden; }
+  table.compare th, table.compare td { padding: 16px 18px; text-align: left; font-size: 14.5px; line-height: 1.45; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  table.compare thead th { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: var(--surface-2); }
+  table.compare thead th.us { color: var(--primary); }
+  table.compare tbody th { font-weight: 700; color: var(--text); width: 22%; }
+  table.compare td.us { font-weight: 700; color: var(--red-ink); background: var(--primary-50); }
+  table.compare tbody tr:last-child th, table.compare tbody tr:last-child td { border-bottom: none; }
+  .compare-note { max-width: 760px; margin: 20px auto 0; text-align: center; font-size: 13px; color: var(--muted-2); line-height: 1.5; }
+
+  /* Keep reading (blog cluster) */
+  .readmore { max-width: 760px; margin: 56px auto 0; }
+  .readmore h3 { font-size: 16px; font-weight: 700; margin-bottom: 14px; text-align: center; }
+  .readmore-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .readmore-links a { background: var(--card); border: 1px solid var(--card-line); border-radius: 999px; padding: 9px 16px; font-size: 14px; font-weight: 700; color: var(--red-ink); }
+  .readmore-links a:hover { border-color: var(--hairline-strong); }
+
+  @media (max-width: 860px) {
+    .stats-grid, .stats-grid.three { grid-template-columns: 1fr; }
+    .stat-card { padding: 28px 0 0; }
+    .stat-card + .stat-card { border-left: none; border-top: 1px solid var(--surface-3); }
+    .stat-desc { max-width: none; }
+    .define-card p.lede { font-size: 18px; }
+    table.compare th, table.compare td { padding: 13px 14px; font-size: 14px; }
+  }
+
+  /* Final CTA: the one tomato surface on the page, a card on the cream
+     like everything else, with a white action. */
+  .final { padding: 0 28px 84px; color: #fff; }
+  .final .sec-pad { padding-block: 76px; background: var(--primary); border-radius: 32px; }
+  .final-inner { max-width: 640px; margin: 0 auto; text-align: center; }
+  .final-logo { color: #fff; font-size: 30px; margin-bottom: 18px; }
+  .final-logo .logo-r { color: var(--text); }
+  .final h2 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 44px; line-height: 1.08; letter-spacing: -0.025em; color: #fff; margin-bottom: 18px; }
+  .final h2 .mark { color: var(--text); }
+  .final p.lead { font-size: 19px; font-weight: 700; margin-bottom: 34px; }
+  .final .capture { margin: 0 auto; }
+  .final .field { border-color: transparent; }
+  .final .field:focus { border-color: var(--text); box-shadow: 0 0 0 4px rgba(30, 27, 25, 0.18); }
+  .final .privacy { color: #fff; font-weight: 600; justify-content: center; }
+  .final .capture-label { color: #fff; text-align: left; }
+  .final .post { font-size: 14px; font-weight: 600; margin-top: 18px; }
+  .final .form-msg { text-align: center; }
+  .final .form-msg.err, .final .form-msg.ok { color: #fff; font-weight: 700; }
+  .final .form-success { background: var(--surface); border-color: transparent; color: var(--text); margin: 0 auto; text-align: left; }
+
+  /* Footer */
+  footer { padding: 44px 0; border-top: 1px solid var(--hairline); }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  /* Five links no longer fit one phone-width row since "How it compares"
+     was added, so let them wrap instead of pushing the page sideways. */
+  .foot-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 22px; font-size: 14px; color: var(--muted); }
+  .foot-links a:hover { color: var(--text); }
+  .foot-copy { font-size: 13px; color: var(--muted-2); }
+
+  /* Sticky mobile CTA */
+  .sticky-cta {
+    display: none;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(253, 241, 232, 0.94); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--hairline);
+  }
+  .sticky-cta .btn { width: 100%; }
+
+  /* ── Responsive ────────────────────────── */
+  @media (max-width: 980px) {
+    /* Stacked layout has no pointer to track, so the device faces front. */
+    .phone-stage { animation-name: riseIn; }
+    .phone { --rx: 0deg; --ry: 0deg; --tx: 0px; --ty: 0px; }
+    .steps { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .feat, .feat-flip { grid-template-columns: 1fr; gap: 32px; }
+    .sec-head.wide-title { max-width: 680px; }
+    .feat-flip .feat-copy { order: 0; }
+    .plans { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+    .plan.featured { order: -1; }
+  }
+  @media (max-width: 720px) {
+    .wrap { padding: 0 20px; }
+    .nav-sub { display: none; }
+    .phone { transform: scale(0.88); transform-origin: top center; }
+    .stage-sub { font-size: 16px; }
+    .sec-pad { padding-block: 60px; }
+    h2.sec-title { font-size: 33px; }
+    .final h2 { font-size: 34px; }
+    .final { padding: 0 12px 56px; }
+    .final .sec-pad { padding-block: 52px; border-radius: 28px; }
+    .how-film { border-radius: 20px; }
+    .capture-row { flex-direction: column; }
+    .capture-row .btn { width: 100%; height: 56px; }
+    /* Full width + 16px font stops iOS Safari zooming on focus; taller for presence. */
+    .capture-row .field { flex: none; width: 100%; height: 56px; font-size: 16px; }
+    .nav .btn { height: 44px; padding: 0 18px; font-size: 14px; }
+    .sticky-cta { display: block; }
+    body { padding-bottom: 84px; }
+  }
+  @media (max-width: 360px) {
+    /* Header CTA overflows on ≤350px; the sticky bottom bar already carries it. */
+    .nav-right .btn { display: none; }
+  }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://leftovr.co/#org",
+      "name": "leftovr",
+      "legalName": "Two Brick Labs",
+      "url": "https://leftovr.co/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://leftovr.co/icon-512.png"
+      },
+      "email": "support@twobricklabs.com",
+      "description": "leftovr makes an iPhone app that tracks the food a household already owns and turns it into dinner."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://leftovr.co/#website",
+      "url": "https://leftovr.co/",
+      "name": "leftovr",
+      "inLanguage": [
+        "en",
+        "sr"
+      ],
+      "publisher": {
+        "@id": "https://leftovr.co/#org"
+      }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://leftovr.co/sr/#webpage",
+      "url": "https://leftovr.co/sr/",
+      "name": "Slikaj ostavu, dobij recepte | leftovr",
+      "inLanguage": "sr",
+      "isPartOf": {
+        "@id": "https://leftovr.co/#website"
+      },
+      "about": {
+        "@id": "https://leftovr.co/#app"
+      },
+      "datePublished": "2026-06-19",
+      "dateModified": "2026-11-10",
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://leftovr.co/og-image-2.png"
+      },
+      "description": "leftovr od slike frižidera ili ostave pravi recepte od hrane koju već imaš. Kuhinju ti pune i računi i bar-kodovi. Za iPhone, besplatno za početak."
+    },
+    {
+      "@type": "MobileApplication",
+      "@id": "https://leftovr.co/#app",
+      "name": "leftovr",
+      "alternateName": "leftovr | What's for dinner?",
+      "applicationCategory": "LifestyleApplication",
+      "applicationSubCategory": "Food & Drink",
+      "operatingSystem": "iOS",
+      "url": "https://leftovr.co/",
+      "image": "https://leftovr.co/icon-512.png",
+      "inLanguage": [
+        "en",
+        "sr"
+      ],
+      "publisher": {
+        "@id": "https://leftovr.co/#org"
+      },
+      "author": {
+        "@id": "https://leftovr.co/#org"
+      },
+      "description": "leftovr od slike frižidera ili ostave pravi recepte od hrane koju već imaš. Kuhinju ti pune i računi i bar-kodovi. Za iPhone, besplatno za početak."
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://leftovr.co/sr/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Postoji li aplikacija koja pravi recepte od onoga što imam u frižideru?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Da. leftovr je iPhone aplikacija koja radi baš to. Uslikaš frižider ili ostavu, ili skeniraš račun iz prodavnice, i ona vodi listu hrane koju imaš. Recepti se prave od te liste, pa ne moraš svaki put da kucaš sastojke."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Šta mogu da skuvam od onoga što već imam?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Otvori leftovr, izaberi obrok i koliko imaš vremena, i dobićeš do tri recepta od hrane iz svoje kuhinje. Svaki glavni sastojak je nešto što već imaš. Podrazumeva se samo osnovno: voda, so, biber, ulje i suvi začini."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Kako da potrošim hranu pre nego što se pokvari?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "leftovr ređa sve u tvojoj kuhinji po tome šta treba prvo pojesti, i recepti kreću od tih namirnica. Kad nešto skuvaš, ono što potrošiš skida se sa liste, pa se sledeći predlog pravi od onoga što je ostalo."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Da li recepte piše veštačka inteligencija?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Da. Veštačka inteligencija piše svaki recept od hrane iz tvoje kuhinje. Recepti imaju najviše 8 koraka i 12 sastojaka, da ih je lako pratiti na telefonu. Uz Premium možeš da tražiš još tri ako ti se nijedan ne dopada."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Da li je leftovr besplatan?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Da, za početak. Tvoje prvo skeniranje (slika ostave ili račun) i prvi recept su besplatni, a ručni unos i bar-kod ostaju besplatni zauvek. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i nedeljni pregled, Premium košta 7,99 €/mesec (54,99 € godišnje), a Domaćinstvo 14,99 €/mesec (99,99 € godišnje) za do tri osobe."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Moram li sve ručno da unosim?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ne. Slika ostave pročita celu policu odjednom, do tri slike, a skeniranje računa doda 20 do 30 stavki za desetak sekundi. Za jednu stvar možeš da skeniraš bar-kod ili dodaš ručno, oboje besplatno i neograničeno."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Kako radi slika ostave?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Uslikaj do tri fotografije police, frižidera ili pulta. leftovr pročita šta vidi, a ti potvrdiš spisak pre nego što išta uđe u kuhinju. To je AI skeniranje, pa se računa u isti limit kao i skeniranje računa."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Može li moje domaćinstvo da deli jednu kuhinju?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Da. Plan Domaćinstvo daje do tri osobe jednu zajedničku kuhinju koja se sama sinhronizuje, pa bez obzira ko kupuje, svi vide šta imate i šta da skuvate."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Kako rade predlozi recepata?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Recepti se prave od hrane koju već imaš u kuhinji, a obavezni sastojci dolaze iz onoga što ima tvoje domaćinstvo. leftovr prvo uzima hranu koju treba potrošiti. Dodirni Skuvao sam ovo i ti sastojci se automatski uklone ili im se smanji količina."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Šta se dešava sa podacima sa mojih računa?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Stavke i količine sa računa su lični podaci kad su povezani sa tvojim nalogom. Koristimo ih samo da ažuriramo tvoju kuhinju i predložimo obroke. Neke stavke mogu da otkriju nešto o ishrani, zdravlju, porodici ili verskim navikama. Nikad ne prodajemo tvoje lične podatke. Možeš da obrišeš stavke ili ceo nalog kad god želiš."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Računi iz kojih prodavnica rade?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Većina štampanih, imejlom poslatih i PDF računa iz prodavnica radi odmah. Ako neka stavka nije jasna, leftovr samo nju označi za brzu proveru jednim dodirom, a ostalo ide pravo unutra."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Da li su datumi svežine tačni?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ne. To su okvirne procene svežine, na osnovu vrste namirnice i onoga što može da se pročita sa računa. Datum možeš da izmeniš ili obrišeš pri proveri računa ili ručnom unosu, ako znaš bolje."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Da li leftovr radi na Androidu?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Još ne. leftovr je za sada iPhone aplikacija. Lista za rani pristup je najbrži način da saznaš kada se to promeni."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Po čemu se leftovr razlikuje od aplikacije sa receptima?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Aplikacija sa receptima traži da svaki put ukucaš sastojke, pa te pošalje u kupovinu. leftovr već zna šta imaš, ređa to po tome šta se prvo kvari, pravi recepte od tih sastojaka i oduzima ih iz tvoje kuhinje čim skuvaš."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Koje jezike leftovr govori?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Engleski i srpski: cela aplikacija, uključujući recepte koje generiše, i ovaj sajt."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Treba li mi pametan frižider ili dodatna oprema?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ne. Za leftovr ti trebaju samo iPhone i njegova kamera. Bez senzora, bez pametnog frižidera, bez vage."
+          }
+        }
+      ],
+      "inLanguage": "sr"
+    }
+  ]
+}
+</script>
+<!-- Cloudflare Turnstile (bot captcha). Explicit render via onTurnstileLoad below. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer></script>
+</head>
+<body>
+
+<!-- ─────────────── LAUNCH SPLASH (once per session) ─────────────── -->
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="splash-mark">
+    <img src="/splash-logo.png" alt="" width="200" height="200">
+    <div class="wisp-clip" style="left:83px"><div class="wisp"><svg viewBox="11 6.5 5 8.5"><path d="M12.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#F2B640" stroke-width="3" stroke-linecap="round" fill="none"/></svg></div></div>
+    <div class="wisp-clip" style="left:101px"><div class="wisp"><svg viewBox="20 6.5 5 8.5"><path d="M21.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#F2B640" stroke-width="3" stroke-linecap="round" fill="none"/></svg></div></div>
+  </div>
+</div>
+<noscript><style>.splash { display: none; }</style></noscript>
+<script>
+  // Runs before first paint. Holds for one rise of the steam (1.6s, as in the
+  // app) and until the page has loaded, capped at 4s so a slow asset can't
+  // keep the door shut.
+  (function () {
+    var el = document.getElementById('splash'), root = document.documentElement;
+    var seen = false;
+    try { seen = sessionStorage.getItem('leftovr-splash') === '1'; sessionStorage.setItem('leftovr-splash', '1'); } catch (e) {}
+    if (seen) { el.remove(); return; }
+    root.classList.add('splashing');
+    var min = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1600;
+    var t0 = Date.now(), closed = false;
+    function close() {
+      if (closed) return;
+      closed = true;
+      setTimeout(function () {
+        el.classList.add('out');
+        root.classList.remove('splashing');
+        setTimeout(function () { el.remove(); }, 300);
+      }, Math.max(0, min - (Date.now() - t0)));
+    }
+    if (document.readyState === 'complete') close(); else window.addEventListener('load', close);
+    setTimeout(close, 4000);
+  })();
+</script>
+
+<!-- ─────────────── HEADER (logo + language toggle + single CTA) ─────────────── -->
+<header>
+  <div class="wrap nav">
+    <a class="nav-brand" href="#top" aria-label="leftovr, what's for dinner">
+      <span class="nav-logo">leftov<span class="logo-r">r</span></span>
+      <span class="nav-sub" data-i18n="nav.tag">Šta ima za večeru?</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <a href="/" hreflang="en" data-lang="en">EN</a>
+        <a href="/sr/" hreflang="sr" data-lang="sr" aria-current="page">SR</a>
+      </div>
+      <a class="btn btn-primary btn-sm" href="#get" data-i18n="nav.cta">Rani pristup</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ─────────────── HERO ─────────────── -->
+  <section class="stage" id="top-stage" data-screen-label="Hero">
+    <div class="wrap stage-grid">
+      <div class="stage-copy">
+        <span class="micro stage-eyebrow" data-i18n="hero.eyebrow">iPhone · besplatno za početak</span>
+
+        <h1 class="stage-h1" data-i18n-html="hero.h1">Večera od onoga <em>što već imaš u frižideru</em>.</h1>
+
+        <p class="stage-sub" data-i18n="hero.sub">Slikaj frižider. leftovr ti napuni kuhinju, označi šta se prvo kvari i od toga napravi večeru.</p>
+
+      <form class="capture" id="hero-form" novalidate>
+        <label class="capture-label sr-only" for="hero-email" data-i18n="hero.formLabel">Rani pristup</label>
+        <div class="capture-row">
+          <input class="field" type="email" id="hero-email" name="email" placeholder="ti@primer.rs" data-i18n-ph="hero.placeholder" autocomplete="email" required>
+          <button class="btn btn-primary" type="submit" data-i18n="hero.submit">Prijavi se na listu</button>
+        </div>
+        <div id="hero-captcha" class="captcha-widget"></div>
+        <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="privacy">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+          <span data-i18n="hero.privacy">Samo vesti o ranom pristupu. Odjaviš se kad hoćeš.</span>
+        </div>
+        <p class="form-msg" id="hero-msg" role="status" aria-live="polite"></p>
+      </form>
+      <div class="form-success" id="hero-success">
+        <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><b style="font-weight:700;" data-i18n="hero.successTitle">Na listi si.</b><br><span class="fs-sub" data-i18n="hero.successBody">Poslaćemo ti pozivnicu čim se oslobodi mesto, obično za nekoliko dana.</span></div>
+      </div>
+      </div>
+
+      <!-- The open fridge: your food on its shelves, and the ticket on the door
+           names tonight's dinner. What the dish uses lifts off the shelf. -->
+      <div class="stage-fridge">
+        <div class="demo" role="img" aria-label="leftovr turning the food in your kitchen into tonight&#39;s dinner">
+          <span class="fr-handle" aria-hidden="true"></span>
+          <div class="fr-top">
+            <span class="demo-label" data-i18n="stage.have">Tvoja kuhinja</span>
+            <span class="demo-count" data-i18n="stage.count">6 stavki</span>
+          </div>
+          <ul class="k-list">
+            <li class="k-ing" data-ing="0" style="--i:0"><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing0">Mladi spanać</span></li>
+            <li class="k-ing" data-ing="1" style="--i:1"><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing1">Feta</span></li>
+            <li class="k-ing" data-ing="2" style="--i:2"><img src="/food/eggs.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing2">Domaća jaja</span></li>
+            <li class="k-ing" data-ing="3" style="--i:3"><img src="/food/tomato.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing3">Čeri paradajz</span></li>
+            <li class="k-ing" data-ing="4" style="--i:4"><img src="/food/chicken_breast.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing4">Pileća prsa</span></li>
+            <li class="k-ing" data-ing="5" style="--i:5"><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing5">Pasta</span></li>
+          </ul>
+
+          <div class="demo-foot">
+            <svg class="steam" viewBox="0 0 44 30" aria-hidden="true"><path d="M8 28c0-6 5-6 5-12S8 10 8 4"/><path d="M22 28c0-6 5-6 5-12s-5-6-5-12"/><path d="M36 28c0-6 5-6 5-12s-5-6-5-12"/></svg>
+            <span class="demo-label" data-i18n="stage.tonight">Večeras</span>
+            <div class="pick">
+              <div class="pick-icons" id="dish-cluster" aria-hidden="true">
+                <span><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"></span>
+                <span><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"></span>
+                <span><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"></span>
+              </div>
+              <div class="pick-text">
+                <div class="dish" id="dish" data-i18n="stage.dish0">Pasta sa spanaćem i fetom</div>
+                <div class="dish-meta" id="dish-meta" data-i18n="stage.meta0">20 min · troši spanać pre nego što uvene</div>
+              </div>
+              <button type="button" class="dish-next" id="dish-next" data-i18n-aria="stage.next" aria-label="Prikaži drugu večeru">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h12M11 5.5 15.5 10 11 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── WHAT IS LEFTOVR (plain-answer block) ─────────────── -->
+  <section class="define sec-pad" id="what" data-screen-label="What is leftovr">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="what.eyebrow">Šta je leftovr?</div>
+        <h2 class="sec-title" data-i18n-html="what.title">Aplikacija koja već zna <span class="mark">šta ti je u kuhinji.</span></h2>
+      </div>
+      <div class="define-card">
+        <p class="lede" data-i18n="what.body">leftovr je aplikacija za iPhone koja od hrane koju već imaš pravi večeru. Slikaj frižider ili ostavu, ili skeniraj račun, i leftovr ti napuni kuhinju, poreda sve po tome šta prvo treba pojesti i pravi recepte samo od tih sastojaka.</p>
+        <div class="define-facts">
+          <span data-i18n="what.fact1">iPhone aplikacija</span>
+          <span data-i18n="what.fact2">Engleski i srpski</span>
+          <span data-i18n="what.fact3">Pet načina da dodaš hranu</span>
+          <span data-i18n="what.fact4">Besplatno za početak</span>
+        </div>
+      </div>
+
+      <div class="define-device">
+      <div class="phone-stage">
+        <div class="phone-glow"></div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="island"></div>
+            <div class="sb">
+              <span class="t">9:41</span>
+              <span class="ic">
+                <svg width="18" height="11" viewBox="0 0 18 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="6" rx="1"/><rect x="10" y="2.5" width="3" height="8.5" rx="1"/><rect x="15" y="0" width="3" height="11" rx="1"/></svg>
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.2c2.6 0 5 1 6.8 2.7l-1.5 1.6A7.4 7.4 0 0 0 8 5.3 7.4 7.4 0 0 0 2.7 6.5L1.2 4.9A9.6 9.6 0 0 1 8 2.2z"/><path d="M8 6.6c1.4 0 2.7.5 3.7 1.5l-1.6 1.7A2.9 2.9 0 0 0 8 8.9c-.8 0-1.5.3-2.1.9L4.3 8.1A5.2 5.2 0 0 1 8 6.6z"/><circle cx="8" cy="10.6" r="1.2"/></svg>
+                <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="16" height="8" rx="1.6" fill="currentColor"/><rect x="23" y="3.5" width="1.6" height="5" rx="0.8" fill="currentColor" opacity="0.4"/></svg>
+              </span>
+            </div>
+            <div class="lo-body">
+              <!-- 1. Header: wordmark (+ premium dot) and the household pill -->
+              <div class="lo-head">
+                <span class="lo-logo">leftov<i>r</i><span class="lo-dot"></span></span>
+                <span class="lo-hh"><b>L</b><span data-i18n="phone.household">Lenina kuhinja</span></span>
+              </div>
+
+              <!-- 2. Use first (urgent only) -->
+              <div class="lo-urgent">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2 3-1 4.5-1 7a3 3 0 0 0 6 0c0-1-.3-2-.8-2.8C17.9 9 19 11.3 19 13.5a7 7 0 1 1-14 0C5 8.8 9 7 12 3z"/></svg>
+                <span data-i18n="phone.urgent">Spanać, jaja i piletina: za danas</span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l6 7-6 7"/></svg>
+              </div>
+
+              <!-- 3. WeekStrip: today&#39;s goal, streak, last seven days -->
+              <div class="lo-week">
+                <div class="lo-goal">
+                  <div class="lo-ring">
+                    <svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="32.5" transform="rotate(-90 18 18)"/></svg>
+                    <span>2/3</span>
+                  </div>
+                  <div class="gl" data-i18n="phone.goal">1 stvar se danas kvari, iskoristi je</div>
+                </div>
+                <div class="lo-wmeta">
+                  <span data-i18n="phone.month">Novembar</span>
+                  <span class="st"><span data-i18n="phone.streak">5 dana zaredom</span> <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="5" y1="8" x2="19" y2="16"/><line x1="5" y1="16" x2="19" y2="8"/></svg> 1</span>
+                </div>
+                <div class="lo-days"><div class="lo-day"><span data-i18n="phone.d1">P</span><i></i></div><div class="lo-day"><span data-i18n="phone.d2">U</span><i></i></div><div class="lo-day off"><span data-i18n="phone.d3">S</span><i></i></div><div class="lo-day"><span data-i18n="phone.d4">Č</span><i></i></div><div class="lo-day"><span data-i18n="phone.d5">P</span><i></i></div><div class="lo-day"><span data-i18n="phone.d6">S</span><i></i></div><div class="lo-day today"><span data-i18n="phone.d7">N</span><i></i></div></div>
+                <div class="lo-wfoot">
+                  <span data-i18n="phone.lastCooked">Poslednje kuvano: Šakšuka · ponedeljak</span>
+                  <span class="lo-pill" data-i18n="phone.history">Istorija</span>
+                </div>
+              </div>
+
+              <!-- 4. Tonight (TryNextCard) -->
+              <div class="lo-try">
+                <div class="lo-tryhead">
+                  <div class="lo-tile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg></div>
+                  <div class="lo-trymeta">
+                    <div class="eb" data-i18n="phone.tonightLbl">Večeras · iz tvoje kuhinje</div>
+                    <div class="tt" data-i18n="phone.tonightTitle">Pasta sa spanaćem i fetom</div>
+                    <div class="mt"><span data-i18n="phone.tonightMeta">20 min</span><em></em><span data-i18n="phone.tonightLevel">lako</span></div>
+                  </div>
+                  <span style="color:var(--muted-2);flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 6.5a4.2 4.2 0 0 0-6-.3L12 7.6l-1.5-1.4a4.2 4.2 0 0 0-6 6L12 20l7.5-7.8a4.2 4.2 0 0 0 0-5.7z"/></svg></span>
+                </div>
+                <div class="lo-why" data-i18n="phone.why">Troši spanać i fetu pre nego što se pokvare.</div>
+                <div class="lo-chips">
+                  <span class="lo-chip soon" data-i18n="phone.chipSpinach">Mladi spanać</span>
+                  <span class="lo-chip" data-i18n="phone.chipFeta">Feta</span>
+                  <span class="lo-chip" data-i18n="phone.chipMore">+1</span>
+                  <span class="steps" data-i18n="phone.steps">6 koraka</span>
+                </div>
+                <div class="lo-tryfoot">
+                  <span class="lo-btn" data-i18n="phone.cookThis">Skuvaj ovo</span>
+                  <span class="lo-btn ghost" data-i18n="phone.moreIdeas">Još ideja</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="lo-tabbar">
+              <span class="on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg></span>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v14H4z"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="12" y1="11" x2="12" y2="19.5"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
+              <div class="lo-add"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="19" y1="20" x2="19" y2="11"/></svg>
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="15" cy="8" r="2.6" fill="var(--surface)"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="9" cy="16" r="2.6" fill="var(--surface)"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <div class="define-card" style="margin-top:36px;">
+        <p class="updated" data-i18n="what.updated">Stranica ažurirana 10. novembra 2026.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── HOW IT WORKS ─────────────── -->
+  <section class="sec-pad" id="how" data-screen-label="How it works">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="how.eyebrow">Kako radi</div>
+        <h2 class="sec-title" data-i18n-html="how.title">Police unutra. <span class="mark">Večera napolje.</span></h2>
+        <p class="sec-sub" data-i18n="how.sub">Tri koraka, a jedan već radiš svaki put kad kupuješ.</p>
+      </div>
+
+      <!-- The loop the three steps describe, as one 15s film. Source:
+           video/landing-loop (HyperFrames). No sound; plays only in view. -->
+      <div class="how-film">
+        <video muted loop playsinline preload="none" poster="/video/leftovr-loop-poster.jpg" width="1920" height="1080" data-i18n-aria="how.film" aria-label="leftovr za petnaest sekundi: slikaj police, vidi šta prvo treba pojesti, skuvaj nešto od toga, a kuhinja se sama ažurira.">
+          <source src="/video/leftovr-loop.mp4" type="video/mp4">
+        </video>
+      </div>
+
+      <div class="steps">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <!-- Step 1: a phone held up to an open fridge. What the camera sees
+               on the screen is the same shelf it is pointed at. Food icons are
+               the app's own illustrations (assets/food-icons). -->
+          <div class="step-ill ill-capture">
+            <div class="fridge">
+              <div class="fridge-shelf">
+                <img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0">
+                <img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1">
+              </div>
+              <div class="fridge-shelf">
+                <img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2">
+              </div>
+            </div>
+            <div class="snap-phone">
+              <div class="snap-screen">
+                <div class="snap-shelf">
+                  <img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:3">
+                  <img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:4">
+                </div>
+                <span class="snap-guide" aria-hidden="true"></span>
+              </div>
+              <span class="snap-shutter" aria-hidden="true"></span>
+            </div>
+          </div>
+          <h3 data-i18n="step1.title">Slikaj police</h3>
+          <p data-i18n="step1.body">Slikaj frižider, policu ili pult, najviše tri slike. Radi i slika računa ili PDF e-račun: doda 20 do 30 stavki odjednom.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <!-- Step 2: the kitchen itself, ranked by what to eat first, with the
+               gentle windows the copy promises instead of a countdown.
+               Thumb tints come from categoryColors in src/theme/tokens.ts. -->
+          <div class="step-ill ill-kitchen">
+            <div class="k-card">
+              <div class="k-row">
+                <span class="k-thumb" style="background:#C8D5C2"><img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0"></span>
+                <span class="k-name" data-i18n="step2.n1">Mladi spanać</span>
+                <span class="k-tag today" data-i18n="step2.w1">Najbolje danas</span>
+              </div>
+              <div class="k-row">
+                <span class="k-thumb" style="background:#E8B59E"><img class="fi" src="/food/tomato.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1"></span>
+                <span class="k-name" data-i18n="step2.n2">Čeri paradajz</span>
+                <span class="k-tag soon" data-i18n="step2.w2">Ove nedelje</span>
+              </div>
+              <div class="k-row">
+                <span class="k-thumb" style="background:#F0DDA8"><img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2"></span>
+                <span class="k-name" data-i18n="step2.n3">Sir</span>
+                <span class="k-tag fresh" data-i18n="step2.w3">Sveže</span>
+              </div>
+            </div>
+          </div>
+          <h3 data-i18n="step2.title">Tvoja kuhinja sve prati</h3>
+          <p data-i18n="step2.body">Sve ide na police sa blagim oznakama svežine: „najbolje danas“, „ove nedelje“, bez strašnih odbrojavanja do isteka roka.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <!-- Step 3: the recipe the kitchen can already cover. On reveal the
+               three it uses get ticked and fade back, which is the depletion
+               the copy promises. -->
+          <div class="step-ill ill-recipe">
+            <div class="r-card">
+              <div class="r-head">
+                <span class="r-dish"><img class="fi" src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:0"></span>
+                <span class="r-meta">
+                  <b data-i18n="step3.dish">Pasta sa spanaćem i fetom</b>
+                  <i data-i18n="step3.time">20 min, lako</i>
+                </span>
+              </div>
+              <div class="r-chips">
+                <span class="r-chip"><img class="fi" src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:1"><svg class="r-tick" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4 5 8.8 9.5 3.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="r-chip"><img class="fi" src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:2"><svg class="r-tick" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4 5 8.8 9.5 3.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="r-chip"><img class="fi" src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async" style="--i:3"><svg class="r-tick" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.4 5 8.8 9.5 3.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </div>
+              <span class="r-cta" data-i18n="step3.cta">Skuvaj ovo</span>
+            </div>
+          </div>
+          <h3 data-i18n="step3.title">Kuvaj od onoga što već imaš</h3>
+          <p data-i18n="step3.body">Recepti od onoga što imaš, a prvo ide ono što treba pojesti. Skuvaj jedan i te namirnice same nestanu iz kuhinje.</p>
+        </div>
+      </div>
+
+      <p class="ways" data-i18n-html="how.ways"><b>Pet načina da napuniš kuhinju:</b> slika ostave (do tri police odjednom), slika računa, PDF e-račun, bar-kod ili ručni unos. Bar-kod i ručni unos su besplatni i neograničeni, zauvek.</p>
+    </div>
+  </section>
+
+  <!-- ─────────────── RECIPE GENERATION ─────────────── -->
+  <!-- The app's cook prompt on the left (same questions and labels as
+       CookPromptSheet), what it generates on the right. The nine recipes are
+       fixed and all made from the hero fridge's six foods; picking a meal or
+       a time filters them the way the app's own filters do. -->
+  <section class="sec-pad" id="recipes" data-screen-label="Recipe generation">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="gen.eyebrow">Pravljenje recepata</div>
+        <h2 class="sec-title" data-i18n-html="gen.title">Reci šta ti se jede. <span class="mark">Dobij recepte skrojene za tvoju kuhinju.</span></h2>
+        <p class="sec-sub" data-i18n="gen.sub">Izaberi obrok i koliko imaš vremena. leftovr piše recepte od hrane koju imaš, počev od onoga što prvo treba pojesti.</p>
+      </div>
+
+      <div class="gen">
+        <div class="gen-screen">
+          <div class="micro gen-eb" data-i18n="gen.askEyebrow">Hajde da budemo konkretni</div>
+          <h3 class="gen-h" id="gen-ask-title" data-i18n="gen.askTitle">Šta spremaš?</h3>
+          <div class="gen-tiles" role="group" aria-labelledby="gen-ask-title">
+          <button type="button" class="gen-tile" data-gen="meal" data-value="breakfast" aria-pressed="false"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17h16M6 17a6 6 0 0 1 12 0M12 4v3M4.9 8.9l2.1 2.1M19.1 8.9 17 11M3 21h18"/></svg></span><b data-i18n="gen.meal.breakfast">Doručak</b><i data-i18n="gen.mealSub.breakfast">Ujutru</i></button>
+          <button type="button" class="gen-tile" data-gen="meal" data-value="lunch" aria-pressed="false"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></span><b data-i18n="gen.meal.lunch">Ručak</b><i data-i18n="gen.mealSub.lunch">U podne</i></button>
+          <button type="button" class="gen-tile" data-gen="meal" data-value="dinner" aria-pressed="true"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2z"/></svg></span><b data-i18n="gen.meal.dinner">Večera</b><i data-i18n="gen.mealSub.dinner">Večeras</i></button>
+          </div>
+          <div class="gen-q" id="gen-time-label" data-i18n="gen.time">Vreme kuvanja</div>
+          <div class="gen-tiles" role="group" aria-labelledby="gen-time-label">
+          <button type="button" class="gen-tile" data-gen="time" data-value="quick" aria-pressed="false"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2.5 5 13.5h6l-1 8 8-11h-6l1-8z"/></svg></span><b data-i18n="gen.time.quick">Na brzaka</b><i data-i18n="gen.timeSub.quick">Ispod 15 min</i></button>
+          <button type="button" class="gen-tile" data-gen="time" data-value="weeknight" aria-pressed="false"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.2 2"/></svg></span><b data-i18n="gen.time.weeknight">Radni dan</b><i data-i18n="gen.timeSub.weeknight">Oko 30 min</i></button>
+          <button type="button" class="gen-tile" data-gen="time" data-value="norush" aria-pressed="true"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3v3.5c0 2 4 3.5 4 5.5s-4 3.5-4 5.5V21M16 3v3.5c0 2-4 3.5-4 5.5s4 3.5 4 5.5V21"/></svg></span><b data-i18n="gen.time.norush">Bez žurbe</b><i data-i18n="gen.timeSub.norush">Polako</i></button>
+          </div>
+          <p class="gen-note" data-i18n="gen.note">Uvek kuvamo prvo od onoga što treba pojesti.</p>
+          <button type="button" class="btn btn-primary gen-go" id="gen-go" data-i18n="gen.go">Nađi recepte</button>
+        </div>
+
+        <div class="gen-screen gen-out" id="gen-out">
+          <div class="gen-loading" aria-hidden="true">
+            <div class="micro gen-eb" data-i18n="gen.loadEyebrow">Nove ideje</div>
+            <div class="gen-h" data-i18n="gen.loadTitle">Smišljamo ideje</div>
+            <ol class="gen-steps" id="gen-steps">
+            <li><span class="gen-dot" aria-hidden="true"></span><span data-i18n="gen.step1">Proveravamo kuhinju</span></li>
+            <li><span class="gen-dot" aria-hidden="true"></span><span data-i18n="gen.step2">Tražimo šta treba prvo pojesti</span></li>
+            <li><span class="gen-dot" aria-hidden="true"></span><span data-i18n="gen.step3">Spajamo ukuse koji se slažu</span></li>
+            <li><span class="gen-dot" aria-hidden="true"></span><span data-i18n="gen.step4">Zapisujemo korake</span></li>
+            </ol>
+          </div>
+          <!-- Default ideas in the markup so crawlers that run no JS still read them. -->
+          <div class="gen-ideas" id="gen-ideas" aria-live="polite"><h3 class="gen-h">3 ideje</h3><p class="gen-subline">Od onoga što imaš u kuhinji, prvo ide ono što se kvari.</p><div class="gen-best"><div class="micro">Najbolji izbor</div><h4>Pasta sa spanaćem i fetom</h4><div class="gen-meta">20 min · Lako</div><p>Troši spanać pre nego što uvene, a feta se topi u sosu.</p><div class="gen-foot"><div class="gen-icons"><span><img src="/food/spinach.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span><span><img src="/food/cheese.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span><span><img src="/food/pasta.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span></div><span class="gen-pill">Imaš sve</span></div></div><div class="micro gen-also">Može i ovo</div><div class="gen-row"><span class="gen-thumb"><img src="/food/chicken_breast.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span><span><b>Piletina sa raspuklim čeri paradajzom</b><span class="gen-meta">15 min · Lako</span></span></div><div class="gen-row"><span class="gen-thumb"><img src="/food/chicken_breast.png" alt="" width="192" height="192" loading="lazy" decoding="async"></span><span><b>Piletina iz pleha</b><span class="gen-meta">35 min · Lako</span></span></div></div>
+        </div>
+      </div>
+
+      <div class="define-facts gen-facts">
+        <span data-i18n="gen.fact1">Samo sastojci koje imaš</span>
+        <span data-i18n="gen.fact2">Prvo ono što se kvari</span>
+        <span data-i18n="gen.fact3">Najviše 8 koraka</span>
+        <span data-i18n="gen.fact4">Nije to? Traži još 3</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── REAL STATS (cited) ─────────────── -->
+  <section class="stats" data-screen-label="Why it matters">
+    <div class="wrap sec-pad">
+      <div class="stats-head">
+        <div class="micro eyebrow" data-i18n="stats.eyebrow">Zašto je važno</div>
+        <h2 data-i18n="stats.title">Bacamo više hrane nego što mislimo. A s njom i više novca.</h2>
+      </div>
+      <div class="stats-grid three">
+        <div class="stat-card">
+          <div class="stat-num">$1,500</div>
+          <p class="stat-desc" data-i18n="stat1.desc">Toliko hrane godišnje baci prosečna američka četvoročlana porodica.</p>
+          <p class="stat-src">Source: <a href="https://www.usda.gov/foodlossandwaste/faqs" target="_blank" rel="noopener">U.S. Department of Agriculture</a></p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">31%</div>
+          <p class="stat-desc" data-i18n="stat2.desc">Deo američke hrane koji se izgubi u prodavnicama i kod potrošača, po proceni USDA.</p>
+          <p class="stat-src">Source: <a href="https://www.usda.gov/foodlossandwaste/faqs" target="_blank" rel="noopener">USDA, 2010 estimate</a></p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">40%</div>
+          <p class="stat-desc" data-i18n="stat3.desc">Otprilike ovoliki deo hrane bačene kod kuće još je mogao da se jede. Samo nije potrošen na vreme.</p>
+          <p class="stat-src">Source: <a href="https://data.wrap.ngo/story/the-household-food-waste-study" target="_blank" rel="noopener">WRAP, Household Food Waste Study (UK)</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── FEATURES ─────────────── -->
+  <section class="sec-pad" id="features" data-screen-label="Features">
+    <div class="wrap">
+      <div class="sec-head center wide-title">
+        <div class="micro eyebrow" data-i18n="feat.eyebrow">Šta dobijaš</div>
+        <h2 class="sec-title" data-i18n-html="feat.title">Znaj šta imaš. <span class="mark">Znaj šta da skuvaš.</span></h2>
+      </div>
+
+      <!-- Feature 1: Eat first -->
+      <div class="feat">
+        <div class="feat-copy">
+          <h3 data-i18n="feat1.title">Znaj šta prvo da pojedeš</h3>
+          <p data-i18n="feat1.body">leftovr ređa hranu po tome koliko brzo se kvari i ono što je na ivici stavlja na vrh, da potrošiš spanać pre nego što uvene, a ne posle.</p>
+          <div class="feat-list">
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li1">Dnevna polica „za danas“, poređana po roku trajanja</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li2">Svežina u boji uz svaku stavku</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li3">Jedan dodir i kuvaš od onoga što se uskoro kvari</span></div>
+          </div>
+        </div>
+        <div class="feat-visual" style="background:var(--surface-2);">
+          <div style="width:100%;max-width:380px;">
+            <div class="eatfirst-lab" style="margin-bottom:12px;" data-i18n="feat1.vlabel">Pojedi prvo · za danas</div>
+            <div class="eatfirst-grid">
+              <div class="ef-card"><div class="ef-thumb" style="background:#C8D5C2;"><img src="/food/spinach.png" alt="" width="44" height="44" loading="lazy" decoding="async" style="width:44px;height:44px;object-fit:contain;"><span class="udot" style="background:var(--red);"></span></div><div class="ef-name" data-i18n="ef.spinach">Mladi spanać</div><div class="ef-when" data-i18n="ef.bestToday">Najbolje danas</div></div>
+              <div class="ef-card"><div class="ef-thumb" style="background:#F0DDA8;"><img src="/food/eggs.png" alt="" width="44" height="44" loading="lazy" decoding="async" style="width:44px;height:44px;object-fit:contain;"><span class="udot" style="background:var(--red);"></span></div><div class="ef-name" data-i18n="ef.eggs">Domaća jaja</div><div class="ef-when" data-i18n="ef.bestToday">Najbolje danas</div></div>
+              <div class="ef-card"><div class="ef-thumb" style="background:#E8C3B0;"><img src="/food/chicken_breast.png" alt="" width="44" height="44" loading="lazy" decoding="async" style="width:44px;height:44px;object-fit:contain;"><span class="udot" style="background:var(--accent);"></span></div><div class="ef-name" data-i18n="ef.chicken">Piletina</div><div class="ef-when" style="color:var(--accent-ink);" data-i18n="ef.in1day">Za 1 dan</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2: Recipes -->
+      <div class="feat feat-flip">
+        <div class="feat-copy">
+          <h3 data-i18n="feat2.title">Recepti od onoga što stvarno imaš</h3>
+          <p data-i18n="feat2.body">Svaka ideja se pravi od hrane koju već imaš i kreće od onoga što treba potrošiti. Otvori je i koraci su odmah tu.</p>
+          <div class="feat-list">
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li1">Bez recepata tipa „kupi još 9 stvari“</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li2">Filtriraj po vremenu, trudu ili „troši najviše“</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li3">Dodirni „Skuvao sam ovo“ i kuhinja se ažurira</span></div>
+          </div>
+        </div>
+        <div class="feat-visual" style="background:var(--sage-tint);">
+          <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;">
+            <div style="background:var(--card);box-shadow:var(--shadow-soft);border-radius:16px;padding:11px;display:flex;gap:11px;align-items:stretch;">
+              <div style="width:74px;height:74px;border-radius:11px;background:#E5D9C4;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;">
+                <img src="/food/pasta.png" alt="" width="48" height="48" loading="lazy" decoding="async" style="width:48px;height:48px;object-fit:contain;">
+                <div style="position:absolute;top:6px;left:6px;padding:2px 6px;border-radius:999px;background:var(--primary);color:#fff;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;" data-i18n="recipe1.tag">Prvi izbor</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+                <div><div style="font-weight:800;font-size:15px;" data-i18n="recipe1.title">Pasta sa spanaćem i fetom</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" data-i18n="recipe1.meta">20 min · 5 sastojaka</div></div>
+                <div style="font-size:12px;color:var(--red-ink);font-weight:700;display:flex;align-items:center;gap:6px;"><span class="udot" style="position:static;background:var(--red);"></span><span data-i18n="recipe1.note">Spasava spanać (najbolje danas)</span></div>
+              </div>
+            </div>
+            <div style="background:var(--card);box-shadow:var(--shadow-soft);border-radius:16px;padding:11px;display:flex;gap:11px;align-items:stretch;opacity:0.85;">
+              <div style="width:74px;height:74px;border-radius:11px;background:#F0DDA8;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                <img src="/food/eggs.png" alt="" width="48" height="48" loading="lazy" decoding="async" style="width:48px;height:48px;object-fit:contain;">
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+                <div><div style="font-weight:800;font-size:15px;" data-i18n="recipe2.title">Tost sa jajetom i sirom</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" data-i18n="recipe2.meta">10 min · 3 sastojka</div></div>
+                <div style="font-size:12px;color:var(--red-ink);font-weight:700;display:flex;align-items:center;gap:6px;"><span class="udot" style="position:static;background:var(--accent);"></span><span data-i18n="recipe2.note">Troši 3 stvari koje se kvare</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── COMPARISON ─────────────── -->
+  <section class="sec-pad" id="compare" data-screen-label="How it compares">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="compare.eyebrow">Poređenje</div>
+        <h2 class="sec-title" data-i18n-html="compare.title">Četiri vrste aplikacija. <span class="mark">Samo jedna oduzima.</span></h2>
+        <p class="sec-sub" data-i18n="compare.sub">Većina kuhinjskih aplikacija dodaje posao: ili kucaš šta imaš, ili planiraš obroke pa ideš u kupovinu. leftovr kreće od hrane koja je već u kući.</p>
+      </div>
+
+      <div class="compare-scroll" data-i18n-html="compare.table"><table class="compare">      <thead>       <tr>        <th scope="col">&nbsp;</th>        <th scope="col" class="us">leftovr</th>        <th scope="col">Aplikacije sa receptima</th>        <th scope="col">Praćenje zaliha i rokova</th>        <th scope="col">Planeri obroka</th>       </tr>      </thead>      <tbody>       <tr>        <th scope="row">Kako hrana ulazi</th>        <td class="us">Slika polica, račun, bar-kod ili ručni unos</td>        <td>Svaki put kucaš sastojke</td>        <td>Uglavnom bar-kod, stavku po stavku</td>        <td>Prvo biraš obroke, pa kupuješ</td>       </tr>       <tr>        <th scope="row">Zna šta se prvo kvari</th>        <td class="us">Svaka stavka poređana po svežini, svakog dana</td>        <td>Ne</td>        <td>Da, kao spisak datuma</td>        <td>Ne</td>       </tr>       <tr>        <th scope="row">Recepti samo od onoga što imaš</th>        <td class="us">Da, obavezni sastojci dolaze iz tvoje kuhinje</td>        <td>Da</td>        <td>Retko</td>        <td>Ne, prvo plan pa spisak za kupovinu</td>       </tr>       <tr>        <th scope="row">Kad skuvaš</th>        <td class="us">Ti sastojci automatski izlaze iz kuhinje</td>        <td>Ništa se ne menja</td>        <td>Ručno štikliraš stavke</td>        <td>Ručno štikliraš stavke</td>       </tr>       <tr>        <th scope="row">Zajedničko domaćinstvo</th>        <td class="us">Do tri osobe, jedna sinhronizovana kuhinja</td>        <td>Retko</td>        <td>Retko</td>        <td>Ponekad</td>       </tr>       <tr>        <th scope="row">Ušteđeni i bačeni novac</th>        <td class="us">Praćeno po nedelji, mesecu i godini</td>        <td>Ne</td>        <td>Ponekad, kao jedan zbir</td>        <td>Ne</td>       </tr>      </tbody>     </table></div>
+      <p class="compare-note" data-i18n="compare.note">Kategorije, ne brendovi: funkcije aplikacija se često menjaju. Ovako rade četiri uobičajena pristupa u novembru 2026, pa pre nego što pređeš na neku, proveri kako zaista radi.</p>
+    </div>
+  </section>
+
+  <!-- ─────────────── PRICING ─────────────── -->
+  <section class="pricing sec-pad" id="pricing" data-screen-label="Pricing">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="price.eyebrow">Cene</div>
+        <h2 class="sec-title" data-i18n-html="price.title">Besplatno za početak. <span class="mark">Plati kad poželiš više.</span></h2>
+      </div>
+
+      <p class="honest-strip" data-i18n-html="price.honest">Tvoje <b>prvo skeniranje</b> (slika ostave ili račun) i <b>prvi recept</b> su na nas. <b>Ručni unos i bar-kod ostaju besplatni zauvek.</b> Pređi na neograničeno kad ti zatreba.</p>
+
+      <div class="toggle-wrap">
+        <div class="price-toggle" id="price-toggle">
+          <button class="on" data-period="monthly"><span data-i18n="price.monthly">Mesečno</span></button>
+          <button data-period="yearly"><span data-i18n="price.yearly">Godišnje</span> <span class="save-pill" data-i18n="price.save">Ušteda ~40%</span></button>
+        </div>
+      </div>
+
+      <div class="plans">
+        <!-- Free -->
+        <div class="plan">
+          <div class="plan-name" data-i18n="plan.free.name">Besplatno</div>
+          <div class="plan-for" data-i18n="plan.free.for">Probaj sve</div>
+          <div class="plan-price"><span class="amt" data-i18n="plan.free.amt">0 €</span></div>
+          <div class="plan-note" data-i18n="plan.free.note">Zauvek besplatno</div>
+          <ul>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li1">Prvo skeniranje: ostava ili račun</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li2">Prvi recept</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li3">Neograničen ručni unos i bar-kod</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li4">Tvoja kuhinja, uvek ažurna</span></li>
+          </ul>
+          <a class="btn btn-ghost" href="#get" data-i18n="plan.free.cta">Počni besplatno</a>
+        </div>
+
+        <!-- Premium Individual -->
+        <div class="plan featured">
+          <div class="plan-flag" data-i18n="plan.prem.flag">Najpopularnije</div>
+          <div class="plan-name" data-i18n="plan.prem.name">Premium</div>
+          <div class="plan-for" data-i18n="plan.prem.for">Za jednog kuvara</div>
+          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.prem.amtM" data-yearly="plan.prem.amtY">7,99 €</span><span class="per" data-i18n="plan.per">/mesec</span></div>
+          <div class="plan-note" data-period-key data-monthly="plan.prem.noteM" data-yearly="plan.prem.noteY">Plaća se mesečno</div>
+          <ul>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li1">Neograničeno skeniranje ostave i računa</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li2">Neograničeni recepti, poređani po roku trajanja</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li3">Dnevni predlog šta da skuvaš</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li4">Nedeljni pregled</span></li>
+          </ul>
+          <a class="btn btn-primary" href="#get" data-i18n="plan.prem.cta">Rani pristup</a>
+        </div>
+
+        <!-- Household -->
+        <div class="plan">
+          <div class="plan-name" data-i18n="plan.house.name">Domaćinstvo</div>
+          <div class="plan-for" data-i18n="plan.house.for">Deli sa do 3 osobe</div>
+          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.house.amtM" data-yearly="plan.house.amtY">14,99 €</span><span class="per" data-i18n="plan.per">/mesec</span></div>
+          <div class="plan-note" data-period-key data-monthly="plan.house.noteM" data-yearly="plan.house.noteY">Plaća se mesečno</div>
+          <ul>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li1">Sve iz paketa Premium</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li2">Jedna zajednička kuhinja za ceo dom</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li3">Do 3 osobe, sinhronizovano</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li4">Zajednički recepti i pregled</span></li>
+          </ul>
+          <a class="btn btn-ghost" href="#get" data-i18n="plan.house.cta">Rani pristup</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── FAQ ─────────────── -->
+  <section class="sec-pad" id="faq" data-screen-label="FAQ">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="faq.eyebrow">Dobra pitanja</div>
+        <h2 class="sec-title" data-i18n="faq.title">Šta ljudi prvo pitaju.</h2>
+      </div>
+
+      <div class="faq-list" id="faq-list">
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q13">Postoji li aplikacija koja pravi recepte od onoga što imam u frižideru?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a13">Da. <b>leftovr</b> je iPhone aplikacija koja radi baš to. Uslikaš frižider ili ostavu, ili skeniraš račun iz prodavnice, i ona vodi listu hrane koju imaš. Recepti se prave od te liste, pa ne moraš svaki put da kucaš sastojke.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q14">Šta mogu da skuvam od onoga što već imam?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a14">Otvori leftovr, izaberi obrok i koliko imaš vremena, i dobićeš do tri recepta od hrane iz svoje kuhinje. <b>Svaki glavni sastojak je nešto što već imaš.</b> Podrazumeva se samo osnovno: voda, so, biber, ulje i suvi začini.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q15">Kako da potrošim hranu pre nego što se pokvari?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a15">leftovr ređa sve u tvojoj kuhinji po tome šta treba prvo pojesti, i <b>recepti kreću od tih namirnica</b>. Kad nešto skuvaš, ono što potrošiš skida se sa liste, pa se sledeći predlog pravi od onoga što je ostalo.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q16">Da li recepte piše veštačka inteligencija?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a16">Da. Veštačka inteligencija piše svaki recept od hrane iz tvoje kuhinje. Recepti imaju najviše <b>8 koraka i 12 sastojaka</b>, da ih je lako pratiti na telefonu. Uz Premium možeš da tražiš još tri ako ti se nijedan ne dopada.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q1">Da li je leftovr besplatan?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a1">Da, za početak. Tvoje <b>prvo skeniranje</b> (slika ostave ili račun) i <b>prvi recept</b> su besplatni, a <b>ručni unos i bar-kod ostaju besplatni zauvek</b>. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i nedeljni pregled, Premium košta <b>7,99 €/mesec</b> (54,99 € godišnje), a Domaćinstvo <b>14,99 €/mesec</b> (99,99 € godišnje) za do tri osobe.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q2">Moram li sve ručno da unosim?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a2">Ne. <b>Slika ostave</b> pročita celu policu odjednom, do tri slike, a skeniranje računa doda 20 do 30 stavki za desetak sekundi. Za jednu stvar možeš da <b>skeniraš bar-kod</b> ili <b>dodaš ručno</b>, oboje besplatno i neograničeno.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q12">Kako radi slika ostave?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a12">Uslikaj do tri fotografije police, frižidera ili pulta. leftovr pročita šta vidi, a <b>ti potvrdiš spisak</b> pre nego što išta uđe u kuhinju. To je AI skeniranje, pa se računa u isti limit kao i skeniranje računa.</div></div>
+        </div>
+        <div class="faq-item open">
+          <button class="faq-q"><span data-i18n="faq.q3">Može li moje domaćinstvo da deli jednu kuhinju?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a3">Da. <b>Plan Domaćinstvo</b> daje do tri osobe jednu zajedničku kuhinju koja se sama sinhronizuje, pa bez obzira ko kupuje, svi vide šta imate i šta da skuvate.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q4">Kako rade predlozi recepata?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a4">Recepti se prave od hrane koju već imaš u kuhinji, a obavezni sastojci dolaze iz onoga što ima tvoje domaćinstvo. leftovr prvo uzima hranu koju treba potrošiti. Dodirni <b>Skuvao sam ovo</b> i ti sastojci se automatski uklone ili im se smanji količina.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q5">Šta se dešava sa podacima sa mojih računa?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a5">Stavke i količine sa računa su lični podaci kad su povezani sa tvojim nalogom. Koristimo ih samo da ažuriramo tvoju kuhinju i predložimo obroke. Neke stavke mogu da otkriju nešto o ishrani, zdravlju, porodici ili verskim navikama. <b>Nikad ne prodajemo tvoje lične podatke.</b> Možeš da obrišeš stavke ili ceo nalog kad god želiš.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q6">Računi iz kojih prodavnica rade?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a6">Većina štampanih, imejlom poslatih i PDF računa iz prodavnica radi odmah. Ako neka stavka nije jasna, leftovr samo nju označi za brzu proveru jednim dodirom, a ostalo ide pravo unutra.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q7">Da li su datumi svežine tačni?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a7">Ne. To su okvirne procene svežine, na osnovu vrste namirnice i onoga što može da se pročita sa računa. Datum možeš da izmeniš ili obrišeš pri proveri računa ili ručnom unosu, ako znaš bolje.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q8">Da li leftovr radi na Androidu?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a8">Još ne. leftovr je za sada <b>iPhone aplikacija</b>. Lista za rani pristup je najbrži način da saznaš kada se to promeni.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q9">Po čemu se leftovr razlikuje od aplikacije sa receptima?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a9">Aplikacija sa receptima traži da svaki put ukucaš sastojke, pa te pošalje u kupovinu. leftovr već zna šta imaš, ređa to po tome šta se prvo kvari, pravi recepte od tih sastojaka i <b>oduzima ih iz tvoje kuhinje</b> čim skuvaš.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q10">Koje jezike leftovr govori?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a10">Engleski i srpski: cela aplikacija, uključujući recepte koje generiše, i ovaj sajt.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q"><span data-i18n="faq.q11">Treba li mi pametan frižider ili dodatna oprema?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a11">Ne. Za leftovr ti trebaju samo iPhone i njegova kamera. Bez senzora, bez pametnog frižidera, bez vage.</div></div>
+        </div>
+      </div>
+
+      <div class="readmore">
+        <h3 data-i18n="read.title">Pročitaj još</h3>
+        <div class="readmore-links">
+          <a href="/blog/stop-throwing-away-food/" data-i18n="read.l1">Kako da prestaneš da bacaš hranu</a>
+          <a href="/blog/how-long-does-food-last/" data-i18n="read.l2">Koliko hrana zaista traje?</a>
+          <a href="/blog/meal-planning-from-what-you-have/" data-i18n="read.l3">Planiranje obroka od onoga što imaš</a>
+          <a href="/blog/receipt-scanning-vs-manual-pantry/" data-i18n="read.l4">Skeniranje računa ili ručni popis ostave</a>
+          <a href="/blog/" data-i18n="read.all">Svi tekstovi</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── FINAL CTA ─────────────── -->
+  <section class="final" id="get" data-screen-label="Get early access">
+    <div class="wrap sec-pad">
+      <div class="final-inner">
+        <span class="nav-logo final-logo">leftov<span class="logo-r">r</span></span>
+        <h2 data-i18n-html="final.title">Večera za večeras je <span class="mark">već u tvojoj kuhinji.</span></h2>
+        <p class="lead" data-i18n="final.lead">Prijavi se na listu za rani pristup i budi među prvima kad ti se oslobodi mesto.</p>
+
+        <form class="capture" id="final-form" novalidate>
+          <label class="capture-label sr-only" for="final-email" data-i18n="hero.formLabel">Rani pristup</label>
+          <div class="capture-row">
+            <input class="field" type="email" id="final-email" name="email" placeholder="ti@primer.rs" data-i18n-ph="hero.placeholder" autocomplete="email" required>
+            <button class="btn btn-light" type="submit" data-i18n="hero.submit">Prijavi se na listu</button>
+          </div>
+          <div id="final-captcha" class="captcha-widget"></div>
+          <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <div class="privacy">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+            <span data-i18n="hero.privacy">Samo vesti o ranom pristupu. Odjaviš se kad hoćeš.</span>
+          </div>
+          <p class="form-msg" id="final-msg" role="status" aria-live="polite"></p>
+          <p class="post" data-i18n="final.post">Poslaćemo ti pozivnicu čim se oslobodi mesto, obično za nekoliko dana.</p>
+        </form>
+        <div class="form-success" id="final-success">
+          <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><b style="font-weight:700;" data-i18n="final.successTitle">Na listi si.</b><br><span style="opacity:0.8;font-size:14px;" data-i18n="final.successBody">Proveri imejl, poslaćemo ti pozivnicu čim se oslobodi mesto.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── FOOTER ─────────────── -->
+  <footer>
+    <div class="wrap foot">
+      <a class="nav-brand" href="#top" aria-label="leftovr, what's for dinner">
+        <span class="nav-logo" style="font-size:22px;">leftov<span class="logo-r">r</span></span>
+        <span class="nav-sub" data-i18n="nav.tag">Šta ima za večeru?</span>
+      </a>
+      <div class="foot-links">
+        <a href="#how" data-i18n="foot.how">Kako radi</a>
+        <a href="#recipes" data-i18n="gen.eyebrow">Pravljenje recepata</a>
+        <a href="#compare" data-i18n="foot.compare">Poređenje</a>
+        <a href="#pricing" data-i18n="foot.pricing">Cene</a>
+        <a href="/blog/" data-i18n="foot.blog">Blog</a>
+        <a href="#get" data-i18n="foot.early">Rani pristup</a>
+        <a href="mailto:support@twobricklabs.com" data-i18n="foot.contact">Kontaktiraj podršku</a>
+      </div>
+      <div class="foot-copy" data-i18n="foot.copy">© 2026 leftovr</div>
+    </div>
+  </footer>
+
+</main>
+
+<!-- Sticky mobile CTA -->
+<div class="sticky-cta">
+  <a class="btn btn-primary" href="#get" data-i18n="sticky.cta">Rani pristup, besplatno za početak</a>
+</div>
+
+<script>
+  // ---------- Pricing monthly / yearly toggle ----------
+  var currentPeriod = 'monthly';
+  (function () {
+    var toggle = document.getElementById('price-toggle');
+    if (!toggle) return;
+    toggle.querySelectorAll('button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        currentPeriod = btn.getAttribute('data-period');
+        toggle.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b === btn); });
+        applyPeriod();
+      });
+    });
+  })();
+
+  function applyPeriod() {
+    // Literal swaps (price amounts) — not language dependent.
+    document.querySelectorAll('[data-monthly]:not([data-period-key])').forEach(function (el) {
+      var v = el.getAttribute('data-' + currentPeriod);
+      if (v != null) el.textContent = v;
+    });
+    // i18n swaps (billing notes) — resolved through the dictionary.
+    document.querySelectorAll('[data-period-key]').forEach(function (el) {
+      var key = el.getAttribute('data-' + currentPeriod);
+      if (key != null) el.textContent = t(key);
+    });
+  }
+
+
+  // ---------- The fridge: ingredients in, dinner out ----------
+  // Three dinners drawn from the same six ingredients. Each one lights up the
+  // things it uses, so the swap demonstrates the product rather than decorating
+  // it. Pauses when the tab is hidden; static under reduced motion.
+  (function () {
+    var dish = document.getElementById('dish');
+    var meta = document.getElementById('dish-meta');
+    var ings = [].slice.call(document.querySelectorAll('.k-ing'));
+    if (!dish || !meta || !ings.length) return;
+
+    // The index into .ing is also the index into FILES, so the cluster on the
+    // right is always the same food as the rows that light up on the left.
+    var FILES = ['spinach', 'cheese', 'eggs', 'tomato', 'chicken_breast', 'pasta'];
+    var DISHES = [
+      { uses: [0, 1, 5] },   // spinach, feta, pasta
+      { uses: [2, 3] },      // eggs, cherry tomatoes
+      { uses: [4, 3, 1] }    // chicken, cherry tomatoes, feta
+    ];
+    var i = 0;
+
+    function light(idx) {
+      ings.forEach(function (el, n) {
+        var on = DISHES[idx].uses.indexOf(n) !== -1;
+        // Stagger the lighting so the eye follows which things get used.
+        setTimeout(function () { el.classList.toggle('on', on); },
+                   on ? DISHES[idx].uses.indexOf(n) * 110 : 0);
+      });
+    }
+
+    var cluster = document.getElementById('dish-cluster');
+
+    function group(idx, animate) {
+      if (!cluster) return;
+      var uses = DISHES[idx].uses;
+      var slots = cluster.children;
+      for (var n = 0; n < slots.length; n++) {
+        var use = uses[n];
+        slots[n].hidden = use === undefined;
+        if (use !== undefined) slots[n].firstChild.src = '/food/' + FILES[use] + '.png';
+      }
+      if (animate) {
+        cluster.classList.remove('swap');
+        void cluster.offsetWidth;
+        cluster.classList.add('swap');
+      }
+    }
+
+    function paint(idx, animate) {
+      dish.textContent = t('stage.dish' + idx);
+      meta.innerHTML = t('stage.meta' + idx);
+      if (animate) {
+        dish.classList.remove('swap'); meta.classList.remove('swap');
+        void dish.offsetWidth;                       // restart the keyframes
+        dish.classList.add('swap'); meta.classList.add('swap');
+      }
+      group(idx, animate);
+      light(idx);
+    }
+
+    window.__paintDish = function () { paint(i, false); };   // language switch
+
+    light(0);
+    group(0, false);
+
+    // The button works even when the rotation does not, so people who turned
+    // motion off can still step through the dinners.
+    var next = document.getElementById('dish-next');
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function advance(animate) {
+      i = (i + 1) % DISHES.length;
+      paint(i, animate);
+    }
+    if (next) next.addEventListener('click', function () { advance(!reduced); restart(); });
+    if (reduced) return;
+
+    var timer = null;
+    function tick() {
+      if (document.hidden) return;                   // no work in a background tab
+      advance(true);
+    }
+    function restart() { clearInterval(timer); timer = setInterval(tick, 4600); }
+    function stop() { clearInterval(timer); timer = null; }
+    restart();
+
+    // Hovering or tabbing in holds the current dinner so it can be read.
+    var demo = document.querySelector('.demo');
+    if (demo) {
+      demo.addEventListener('pointerenter', stop);
+      demo.addEventListener('pointerleave', restart);
+      demo.addEventListener('focusin', stop);
+      demo.addEventListener('focusout', restart);
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stop(); else restart();
+    });
+  })();
+
+  // ---------- Step illustrations: settle the food in on first view ----------
+  (function () {
+    var cards = [].slice.call(document.querySelectorAll('.step-card'));
+    if (!cards.length) return;
+    if (!('IntersectionObserver' in window) ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      cards.forEach(function (c) { c.classList.add('seen'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        e.target.classList.add('seen');
+        io.unobserve(e.target);            // one-shot, it is an arrival not a loop
+      });
+    }, { threshold: 0.35 });
+    cards.forEach(function (c) { io.observe(c); });
+  })();
+
+  // ---------- Recipe generation demo ----------
+  // Nine fixed recipes, three per meal, all from the hero fridge's six foods.
+  // Each list is in best-match order; the time tile caps the minutes, as the
+  // app's time filter does. Titles and descriptions live in the dictionary.
+  (function () {
+    var out = document.getElementById('gen-out');
+    var ideas = document.getElementById('gen-ideas');
+    if (!out || !ideas) return;
+    var steps = [].slice.call(document.querySelectorAll('#gen-steps li'));
+    var RECIPES = [
+      { id: 'scramble',    meal: 'breakfast', min: 10, effort: 'easy',   food: ['eggs', 'spinach', 'cheese'] },
+      { id: 'baked',       meal: 'breakfast', min: 25, effort: 'easy',   food: ['eggs', 'tomato', 'cheese'] },
+      { id: 'frittata',    meal: 'breakfast', min: 40, effort: 'medium', food: ['eggs', 'spinach', 'tomato'] },
+      { id: 'salad',       meal: 'lunch',     min: 15, effort: 'easy',   food: ['chicken_breast', 'spinach', 'tomato'] },
+      { id: 'tomatoPasta', meal: 'lunch',     min: 25, effort: 'easy',   food: ['pasta', 'tomato', 'spinach'] },
+      { id: 'bake',        meal: 'lunch',     min: 45, effort: 'medium', food: ['pasta', 'chicken_breast', 'cheese'] },
+      { id: 'fetaPasta',   meal: 'dinner',    min: 20, effort: 'easy',   food: ['spinach', 'cheese', 'pasta'] },
+      { id: 'seared',      meal: 'dinner',    min: 15, effort: 'easy',   food: ['chicken_breast', 'tomato', 'spinach'] },
+      { id: 'traybake',    meal: 'dinner',    min: 35, effort: 'easy',   food: ['chicken_breast', 'tomato', 'cheese'] }
+    ];
+    var LIMIT = { quick: 15, weeknight: 30, norush: Infinity };
+    var state = { meal: 'dinner', time: 'norush' };
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var timer = null;
+
+    function img(f) { return '<img src="/food/' + f + '.png" alt="" width="192" height="192" loading="lazy" decoding="async">'; }
+    function meta(r) { return r.min + ' min \u00b7 ' + t('gen.effort.' + r.effort); }
+
+    function render() {
+      var list = RECIPES.filter(function (r) { return r.meal === state.meal && r.min <= LIMIT[state.time]; });
+      var best = list[0];
+      var html = '<h3 class="gen-h">' + (list.length === 1 ? t('gen.count1') : t('gen.countN').replace('{n}', list.length)) + '</h3>' +
+        '<p class="gen-subline">' + t('gen.ideasSub') + '</p>' +
+        '<div class="gen-best"><div class="micro">' + t('gen.best') + '</div>' +
+        '<h4>' + t('gen.r.' + best.id + '.t') + '</h4><div class="gen-meta">' + meta(best) + '</div>' +
+        '<p>' + t('gen.r.' + best.id + '.d') + '</p>' +
+        '<div class="gen-foot"><div class="gen-icons">' + best.food.map(function (f) { return '<span>' + img(f) + '</span>'; }).join('') + '</div>' +
+        '<span class="gen-pill">' + t('gen.haveAll') + '</span></div></div>';
+      if (list.length > 1) {
+        html += '<div class="micro gen-also">' + t('gen.also') + '</div>' + list.slice(1).map(function (r) {
+          return '<div class="gen-row"><span class="gen-thumb">' + img(r.food[0]) + '</span><span><b>' +
+            t('gen.r.' + r.id + '.t') + '</b><span class="gen-meta">' + meta(r) + '</span></span></div>';
+        }).join('');
+      }
+      ideas.innerHTML = html;
+    }
+
+    // The app's "Cooking up ideas" screen: four steps tick, then the ideas land.
+    function generate() {
+      clearTimeout(timer);
+      if (reduced) { render(); return; }
+      out.classList.add('busy');
+      var i = 0;
+      (function tick() {
+        steps.forEach(function (s, n) { s.className = n < i ? 'done' : n === i ? 'on' : ''; });
+        if (i === steps.length) { render(); out.classList.remove('busy'); return; }
+        i++;
+        timer = setTimeout(tick, 360);
+      })();
+    }
+
+    document.querySelectorAll('.gen-tile').forEach(function (tile) {
+      tile.addEventListener('click', function () {
+        var group = tile.getAttribute('data-gen');
+        state[group] = tile.getAttribute('data-value');
+        document.querySelectorAll('.gen-tile[data-gen="' + group + '"]').forEach(function (b) {
+          b.setAttribute('aria-pressed', String(b === tile));
+        });
+        generate();
+      });
+    });
+    document.getElementById('gen-go').addEventListener('click', generate);
+
+    // First paint comes from applyLanguage() below, once the dictionary exists.
+    window.__paintGen = render;
+    // Play the generation once, the first time the section is on screen.
+    if (!reduced && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting) return;
+        io.disconnect();
+        generate();
+      }, { threshold: 0.4 });
+      io.observe(out);
+    }
+  })();
+
+  // ---------- How-it-works film: plays while it is on screen ----------
+  // Nothing is downloaded until it scrolls into view. Under reduced motion,
+  // or without IntersectionObserver, it stays a poster with controls.
+  (function () {
+    var film = document.querySelector('.how-film video');
+    if (!film) return;
+    if (!('IntersectionObserver' in window) ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      film.controls = true;
+      return;
+    }
+    new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) film.play().catch(function () { film.controls = true; });
+      else film.pause();
+    }, { threshold: 0.3 }).observe(film);
+  })();
+
+  // ---------- Header: show its hairline only once content is under it ----------
+  (function () {
+    var header = document.querySelector('header');
+    var top = document.querySelector('.stage');
+    if (!header || !top || !('IntersectionObserver' in window)) return;
+    var sentinel = document.createElement('div');
+    sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;';
+    top.appendChild(sentinel);
+    new IntersectionObserver(function (entries) {
+      header.classList.toggle('scrolled', !entries[0].isIntersecting);
+    }, { rootMargin: '-70px 0px 0px 0px' }).observe(sentinel);
+  })();
+
+  // ---------- i18n ----------
+
+  var I18N = {
+    en: {
+      "meta.title": "Scan your pantry, get recipes from it | leftovr",
+      "meta.desc": "leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start.",
+      "nav.tag": "What's for dinner?",
+      "nav.cta": "Get early access",
+      "hero.eyebrow": "iPhone · free to start",
+      "hero.h1": "Dinner, from what's <em>already in your fridge</em>.",
+      "hero.sub": "Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight's dinner from it.",
+      "stage.have": "Your kitchen",
+      "stage.count": "6 items",
+      "stage.next": "Show another dinner",
+      "stage.tonight": "Tonight",
+      "stage.ing0": "Baby spinach",
+      "stage.ing1": "Feta",
+      "stage.ing2": "Free-range eggs",
+      "stage.ing3": "Cherry tomatoes",
+      "stage.ing4": "Chicken breast",
+      "stage.ing5": "Pasta",
+      "stage.dish0": "Spinach & feta pasta",
+      "stage.meta0": "20 min · uses the spinach before it turns",
+      "stage.dish1": "Shakshuka",
+      "stage.meta1": "25 min · clears the tomatoes and three eggs",
+      "stage.dish2": "Chicken traybake",
+      "stage.meta2": "35 min · one tray, three things used up",
+      "hero.formLabel": "Get early access",
+      "hero.placeholder": "you@email.com",
+      "hero.submit": "Join the waitlist",
+      "hero.privacy": "Early-access updates only. Unsubscribe anytime.",
+      "hero.successTitle": "You're on the list.",
+      "hero.successBody": "We'll email your invite as soon as a spot opens, usually within a few days.",
+      "phone.household": "Lena's kitchen",
+      "phone.urgent": "Use today: spinach, eggs & chicken",
+      "phone.goal": "1 thing goes off today. Use it.",
+      "phone.month": "November",
+      "phone.streak": "5-day streak",
+      "phone.d1": "M",
+      "phone.d2": "T",
+      "phone.d3": "W",
+      "phone.d4": "T",
+      "phone.d5": "F",
+      "phone.d6": "S",
+      "phone.d7": "T",
+      "phone.lastCooked": "Last cooked Shakshuka · Monday",
+      "phone.history": "History",
+      "phone.tonightLbl": "Tonight · from your kitchen",
+      "phone.tonightTitle": "Spinach & feta pasta",
+      "phone.tonightMeta": "20 min",
+      "phone.tonightLevel": "easy",
+      "phone.why": "Uses spinach & feta before they go off.",
+      "phone.chipSpinach": "Baby spinach",
+      "phone.chipFeta": "Feta",
+      "phone.chipMore": "+1",
+      "phone.steps": "6 steps",
+      "phone.cookThis": "Cook this",
+      "phone.moreIdeas": "More ideas",
+      "how.eyebrow": "How it works",
+      "how.title": 'Shelves in. <span class="mark">Dinner out.</span>',
+      "how.sub": "Three steps, one of which you already do every time you shop.",
+      "how.film": "leftovr in fifteen seconds: photograph your shelves, see what to eat first, cook a recipe from it, and your kitchen updates itself.",
+      "step1.title": "Snap your shelves",
+      "step1.body": "Photograph your fridge, a shelf or the counter, up to three shots. A receipt or PDF e-receipt works too, adding 20 to 30 items at once.",
+      "step2.n1": "Baby spinach",
+      "step2.w1": "Best today",
+      "step2.n2": "Cherry tomatoes",
+      "step2.w2": "This week",
+      "step2.n3": "Cheese",
+      "step2.w3": "Fresh",
+      "step2.title": "Your kitchen keeps track",
+      "step2.body": 'Everything lands on shelves with a freshness window like "best today" or "this week", instead of an expiry countdown.',
+      "step3.dish": "Spinach & feta pasta",
+      "step3.time": "20 min, easy",
+      "step3.cta": "Cook this",
+      "step3.title": "Cook what you have",
+      "step3.body": "Recipes are built from what you have, starting with whatever should be eaten first. Cook one and those ingredients leave your kitchen automatically.",
+      "stats.eyebrow": "Why it matters",
+      "stats.title": "We throw away more food than we think, and a lot of money with it.",
+      "gen.eyebrow": "Recipe generation",
+      "gen.title": "Say what you feel like. <span class=\"mark\">Get recipes written for your kitchen.</span>",
+      "gen.sub": "Pick the meal and how long you have. leftovr writes the recipes from the food you own, starting with what needs eating first.",
+      "gen.askEyebrow": "Let's get specific",
+      "gen.askTitle": "What are you making?",
+      "gen.meal.breakfast": "Breakfast",
+      "gen.meal.lunch": "Lunch",
+      "gen.meal.dinner": "Dinner",
+      "gen.mealSub.breakfast": "Morning",
+      "gen.mealSub.lunch": "Midday",
+      "gen.mealSub.dinner": "Tonight",
+      "gen.time": "Time to cook",
+      "gen.time.quick": "Quick",
+      "gen.time.weeknight": "Weeknight",
+      "gen.time.norush": "No rush",
+      "gen.timeSub.quick": "Under 15 min",
+      "gen.timeSub.weeknight": "About 30 min",
+      "gen.timeSub.norush": "Take your time",
+      "gen.note": "We always cook with what needs eating first.",
+      "gen.go": "Find recipes",
+      "gen.loadEyebrow": "New ideas",
+      "gen.loadTitle": "Cooking up ideas",
+      "gen.step1": "Checking your kitchen",
+      "gen.step2": "Finding what to eat first",
+      "gen.step3": "Pairing flavours that work",
+      "gen.step4": "Writing the steps",
+      "gen.count1": "One idea",
+      "gen.countN": "{n} ideas",
+      "gen.ideasSub": "Made from what's in your kitchen, starting with what's going off first.",
+      "gen.best": "Best match",
+      "gen.also": "Also good",
+      "gen.haveAll": "You have everything",
+      "gen.effort.easy": "Easy",
+      "gen.effort.medium": "Medium",
+      "gen.fact1": "Only ingredients you own",
+      "gen.fact2": "Eat-first food leads",
+      "gen.fact3": "8 steps or fewer",
+      "gen.fact4": "Not it? Ask for 3 more",
+      "gen.r.scramble.t": "Spinach & feta scramble",
+      "gen.r.scramble.d": "Soft eggs folded with wilted spinach and crumbled feta.",
+      "gen.r.baked.t": "Baked eggs in cherry tomatoes",
+      "gen.r.baked.d": "Tomatoes roasted until jammy, eggs cracked in, feta on top.",
+      "gen.r.frittata.t": "Spinach & feta frittata",
+      "gen.r.frittata.d": "A thick oven frittata that also covers tomorrow's lunch.",
+      "gen.r.salad.t": "Warm chicken & spinach salad",
+      "gen.r.salad.d": "Seared chicken over spinach, with tomatoes and feta.",
+      "gen.r.tomatoPasta.t": "Cherry tomato & spinach pasta",
+      "gen.r.tomatoPasta.d": "Burst tomatoes make the sauce; the spinach goes in at the end.",
+      "gen.r.bake.t": "Chicken, tomato & feta pasta bake",
+      "gen.r.bake.d": "Everything in one dish, baked until the top turns golden.",
+      "gen.r.fetaPasta.t": "Spinach & feta pasta",
+      "gen.r.fetaPasta.d": "Uses the spinach before it turns, with feta melted into the sauce.",
+      "gen.r.seared.t": "Seared chicken with burst tomatoes",
+      "gen.r.seared.d": "One pan: golden chicken, blistered tomatoes, spinach wilted in.",
+      "gen.r.traybake.t": "Chicken traybake",
+      "gen.r.traybake.d": "One tray, three things used up, almost no washing up.",
+      "stat1.desc": "What the average American family of four throws out in food every year.",
+      "stat2.desc": "Share of the U.S. food supply lost at the retail and consumer level, by USDA's estimate.",
+      "feat.eyebrow": "What you get",
+      "feat.title": 'What you have, <span class="mark">and what to cook with it.</span>',
+      "feat1.title": "Know what to eat first",
+      "feat1.body": "leftovr ranks your food by how soon it will spoil and puts the at-risk items front and centre, so you use the spinach before it wilts.",
+      "feat1.li1": 'A daily "use today" shelf, ranked by shelf life',
+      "feat1.li2": "Colour-coded freshness on every item",
+      "feat1.li3": "One tap to cook with what's about to turn",
+      "feat1.vlabel": "Eat first · use today",
+      "ef.spinach": "Baby spinach",
+      "ef.eggs": "Free range eggs",
+      "ef.chicken": "Chicken",
+      "ef.bestToday": "Best today",
+      "ef.in1day": "In 1 day",
+      "feat2.title": "Recipes from what's actually in there",
+      "feat2.body": "Every idea is built from the food you already own and leads with the items that need using. Open one and the steps are right there.",
+      "feat2.li1": 'No "buy these 9 extra things" recipes',
+      "feat2.li2": 'Filter by time, effort, or "uses the most"',
+      "feat2.li3": 'Tap "I cooked this" and your kitchen updates',
+      "recipe1.tag": "Top pick",
+      "recipe1.title": "Spinach & feta pasta",
+      "recipe1.meta": "20 min · 5 ingredients",
+      "recipe1.note": "Saves spinach (best today)",
+      "recipe2.title": "Cheesy egg toast",
+      "recipe2.meta": "10 min · 3 ingredients",
+      "recipe2.note": "Uses 3 items at risk",
+      "price.eyebrow": "Pricing",
+      "price.title": 'Free to start. <span class="mark">Pay when you want more.</span>',
+      "price.honest": "Your <b>first scan</b> (pantry photo or receipt) and <b>first recipe</b> are on us. <b>Manual add and barcode scan stay free, always.</b> Go unlimited when you're ready.",
+      "price.monthly": "Monthly",
+      "price.yearly": "Yearly",
+      "price.save": "Save ~40%",
+      "plan.per": "/month",
+      "plan.free.name": "Free",
+      "plan.free.for": "Try the whole flow",
+      "plan.free.amt": "$0",
+      "plan.free.note": "Free forever",
+      "plan.free.li1": "Your first scan, pantry or receipt",
+      "plan.free.li2": "Your first recipe generation",
+      "plan.free.li3": "Unlimited manual + barcode add",
+      "plan.free.li4": "Your kitchen, kept current",
+      "plan.free.cta": "Start free",
+      "plan.prem.flag": "Most popular",
+      "plan.prem.name": "Premium",
+      "plan.prem.for": "For one cook",
+      "plan.prem.amtM": "$7.99",
+      "plan.prem.amtY": "$4.58",
+      "plan.prem.noteM": "Billed monthly",
+      "plan.prem.noteY": "$54.99 billed yearly",
+      "plan.prem.li1": "Unlimited pantry and receipt scans",
+      "plan.prem.li2": "Unlimited recipes, expiry-ranked",
+      "plan.prem.li3": 'Daily "what to cook" suggestion',
+      "plan.prem.li4": "Weekly insights",
+      "plan.prem.cta": "Get early access",
+      "plan.house.name": "Household",
+      "plan.house.for": "Share with up to 3",
+      "plan.house.amtM": "$14.99",
+      "plan.house.amtY": "$8.33",
+      "plan.house.noteM": "Billed monthly",
+      "plan.house.noteY": "$99.99 billed yearly",
+      "plan.house.li1": "Everything in Premium",
+      "plan.house.li2": "One shared kitchen for the home",
+      "plan.house.li3": "Up to 3 people, synced",
+      "plan.house.li4": "Shared recipes and insights",
+      "plan.house.cta": "Get early access",
+      "faq.eyebrow": "Good questions",
+      "faq.title": "What people ask first.",
+      "faq.q13": "Is there an app that makes recipes from what's in my fridge?",
+      "faq.a13": "Yes. <b>leftovr</b> is an iPhone app that does this. You photograph your fridge or pantry, or scan a grocery receipt, and it keeps a list of the food you have. Recipes are written from that list, so you don't type your ingredients in each time.",
+      "faq.q14": "What can I cook with what I already have?",
+      "faq.a14": "Open leftovr, pick the meal and how long you have, and it writes up to three recipes from the food in your kitchen. <b>Every main ingredient is something you already own.</b> It only assumes basics like water, salt, pepper, cooking oil and dried herbs.",
+      "faq.q15": "How do I use up food before it goes off?",
+      "faq.a15": "leftovr sorts everything in your kitchen by how soon it should be eaten, and <b>recipes start with those items</b>. When you cook one, what you used comes off your list, so the next suggestion is based on what is left.",
+      "faq.q16": "Are the recipes written by AI?",
+      "faq.a16": "Yes. AI writes each recipe from the food in your kitchen. Recipes are kept to <b>8 steps and 12 ingredients</b> so they are easy to follow on a phone. On Premium you can ask for three more if none of them appeal.",
+      "faq.q1": "Is leftovr free?",
+      "faq.a1": "Yes, to start. Your <b>first scan</b> (a pantry photo or a receipt) and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$7.99/month</b> ($54.99/year) and Household is <b>$14.99/month</b> ($99.99/year) for up to three people.",
+      "faq.q2": "Do I have to log everything by hand?",
+      "faq.a2": "No. A <b>pantry photo</b> reads a whole shelf at a time (up to three shots), and a receipt scan adds 20 to 30 items in about ten seconds. For a single thing you can <b>scan a barcode</b> or <b>add it manually</b>, both free and unlimited.",
+      "faq.q12": "How does the pantry photo work?",
+      "faq.a12": "Take up to three photos of a shelf, the fridge or the counter. leftovr reads what it can see and <b>you confirm the list</b> before anything lands in your kitchen. It is an AI scan, so it counts against the same allowance as a receipt scan.",
+      "faq.q3": "Can my household share one kitchen?",
+      "faq.a3": "Yes. The <b>Household plan</b> gives up to three people one shared kitchen that stays in sync, so whoever shops, everyone sees what you have and what to cook.",
+      "faq.q4": "How do recipe suggestions work?",
+      "faq.a4": "Recipes are built from the food your household already has, starting with what should be used first. Tap <b>I cooked this</b> and those ingredients are removed or reduced automatically.",
+      "faq.q5": "What happens to my receipt data?",
+      "faq.a5": "Receipt items and quantities are personal data when linked to your account. We use them only to update your kitchen and suggest meals. Some items can hint at dietary, health, family, or religious preferences. <b>We never sell your personal data.</b> You can delete items, or your whole account, whenever you like.",
+      "faq.q6": "Which shops and receipts work?",
+      "faq.a6": "Most printed, emailed and PDF grocery receipts work out of the box. If a line is unclear, leftovr flags just those items for a quick one-tap check, and the rest go straight in.",
+      "faq.q7": "Are the freshness dates exact?",
+      "faq.a7": "No. They’re approximate freshness estimates based on the item type and what we can read from your receipt. You can edit or clear the date during receipt review or manual add if you know better.",
+      "what.eyebrow": "What is leftovr?",
+      "what.title": 'The app that already knows <span class="mark">what\'s in your kitchen.</span>',
+      "what.body": "leftovr is an iPhone app that turns the food you already own into dinner. Photograph your fridge or pantry, or scan a grocery receipt, and leftovr fills your kitchen, ranks everything by what should be eaten first, and generates recipes from those ingredients only.",
+      "what.fact1": "iPhone app",
+      "what.fact2": "English & Serbian",
+      "what.fact3": "Five ways to add food",
+      "what.fact4": "Free to start",
+      "what.updated": "Page last updated 10 November 2026 by the leftovr team.",
+      "how.ways": "<b>Five ways to fill your kitchen:</b> pantry photo (up to three shelves at once), receipt photo, PDF e-receipt, barcode scan, or manual add. Barcode and manual add are free and unlimited, forever.",
+      "stat3.desc": "About this much of the food thrown out at home was still edible. It just was not used in time.",
+      "compare.eyebrow": "How it compares",
+      "compare.title": 'Four kinds of app, <span class="mark">and only one subtracts what you cook.</span>',
+      "compare.sub": "Most kitchen apps add work: you type what you have, or you plan meals and then go shopping. leftovr starts from the food already in your house.",
+      "compare.table": '<table class="compare">      <thead>       <tr>        <th scope="col">&nbsp;</th>        <th scope="col" class="us">leftovr</th>        <th scope="col">Recipe apps</th>        <th scope="col">Pantry &amp; expiry trackers</th>        <th scope="col">Meal-plan apps</th>       </tr>      </thead>      <tbody>       <tr>        <th scope="row">Getting food in</th>        <td class="us">A photo of your shelves, a receipt, a barcode, or by hand</td>        <td>You type the ingredients in every time</td>        <td>Usually barcode, one item at a time</td>        <td>You pick the meals first, then shop</td>       </tr>       <tr>        <th scope="row">Knows what goes off first</th>        <td class="us">Every item ranked by freshness, every day</td>        <td>No</td>        <td>Yes, as a list of dates</td>        <td>No</td>       </tr>       <tr>        <th scope="row">Recipes limited to what you own</th>        <td class="us">Yes, the required ingredients come from your kitchen</td>        <td>Yes</td>        <td>Rarely</td>        <td>No, the plan comes first and the shopping list after</td>       </tr>       <tr>        <th scope="row">After you cook</th>        <td class="us">Those ingredients leave your kitchen automatically</td>        <td>Nothing changes</td>        <td>You tick items off by hand</td>        <td>You tick items off by hand</td>       </tr>       <tr>        <th scope="row">Shared household</th>        <td class="us">Up to three people, one synced kitchen</td>        <td>Rare</td>        <td>Rare</td>        <td>Sometimes</td>       </tr>       <tr>        <th scope="row">Money saved vs. tossed</th>        <td class="us">Tracked by week, month and year</td>        <td>No</td>        <td>Sometimes, as one total</td>        <td>No</td>       </tr>      </tbody>     </table>',
+      "compare.note": "We compare categories of app rather than brands, since features change often. This is how the four common approaches work as of November 2026. Check any app yourself before you switch.",
+      "faq.q8": "Does leftovr work on Android?",
+      "faq.a8": "Not yet. leftovr is an <b>iPhone app</b> today. The early-access list is the fastest way to hear when that changes.",
+      "faq.q9": "How is leftovr different from a recipe app?",
+      "faq.a9": "A recipe app asks you to type in ingredients every time, then sends you shopping. leftovr already knows what you own, ranks it by what will spoil first, builds recipes from those ingredients, and <b>subtracts them from your kitchen</b> once you cook.",
+      "faq.q10": "What languages does leftovr speak?",
+      "faq.a10": "English and Serbian. That covers the whole app, the recipes it generates and this site.",
+      "faq.q11": "Do I need a smart fridge or any extra hardware?",
+      "faq.a11": "No. leftovr needs an iPhone and its camera, and nothing else.",
+      "read.title": "Keep reading",
+      "read.l1": "How to stop throwing away food",
+      "read.l2": "How long does food actually last?",
+      "read.l3": "Meal planning from what you have",
+      "read.l4": "Receipt scanning vs. manual pantry logs",
+      "read.all": "All articles",
+      "foot.compare": "How it compares",
+      "final.title": 'Tonight\'s dinner is <span class="mark">already in your kitchen.</span>',
+      "final.lead": "Join the early access list and be first in when your spot opens.",
+      "final.post": "We'll email your invite as soon as a spot opens, usually within a few days.",
+      "final.successTitle": "You're on the list.",
+      "final.successBody": "Check your inbox. We'll send your invite as soon as a spot opens.",
+      "foot.how": "How it works",
+      "foot.pricing": "Pricing",
+      "foot.blog": "Blog",
+      "foot.early": "Early access",
+      "foot.contact": "Contact support",
+      "foot.copy": "© 2026 leftovr",
+      "sticky.cta": "Get early access. It's free to start.",
+      "wl.invalid": "Please enter a valid email address.",
+      "wl.captcha": "Please complete the captcha first.",
+      "wl.joining": "Joining…",
+      "wl.generic": "Something went wrong. Please try again.",
+      "wl.network": "Couldn't reach the waitlist right now. Please try again in a minute.",
+    },
+    sr: {
+      "meta.title": "Slikaj ostavu, dobij recepte | leftovr",
+      "meta.desc": "leftovr od slike frižidera ili ostave pravi recepte od hrane koju već imaš. Kuhinju ti pune i računi i bar-kodovi. Za iPhone, besplatno za početak.",
+      "nav.tag": "Šta ima za večeru?",
+      "nav.cta": "Rani pristup",
+      "hero.eyebrow": "iPhone · besplatno za početak",
+      "hero.h1": "Večera od onoga <em>što već imaš u frižideru</em>.",
+      "hero.sub": "Slikaj frižider. leftovr ti napuni kuhinju, označi šta se prvo kvari i od toga napravi večeru.",
+      "stage.have": "Tvoja kuhinja",
+      "stage.count": "6 stavki",
+      "stage.next": "Prikaži drugu večeru",
+      "stage.tonight": "Večeras",
+      "stage.ing0": "Mladi spanać",
+      "stage.ing1": "Feta",
+      "stage.ing2": "Domaća jaja",
+      "stage.ing3": "Čeri paradajz",
+      "stage.ing4": "Pileća prsa",
+      "stage.ing5": "Pasta",
+      "stage.dish0": "Pasta sa spanaćem i fetom",
+      "stage.meta0": "20 min · troši spanać pre nego što uvene",
+      "stage.dish1": "Šakšuka",
+      "stage.meta1": "25 min · troši paradajz i tri jaja",
+      "stage.dish2": "Piletina iz pleha",
+      "stage.meta2": "35 min · jedan pleh, tri namirnice potrošene",
+      "hero.formLabel": "Rani pristup",
+      "hero.placeholder": "ti@primer.rs",
+      "hero.submit": "Prijavi se na listu",
+      "hero.privacy": "Samo vesti o ranom pristupu. Odjaviš se kad hoćeš.",
+      "hero.successTitle": "Na listi si.",
+      "hero.successBody": "Poslaćemo ti pozivnicu čim se oslobodi mesto, obično za nekoliko dana.",
+      "phone.household": "Lenina kuhinja",
+      "phone.urgent": "Spanać, jaja i piletina: za danas",
+      "phone.goal": "1 stvar se danas kvari, iskoristi je",
+      "phone.month": "Novembar",
+      "phone.streak": "5 dana zaredom",
+      "phone.d1": "P",
+      "phone.d2": "U",
+      "phone.d3": "S",
+      "phone.d4": "Č",
+      "phone.d5": "P",
+      "phone.d6": "S",
+      "phone.d7": "N",
+      "phone.lastCooked": "Poslednje kuvano: Šakšuka · ponedeljak",
+      "phone.history": "Istorija",
+      "phone.tonightLbl": "Večeras · iz tvoje kuhinje",
+      "phone.tonightTitle": "Pasta sa spanaćem i fetom",
+      "phone.tonightMeta": "20 min",
+      "phone.tonightLevel": "lako",
+      "phone.why": "Troši spanać i fetu pre nego što se pokvare.",
+      "phone.chipSpinach": "Mladi spanać",
+      "phone.chipFeta": "Feta",
+      "phone.chipMore": "+1",
+      "phone.steps": "6 koraka",
+      "phone.cookThis": "Skuvaj ovo",
+      "phone.moreIdeas": "Još ideja",
+      "how.eyebrow": "Kako radi",
+      "how.title": 'Police unutra. <span class="mark">Večera napolje.</span>',
+      "how.sub": "Tri koraka, a jedan već radiš svaki put kad kupuješ.",
+      "how.film": "leftovr za petnaest sekundi: slikaj police, vidi šta prvo treba pojesti, skuvaj nešto od toga, a kuhinja se sama ažurira.",
+      "step1.title": "Slikaj police",
+      "step1.body": "Slikaj frižider, policu ili pult, najviše tri slike. Radi i slika računa ili PDF e-račun: doda 20 do 30 stavki odjednom.",
+      "step2.n1": "Mladi spanać",
+      "step2.w1": "Najbolje danas",
+      "step2.n2": "Čeri paradajz",
+      "step2.w2": "Ove nedelje",
+      "step2.n3": "Sir",
+      "step2.w3": "Sveže",
+      "step2.title": "Tvoja kuhinja sve prati",
+      "step2.body": "Sve ide na police sa blagim oznakama svežine: „najbolje danas“, „ove nedelje“, bez strašnih odbrojavanja do isteka roka.",
+      "step3.dish": "Pasta sa spanaćem i fetom",
+      "step3.time": "20 min, lako",
+      "step3.cta": "Skuvaj ovo",
+      "step3.title": "Kuvaj od onoga što već imaš",
+      "step3.body": "Recepti od onoga što imaš, a prvo ide ono što treba pojesti. Skuvaj jedan i te namirnice same nestanu iz kuhinje.",
+      "stats.eyebrow": "Zašto je važno",
+      "stats.title": "Bacamo više hrane nego što mislimo. A s njom i više novca.",
+      "gen.eyebrow": "Pravljenje recepata",
+      "gen.title": "Reci šta ti se jede. <span class=\"mark\">Dobij recepte skrojene za tvoju kuhinju.</span>",
+      "gen.sub": "Izaberi obrok i koliko imaš vremena. leftovr piše recepte od hrane koju imaš, počev od onoga što prvo treba pojesti.",
+      "gen.askEyebrow": "Hajde da budemo konkretni",
+      "gen.askTitle": "Šta spremaš?",
+      "gen.meal.breakfast": "Doručak",
+      "gen.meal.lunch": "Ručak",
+      "gen.meal.dinner": "Večera",
+      "gen.mealSub.breakfast": "Ujutru",
+      "gen.mealSub.lunch": "U podne",
+      "gen.mealSub.dinner": "Večeras",
+      "gen.time": "Vreme kuvanja",
+      "gen.time.quick": "Na brzaka",
+      "gen.time.weeknight": "Radni dan",
+      "gen.time.norush": "Bez žurbe",
+      "gen.timeSub.quick": "Ispod 15 min",
+      "gen.timeSub.weeknight": "Oko 30 min",
+      "gen.timeSub.norush": "Polako",
+      "gen.note": "Uvek kuvamo prvo od onoga što treba pojesti.",
+      "gen.go": "Nađi recepte",
+      "gen.loadEyebrow": "Nove ideje",
+      "gen.loadTitle": "Smišljamo ideje",
+      "gen.step1": "Proveravamo kuhinju",
+      "gen.step2": "Tražimo šta treba prvo pojesti",
+      "gen.step3": "Spajamo ukuse koji se slažu",
+      "gen.step4": "Zapisujemo korake",
+      "gen.count1": "Jedna ideja",
+      "gen.countN": "{n} ideje",
+      "gen.ideasSub": "Od onoga što imaš u kuhinji, prvo ide ono što se kvari.",
+      "gen.best": "Najbolji izbor",
+      "gen.also": "Može i ovo",
+      "gen.haveAll": "Imaš sve",
+      "gen.effort.easy": "Lako",
+      "gen.effort.medium": "Srednje",
+      "gen.fact1": "Samo sastojci koje imaš",
+      "gen.fact2": "Prvo ono što se kvari",
+      "gen.fact3": "Najviše 8 koraka",
+      "gen.fact4": "Nije to? Traži još 3",
+      "gen.r.scramble.t": "Kajgana sa spanaćem i fetom",
+      "gen.r.scramble.d": "Meka jaja sa propirjanim spanaćem i izmrvljenom fetom.",
+      "gen.r.baked.t": "Jaja pečena u čeri paradajzu",
+      "gen.r.baked.d": "Paradajz pečen dok ne omekša, jaja razbijena preko njega, feta odozgo.",
+      "gen.r.frittata.t": "Fritata sa spanaćem i fetom",
+      "gen.r.frittata.d": "Gusta fritata iz rerne, dovoljna i za sutrašnji ručak.",
+      "gen.r.salad.t": "Topla salata sa piletinom i spanaćem",
+      "gen.r.salad.d": "Ispečena piletina preko spanaća, uz paradajz i fetu.",
+      "gen.r.tomatoPasta.t": "Pasta sa čeri paradajzom i spanaćem",
+      "gen.r.tomatoPasta.d": "Paradajz pukne i napravi sos, a spanać ide na kraju.",
+      "gen.r.bake.t": "Zapečena pasta sa piletinom, paradajzom i fetom",
+      "gen.r.bake.d": "Sve u jednoj posudi, peče se dok vrh ne porumeni.",
+      "gen.r.fetaPasta.t": "Pasta sa spanaćem i fetom",
+      "gen.r.fetaPasta.d": "Troši spanać pre nego što uvene, a feta se topi u sosu.",
+      "gen.r.seared.t": "Piletina sa raspuklim čeri paradajzom",
+      "gen.r.seared.d": "Jedan tiganj: zlatna piletina, zapečen paradajz i uvenuo spanać.",
+      "gen.r.traybake.t": "Piletina iz pleha",
+      "gen.r.traybake.d": "Jedan pleh, tri namirnice potrošene, skoro bez pranja sudova.",
+      "stat1.desc": "Toliko hrane godišnje baci prosečna američka četvoročlana porodica.",
+      "stat2.desc": "Deo američke hrane koji se izgubi u prodavnicama i kod potrošača, po proceni USDA.",
+      "feat.eyebrow": "Šta dobijaš",
+      "feat.title": 'Znaj šta imaš. <span class="mark">Znaj šta da skuvaš.</span>',
+      "feat1.title": "Znaj šta prvo da pojedeš",
+      "feat1.body": "leftovr ređa hranu po tome koliko brzo se kvari i ono što je na ivici stavlja na vrh, da potrošiš spanać pre nego što uvene, a ne posle.",
+      "feat1.li1": "Dnevna polica „za danas“, poređana po roku trajanja",
+      "feat1.li2": "Svežina u boji uz svaku stavku",
+      "feat1.li3": "Jedan dodir i kuvaš od onoga što se uskoro kvari",
+      "feat1.vlabel": "Pojedi prvo · za danas",
+      "ef.spinach": "Mladi spanać",
+      "ef.eggs": "Domaća jaja",
+      "ef.chicken": "Piletina",
+      "ef.bestToday": "Najbolje danas",
+      "ef.in1day": "Za 1 dan",
+      "feat2.title": "Recepti od onoga što stvarno imaš",
+      "feat2.body": "Svaka ideja se pravi od hrane koju već imaš i kreće od onoga što treba potrošiti. Otvori je i koraci su odmah tu.",
+      "feat2.li1": "Bez recepata tipa „kupi još 9 stvari“",
+      "feat2.li2": "Filtriraj po vremenu, trudu ili „troši najviše“",
+      "feat2.li3": "Dodirni „Skuvao sam ovo“ i kuhinja se ažurira",
+      "recipe1.tag": "Prvi izbor",
+      "recipe1.title": "Pasta sa spanaćem i fetom",
+      "recipe1.meta": "20 min · 5 sastojaka",
+      "recipe1.note": "Spasava spanać (najbolje danas)",
+      "recipe2.title": "Tost sa jajetom i sirom",
+      "recipe2.meta": "10 min · 3 sastojka",
+      "recipe2.note": "Troši 3 stvari koje se kvare",
+      "price.eyebrow": "Cene",
+      "price.title": 'Besplatno za početak. <span class="mark">Plati kad poželiš više.</span>',
+      "price.honest": "Tvoje <b>prvo skeniranje</b> (slika ostave ili račun) i <b>prvi recept</b> su na nas. <b>Ručni unos i bar-kod ostaju besplatni zauvek.</b> Pređi na neograničeno kad ti zatreba.",
+      "price.monthly": "Mesečno",
+      "price.yearly": "Godišnje",
+      "price.save": "Ušteda ~40%",
+      "plan.per": "/mesec",
+      "plan.free.name": "Besplatno",
+      "plan.free.for": "Probaj sve",
+      "plan.free.amt": "0 €",
+      "plan.free.note": "Zauvek besplatno",
+      "plan.free.li1": "Prvo skeniranje: ostava ili račun",
+      "plan.free.li2": "Prvi recept",
+      "plan.free.li3": "Neograničen ručni unos i bar-kod",
+      "plan.free.li4": "Tvoja kuhinja, uvek ažurna",
+      "plan.free.cta": "Počni besplatno",
+      "plan.prem.flag": "Najpopularnije",
+      "plan.prem.name": "Premium",
+      "plan.prem.for": "Za jednog kuvara",
+      "plan.prem.amtM": "7,99 €",
+      "plan.prem.amtY": "4,58 €",
+      "plan.prem.noteM": "Plaća se mesečno",
+      "plan.prem.noteY": "54,99 € godišnje",
+      "plan.prem.li1": "Neograničeno skeniranje ostave i računa",
+      "plan.prem.li2": "Neograničeni recepti, poređani po roku trajanja",
+      "plan.prem.li3": "Dnevni predlog šta da skuvaš",
+      "plan.prem.li4": "Nedeljni pregled",
+      "plan.prem.cta": "Rani pristup",
+      "plan.house.name": "Domaćinstvo",
+      "plan.house.for": "Deli sa do 3 osobe",
+      "plan.house.amtM": "14,99 €",
+      "plan.house.amtY": "8,33 €",
+      "plan.house.noteM": "Plaća se mesečno",
+      "plan.house.noteY": "99,99 € godišnje",
+      "plan.house.li1": "Sve iz paketa Premium",
+      "plan.house.li2": "Jedna zajednička kuhinja za ceo dom",
+      "plan.house.li3": "Do 3 osobe, sinhronizovano",
+      "plan.house.li4": "Zajednički recepti i pregled",
+      "plan.house.cta": "Rani pristup",
+      "faq.eyebrow": "Dobra pitanja",
+      "faq.title": "Šta ljudi prvo pitaju.",
+      "faq.q13": "Postoji li aplikacija koja pravi recepte od onoga što imam u frižideru?",
+      "faq.a13": "Da. <b>leftovr</b> je iPhone aplikacija koja radi baš to. Uslikaš frižider ili ostavu, ili skeniraš račun iz prodavnice, i ona vodi listu hrane koju imaš. Recepti se prave od te liste, pa ne moraš svaki put da kucaš sastojke.",
+      "faq.q14": "Šta mogu da skuvam od onoga što već imam?",
+      "faq.a14": "Otvori leftovr, izaberi obrok i koliko imaš vremena, i dobićeš do tri recepta od hrane iz svoje kuhinje. <b>Svaki glavni sastojak je nešto što već imaš.</b> Podrazumeva se samo osnovno: voda, so, biber, ulje i suvi začini.",
+      "faq.q15": "Kako da potrošim hranu pre nego što se pokvari?",
+      "faq.a15": "leftovr ređa sve u tvojoj kuhinji po tome šta treba prvo pojesti, i <b>recepti kreću od tih namirnica</b>. Kad nešto skuvaš, ono što potrošiš skida se sa liste, pa se sledeći predlog pravi od onoga što je ostalo.",
+      "faq.q16": "Da li recepte piše veštačka inteligencija?",
+      "faq.a16": "Da. Veštačka inteligencija piše svaki recept od hrane iz tvoje kuhinje. Recepti imaju najviše <b>8 koraka i 12 sastojaka</b>, da ih je lako pratiti na telefonu. Uz Premium možeš da tražiš još tri ako ti se nijedan ne dopada.",
+      "faq.q1": "Da li je leftovr besplatan?",
+      "faq.a1": "Da, za početak. Tvoje <b>prvo skeniranje</b> (slika ostave ili račun) i <b>prvi recept</b> su besplatni, a <b>ručni unos i bar-kod ostaju besplatni zauvek</b>. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i nedeljni pregled, Premium košta <b>7,99 €/mesec</b> (54,99 € godišnje), a Domaćinstvo <b>14,99 €/mesec</b> (99,99 € godišnje) za do tri osobe.",
+      "faq.q2": "Moram li sve ručno da unosim?",
+      "faq.a2": "Ne. <b>Slika ostave</b> pročita celu policu odjednom, do tri slike, a skeniranje računa doda 20 do 30 stavki za desetak sekundi. Za jednu stvar možeš da <b>skeniraš bar-kod</b> ili <b>dodaš ručno</b>, oboje besplatno i neograničeno.",
+      "faq.q12": "Kako radi slika ostave?",
+      "faq.a12": "Uslikaj do tri fotografije police, frižidera ili pulta. leftovr pročita šta vidi, a <b>ti potvrdiš spisak</b> pre nego što išta uđe u kuhinju. To je AI skeniranje, pa se računa u isti limit kao i skeniranje računa.",
+      "faq.q3": "Može li moje domaćinstvo da deli jednu kuhinju?",
+      "faq.a3": "Da. <b>Plan Domaćinstvo</b> daje do tri osobe jednu zajedničku kuhinju koja se sama sinhronizuje, pa bez obzira ko kupuje, svi vide šta imate i šta da skuvate.",
+      "faq.q4": "Kako rade predlozi recepata?",
+      "faq.a4": "Recepti se prave od hrane koju već imaš u kuhinji, a obavezni sastojci dolaze iz onoga što ima tvoje domaćinstvo. leftovr prvo uzima hranu koju treba potrošiti. Dodirni <b>Skuvao sam ovo</b> i ti sastojci se automatski uklone ili im se smanji količina.",
+      "faq.q5": "Šta se dešava sa podacima sa mojih računa?",
+      "faq.a5": "Stavke i količine sa računa su lični podaci kad su povezani sa tvojim nalogom. Koristimo ih samo da ažuriramo tvoju kuhinju i predložimo obroke. Neke stavke mogu da otkriju nešto o ishrani, zdravlju, porodici ili verskim navikama. <b>Nikad ne prodajemo tvoje lične podatke.</b> Možeš da obrišeš stavke ili ceo nalog kad god želiš.",
+      "faq.q6": "Računi iz kojih prodavnica rade?",
+      "faq.a6": "Većina štampanih, imejlom poslatih i PDF računa iz prodavnica radi odmah. Ako neka stavka nije jasna, leftovr samo nju označi za brzu proveru jednim dodirom, a ostalo ide pravo unutra.",
+      "faq.q7": "Da li su datumi svežine tačni?",
+      "faq.a7": "Ne. To su okvirne procene svežine, na osnovu vrste namirnice i onoga što može da se pročita sa računa. Datum možeš da izmeniš ili obrišeš pri proveri računa ili ručnom unosu, ako znaš bolje.",
+      "what.eyebrow": "Šta je leftovr?",
+      "what.title": 'Aplikacija koja već zna <span class="mark">šta ti je u kuhinji.</span>',
+      "what.body": "leftovr je aplikacija za iPhone koja od hrane koju već imaš pravi večeru. Slikaj frižider ili ostavu, ili skeniraj račun, i leftovr ti napuni kuhinju, poreda sve po tome šta prvo treba pojesti i pravi recepte samo od tih sastojaka.",
+      "what.fact1": "iPhone aplikacija",
+      "what.fact2": "Engleski i srpski",
+      "what.fact3": "Pet načina da dodaš hranu",
+      "what.fact4": "Besplatno za početak",
+      "what.updated": "Stranica ažurirana 10. novembra 2026.",
+      "how.ways": "<b>Pet načina da napuniš kuhinju:</b> slika ostave (do tri police odjednom), slika računa, PDF e-račun, bar-kod ili ručni unos. Bar-kod i ručni unos su besplatni i neograničeni, zauvek.",
+      "stat3.desc": "Otprilike ovoliki deo hrane bačene kod kuće još je mogao da se jede. Samo nije potrošen na vreme.",
+      "compare.eyebrow": "Poređenje",
+      "compare.title": 'Četiri vrste aplikacija. <span class="mark">Samo jedna oduzima.</span>',
+      "compare.sub": "Većina kuhinjskih aplikacija dodaje posao: ili kucaš šta imaš, ili planiraš obroke pa ideš u kupovinu. leftovr kreće od hrane koja je već u kući.",
+      "compare.table": '<table class="compare">      <thead>       <tr>        <th scope="col">&nbsp;</th>        <th scope="col" class="us">leftovr</th>        <th scope="col">Aplikacije sa receptima</th>        <th scope="col">Praćenje zaliha i rokova</th>        <th scope="col">Planeri obroka</th>       </tr>      </thead>      <tbody>       <tr>        <th scope="row">Kako hrana ulazi</th>        <td class="us">Slika polica, račun, bar-kod ili ručni unos</td>        <td>Svaki put kucaš sastojke</td>        <td>Uglavnom bar-kod, stavku po stavku</td>        <td>Prvo biraš obroke, pa kupuješ</td>       </tr>       <tr>        <th scope="row">Zna šta se prvo kvari</th>        <td class="us">Svaka stavka poređana po svežini, svakog dana</td>        <td>Ne</td>        <td>Da, kao spisak datuma</td>        <td>Ne</td>       </tr>       <tr>        <th scope="row">Recepti samo od onoga što imaš</th>        <td class="us">Da, obavezni sastojci dolaze iz tvoje kuhinje</td>        <td>Da</td>        <td>Retko</td>        <td>Ne, prvo plan pa spisak za kupovinu</td>       </tr>       <tr>        <th scope="row">Kad skuvaš</th>        <td class="us">Ti sastojci automatski izlaze iz kuhinje</td>        <td>Ništa se ne menja</td>        <td>Ručno štikliraš stavke</td>        <td>Ručno štikliraš stavke</td>       </tr>       <tr>        <th scope="row">Zajedničko domaćinstvo</th>        <td class="us">Do tri osobe, jedna sinhronizovana kuhinja</td>        <td>Retko</td>        <td>Retko</td>        <td>Ponekad</td>       </tr>       <tr>        <th scope="row">Ušteđeni i bačeni novac</th>        <td class="us">Praćeno po nedelji, mesecu i godini</td>        <td>Ne</td>        <td>Ponekad, kao jedan zbir</td>        <td>Ne</td>       </tr>      </tbody>     </table>',
+      "compare.note": "Kategorije, ne brendovi: funkcije aplikacija se često menjaju. Ovako rade četiri uobičajena pristupa u novembru 2026, pa pre nego što pređeš na neku, proveri kako zaista radi.",
+      "faq.q8": "Da li leftovr radi na Androidu?",
+      "faq.a8": "Još ne. leftovr je za sada <b>iPhone aplikacija</b>. Lista za rani pristup je najbrži način da saznaš kada se to promeni.",
+      "faq.q9": "Po čemu se leftovr razlikuje od aplikacije sa receptima?",
+      "faq.a9": "Aplikacija sa receptima traži da svaki put ukucaš sastojke, pa te pošalje u kupovinu. leftovr već zna šta imaš, ređa to po tome šta se prvo kvari, pravi recepte od tih sastojaka i <b>oduzima ih iz tvoje kuhinje</b> čim skuvaš.",
+      "faq.q10": "Koje jezike leftovr govori?",
+      "faq.a10": "Engleski i srpski: cela aplikacija, uključujući recepte koje generiše, i ovaj sajt.",
+      "faq.q11": "Treba li mi pametan frižider ili dodatna oprema?",
+      "faq.a11": "Ne. Za leftovr ti trebaju samo iPhone i njegova kamera. Bez senzora, bez pametnog frižidera, bez vage.",
+      "read.title": "Pročitaj još",
+      "read.l1": "Kako da prestaneš da bacaš hranu",
+      "read.l2": "Koliko hrana zaista traje?",
+      "read.l3": "Planiranje obroka od onoga što imaš",
+      "read.l4": "Skeniranje računa ili ručni popis ostave",
+      "read.all": "Svi tekstovi",
+      "foot.compare": "Poređenje",
+      "final.title": 'Večera za večeras je <span class="mark">već u tvojoj kuhinji.</span>',
+      "final.lead": "Prijavi se na listu za rani pristup i budi među prvima kad ti se oslobodi mesto.",
+      "final.post": "Poslaćemo ti pozivnicu čim se oslobodi mesto, obično za nekoliko dana.",
+      "final.successTitle": "Na listi si.",
+      "final.successBody": "Proveri imejl, poslaćemo ti pozivnicu čim se oslobodi mesto.",
+      "foot.how": "Kako radi",
+      "foot.pricing": "Cene",
+      "foot.blog": "Blog",
+      "foot.early": "Rani pristup",
+      "foot.contact": "Kontaktiraj podršku",
+      "foot.copy": "© 2026 leftovr",
+      "sticky.cta": "Rani pristup, besplatno za početak",
+      "wl.invalid": "Unesi ispravnu imejl adresu.",
+      "wl.captcha": "Prvo reši kapču.",
+      "wl.joining": "Prijavljujem…",
+      "wl.generic": "Nešto nije u redu. Pokušaj ponovo.",
+      "wl.network": "Trenutno ne mogu da se povežem sa listom. Pokušaj ponovo za minut.",
+    },
+  };
+
+  // The page's own language: "en" at /, "sr" at /sr/.
+  var currentLang = document.documentElement.lang === "sr" ? "sr" : "en";
+  var LANG_KEY = "leftovr-lang";
+  function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || ""; }
+
+  var descMeta = document.querySelector('meta[name="description"]');
+  var ogTitle = document.querySelector('meta[property="og:title"]');
+  var ogDesc = document.querySelector('meta[property="og:description"]');
+
+
+  function applyLanguage(lang) {
+    if (!I18N[lang]) lang = "en";
+    currentLang = lang;
+    var dict = I18N[lang];
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var v = dict[el.dataset.i18n];
+      if (v != null) el.textContent = v;
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach(function (el) {
+      var v = dict[el.dataset.i18nHtml];
+      if (v != null) el.innerHTML = v;
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
+      var v = dict[el.dataset.i18nAria];
+      if (v != null) el.setAttribute("aria-label", v);
+    });
+    document.querySelectorAll("[data-i18n-ph]").forEach(function (el) {
+      var v = dict[el.dataset.i18nPh];
+      if (v != null) el.placeholder = v;
+    });
+
+    // Head metadata
+    document.title = dict[document.documentElement.dataset.i18nTitle] || document.title;
+    var desc = dict[document.documentElement.dataset.i18nDesc];
+    if (desc) {
+      if (descMeta) descMeta.content = desc;
+      if (ogDesc) ogDesc.content = desc;
+    }
+    if (ogTitle) ogTitle.content = document.title;
+
+    // Period-dependent billing notes (resolved via dictionary).
+    applyPeriod();
+    if (window.__paintDish) window.__paintDish();
+    if (window.__paintGen) window.__paintGen();
+  }
+
+  // The toggle is two links (/ and /sr/). Clicking one remembers the pick, and
+  // the script in <head> sends this visitor back to it next time.
+  document.querySelectorAll("[data-lang]").forEach(function (link) {
+    link.addEventListener("click", function () {
+      try { localStorage.setItem(LANG_KEY, link.dataset.lang); } catch (e) {}
+    });
+  });
+
+  // ---------- Turnstile captcha ----------
+  // Cloudflare Turnstile site key (public). Matching secret lives in the
+  // TURNSTILE_SECRET_KEY env var on Vercel.
+  var TURNSTILE_SITE_KEY = "0x4AAAAAADxgkqYVh9S5dYsq";
+  window.onTurnstileLoad = function () {
+    ["hero-captcha", "final-captcha"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && window.turnstile) window.turnstile.render(el, { sitekey: TURNSTILE_SITE_KEY });
+    });
+  };
+
+  // ---------- Waitlist forms → /api/waitlist → Resend ----------
+  var WAITLIST_ENDPOINT = "/api/waitlist";
+  function wireForm(formId, msgId, successId) {
+    var form = document.getElementById(formId);
+    if (!form) return;
+    var msg = document.getElementById(msgId);
+    var success = document.getElementById(successId);
+    var email = form.querySelector('input[type=email]');
+    var submit = form.querySelector('button[type=submit]');
+    var honeypot = form.querySelector('input[name=company]');
+
+    function showMsg(text, ok) {
+      if (!msg) return;
+      msg.textContent = text;
+      msg.classList.toggle("ok", ok);
+      msg.classList.toggle("err", !ok);
+    }
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var value = email.value.trim();
+      if (!value || !email.checkValidity()) {
+        showMsg(t("wl.invalid"), false);
+        email.focus();
+        return;
+      }
+      var captcha = form.querySelector('[name="cf-turnstile-response"]');
+      var token = captcha ? captcha.value : "";
+      if (!token) {
+        showMsg(t("wl.captcha"), false);
+        return;
+      }
+      var label = submit.textContent;
+      submit.disabled = true;
+      submit.textContent = t("wl.joining");
+      try {
+        var res = await fetch(WAITLIST_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: value, company: honeypot ? honeypot.value : "", lang: currentLang, turnstileToken: token }),
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (res.ok) {
+          form.style.display = "none";
+          if (success) success.classList.add("show");
+        } else {
+          showMsg((currentLang === "en" && data.error) || t("wl.generic"), false);
+        }
+      } catch (err) {
+        showMsg(t("wl.network"), false);
+      } finally {
+        submit.disabled = false;
+        submit.textContent = label;
+        // Turnstile tokens are single-use; reset so a retry gets a fresh one.
+        var cw = form.querySelector(".captcha-widget");
+        if (window.turnstile && cw) window.turnstile.reset(cw);
+      }
+    });
+  }
+  wireForm("hero-form", "hero-msg", "hero-success");
+  wireForm("final-form", "final-msg", "final-success");
+
+  // ---------- Init language ----------
+  applyLanguage(currentLang);
+</script>
+
+</body>
+</html>

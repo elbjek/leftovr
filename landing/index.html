@@ -21,9 +21,26 @@
 <meta name="twitter:image" content="https://leftovr.co/og-image-2.png" />
 <meta name="twitter:image:alt" content="leftovr. Waste less, cook more. Turn forgotten ingredients into today's meal." />
 <link rel="canonical" href="https://leftovr.co/" />
+<link rel="alternate" hreflang="en" href="https://leftovr.co/" />
+<link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/" />
+<link rel="alternate" hreflang="x-default" href="https://leftovr.co/" />
+<script>
+  // English lives at /, Serbian at /sr/ (built from this file by
+  // scripts/build-landing-sr.mjs: re-run it after every edit here).
+  // Someone who picked a language with the toggle goes back to it. With no
+  // stored pick (first visits, crawlers) the URL decides and nothing redirects.
+  (function () {
+    var pick = "";
+    try { pick = localStorage.getItem("leftovr-lang"); } catch (e) {}
+    if ((pick === "en" || pick === "sr") && pick !== document.documentElement.lang) {
+      location.replace((pick === "sr" ? "/sr/" : "/") + location.search + location.hash);
+    }
+  })();
+</script>
 <meta name="robots" content="index, follow" />
 <meta name="author" content="Two Brick Labs" />
 <meta property="og:locale" content="en_US" />
+<meta property="og:locale:alternate" content="sr_RS" />
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
@@ -204,14 +221,14 @@
     border-radius: 999px; background: var(--surface-2);
     border: 1px solid transparent;
   }
-  .lang-toggle button {
-    border: none; background: transparent; cursor: pointer;
+  .lang-toggle a {
+    display: inline-flex; align-items: center;
     height: 32px; padding: 0 12px; border-radius: 999px;
-    font-family: inherit; font-weight: 800; font-size: 13px; color: var(--muted);
+    font-weight: 800; font-size: 13px; color: var(--muted);
     transition: background 0.15s ease, color 0.15s ease;
   }
-  .lang-toggle button[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(170, 90, 50, 0.18); }
-  .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--text); }
+  .lang-toggle a[aria-current] { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(170, 90, 50, 0.18); }
+  .lang-toggle a:not([aria-current]):hover { color: var(--text); }
 
   /* ── Hero ──────────────────────────────────────────────────────────
      An open fridge. The promise is "dinner from what's already in your
@@ -1118,6 +1135,7 @@
       "@id": "https://leftovr.co/#webpage",
       "url": "https://leftovr.co/",
       "name": "Scan your pantry, get recipes from it | leftovr",
+      "inLanguage": "en",
       "isPartOf": {
         "@id": "https://leftovr.co/#website"
       },
@@ -1426,8 +1444,8 @@
     </a>
     <div class="nav-right">
       <div class="lang-toggle" role="group" aria-label="Language">
-        <button type="button" data-lang="en" aria-pressed="true">EN</button>
-        <button type="button" data-lang="sr" aria-pressed="false">SR</button>
+        <a href="/" hreflang="en" data-lang="en" aria-current="page">EN</a>
+        <a href="/sr/" hreflang="sr" data-lang="sr">SR</a>
       </div>
       <a class="btn btn-primary btn-sm" href="#get" data-i18n="nav.cta">Get early access</a>
     </div>
@@ -2969,7 +2987,8 @@
     },
   };
 
-  var currentLang = "en";
+  // The page's own language: "en" at /, "sr" at /sr/.
+  var currentLang = document.documentElement.lang === "sr" ? "sr" : "en";
   var LANG_KEY = "leftovr-lang";
   function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || ""; }
 
@@ -3014,17 +3033,14 @@
     applyPeriod();
     if (window.__paintDish) window.__paintDish();
     if (window.__paintGen) window.__paintGen();
-
-    // Toggle button states
-    document.querySelectorAll("[data-lang]").forEach(function (btn) {
-      btn.setAttribute("aria-pressed", String(btn.dataset.lang === lang));
-    });
-
-    try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
   }
 
-  document.querySelectorAll("[data-lang]").forEach(function (btn) {
-    btn.addEventListener("click", function () { applyLanguage(btn.dataset.lang); });
+  // The toggle is two links (/ and /sr/). Clicking one remembers the pick, and
+  // the script in <head> sends this visitor back to it next time.
+  document.querySelectorAll("[data-lang]").forEach(function (link) {
+    link.addEventListener("click", function () {
+      try { localStorage.setItem(LANG_KEY, link.dataset.lang); } catch (e) {}
+    });
   });
 
   // ---------- Turnstile captcha ----------
@@ -3101,12 +3117,7 @@
   wireForm("final-form", "final-msg", "final-success");
 
   // ---------- Init language ----------
-  var initial = "";
-  try { initial = localStorage.getItem(LANG_KEY) || ""; } catch (e) {}
-  if (!initial) {
-    initial = (navigator.language || "").toLowerCase().indexOf("sr") === 0 ? "sr" : "en";
-  }
-  applyLanguage(initial);
+  applyLanguage(currentLang);
 </script>
 
 </body>
