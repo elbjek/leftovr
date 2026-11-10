@@ -1339,12 +1339,12 @@
 <!-- ─────────────── HEADER (logo + language toggle + single CTA) ─────────────── -->
 <header>
   <div class="wrap nav">
-    <a class="nav-brand" href="#top" aria-label="leftovr, what's for dinner">
+    <a class="nav-brand" href="#top" data-i18n-aria="nav.aria" aria-label="leftovr, šta ima za večeru">
       <span class="nav-logo">leftov<span class="logo-r">r</span></span>
       <span class="nav-sub" data-i18n="nav.tag">Šta ima za večeru?</span>
     </a>
     <div class="nav-right">
-      <div class="lang-toggle" role="group" aria-label="Language">
+      <div class="lang-toggle" role="group" data-i18n-aria="nav.lang" aria-label="Jezik">
         <a href="/" hreflang="en" data-lang="en">EN</a>
         <a href="/sr/" hreflang="sr" data-lang="sr" aria-current="page">SR</a>
       </div>
@@ -1388,7 +1388,7 @@
       <!-- The open fridge: your food on its shelves, and the ticket on the door
            names tonight's dinner. What the dish uses lifts off the shelf. -->
       <div class="stage-fridge">
-        <div class="demo" role="img" aria-label="leftovr turning the food in your kitchen into tonight&#39;s dinner">
+        <div class="demo" role="img" data-i18n-aria="stage.aria" aria-label="leftovr pretvara hranu iz tvoje kuhinje u večeru">
           <span class="fr-handle" aria-hidden="true"></span>
           <div class="fr-top">
             <span class="demo-label" data-i18n="stage.have">Tvoja kuhinja</span>
@@ -1707,17 +1707,17 @@
         <div class="stat-card">
           <div class="stat-num">$1,500</div>
           <p class="stat-desc" data-i18n="stat1.desc">Toliko hrane godišnje baci prosečna američka četvoročlana porodica.</p>
-          <p class="stat-src">Source: <a href="https://www.usda.gov/foodlossandwaste/faqs" target="_blank" rel="noopener">U.S. Department of Agriculture</a></p>
+          <p class="stat-src"><span data-i18n="stats.src">Izvor:</span> <a href="https://www.usda.gov/foodlossandwaste/faqs" target="_blank" rel="noopener">U.S. Department of Agriculture</a></p>
         </div>
         <div class="stat-card">
           <div class="stat-num">31%</div>
           <p class="stat-desc" data-i18n="stat2.desc">Deo američke hrane koji se izgubi u prodavnicama i kod potrošača, po proceni USDA.</p>
-          <p class="stat-src">Source: <a href="https://www.usda.gov/foodlossandwaste/faqs" target="_blank" rel="noopener">USDA, 2010 estimate</a></p>
+          <p class="stat-src"><span data-i18n="stats.src">Izvor:</span> <a href="https://www.usda.gov/foodlossandwaste/faqs" target="_blank" rel="noopener">USDA, 2010 estimate</a></p>
         </div>
         <div class="stat-card">
           <div class="stat-num">40%</div>
           <p class="stat-desc" data-i18n="stat3.desc">Otprilike ovoliki deo hrane bačene kod kuće još je mogao da se jede. Samo nije potrošen na vreme.</p>
-          <p class="stat-src">Source: <a href="https://data.wrap.ngo/story/the-household-food-waste-study" target="_blank" rel="noopener">WRAP, Household Food Waste Study (UK)</a></p>
+          <p class="stat-src"><span data-i18n="stats.src">Izvor:</span> <a href="https://data.wrap.ngo/story/the-household-food-waste-study" target="_blank" rel="noopener">WRAP, Household Food Waste Study (UK)</a></p>
         </div>
       </div>
     </div>
@@ -1995,7 +1995,7 @@
   <!-- ─────────────── FOOTER ─────────────── -->
   <footer>
     <div class="wrap foot">
-      <a class="nav-brand" href="#top" aria-label="leftovr, what's for dinner">
+      <a class="nav-brand" href="#top" data-i18n-aria="nav.aria" aria-label="leftovr, šta ima za večeru">
         <span class="nav-logo" style="font-size:22px;">leftov<span class="logo-r">r</span></span>
         <span class="nav-sub" data-i18n="nav.tag">Šta ima za večeru?</span>
       </a>
@@ -2287,6 +2287,8 @@
       "meta.title": "Scan your pantry, get recipes from it | leftovr",
       "meta.desc": "leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start.",
       "nav.tag": "What's for dinner?",
+      "nav.aria": "leftovr, what's for dinner",
+      "nav.lang": "Language",
       "nav.cta": "Get early access",
       "hero.eyebrow": "iPhone · free to start",
       "hero.h1": "Dinner, from what's <em>already in your fridge</em>.",
@@ -2294,6 +2296,7 @@
       "stage.have": "Your kitchen",
       "stage.count": "6 items",
       "stage.next": "Show another dinner",
+      "stage.aria": "leftovr turning the food in your kitchen into tonight's dinner",
       "stage.tonight": "Tonight",
       "stage.ing0": "Baby spinach",
       "stage.ing1": "Feta",
@@ -2358,6 +2361,7 @@
       "step3.title": "Cook what you have",
       "step3.body": "Recipes are built from what you have, starting with whatever should be eaten first. Cook one and those ingredients leave your kitchen automatically.",
       "stats.eyebrow": "Why it matters",
+      "stats.src": "Source:",
       "stats.title": "We throw away more food than we think, and a lot of money with it.",
       "gen.eyebrow": "Recipe generation",
       "gen.title": "Say what you feel like. <span class=\"mark\">Get recipes written for your kitchen.</span>",
@@ -2559,6 +2563,8 @@
       "meta.title": "Slikaj ostavu, dobij recepte | leftovr",
       "meta.desc": "leftovr od slike frižidera ili ostave pravi recepte od hrane koju već imaš. Kuhinju ti pune i računi i bar-kodovi. Za iPhone, besplatno za početak.",
       "nav.tag": "Šta ima za večeru?",
+      "nav.aria": "leftovr, šta ima za večeru",
+      "nav.lang": "Jezik",
       "nav.cta": "Rani pristup",
       "hero.eyebrow": "iPhone · besplatno za početak",
       "hero.h1": "Večera od onoga <em>što već imaš u frižideru</em>.",
@@ -2566,6 +2572,7 @@
       "stage.have": "Tvoja kuhinja",
       "stage.count": "6 stavki",
       "stage.next": "Prikaži drugu večeru",
+      "stage.aria": "leftovr pretvara hranu iz tvoje kuhinje u večeru",
       "stage.tonight": "Večeras",
       "stage.ing0": "Mladi spanać",
       "stage.ing1": "Feta",
@@ -2630,6 +2637,7 @@
       "step3.title": "Kuvaj od onoga što već imaš",
       "step3.body": "Recepti od onoga što imaš, a prvo ide ono što treba pojesti. Skuvaj jedan i te namirnice same nestanu iz kuhinje.",
       "stats.eyebrow": "Zašto je važno",
+      "stats.src": "Izvor:",
       "stats.title": "Bacamo više hrane nego što mislimo. A s njom i više novca.",
       "gen.eyebrow": "Pravljenje recepata",
       "gen.title": "Reci šta ti se jede. <span class=\"mark\">Dobij recepte skrojene za tvoju kuhinju.</span>",
