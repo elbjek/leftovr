@@ -562,6 +562,23 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
     return { response: Response.json({ error: "recipe_generation_rate_limited" }, { status: 429 }) };
   }
 
+  // A free account whose tries never produce a card (an inventory the cards
+  // can't reference, say) is never stamped, so the daily cap alone lets it buy
+  // model calls forever. Cap its model calls for life too.
+  if (!premium) {
+    const { data: allRows, error: allRowsError } = await supabase
+      .from("recipe_generation_attempts")
+      .select("attempt_count")
+      .eq("user_id", userId);
+    if (allRowsError) {
+      return { response: Response.json({ error: "attempt_lookup_failed" }, { status: 500 }) };
+    }
+    const lifetimeAttempts = (allRows ?? []).reduce((sum, row) => sum + (row.attempt_count ?? 1), 0);
+    if (lifetimeAttempts >= FREE_LIFETIME_ATTEMPT_CAP) {
+      return { response: Response.json({ error: "recipe_generation_rate_limited" }, { status: 429 }) };
+    }
+  }
+
   const RECIPE_MONTHLY_CAP = 150;
   if (premium && (monthlyCount ?? 0) >= RECIPE_MONTHLY_CAP) {
     return { response: Response.json({ error: "recipe_generation_monthly_limit" }, { status: 429 }) };
@@ -1150,6 +1167,8 @@ const MAX_BODY_CHARS = 100_000;
 // saved recipes.
 const EXPAND_DAILY_LIMIT_PREMIUM = 200;
 const EXPAND_DAILY_LIMIT_FREE = 20;
+// Model calls a free account may spend, ever, before its first usable result.
+const FREE_LIFETIME_ATTEMPT_CAP = 10;
 
 // True when a completed generation in the caller's active household returned
 // a card with this title (attempt rows are written by this function only).
