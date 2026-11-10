@@ -1820,8 +1820,8 @@
 
       <div class="toggle-wrap">
         <div class="price-toggle" id="price-toggle">
-          <button class="on" data-period="monthly"><span data-i18n="price.monthly">Mesečno</span></button>
-          <button data-period="yearly"><span data-i18n="price.yearly">Godišnje</span> <span class="save-pill" data-i18n="price.save">Ušteda 40%+</span></button>
+          <button data-period="monthly"><span data-i18n="price.monthly">Mesečno</span></button>
+          <button class="on" data-period="yearly"><span data-i18n="price.yearly">Godišnje</span> <span class="save-pill" data-i18n="price.save">Ušteda 40%+</span></button>
         </div>
       </div>
       <p class="trial-note" data-i18n-html="price.trial">Godišnji paketi kreću sa <b>7 dana besplatno</b>.</p>
@@ -1846,8 +1846,8 @@
         <div class="plan">
           <div class="plan-name" data-i18n="plan.prem.name">Premium</div>
           <div class="plan-for" data-i18n="plan.prem.for">Za jednog kuvara</div>
-          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.prem.amtM" data-yearly="plan.prem.amtY">6,99 €</span><span class="per" data-i18n="plan.per">/mesec</span></div>
-          <div class="plan-note" data-period-key data-monthly="plan.prem.noteM" data-yearly="plan.prem.noteY">Plaća se mesečno</div>
+          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.prem.amtM" data-yearly="plan.prem.amtY">3,75 €</span><span class="per" data-i18n="plan.per">/mesec</span></div>
+          <div class="plan-note" data-period-key data-monthly="plan.prem.noteM" data-yearly="plan.prem.noteY">7 dana besplatno, zatim 44,99 € godišnje</div>
           <ul>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li1">Neograničeno skeniranje ostave i računa</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li2">Neograničeni recepti, poređani po roku trajanja</span></li>
@@ -1862,8 +1862,8 @@
           <div class="plan-flag" data-i18n="plan.house.flag">Najisplativije</div>
           <div class="plan-name" data-i18n="plan.house.name">Domaćinstvo</div>
           <div class="plan-for" data-i18n="plan.house.for">Deli sa do 3 osobe</div>
-          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.house.amtM" data-yearly="plan.house.amtY">9,99 €</span><span class="per" data-i18n="plan.per">/mesec</span></div>
-          <div class="plan-note" data-period-key data-monthly="plan.house.noteM" data-yearly="plan.house.noteY">Plaća se mesečno</div>
+          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.house.amtM" data-yearly="plan.house.amtY">5,83 €</span><span class="per" data-i18n="plan.per">/mesec</span></div>
+          <div class="plan-note" data-period-key data-monthly="plan.house.noteM" data-yearly="plan.house.noteY">7 dana besplatno, zatim 69,99 € godišnje</div>
           <ul>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li1">Sve iz paketa Premium</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li2">Jedna zajednička kuhinja za ceo dom</span></li>
@@ -2024,7 +2024,7 @@
 
 <script>
   // ---------- Pricing monthly / yearly toggle ----------
-  var currentPeriod = 'monthly';
+  var currentPeriod = 'yearly';
   (function () {
     var toggle = document.getElementById('price-toggle');
     if (!toggle) return;

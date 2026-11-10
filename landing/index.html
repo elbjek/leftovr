@@ -1962,8 +1962,8 @@
 
       <div class="toggle-wrap">
         <div class="price-toggle" id="price-toggle">
-          <button class="on" data-period="monthly"><span data-i18n="price.monthly">Monthly</span></button>
-          <button data-period="yearly"><span data-i18n="price.yearly">Yearly</span> <span class="save-pill" data-i18n="price.save">Save 40%+</span></button>
+          <button data-period="monthly"><span data-i18n="price.monthly">Monthly</span></button>
+          <button class="on" data-period="yearly"><span data-i18n="price.yearly">Yearly</span> <span class="save-pill" data-i18n="price.save">Save 40%+</span></button>
         </div>
       </div>
       <p class="trial-note" data-i18n-html="price.trial">Yearly plans start with a <b>7-day free trial</b>.</p>
@@ -1988,8 +1988,8 @@
         <div class="plan">
           <div class="plan-name" data-i18n="plan.prem.name">Premium</div>
           <div class="plan-for" data-i18n="plan.prem.for">For one cook</div>
-          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.prem.amtM" data-yearly="plan.prem.amtY">$6.99</span><span class="per" data-i18n="plan.per">/month</span></div>
-          <div class="plan-note" data-period-key data-monthly="plan.prem.noteM" data-yearly="plan.prem.noteY">Billed monthly</div>
+          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.prem.amtM" data-yearly="plan.prem.amtY">$3.75</span><span class="per" data-i18n="plan.per">/month</span></div>
+          <div class="plan-note" data-period-key data-monthly="plan.prem.noteM" data-yearly="plan.prem.noteY">7 days free, then $44.99 a year</div>
           <ul>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li1">Unlimited pantry and receipt scans</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li2">Unlimited recipes, expiry-ranked</span></li>
@@ -2004,8 +2004,8 @@
           <div class="plan-flag" data-i18n="plan.house.flag">Best value</div>
           <div class="plan-name" data-i18n="plan.house.name">Household</div>
           <div class="plan-for" data-i18n="plan.house.for">Share with up to 3</div>
-          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.house.amtM" data-yearly="plan.house.amtY">$9.99</span><span class="per" data-i18n="plan.per">/month</span></div>
-          <div class="plan-note" data-period-key data-monthly="plan.house.noteM" data-yearly="plan.house.noteY">Billed monthly</div>
+          <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.house.amtM" data-yearly="plan.house.amtY">$5.83</span><span class="per" data-i18n="plan.per">/month</span></div>
+          <div class="plan-note" data-period-key data-monthly="plan.house.noteM" data-yearly="plan.house.noteY">7 days free, then $69.99 a year</div>
           <ul>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li1">Everything in Premium</span></li>
             <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li2">One shared kitchen for the home</span></li>
@@ -2166,7 +2166,7 @@
 
 <script>
   // ---------- Pricing monthly / yearly toggle ----------
-  var currentPeriod = 'monthly';
+  var currentPeriod = 'yearly';
   (function () {
     var toggle = document.getElementById('price-toggle');
     if (!toggle) return;

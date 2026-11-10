@@ -132,7 +132,7 @@ export function build(source) {
 
   // What applyLanguage() does in the browser: data-i18n is text, data-i18n-html
   // is markup, -aria and -ph are attributes. Elements with data-period-key start
-  // on the monthly string, as applyPeriod() paints them.
+  // on the yearly string, as applyPeriod() paints them.
   function fill(html) {
     const tags = [...html.matchAll(/<([a-z][a-z0-9]*)\b[^>]*\sdata-(?:i18n|period-key)[^>]*>/g)];
     // Last first, so the offsets of the earlier tags stay valid.
@@ -143,7 +143,7 @@ export function build(source) {
       if (attr("data-i18n-aria")) newOpen = setAttr(newOpen, "aria-label", sr(attr("data-i18n-aria")));
       if (attr("data-i18n-ph")) newOpen = setAttr(newOpen, "placeholder", sr(attr("data-i18n-ph")));
 
-      const textKey = attr("data-i18n") || (/\sdata-period-key\b/.test(open) ? attr("data-monthly") : undefined);
+      const textKey = attr("data-i18n") || (/\sdata-period-key\b/.test(open) ? attr("data-yearly") : undefined);
       const htmlKey = attr("data-i18n-html");
       const inner = textKey ? escText(sr(textKey)) : htmlKey ? sr(htmlKey) : null;
 
