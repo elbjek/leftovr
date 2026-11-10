@@ -3,8 +3,8 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { FoodGlyph } from "../illustrations";
-import { BottomSheet, Button, IconButton, Tappable, Text } from "../primitives";
-import { colors, radii, spacing } from "../../theme";
+import { BottomSheet, Button, FilterChip, IconButton, Tappable, Text } from "../primitives";
+import { colors, radii, shadows, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
 import { BasePreference } from "@/services";
 
@@ -43,9 +43,11 @@ type TimeOption = "any" | "15" | "30" | "norush";
 type Props = {
   visible: boolean;
   labels: {
+    eyebrow: string;
     title: string;
     meal: string;
     mealOptions: Record<MealOption, string>;
+    mealSubtitles: Record<Meal, string>;
     buildAround: string;
     baseOptions: Record<BasePreference, string>;
     time: string;
@@ -107,10 +109,11 @@ const BASE_ICONS: Record<BasePreference, string> = {
 const SERVINGS_MIN = 1;
 const SERVINGS_MAX = 12;
 
-// The cook prompt in the home's language: no cards, no tabs. Each question is
-// a sentence-case label over a row of the home's ingredient chips (outlined
-// pills, an icon and a name); the picked one fills tomato. Servings is one
-// inline row with a stepper.
+// The cook prompt built like the home and Kitchen pages: the sheet is the page
+// cream, every choice is a white lifted tile (a peach rounded-square icon
+// well over its name, like the Kitchen's category tiles and the home's recipe
+// thumbnails), and the picked tile fills tomato. Cuisine, the one long list,
+// is the home's "More for you" filter chips. Servings is a white card row.
 export function CookPromptSheet({
   visible,
   labels,
@@ -142,23 +145,30 @@ export function CookPromptSheet({
 
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss} style={styles.sheet}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text variant="h3" accessibilityRole="header" style={styles.headerText}>
+      <View style={styles.header}>
+        <View style={styles.headerText}>
+          <Text variant="micro" muted uppercase>
+            {labels.eyebrow}
+          </Text>
+          <Text variant="h3" accessibilityRole="header">
             {labels.title}
           </Text>
-          <IconButton label="Close" transparent onPress={onDismiss}>
-            <CloseIcon />
-          </IconButton>
         </View>
+        <IconButton label="Close" transparent onPress={onDismiss}>
+          <CloseIcon />
+        </IconButton>
+      </View>
 
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {showCookingFor ? (
           <Section label={labels.cookingFor ?? ""}>
-            <View style={styles.chipWrap}>
+            <View style={styles.grid}>
               {(["household", "just_me"] as CookingMode[]).map((option) => (
-                <Chip
+                <Tile
                   key={option}
+                  width="half"
                   label={labels.cookingForOptions?.[option] ?? option}
+                  icon={(color) => <PeopleIcon many={option === "household"} color={color} />}
                   active={cookingMode === option}
                   onPress={() => onCookingModeChange?.(option)}
                 />
@@ -168,11 +178,13 @@ export function CookPromptSheet({
         ) : null}
 
         <Section label={labels.meal}>
-          <View style={styles.chipWrap}>
+          <View style={styles.grid}>
             {MEAL_OPTIONS.map((option) => (
-              <Chip
+              <Tile
                 key={option}
+                width="third"
                 label={labels.mealOptions[option]}
+                detail={labels.mealSubtitles[option]}
                 icon={(color) => <MealIcon meal={option} color={color} />}
                 active={meal === option}
                 onPress={() => setMeal((current) => (current === option ? "any" : option))}
@@ -181,30 +193,29 @@ export function CookPromptSheet({
           </View>
         </Section>
 
-        {baseOptions.length > 0 ? (
-          <Section label={labels.buildAround}>
-            <View style={styles.chipWrap}>
-              {baseOptions.map((option) => (
-                <Chip
-                  key={option}
-                  label={labels.baseOptions[option]}
-                  icon={() => <FoodGlyph name={BASE_ICONS[option]} size={20} />}
-                  active={base === option}
-                  onPress={() => setBase((current) => (current === option ? null : option))}
-                />
-              ))}
-            </View>
-          </Section>
-        ) : null}
+        <Section label={labels.buildAround}>
+          <View style={styles.grid}>
+            {baseOptions.map((option) => (
+              <Tile
+                key={option}
+                width="quarter"
+                label={labels.baseOptions[option]}
+                icon={() => <FoodGlyph name={BASE_ICONS[option]} size={30} />}
+                active={base === option}
+                onPress={() => setBase((current) => (current === option ? null : option))}
+              />
+            ))}
+          </View>
+        </Section>
 
         <Section label={labels.time}>
-          <View style={styles.chipWrap}>
+          <View style={styles.grid}>
             {TIME_OPTIONS.map((option) => (
-              <Chip
+              <Tile
                 key={option}
-                // "Under 15 min" and "About 30 min" say more than "Quick" and
-                // "Weeknight"; "No rush" says it best itself.
-                label={option === "norush" ? labels.timeOptions.norush : labels.timeSubtitles[option]}
+                width="third"
+                label={labels.timeOptions[option]}
+                detail={labels.timeSubtitles[option]}
                 icon={(color) => <TimeIcon option={option} color={color} />}
                 active={time === option}
                 onPress={() => setTime((current) => (current === option ? "any" : option))}
@@ -233,9 +244,9 @@ export function CookPromptSheet({
         </View>
 
         <Section label={labels.cuisine}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.chipRow}>
             {CUISINE_OPTIONS.map((option) => (
-              <Chip
+              <FilterChip
                 key={option}
                 label={labels.cuisineOptions[option]}
                 active={cuisine === option}
@@ -271,26 +282,43 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-// The home's ingredient chip: outlined pill on the page cream, an icon, the
-// name. Picked: solid tomato with white text (line icons go white too).
-function Chip({
+const TILE_WIDTHS = { half: "48.6%", third: "31.6%", quarter: "23.2%" } as const;
+
+// A white lifted tile like the Kitchen's category tiles: the icon on a peach
+// rounded-square well, the name under it. Picked: tomato fill, white well,
+// white text.
+function Tile({
   label,
+  detail,
   icon,
+  width,
   active,
   onPress,
 }: {
   label: string;
-  icon?: (color: string) => React.ReactNode;
+  detail?: string;
+  icon: (color: string) => React.ReactNode;
+  width: keyof typeof TILE_WIDTHS;
   active: boolean;
   onPress: () => void;
 }) {
-  const ink = active ? colors.onPrimary : colors.text;
   return (
-    <Tappable label={label} selected={active} onPress={onPress} hitSlop={4} style={[styles.chip, active && styles.chipActive]}>
-      {icon ? icon(active ? colors.onPrimary : colors.primary) : null}
-      <Text variant="small" weight="bold" color={ink}>
+    <Tappable
+      label={detail ? `${label}, ${detail}` : label}
+      selected={active}
+      onPress={onPress}
+      hitSlop={0}
+      style={[styles.tile, { width: TILE_WIDTHS[width] }, active && styles.tileActive]}
+    >
+      <View style={[styles.well, active && styles.wellActive]}>{icon(colors.primary)}</View>
+      <Text variant="small" weight="bold" center numberOfLines={1} color={active ? colors.onPrimary : colors.text}>
         {label}
       </Text>
+      {detail ? (
+        <Text variant="micro" center numberOfLines={1} color={active ? colors.onPrimary : colors.muted}>
+          {detail}
+        </Text>
+      ) : null}
     </Tappable>
   );
 }
@@ -302,6 +330,17 @@ function StepperButton({ label, disabled, onPress }: { label: string; disabled?:
         {label}
       </Text>
     </Tappable>
+  );
+}
+
+function PeopleIcon({ many, color }: { many: boolean; color: string }) {
+  const p = { stroke: color, strokeWidth: 1.7, strokeLinecap: "round" as const, fill: "none" };
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24">
+      <Circle cx={many ? 9 : 12} cy={8} r={3} {...p} />
+      <Path d={many ? "M3.5 19a5.5 5.5 0 0 1 11 0" : "M6.5 19a5.5 5.5 0 0 1 11 0"} {...p} />
+      {many ? <Path d="M15.5 5.5a3 3 0 0 1 0 5M16 13.8a5.5 5.5 0 0 1 4.5 5.2" {...p} /> : null}
+    </Svg>
   );
 }
 
@@ -398,60 +437,77 @@ function ChevronRightIcon() {
 }
 
 const styles = StyleSheet.create({
+  // The page cream, so the white tiles read as cards, like on the home.
   sheet: {
     maxHeight: "92%",
-  },
-  // Lets the scroll area shrink so the CTA below it always stays in view.
-  scroll: {
-    flexShrink: 1,
-  },
-  content: {
-    gap: spacing.xl,
-    paddingBottom: spacing.lg,
+    backgroundColor: colors.bg,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
+    marginBottom: spacing.md,
   },
   headerText: {
     flex: 1,
+    gap: spacing.xs,
+  },
+  // Full sheet width with the padding inside, so tile shadows aren't clipped;
+  // shrinks so the Generate button below always stays in view.
+  scroll: {
+    flexShrink: 1,
+    marginHorizontal: -spacing.xxl,
+  },
+  content: {
+    gap: spacing.xl,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.lg,
   },
   section: {
     gap: spacing.sm,
   },
-  chipWrap: {
+  grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.sm,
   },
-  // Single-row carousel (cuisine): no wrap, scrolls sideways.
-  chipRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    paddingRight: spacing.lg,
-  },
-  chip: {
-    flexDirection: "row",
+  tile: {
     alignItems: "center",
-    gap: spacing.xs,
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    backgroundColor: colors.bg,
+    gap: 2,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xxs,
+    borderRadius: radii.xl,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
   },
-  chipActive: {
-    borderColor: colors.primary,
+  tileActive: {
     backgroundColor: colors.primary,
   },
+  well: {
+    width: 44,
+    height: 44,
+    marginBottom: spacing.xs,
+    borderRadius: radii.md,
+    backgroundColor: colors.surface2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  wellActive: {
+    backgroundColor: colors.surface,
+  },
+  // RecipeListCard's surface: a white card row.
   servings: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
+    padding: spacing.md,
+    paddingLeft: spacing.lg,
+    borderRadius: radii.xl,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
   },
   stepper: {
     flexDirection: "row",
@@ -468,6 +524,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.surface2,
+  },
+  // The chip row runs to the screen edges, like the home's filter row.
+  bleed: {
+    marginHorizontal: -spacing.xxl,
+  },
+  chipRow: {
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xxl,
   },
   cta: {
     paddingTop: spacing.md,
