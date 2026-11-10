@@ -166,7 +166,7 @@ export function CookPromptSheet({
               {(["household", "just_me"] as CookingMode[]).map((option) => (
                 <Tile
                   key={option}
-                  width="half"
+                  width="quarter"
                   label={labels.cookingForOptions?.[option] ?? option}
                   icon={(color) => <PeopleIcon many={option === "household"} color={color} />}
                   active={cookingMode === option}
@@ -282,7 +282,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-const TILE_WIDTHS = { half: "48.6%", third: "31.6%", quarter: "23.2%" } as const;
+const TILE_WIDTHS = { third: "31.6%", quarter: "23.2%" } as const;
 
 // A white lifted tile like the Kitchen's category tiles: the icon on a peach
 // rounded-square well, the name under it. Picked: tomato fill, white well,
