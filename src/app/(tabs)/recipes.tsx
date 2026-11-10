@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { router, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
+import { router, useFocusEffect, useNavigation } from "expo-router";
 import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
 import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
-import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth, useScanDraft } from "@/features";
+import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { formatMoney } from "@/lib";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
@@ -32,7 +32,7 @@ function capitalize(name: string) {
 
 export default function RecipesRoute() {
   const { t } = useTranslation();
-  const { autoGenerate } = useLocalSearchParams<{ autoGenerate?: string }>();
+  const [autoGenerate, setAutoGenerate] = useState(false);
   const { profile, activeHousehold, refresh } = useAuth();
   const { lots: inventory, groups: inventoryGroups, loading: inventoryLoading } = useInventory(activeHousehold?.id);
   const { draft: scanDraft, discard: discardScanDraft } = useScanDraft(activeHousehold?.id);
@@ -149,20 +149,28 @@ export default function RecipesRoute() {
 
   // Arriving from the "Tonight's idea" card: kick off a generation right away
   // (expiring items lead, per the edge prompt) instead of dropping the user on
-  // an idle list. Clear the param first so it fires once. Gating lives in
+  // an idle list. The request is in memory (takeGenerateOnArrival), never a
+  // route param, so a deep link can't start a paid generation. Gating lives in
   // handleGenerate (free users hit the premium sheet).
+  useFocusEffect(
+    useCallback(() => {
+      if (takeGenerateOnArrival()) setAutoGenerate(true);
+    }, []),
+  );
   useEffect(() => {
-    if (autoGenerate !== "1") return;
+    if (!autoGenerate) return;
     // Wait for inventory to finish loading; firing on the initial empty [] would
     // generate against an empty fridge and always surface noneFound.
     if (inventoryLoading) return;
-    router.setParams({ autoGenerate: undefined });
-    // Deferred by a tick: this is an action fired by a navigation param, not
-    // state synchronisation, and running it inside the effect body would
-    // cascade renders through handleGenerate's setState calls.
+    // Deferred by a tick: this is an action fired by navigation, not state
+    // synchronisation, and running it inside the effect body would cascade
+    // renders through handleGenerate's setState calls. Cleared in the same
+    // tick, so it fires once.
     let cancelled = false;
     void Promise.resolve().then(() => {
-      if (!cancelled) void handleGenerate(undefined);
+      if (cancelled) return;
+      setAutoGenerate(false);
+      void handleGenerate(undefined);
     });
     return () => {
       cancelled = true;

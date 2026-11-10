@@ -2,6 +2,22 @@ import { router } from "expo-router";
 
 import type { RecipeRow } from "@/repositories/recipeRepository";
 
+// The fridge's "What to cook next?" asks Recipes to generate on arrival. Kept
+// in memory, not a route param, so a link can't start a paid generation.
+let generateOnArrival = false;
+
+export function openRecipesAndGenerate() {
+  generateOnArrival = true;
+  router.push("/(tabs)/recipes");
+}
+
+/** True once per openRecipesAndGenerate call. */
+export function takeGenerateOnArrival() {
+  const pending = generateOnArrival;
+  generateOnArrival = false;
+  return pending;
+}
+
 /** Where the recipe screen's back button returns to. */
 export type RecipeReturnTo = "recipes" | "all-recipes" | "insights";
 

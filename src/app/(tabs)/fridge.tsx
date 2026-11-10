@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
 import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdPill, HouseholdSheet, PlusIcon, PremiumSheet, Screen, SegmentedControl, Tappable, Text, TextField, UnitPicker } from "@/components";
-import { isPremium as resolvePremium, useAuth } from "@/features";
+import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory } from "@/hooks";
 import {
@@ -333,7 +333,7 @@ export default function FridgeRoute() {
               title={t("fridge.cookNext.title")}
               body={t("fridge.cookNext.body")}
               cta={t("fridge.cookNext.cta")}
-              onPress={() => router.push({ pathname: "/(tabs)/recipes", params: { autoGenerate: "1" } })}
+              onPress={openRecipesAndGenerate}
             />
           ) : null}
 
