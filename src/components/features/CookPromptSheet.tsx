@@ -167,6 +167,7 @@ export function CookPromptSheet({
                 <Tile
                   key={option}
                   width="quarter"
+                  bare
                   label={labels.cookingForOptions?.[option] ?? option}
                   icon={(color) => <PeopleIcon many={option === "household"} color={color} />}
                   active={cookingMode === option}
@@ -286,12 +287,14 @@ const TILE_WIDTHS = { third: "31.6%", quarter: "23.2%" } as const;
 
 // A white lifted tile like the Kitchen's category tiles: the icon on a peach
 // rounded-square well, the name under it. Picked: tomato fill, white well,
-// white text.
+// white text. `bare` drops the card: just the well and the name, the well
+// going tomato with a white icon when picked.
 function Tile({
   label,
   detail,
   icon,
   width,
+  bare = false,
   active,
   onPress,
 }: {
@@ -299,9 +302,20 @@ function Tile({
   detail?: string;
   icon: (color: string) => React.ReactNode;
   width: keyof typeof TILE_WIDTHS;
+  bare?: boolean;
   active: boolean;
   onPress: () => void;
 }) {
+  if (bare) {
+    return (
+      <Tappable label={label} selected={active} onPress={onPress} hitSlop={0} style={[styles.bare, { width: TILE_WIDTHS[width] }]}>
+        <View style={[styles.well, styles.wellBare, active && styles.wellBareActive]}>{icon(active ? colors.onPrimary : colors.primary)}</View>
+        <Text variant="small" weight="bold" center numberOfLines={1}>
+          {label}
+        </Text>
+      </Tappable>
+    );
+  }
   return (
     <Tappable
       label={detail ? `${label}, ${detail}` : label}
@@ -496,6 +510,18 @@ const styles = StyleSheet.create({
   },
   wellActive: {
     backgroundColor: colors.surface,
+  },
+  bare: {
+    alignItems: "center",
+  },
+  // Bigger than a tile's well: here it is the whole control.
+  wellBare: {
+    width: 56,
+    height: 56,
+    borderRadius: radii.lg,
+  },
+  wellBareActive: {
+    backgroundColor: colors.primary,
   },
   // RecipeListCard's surface: a white card row.
   servings: {
