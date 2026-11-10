@@ -775,6 +775,98 @@
   .step-card h3 { font-size: 20px; font-weight: 800; letter-spacing: -0.015em; margin-bottom: 8px; }
   .step-card p { font-size: 15px; color: var(--muted); line-height: 1.5; }
 
+  /* Recipe generation: the cook prompt and what it returns, as two cream
+     screens standing in one peach well. Tiles follow CookPromptSheet: white
+     lifted tile, peach icon well, the picked one fills tomato. */
+  .gen {
+    display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 20px;
+    padding: 20px; border-radius: 36px; background: var(--surface-2);
+  }
+  .gen-screen {
+    display: flex; flex-direction: column;
+    padding: 26px 24px 24px; border-radius: 24px; background: var(--page);
+  }
+  .gen-eb { color: var(--muted); margin-bottom: 6px; }
+  .gen-h { font-size: 22px; line-height: 1.2; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 16px; }
+  .gen-q { font-size: 15px; font-weight: 800; margin: 22px 0 10px; }
+  .gen-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .gen-tile {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 12px; border: none; border-radius: 20px; cursor: pointer;
+    background: var(--card); color: var(--text); box-shadow: var(--shadow-soft);
+    font-family: inherit; text-align: left;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease;
+  }
+  .gen-tile:active { transform: scale(0.97); }
+  .gen-tile:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  .gen-well {
+    width: 44px; height: 44px; border-radius: 12px; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface-2); color: var(--red-ink);
+    transition: background 0.18s ease;
+  }
+  .gen-well svg { width: 22px; height: 22px; }
+  .gen-tile b { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+  .gen-tile i { font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .gen-tile[aria-pressed="true"] { background: var(--primary); color: #fff; }
+  .gen-tile[aria-pressed="true"] i { color: #fff; }
+  .gen-tile[aria-pressed="true"] .gen-well { background: #fff; color: var(--primary); }
+  .gen-note { font-size: 13px; color: var(--muted); margin: 18px 0 16px; }
+  .gen-go { width: 100%; margin-top: auto; }
+
+  /* Right screen: either the four steps ticking, or the ideas. */
+  .gen-out { position: relative; min-height: 468px; }
+  .gen-loading { display: none; }
+  .gen-out.busy .gen-loading { display: block; }
+  .gen-out.busy .gen-ideas { display: none; }
+  .gen-steps { list-style: none; margin: 0; padding: 6px 18px; border-radius: 20px; background: var(--card); box-shadow: var(--shadow-soft); }
+  .gen-steps li { display: flex; align-items: center; gap: 12px; padding: 14px 0; font-size: 15px; font-weight: 700; color: var(--muted-2); transition: color 0.2s ease; }
+  .gen-steps li + li { border-top: 1px solid var(--card-line); }
+  .gen-dot { width: 22px; height: 22px; border-radius: 999px; flex-shrink: 0; border: 2px solid var(--surface-3); transition: background 0.2s ease, border-color 0.2s ease; }
+  .gen-steps li.on { color: var(--text); }
+  .gen-steps li.on .gen-dot { border-color: var(--primary); animation: genPulse 0.7s ease-in-out infinite alternate; }
+  .gen-steps li.done { color: var(--text); }
+  .gen-steps li.done .gen-dot {
+    border-color: var(--green);
+    background: var(--green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.4 5 8.8 9.5 3.6' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat;
+  }
+  @keyframes genPulse { from { box-shadow: 0 0 0 0 rgba(217, 80, 58, 0.35); } to { box-shadow: 0 0 0 7px rgba(217, 80, 58, 0); } }
+
+  .gen-ideas .gen-h { margin-bottom: 4px; }
+  .gen-subline { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+  .gen-best { padding: 18px; border-radius: 20px; background: var(--card); box-shadow: var(--shadow-soft); }
+  .gen-best .micro { color: var(--red-ink); font-size: 11px; }
+  .gen-best h4 { font-size: 21px; line-height: 1.2; font-weight: 800; letter-spacing: -0.02em; margin: 6px 0 4px; }
+  .gen-meta { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .gen-best p { font-size: 14.5px; line-height: 1.5; color: var(--muted); margin: 10px 0 14px; }
+  .gen-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .gen-icons { display: flex; }
+  .gen-icons span { width: 42px; height: 42px; border-radius: 999px; background: var(--surface-2); border: 2px solid var(--card); display: flex; align-items: center; justify-content: center; }
+  .gen-icons span + span { margin-left: -10px; }
+  .gen-icons img { width: 27px; height: 27px; object-fit: contain; }
+  .gen-pill { padding: 6px 12px; border-radius: 999px; background: var(--sage-tint); color: #3E6B45; font-size: 12px; font-weight: 800; white-space: nowrap; }
+  .gen-also { color: var(--muted); font-size: 11px; margin: 18px 0 8px; }
+  .gen-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 10px; border-radius: 16px; background: var(--card); box-shadow: var(--shadow-soft); }
+  .gen-row + .gen-row { margin-top: 8px; }
+  .gen-row .gen-thumb { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; background: var(--surface-2); display: flex; align-items: center; justify-content: center; }
+  .gen-row .gen-thumb img { width: 30px; height: 30px; object-fit: contain; }
+  .gen-row b { display: block; font-size: 15px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; }
+  .gen-ideas > * { animation: riseIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .gen-ideas > :nth-child(3) { animation-delay: 0.06s; }
+  .gen-ideas > :nth-child(n+4) { animation-delay: 0.12s; }
+  .gen-facts { margin-top: 26px; }
+  @media (prefers-reduced-motion: reduce) {
+    .gen-ideas > *, .gen-steps li.on .gen-dot { animation: none; }
+    .gen-tile, .gen-well { transition: none; }
+  }
+  @media (max-width: 860px) {
+    .gen { grid-template-columns: 1fr; padding: 12px; border-radius: 28px; gap: 12px; }
+    .gen-screen { padding: 22px 16px 18px; border-radius: 20px; }
+    .gen-out { min-height: 0; }
+    .gen-tile { padding: 10px; border-radius: 16px; }
+    .gen-tile i { font-size: 10px; letter-spacing: 0.02em; }
+  }
+
   /* Stats band */
   .stats { background: var(--surface-2); color: var(--text); }
   .stats .sec-pad { padding-block: 76px; }
@@ -1597,6 +1689,62 @@
     </div>
   </section>
 
+  <!-- ─────────────── RECIPE GENERATION ─────────────── -->
+  <!-- The app's cook prompt on the left (same questions and labels as
+       CookPromptSheet), what it generates on the right. The nine recipes are
+       fixed and all made from the hero fridge's six foods; picking a meal or
+       a time filters them the way the app's own filters do. -->
+  <section class="sec-pad" id="recipes" data-screen-label="Recipe generation">
+    <div class="wrap">
+      <div class="sec-head center">
+        <div class="micro eyebrow" data-i18n="gen.eyebrow">Recipe generation</div>
+        <h2 class="sec-title" data-i18n-html="gen.title">Say what you feel like. <span class="mark">Get recipes written for your kitchen.</span></h2>
+        <p class="sec-sub" data-i18n="gen.sub">Pick the meal and how long you have. leftovr writes the recipes from the food you own, starting with what needs eating first.</p>
+      </div>
+
+      <div class="gen">
+        <div class="gen-screen">
+          <div class="micro gen-eb" data-i18n="gen.askEyebrow">Let's get specific</div>
+          <h3 class="gen-h" id="gen-ask-title" data-i18n="gen.askTitle">What are you making?</h3>
+          <div class="gen-tiles" role="group" aria-labelledby="gen-ask-title">
+          <button type="button" class="gen-tile" data-gen="meal" data-value="breakfast" aria-pressed="false"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17h16M6 17a6 6 0 0 1 12 0M12 4v3M4.9 8.9l2.1 2.1M19.1 8.9 17 11M3 21h18"/></svg></span><b data-i18n="gen.meal.breakfast">Breakfast</b><i data-i18n="gen.mealSub.breakfast">Morning</i></button>
+          <button type="button" class="gen-tile" data-gen="meal" data-value="lunch" aria-pressed="false"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></span><b data-i18n="gen.meal.lunch">Lunch</b><i data-i18n="gen.mealSub.lunch">Midday</i></button>
+          <button type="button" class="gen-tile" data-gen="meal" data-value="dinner" aria-pressed="true"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2z"/></svg></span><b data-i18n="gen.meal.dinner">Dinner</b><i data-i18n="gen.mealSub.dinner">Tonight</i></button>
+          </div>
+          <div class="gen-q" id="gen-time-label" data-i18n="gen.time">Time to cook</div>
+          <div class="gen-tiles" role="group" aria-labelledby="gen-time-label">
+          <button type="button" class="gen-tile" data-gen="time" data-value="quick" aria-pressed="false"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2.5 5 13.5h6l-1 8 8-11h-6l1-8z"/></svg></span><b data-i18n="gen.time.quick">Quick</b><i data-i18n="gen.timeSub.quick">Under 15 min</i></button>
+          <button type="button" class="gen-tile" data-gen="time" data-value="weeknight" aria-pressed="false"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.2 2"/></svg></span><b data-i18n="gen.time.weeknight">Weeknight</b><i data-i18n="gen.timeSub.weeknight">About 30 min</i></button>
+          <button type="button" class="gen-tile" data-gen="time" data-value="norush" aria-pressed="true"><span class="gen-well"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3v3.5c0 2 4 3.5 4 5.5s-4 3.5-4 5.5V21M16 3v3.5c0 2-4 3.5-4 5.5s4 3.5 4 5.5V21"/></svg></span><b data-i18n="gen.time.norush">No rush</b><i data-i18n="gen.timeSub.norush">Take your time</i></button>
+          </div>
+          <p class="gen-note" data-i18n="gen.note">We always cook with what needs eating first.</p>
+          <button type="button" class="btn btn-primary gen-go" id="gen-go" data-i18n="gen.go">Find recipes</button>
+        </div>
+
+        <div class="gen-screen gen-out" id="gen-out">
+          <div class="gen-loading" aria-hidden="true">
+            <div class="micro gen-eb" data-i18n="gen.loadEyebrow">New ideas</div>
+            <div class="gen-h" data-i18n="gen.loadTitle">Cooking up ideas</div>
+            <ol class="gen-steps" id="gen-steps">
+            <li><span class="gen-dot" aria-hidden="true"></span><span data-i18n="gen.step1">Checking your kitchen</span></li>
+            <li><span class="gen-dot" aria-hidden="true"></span><span data-i18n="gen.step2">Rescuing what to eat first</span></li>
+            <li><span class="gen-dot" aria-hidden="true"></span><span data-i18n="gen.step3">Pairing flavors that belong</span></li>
+            <li><span class="gen-dot" aria-hidden="true"></span><span data-i18n="gen.step4">Writing the steps</span></li>
+            </ol>
+          </div>
+          <div class="gen-ideas" id="gen-ideas" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="define-facts gen-facts">
+        <span data-i18n="gen.fact1">Only ingredients you own</span>
+        <span data-i18n="gen.fact2">Eat-first food leads</span>
+        <span data-i18n="gen.fact3">8 steps or fewer</span>
+        <span data-i18n="gen.fact4">Not it? Ask for 3 more</span>
+      </div>
+    </div>
+  </section>
+
   <!-- ─────────────── REAL STATS (cited) ─────────────── -->
   <section class="stats" data-screen-label="Why it matters">
     <div class="wrap sec-pad">
@@ -1942,6 +2090,7 @@
       </a>
       <div class="foot-links">
         <a href="#how" data-i18n="foot.how">How it works</a>
+        <a href="#recipes" data-i18n="gen.eyebrow">Recipe generation</a>
         <a href="#compare" data-i18n="foot.compare">How it compares</a>
         <a href="#pricing" data-i18n="foot.pricing">Pricing</a>
         <a href="/blog/" data-i18n="foot.blog">Blog</a>
@@ -2104,6 +2253,92 @@
     cards.forEach(function (c) { io.observe(c); });
   })();
 
+  // ---------- Recipe generation demo ----------
+  // Nine fixed recipes, three per meal, all from the hero fridge's six foods.
+  // Each list is in best-match order; the time tile caps the minutes, as the
+  // app's time filter does. Titles and descriptions live in the dictionary.
+  (function () {
+    var out = document.getElementById('gen-out');
+    var ideas = document.getElementById('gen-ideas');
+    if (!out || !ideas) return;
+    var steps = [].slice.call(document.querySelectorAll('#gen-steps li'));
+    var RECIPES = [
+      { id: 'scramble',    meal: 'breakfast', min: 10, effort: 'easy',   food: ['eggs', 'spinach', 'cheese'] },
+      { id: 'baked',       meal: 'breakfast', min: 25, effort: 'easy',   food: ['eggs', 'tomato', 'cheese'] },
+      { id: 'frittata',    meal: 'breakfast', min: 40, effort: 'medium', food: ['eggs', 'spinach', 'tomato'] },
+      { id: 'salad',       meal: 'lunch',     min: 15, effort: 'easy',   food: ['chicken_breast', 'spinach', 'tomato'] },
+      { id: 'tomatoPasta', meal: 'lunch',     min: 25, effort: 'easy',   food: ['pasta', 'tomato', 'spinach'] },
+      { id: 'bake',        meal: 'lunch',     min: 45, effort: 'medium', food: ['pasta', 'chicken_breast', 'cheese'] },
+      { id: 'fetaPasta',   meal: 'dinner',    min: 20, effort: 'easy',   food: ['spinach', 'cheese', 'pasta'] },
+      { id: 'seared',      meal: 'dinner',    min: 15, effort: 'easy',   food: ['chicken_breast', 'tomato', 'spinach'] },
+      { id: 'traybake',    meal: 'dinner',    min: 35, effort: 'easy',   food: ['chicken_breast', 'tomato', 'cheese'] }
+    ];
+    var LIMIT = { quick: 15, weeknight: 30, norush: Infinity };
+    var state = { meal: 'dinner', time: 'norush' };
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var timer = null;
+
+    function img(f) { return '<img src="/food/' + f + '.png" alt="" width="192" height="192" loading="lazy" decoding="async">'; }
+    function meta(r) { return r.min + ' min \u00b7 ' + t('gen.effort.' + r.effort); }
+
+    function render() {
+      var list = RECIPES.filter(function (r) { return r.meal === state.meal && r.min <= LIMIT[state.time]; });
+      var best = list[0];
+      var html = '<h3 class="gen-h">' + (list.length === 1 ? t('gen.count1') : t('gen.countN').replace('{n}', list.length)) + '</h3>' +
+        '<p class="gen-subline">' + t('gen.ideasSub') + '</p>' +
+        '<div class="gen-best"><div class="micro">' + t('gen.best') + '</div>' +
+        '<h4>' + t('gen.r.' + best.id + '.t') + '</h4><div class="gen-meta">' + meta(best) + '</div>' +
+        '<p>' + t('gen.r.' + best.id + '.d') + '</p>' +
+        '<div class="gen-foot"><div class="gen-icons">' + best.food.map(function (f) { return '<span>' + img(f) + '</span>'; }).join('') + '</div>' +
+        '<span class="gen-pill">' + t('gen.haveAll') + '</span></div></div>';
+      if (list.length > 1) {
+        html += '<div class="micro gen-also">' + t('gen.also') + '</div>' + list.slice(1).map(function (r) {
+          return '<div class="gen-row"><span class="gen-thumb">' + img(r.food[0]) + '</span><span><b>' +
+            t('gen.r.' + r.id + '.t') + '</b><span class="gen-meta">' + meta(r) + '</span></span></div>';
+        }).join('');
+      }
+      ideas.innerHTML = html;
+    }
+
+    // The app's "Cooking up ideas" screen: four steps tick, then the ideas land.
+    function generate() {
+      clearTimeout(timer);
+      if (reduced) { render(); return; }
+      out.classList.add('busy');
+      var i = 0;
+      (function tick() {
+        steps.forEach(function (s, n) { s.className = n < i ? 'done' : n === i ? 'on' : ''; });
+        if (i === steps.length) { render(); out.classList.remove('busy'); return; }
+        i++;
+        timer = setTimeout(tick, 360);
+      })();
+    }
+
+    document.querySelectorAll('.gen-tile').forEach(function (tile) {
+      tile.addEventListener('click', function () {
+        var group = tile.getAttribute('data-gen');
+        state[group] = tile.getAttribute('data-value');
+        document.querySelectorAll('.gen-tile[data-gen="' + group + '"]').forEach(function (b) {
+          b.setAttribute('aria-pressed', String(b === tile));
+        });
+        generate();
+      });
+    });
+    document.getElementById('gen-go').addEventListener('click', generate);
+
+    // First paint comes from applyLanguage() below, once the dictionary exists.
+    window.__paintGen = render;
+    // Play the generation once, the first time the section is on screen.
+    if (!reduced && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting) return;
+        io.disconnect();
+        generate();
+      }, { threshold: 0.4 });
+      io.observe(out);
+    }
+  })();
+
   // ---------- How-it-works film: plays while it is on screen ----------
   // Nothing is downloaded until it scrolls into view. Under reduced motion,
   // or without IntersectionObserver, it stays a poster with controls.
@@ -2213,6 +2448,62 @@
       "step3.body": "Recipes built from what you have, starring whatever should be eaten first. Cook one and those ingredients leave your kitchen automatically.",
       "stats.eyebrow": "Why it matters",
       "stats.title": "We throw away more food than we think. And more money with it.",
+      "gen.eyebrow": "Recipe generation",
+      "gen.title": "Say what you feel like. <span class=\"mark\">Get recipes written for your kitchen.</span>",
+      "gen.sub": "Pick the meal and how long you have. leftovr writes the recipes from the food you own, starting with what needs eating first.",
+      "gen.askEyebrow": "Let's get specific",
+      "gen.askTitle": "What are you making?",
+      "gen.meal.breakfast": "Breakfast",
+      "gen.meal.lunch": "Lunch",
+      "gen.meal.dinner": "Dinner",
+      "gen.mealSub.breakfast": "Morning",
+      "gen.mealSub.lunch": "Midday",
+      "gen.mealSub.dinner": "Tonight",
+      "gen.time": "Time to cook",
+      "gen.time.quick": "Quick",
+      "gen.time.weeknight": "Weeknight",
+      "gen.time.norush": "No rush",
+      "gen.timeSub.quick": "Under 15 min",
+      "gen.timeSub.weeknight": "About 30 min",
+      "gen.timeSub.norush": "Take your time",
+      "gen.note": "We always cook with what needs eating first.",
+      "gen.go": "Find recipes",
+      "gen.loadEyebrow": "New ideas",
+      "gen.loadTitle": "Cooking up ideas",
+      "gen.step1": "Checking your kitchen",
+      "gen.step2": "Rescuing what to eat first",
+      "gen.step3": "Pairing flavors that belong",
+      "gen.step4": "Writing the steps",
+      "gen.count1": "One idea",
+      "gen.countN": "{n} ideas",
+      "gen.ideasSub": "Made from what's in your kitchen, what's going off first.",
+      "gen.best": "Best match",
+      "gen.also": "Also good",
+      "gen.haveAll": "You have everything",
+      "gen.effort.easy": "Easy",
+      "gen.effort.medium": "Medium",
+      "gen.fact1": "Only ingredients you own",
+      "gen.fact2": "Eat-first food leads",
+      "gen.fact3": "8 steps or fewer",
+      "gen.fact4": "Not it? Ask for 3 more",
+      "gen.r.scramble.t": "Spinach & feta scramble",
+      "gen.r.scramble.d": "Soft eggs folded with wilted spinach and crumbled feta.",
+      "gen.r.baked.t": "Baked eggs in cherry tomatoes",
+      "gen.r.baked.d": "Tomatoes roasted until jammy, eggs cracked in, feta on top.",
+      "gen.r.frittata.t": "Spinach & feta frittata",
+      "gen.r.frittata.d": "A thick oven frittata that also covers tomorrow's lunch.",
+      "gen.r.salad.t": "Warm chicken & spinach salad",
+      "gen.r.salad.d": "Seared chicken over spinach, with tomatoes and feta.",
+      "gen.r.tomatoPasta.t": "Cherry tomato & spinach pasta",
+      "gen.r.tomatoPasta.d": "Burst tomatoes make the sauce; the spinach goes in at the end.",
+      "gen.r.bake.t": "Chicken, tomato & feta pasta bake",
+      "gen.r.bake.d": "Everything in one dish, baked until the top turns golden.",
+      "gen.r.fetaPasta.t": "Spinach & feta pasta",
+      "gen.r.fetaPasta.d": "Uses the spinach before it turns, with feta melted into the sauce.",
+      "gen.r.seared.t": "Seared chicken with burst tomatoes",
+      "gen.r.seared.d": "One pan: golden chicken, blistered tomatoes, spinach wilted in.",
+      "gen.r.traybake.t": "Chicken traybake",
+      "gen.r.traybake.d": "One tray, three things used up, almost no washing up.",
       "stat1.desc": "What the average American family of four throws out in food every year.",
       "stat2.desc": "Share of the U.S. food supply lost at the retail and consumer level, by USDA's estimate.",
       "feat.eyebrow": "What you get",
@@ -2421,6 +2712,62 @@
       "step3.body": "Recepti od onoga što imaš, sa naglaskom na ono što prvo treba pojesti. Skuvaj jedan i namirnice se automatski uklanjaju iz kuhinje.",
       "stats.eyebrow": "Zašto je važno",
       "stats.title": "Bacamo više hrane nego što mislimo. I više novca uz nju.",
+      "gen.eyebrow": "Generisanje recepata",
+      "gen.title": "Reci šta ti se jede. <span class=\"mark\">Dobij recepte pisane za tvoju kuhinju.</span>",
+      "gen.sub": "Izaberi obrok i koliko imaš vremena. leftovr piše recepte od hrane koju imaš, počevši od onoga što prvo treba potrošiti.",
+      "gen.askEyebrow": "Da budemo precizni",
+      "gen.askTitle": "Šta spremaš?",
+      "gen.meal.breakfast": "Doručak",
+      "gen.meal.lunch": "Ručak",
+      "gen.meal.dinner": "Večera",
+      "gen.mealSub.breakfast": "Ujutru",
+      "gen.mealSub.lunch": "U podne",
+      "gen.mealSub.dinner": "Večeras",
+      "gen.time": "Vreme kuvanja",
+      "gen.time.quick": "Na brzaka",
+      "gen.time.weeknight": "Za veče",
+      "gen.time.norush": "Bez žurbe",
+      "gen.timeSub.quick": "Ispod 15 min",
+      "gen.timeSub.weeknight": "Oko 30 min",
+      "gen.timeSub.norush": "Polako",
+      "gen.note": "Uvek kuvamo od onoga što prvo treba potrošiti.",
+      "gen.go": "Pronađi recepte",
+      "gen.loadEyebrow": "Nove ideje",
+      "gen.loadTitle": "Smišljamo ideje",
+      "gen.step1": "Proveravamo kuhinju",
+      "gen.step2": "Spasavamo šta prvo pojesti",
+      "gen.step3": "Spajamo ukuse",
+      "gen.step4": "Zapisujemo korake",
+      "gen.count1": "Jedna ideja",
+      "gen.countN": "{n} ideje",
+      "gen.ideasSub": "Od onoga što imaš u kuhinji, prvo ono što se kvari.",
+      "gen.best": "Najbolji izbor",
+      "gen.also": "Takođe dobro",
+      "gen.haveAll": "Imaš sve",
+      "gen.effort.easy": "Lako",
+      "gen.effort.medium": "Srednje",
+      "gen.fact1": "Samo sastojci koje imaš",
+      "gen.fact2": "Prvo ono što se kvari",
+      "gen.fact3": "Najviše 8 koraka",
+      "gen.fact4": "Nije to? Traži još 3",
+      "gen.r.scramble.t": "Kajgana sa spanaćem i fetom",
+      "gen.r.scramble.d": "Meka jaja sa uvelim spanaćem i izmrvljenom fetom.",
+      "gen.r.baked.t": "Pečena jaja u čeri paradajzu",
+      "gen.r.baked.d": "Paradajz pečen dok ne omekša, jaja razbijena preko, feta na vrhu.",
+      "gen.r.frittata.t": "Fritata sa spanaćem i fetom",
+      "gen.r.frittata.d": "Debela fritata iz rerne koja pokriva i sutrašnji ručak.",
+      "gen.r.salad.t": "Topla salata sa piletinom i spanaćem",
+      "gen.r.salad.d": "Zapečena piletina preko spanaća, sa paradajzom i fetom.",
+      "gen.r.tomatoPasta.t": "Pasta sa čeri paradajzom i spanaćem",
+      "gen.r.tomatoPasta.d": "Raspukli paradajz pravi sos; spanać ide na kraju.",
+      "gen.r.bake.t": "Zapečena pasta sa piletinom, paradajzom i fetom",
+      "gen.r.bake.d": "Sve u jednoj posudi, pečeno dok vrh ne porumeni.",
+      "gen.r.fetaPasta.t": "Pasta sa spanaćem i fetom",
+      "gen.r.fetaPasta.d": "Troši spanać pre nego što uvene, sa fetom otopljenom u sosu.",
+      "gen.r.seared.t": "Piletina sa raspuklim paradajzom",
+      "gen.r.seared.d": "Jedan tiganj: zlatna piletina, zapečen paradajz i uveli spanać.",
+      "gen.r.traybake.t": "Piletina iz pleha",
+      "gen.r.traybake.d": "Jedan pleh, tri namirnice potrošene, skoro bez pranja sudova.",
       "stat1.desc": "Toliko hrane godišnje baci prosečna američka četvoročlana porodica.",
       "stat2.desc": "Udeo američkih zaliha hrane izgubljen na nivou maloprodaje i potrošača, po proceni USDA.",
       "feat.eyebrow": "Šta dobijaš",
@@ -2595,6 +2942,7 @@
     // Period-dependent billing notes (resolved via dictionary).
     applyPeriod();
     if (window.__paintDish) window.__paintDish();
+    if (window.__paintGen) window.__paintGen();
 
     // Toggle button states
     document.querySelectorAll("[data-lang]").forEach(function (btn) {
