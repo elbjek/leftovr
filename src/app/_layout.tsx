@@ -3,7 +3,7 @@ import * as Notifications from "expo-notifications";
 import { getCalendars } from "expo-localization";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AppState, Platform, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
@@ -12,6 +12,7 @@ import { AuthProvider } from "@/features";
 import { useNotificationRouting } from "@/hooks";
 import { installErrorReporting, reportError, useLeftovrFonts } from "@/lib";
 import { ErrorBoundary, ToastProvider } from "@/components/primitives";
+import { SteamSplash } from "@/components/features/SteamSplash";
 import { syncHouseholdTimezone, updateLastActive } from "@/repositories/notificationRepository";
 import { registerDevice } from "@/services";
 import { colors } from "@/theme";
@@ -37,12 +38,10 @@ function NotificationRouter() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useLeftovrFonts();
-
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontError, fontsLoaded]);
+  const ready = fontsLoaded || !!fontError;
+  // SteamSplash hides the native splash once it has drawn the same frame.
+  const [splashDone, setSplashDone] = useState(false);
+  const finishSplash = useCallback(() => setSplashDone(true), []);
 
   useEffect(() => {
     // Push send windows and the Sunday recap run in the household's timezone.
@@ -61,23 +60,22 @@ export default function RootLayout() {
     return () => sub.remove();
   }, []);
 
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
-
   return (
     <GestureHandlerRootView style={styles.root}>
-      <ErrorBoundary onError={(error, componentStack) => reportError(error, { componentStack })}>
-        <AuthProvider>
-          <NotificationRouter />
-          <StatusBar style="dark" />
-          <View style={styles.appFrame}>
-            <ToastProvider>
-              <Stack screenOptions={{ headerShown: false }} />
-            </ToastProvider>
-          </View>
-        </AuthProvider>
-      </ErrorBoundary>
+      {ready && (
+        <ErrorBoundary onError={(error, componentStack) => reportError(error, { componentStack })}>
+          <AuthProvider>
+            <NotificationRouter />
+            <StatusBar style="dark" />
+            <View style={styles.appFrame}>
+              <ToastProvider>
+                <Stack screenOptions={{ headerShown: false }} />
+              </ToastProvider>
+            </View>
+          </AuthProvider>
+        </ErrorBoundary>
+      )}
+      {!splashDone && <SteamSplash ready={ready} onDone={finishSplash} />}
     </GestureHandlerRootView>
   );
 }

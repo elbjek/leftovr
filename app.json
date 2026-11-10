@@ -120,7 +120,7 @@
         {
           "backgroundColor": "#D9503A",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 96
+          "imageWidth": 200
         }
       ],
       "@react-native-community/datetimepicker",
