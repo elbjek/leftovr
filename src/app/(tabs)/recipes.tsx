@@ -424,20 +424,19 @@ export default function RecipesRoute() {
         </View>
 
         {!isPremium ? (
-          <View style={styles.limitBanner}>
-            <View style={styles.limitMark} pointerEvents="none" />
+          <View style={[styles.limitBanner, !canGenerate && styles.limitWarning]}>
             <View style={styles.limitMessage}>
               {!canGenerate ? (
                 <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false}>
-                  <Path d="M12 3 22 21H2L12 3Z" fill="none" stroke={colors.accent} strokeWidth={1.8} strokeLinejoin="round" />
-                  <Path d="M12 9v5m0 3v.1" stroke={colors.accent} strokeWidth={2} strokeLinecap="round" />
+                  <Path d="M12 3 22 21H2L12 3Z" fill="none" stroke={colors.redInk} strokeWidth={1.8} strokeLinejoin="round" />
+                  <Path d="M12 9v5m0 3v.1" stroke={colors.redInk} strokeWidth={2} strokeLinecap="round" />
                 </Svg>
               ) : null}
               <View style={styles.limitCopy}>
-                <Text variant="title" color={colors.onPrimary}>
+                <Text variant="title" color={canGenerate ? colors.text : colors.redInk}>
                   {t(canGenerate ? "recipes.freeGenerationLeft" : "recipes.freeGenerationUsed")}
                 </Text>
-                <Text variant="small" color={colors.onPrimary} style={styles.limitSub}>
+                <Text variant="small" color={canGenerate ? colors.muted : colors.redInk} style={styles.limitSub}>
                   {t(canGenerate ? "recipes.freePlan" : "recipes.freeGenerationUsedBody")}
                 </Text>
               </View>
@@ -796,20 +795,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
-    // Dark with a tomato disc, like Insights' Premium card.
-    backgroundColor: colors.text,
+    backgroundColor: colors.surface2,
     borderRadius: radii.xl,
     gap: spacing.md,
-    overflow: "hidden",
-  },
-  limitMark: {
-    position: "absolute",
-    top: -50,
-    right: -50,
-    width: 120,
-    height: 120,
-    borderRadius: radii.pill,
-    backgroundColor: colors.primary,
   },
   errorBanner: {
     marginHorizontal: spacing.screenX,
@@ -818,6 +806,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md + 2,
     backgroundColor: colors.redSoft,
     borderRadius: radii.xl,
+  },
+  limitWarning: {
+    backgroundColor: colors.redSoft,
   },
   limitMessage: {
     flexDirection: "row",
@@ -829,7 +820,6 @@ const styles = StyleSheet.create({
   },
   limitSub: {
     marginTop: spacing.xxs,
-    opacity: 0.8,
   },
   sectionBlock: {
     paddingHorizontal: spacing.screenX,
