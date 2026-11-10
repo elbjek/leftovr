@@ -24,48 +24,52 @@
 <meta name="robots" content="index, follow" />
 <meta name="author" content="Two Brick Labs" />
 <meta property="og:locale" content="en_US" />
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Crect width='36' height='36' rx='8' fill='%23F8F4EE'/%3E%3Cg fill='none'%3E%3Cpath d='M7 20 h22 a11 11 0 0 1 -22 0 Z' stroke='%231B4332' stroke-width='2.6' stroke-linejoin='round'/%3E%3Cpath d='M14 15 c0 -2 1.7 -2 1.7 -4' stroke='%23D4A843' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M21.3 15 c0 -2 1.7 -2 1.7 -4' stroke='%23D4A843' stroke-width='2.2' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E" />
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
-<meta name="theme-color" content="#1B4332" />
+<link rel="preload" as="image" href="/splash-logo.png" />
+<meta name="theme-color" content="#D9503A" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,500;6..12,600;6..12,700;6..12,800&family=Plus+Jakarta+Sans:wght@800&display=swap" rel="stylesheet">
 <style>
   /* Mirrors src/theme/tokens.ts. Keep them in step: the app is the source. */
   :root {
-    --primary: #234B34;
-    --primary-700: #1A3A28;
-    --primary-50: rgba(35, 75, 52, 0.06);
-    --primary-100: rgba(35, 75, 52, 0.12);
-    --surface: #F9F6F1;
-    --surface-2: #F3F3EB;
-    --surface-3: #E2DBCD;
-    --accent: #F2C14E;
-    --accent-soft: #FBE7B4;
-    --accent-deep: #B8861A;
+    /* Theme D: tomato primary, butter accent, cream page, peach wells. */
+    --primary: #D9503A;
+    --primary-700: #B8402C;
+    --primary-50: rgba(217, 80, 58, 0.06);
+    --primary-100: rgba(217, 80, 58, 0.12);
+    --surface: #FFF9F4;
+    --surface-2: #FBE3D6;
+    --surface-3: #F6D3C2;
+    --accent: #F2B640;
+    --accent-soft: #FFE7A6;
     --accent-ink: #8A5A0B;
-    --text: #1F1F1F;
-    --muted: #55655A;
-    --muted-2: #9AA59C;
+    --text: #1E1B19;
+    --muted: #6B5F57;
+    --muted-2: #B3A79E;
     --green: #5E9A64;
-    --sage: #A7C3A3;
-    --sage-tint: #D8E4D1;
+    --sage: #72967D;
+    --sage-tint: #D9E5DC;
     --red: #E76F51;
     --red-soft: #F9E4DC;
-    --page: #F9F6F1;
-    --card: #FFFFFF;
-    --paper: #FDF8F6;
-    --card-line: #E6E4D8;
-    --inverse-hairline: rgba(249, 246, 241, 0.12);
-    --inverse-hairline-strong: rgba(249, 246, 241, 0.24);
-    --hairline: rgba(35, 75, 52, 0.10);
-    --hairline-strong: rgba(35, 75, 52, 0.18);
+    --red-ink: #9A3F27;
+    --page: #FDF1E8;
+    --card: #FFF9F4;
+    --paper: #FFF9F4;
+    --card-line: #F3D9CB;
+    --inverse-hairline: rgba(255, 255, 255, 0.16);
+    --inverse-hairline-strong: rgba(255, 255, 255, 0.32);
+    --hairline: rgba(30, 27, 25, 0.08);
+    --hairline-strong: rgba(30, 27, 25, 0.16);
+    /* shadows.soft / primaryButton from tokens.ts */
+    --shadow-soft: 0 10px 26px rgba(170, 90, 50, 0.10);
+    --shadow-btn: 0 8px 24px rgba(217, 80, 58, 0.24);
     /* radii.lg / xl / xxl from tokens.ts */
-    --r-btn: 14px;
-    --r-card: 18px;
+    --r-btn: 16px;
+    --r-card: 20px;
     --r-lg: 24px;
   }
 
@@ -93,7 +97,7 @@
   .italic { font-style: italic; }
 
   .micro {
-    font-weight: 600; font-size: 12px; line-height: 1.2;
+    font-weight: 800; font-size: 12px; line-height: 1.2;
     letter-spacing: 0.08em; text-transform: uppercase;
   }
 
@@ -103,25 +107,65 @@
     white-space: nowrap; border: 0;
   }
 
+  /* ── Launch splash ─────────────────────────────────────────────────
+     The app's launch screen (SteamSplash.tsx), same numbers: the mark at
+     200px on tomato, two wisps over "left" that rise 400ms apart and wobble
+     in opposite directions. Shown once per browser session. */
+  .splash {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--primary);
+    transition: opacity 0.25s ease;
+  }
+  .splash.out { opacity: 0; pointer-events: none; }
+  .splash-mark { position: relative; width: 200px; height: 200px; }
+  .splash-mark img { display: block; width: 200px; height: 200px; }
+  /* Reaches one wisp-height above the resting spot; its bottom edge hides the
+     wisp before it rises. */
+  .wisp-clip { position: absolute; top: 8px; width: 16px; height: 34px; overflow: hidden; }
+  .wisp { position: absolute; left: 3px; bottom: 0; width: 10px; height: 17px; animation: wispRise 1.5s linear infinite; }
+  .wisp svg { display: block; width: 10px; height: 17px; transform-origin: 50% 100%; animation: wispSway 0.6s linear infinite; }
+  .wisp-clip + .wisp-clip .wisp { animation-delay: 0.4s; }
+  .wisp-clip + .wisp-clip svg { animation-direction: reverse; }
+  /* Drift up and fade out, drop below the clip, slide back up into place. */
+  @keyframes wispRise {
+    0%    { opacity: 1;   transform: translateY(0); }
+    30%   { opacity: 0.6; transform: translateY(-4px); }
+    55%   { opacity: 0;   transform: translateY(-6px); }
+    55.1% { opacity: 1;   transform: translateY(17px); }
+    80%   { opacity: 1;   transform: translateY(2.5px); }
+    100%  { opacity: 1;   transform: translateY(0); }
+  }
+  @keyframes wispSway {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(7deg); }
+    75% { transform: rotate(-7deg); }
+  }
+  /* The hero's entrance waits behind the splash instead of playing unseen. */
+  .splashing .stage-copy > *, .splashing .demo, .splashing .k-ing, .splashing .demo-foot { animation-play-state: paused; }
+  @media (prefers-reduced-motion: reduce) {
+    .wisp, .wisp svg { animation: none; }
+  }
+
   /* ── Buttons ───────────────────────────── */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     height: 52px; padding: 0 26px;
     border-radius: var(--r-btn); border: none; cursor: pointer;
-    font-family: inherit; font-weight: 600; font-size: 15px;
+    font-family: inherit; font-weight: 700; font-size: 16px;
     letter-spacing: -0.005em;
     transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
     white-space: nowrap;
   }
   .btn-primary {
-    background: var(--primary); color: var(--surface);
+    background: var(--primary); color: #fff; box-shadow: var(--shadow-btn);
   }
   .btn-primary:hover { background: var(--primary-700); }
   .btn:active { transform: scale(0.97); transition: transform 100ms ease-out; }
-  .btn-accent { background: var(--accent); color: var(--text); }
-  .btn-accent:hover { background: var(--accent-soft); }
+  .btn-light { background: var(--surface); color: var(--text); }
+  .btn-light:hover { background: #fff; }
   .btn-ghost {
-    background: transparent; color: var(--primary);
+    background: transparent; color: var(--text);
     border: 1.5px solid var(--hairline-strong);
   }
   .btn-ghost:hover { background: var(--card); }
@@ -130,167 +174,186 @@
   /* ── Header ────────────────────────────── */
   header {
     position: sticky; top: 0; z-index: 50;
-    background: rgba(239, 233, 221, 0.82);
+    background: rgba(253, 241, 232, 0.86);
     backdrop-filter: saturate(140%) blur(14px);
     border-bottom: 1px solid transparent;
-    transition: border-color 0.25s ease, background 0.25s ease;
+    transition: border-color 0.25s ease;
   }
   /* The hairline only appears once content is actually underneath the bar. */
   header.scrolled { border-bottom-color: var(--hairline); }
   @media (prefers-reduced-transparency: reduce) {
-    header { background: var(--surface); backdrop-filter: none; }
+    header { background: var(--page); backdrop-filter: none; }
   }
   .nav { display: flex; align-items: center; justify-content: space-between; height: 70px; }
   .nav-brand { display: flex; flex-direction: column; gap: 1px; line-height: 1; }
   .nav-logo {
     font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-size: 25px; font-weight: 800;
-    letter-spacing: -0.01em; color: var(--primary);
+    letter-spacing: -0.01em; color: var(--text);
     display: inline-flex; align-items: baseline; line-height: 1;
   }
   .nav-logo .logo-r {
-    color: var(--accent-deep); display: inline-block;
+    color: var(--primary); display: inline-block;
     transform: rotate(9deg) translateY(0.03em); transform-origin: 50% 60%;
   }
-  .nav-sub { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); }
+  .nav-sub { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); }
   .nav-right { display: flex; align-items: center; gap: 12px; }
 
   /* Language toggle */
   .lang-toggle {
     display: inline-flex; gap: 2px; padding: 3px;
     border-radius: 999px; background: var(--surface-2);
-    border: 1px solid var(--hairline);
+    border: 1px solid transparent;
   }
   .lang-toggle button {
     border: none; background: transparent; cursor: pointer;
     height: 32px; padding: 0 12px; border-radius: 999px;
-    font-family: inherit; font-weight: 600; font-size: 13px; color: var(--muted);
+    font-family: inherit; font-weight: 800; font-size: 13px; color: var(--muted);
     transition: background 0.15s ease, color 0.15s ease;
   }
-  .lang-toggle button[aria-pressed="true"] { background: var(--primary); color: var(--surface); }
-  .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--primary); }
+  .lang-toggle button[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(170, 90, 50, 0.18); }
+  .lang-toggle button:not([aria-pressed="true"]):hover { color: var(--text); }
 
   /* ── Hero ──────────────────────────────────────────────────────────
-     Night kitchen. The stage goes full-bleed green and the message sits in
-     the middle of it, centred, with nothing beside it to split attention.
-     The counter — your food and tonight's dinner — rises from the fold as
-     one cream card, so the page's first object is the product itself. */
-  .stage {
-    position: relative; overflow: hidden;
-    display: flex; flex-direction: column;
-    background: var(--primary-700);
-    color: var(--surface);
+     An open fridge. The promise is "dinner from what's already in your
+     fridge", so the first thing on the page is the fridge: your food on its
+     shelves, and a ticket on the door that names tonight's dinner. What the
+     dish uses lifts off the shelf. Cream ground, a peach well behind the
+     fridge, tomato only where something is happening. */
+  .stage { position: relative; overflow: hidden; background: var(--page); }
+  /* The well the fridge stands in: one flat disc, cropped by the viewport. */
+  .stage::before {
+    content: ""; position: absolute; z-index: 0;
+    width: min(980px, 74vw); aspect-ratio: 1; border-radius: 50%;
+    right: max(-260px, -18vw); top: 50%; transform: translateY(-46%);
+    background: var(--surface-2);
   }
 
-  /* The page's own food, oversized and cropped. On green it reads as
-     texture on a dark wall, not illustration. */
-  .stage-texture { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-  .stage-texture .tx { position: absolute; opacity: 0.06; filter: saturate(0.6); }
-  .tx-1 { width: 340px; height: 340px; left: -120px; top: 6%;  transform: rotate(-14deg); }
-  .tx-2 { width: 280px; height: 280px; right: -92px; top: 34%; transform: rotate(16deg); }
-  .tx-3 { width: 240px; height: 240px; right: 11%;  top: -84px; transform: rotate(9deg); }
-  .tx-4 { width: 200px; height: 200px; left: 14%;   top: -70px; transform: rotate(-8deg); }
-  @media (max-width: 980px) { .tx-3, .tx-4 { display: none; } }
-
-  .stage-copy {
+  .stage-grid {
     position: relative; z-index: 1;
-    display: flex; flex-direction: column;
-    align-items: center; text-align: center;
-    padding: clamp(44px, 8vh, 104px) 0 clamp(28px, 5vh, 56px);
+    display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: clamp(28px, 5vw, 84px); align-items: center;
+    min-height: min(820px, calc(100svh - 70px));
+    padding-block: clamp(36px, 6vh, 72px);
   }
+  .stage-copy { display: flex; flex-direction: column; align-items: flex-start; }
 
   .stage-eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
-    color: var(--accent); margin-bottom: 18px;
+    color: var(--red-ink); margin-bottom: 22px;
+    padding: 7px 14px 7px 12px; border-radius: 999px;
+    background: var(--surface-2);
   }
   .stage-eyebrow::before {
-    content: ""; width: 6px; height: 6px; border-radius: 999px;
-    background: var(--accent);
+    content: ""; width: 7px; height: 7px; border-radius: 999px;
+    background: var(--primary);
   }
 
   h1.stage-h1 {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     font-weight: 800;
-    font-size: clamp(34px, 5.2vw, 68px);
-    line-height: 1.02; letter-spacing: -0.038em;
-    color: var(--surface); margin: 0 0 20px;
-    max-width: 17ch;
+    font-size: clamp(40px, 5.9vw, 84px);
+    line-height: 0.98; letter-spacing: -0.045em;
+    color: var(--text); margin: 0 0 24px;
+    max-width: 11ch; text-wrap: balance;
   }
-  /* Emphasis is the same typeface in gold, the one warm thing in the dark. */
-  .stage-h1 em { font-style: normal; color: var(--accent); }
+  .stage-h1 em { font-style: normal; color: var(--primary); }
 
   .stage-sub {
-    font-size: 18.5px; line-height: 1.55;
-    color: rgba(249, 246, 241, 0.76);
-    max-width: 34rem; margin: 0 0 34px;
+    font-size: 19px; line-height: 1.55;
+    color: var(--muted);
+    max-width: 30rem; margin: 0 0 30px;
   }
-
-  /* The form inherits the dark stage: white fields, gold button. */
   .stage-copy .capture { max-width: 480px; width: 100%; }
-  .stage-copy .capture-row { justify-content: center; }
-  .stage-copy .field { border-color: transparent; }
-  .stage-copy .field:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(242,193,78,0.22); }
-  .stage-copy .privacy { color: rgba(249, 246, 241, 0.64); justify-content: center; }
-  .stage-copy .form-success {
-    background: rgba(249, 246, 241, 0.08);
-    border-color: var(--inverse-hairline-strong);
-    color: var(--surface); text-align: left;
-  }
-  .stage-copy .form-success .tick { background: var(--accent); }
-  .stage-copy .fs-sub { color: rgba(249, 246, 241, 0.72); font-size: 14px; }
 
-  /* ── The counter ─────────────────────────────────────────────────
-     One cream card, flush with the bottom of the stage: your kitchen on the
-     left, tonight's dinner on the right, a rule lit by gold between them. */
-  .stage-counter { position: relative; z-index: 1; margin-top: auto; }
+  /* ── The fridge ──────────────────────────────────────────────────── */
+  .stage-fridge { position: relative; display: flex; justify-content: center; padding: 0 0 100px; }
   .demo {
-    background: var(--paper); color: var(--text);
-    border: 1px solid var(--card-line); border-bottom: none;
-    border-radius: var(--r-lg) var(--r-lg) 0 0;
-    padding: 26px clamp(22px, 3vw, 38px) 28px;
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) 1px minmax(0, 1fr);
-    gap: 0 clamp(24px, 3.2vw, 44px); align-items: center;
-    box-shadow: 0 -28px 60px -30px rgba(0,0,0,0.45);
+    position: relative; width: min(100%, 440px);
+    background: var(--card); color: var(--text);
+    border-radius: 44px; padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 40px 80px -30px rgba(150, 70, 40, 0.42), var(--shadow-soft);
   }
-  .demo-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; }
-  .demo-label { font-size: 14px; font-weight: 700; color: var(--text); }
-  .demo-count { font-size: 12.5px; color: var(--muted-2); }
-  .demo-foot .demo-label {
-    font-size: 10.5px; font-weight: 800; letter-spacing: 0.15em;
-    text-transform: uppercase; color: var(--accent-ink);
-    display: block; margin-bottom: 12px;
+  /* The door handle: the one piece of hardware, and it is tomato. */
+  .fr-handle {
+    position: absolute; left: -7px; top: 116px;
+    width: 14px; height: 132px; border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 6px 14px rgba(217, 80, 58, 0.35);
   }
+  /* Freezer drawer: carries the label. */
+  .fr-top {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    padding: 16px 22px; border-radius: 30px 30px 14px 14px;
+    background: var(--page);
+  }
+  .demo-label { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; color: var(--text); }
+  .demo-count { font-size: 13px; font-weight: 700; color: var(--muted); }
 
-  .k-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 18px; }
-  /* Unused food sits back; the dish's own ingredients come forward. */
+  /* Three shelves, two things on each. The bottom border of a row is the
+     shelf, so the two cells join into one board. */
+  .k-list {
+    list-style: none; margin: 0; padding: 6px 0 0;
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-radius: 14px 14px 30px 30px; background: var(--page);
+    overflow: hidden;
+  }
   .k-ing {
-    display: flex; align-items: center; gap: 9px;
-    font-size: 14px; font-weight: 500; color: var(--muted);
-    transition: color 0.4s ease;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 14px 8px 12px;
+    border-bottom: 5px solid var(--surface-3);
+    font-size: 13px; font-weight: 700; color: var(--muted);
   }
+  .k-ing:nth-last-child(-n+2) { border-bottom: none; padding-bottom: 26px; }
   .k-ing img {
-    width: 32px; height: 32px; flex-shrink: 0; object-fit: contain;
-    opacity: 0.38; filter: saturate(0.2);
+    width: clamp(64px, 7.4vw, 92px); height: auto; aspect-ratio: 1; object-fit: contain;
+    opacity: 0.5; filter: saturate(0.55);
     transition: opacity 0.4s ease, filter 0.4s ease,
-                transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .k-ing.on { color: var(--text); font-weight: 700; }
-  .k-ing.on img { opacity: 1; filter: none; transform: scale(1.1); }
+  .k-ing span {
+    padding: 4px 11px; border-radius: 999px;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  /* What tonight's dish uses comes forward and gets tagged. */
+  .k-ing.on img { opacity: 1; filter: none; transform: translateY(-6px) scale(1.12); }
+  .k-ing.on span { background: var(--primary); color: #fff; }
 
-  /* The rule between the two halves. A gold sweep runs it on every swap. */
-  .demo-rule { position: relative; align-self: stretch; width: 1px; background: var(--card-line); overflow: hidden; }
-  .demo-sweep {
-    position: absolute; inset: 0; transform: translateY(-100%);
-    background: linear-gradient(180deg, transparent, var(--accent), transparent);
+  /* The ticket on the door. */
+  .demo-foot {
+    position: absolute; z-index: 2;
+    left: clamp(-170px, -10vw, -40px); top: calc(100% - 36px);
+    width: min(360px, 92%);
+    padding: 16px 16px 18px 20px; border-radius: 24px;
+    background: var(--card);
+    box-shadow: 0 24px 50px -18px rgba(150, 70, 40, 0.5), 0 2px 0 rgba(255,255,255,0.8) inset;
+    transform: rotate(-3deg); transform-origin: 20% 0;
   }
-  .demo-rule.go .demo-sweep { animation: sweep 0.72s cubic-bezier(0.4, 0, 0.3, 1); }
-  @keyframes sweep { to { transform: translateY(100%); } }
+  .demo-foot .demo-label {
+    display: inline-block; margin-bottom: 12px;
+    padding: 4px 11px; border-radius: 999px;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--surface-2); color: var(--red-ink);
+  }
+  /* Dinner is hot: the app icon's steam, rising off the ticket. */
+  .steam { position: absolute; right: 26px; top: -24px; width: 44px; height: 30px; overflow: visible; }
+  .steam path {
+    fill: none; stroke: var(--primary); stroke-width: 3; stroke-linecap: round;
+    opacity: 0; animation: steam 3.2s ease-in-out infinite;
+  }
+  .steam path:nth-child(2) { animation-delay: 0.5s; }
+  .steam path:nth-child(3) { animation-delay: 1s; }
+  @keyframes steam {
+    0%   { opacity: 0; transform: translateY(8px); }
+    35%  { opacity: 0.55; }
+    100% { opacity: 0; transform: translateY(-12px); }
+  }
 
   .pick { display: flex; align-items: center; gap: 13px; }
   .pick-icons { display: flex; flex-shrink: 0; }
   .pick-icons span {
     width: 46px; height: 46px; border-radius: 999px;
-    background: var(--surface-2); border: 2px solid var(--paper);
+    background: var(--surface-2); border: 2px solid var(--card);
     display: flex; align-items: center; justify-content: center;
   }
   .pick-icons span[hidden] { display: none; }
@@ -304,7 +367,7 @@
   .pick-text { flex: 1; min-width: 0; }
   .dish {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
-    font-weight: 800; font-size: 20px; line-height: 1.2;
+    font-weight: 800; font-size: 20px; line-height: 1.15;
     letter-spacing: -0.02em; color: var(--primary);
   }
   .dish-meta { font-size: 13px; line-height: 1.4; color: var(--muted); margin-top: 4px; }
@@ -316,54 +379,57 @@
   }
 
   .dish-next {
-    flex-shrink: 0; width: 32px; height: 32px; border-radius: 999px; padding: 0;
-    background: transparent; color: var(--primary);
-    border: 1px solid var(--hairline-strong);
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 999px; padding: 0;
+    background: var(--primary); color: #fff; border: none;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--shadow-btn);
+    transition: background 0.2s ease, transform 0.2s ease;
   }
   .dish-next svg { width: 16px; height: 16px; }
-  .dish-next:hover { background: var(--primary-50); border-color: var(--primary); }
+  .dish-next:hover { background: var(--primary-700); }
   .dish-next:active { transform: scale(0.94); }
-  .dish-next:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+  .dish-next:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
-  /* Entrance: the message assembles, then the counter slides up under it. */
+  /* Entrance: the message assembles, the fridge arrives, the food lands on
+     its shelves one by one, and the ticket swings onto the door last. */
   @keyframes riseIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-  @keyframes counterIn { from { opacity: 0; transform: translateY(42px); } to { opacity: 1; transform: none; } }
+  @keyframes fridgeIn { from { opacity: 0; transform: translateY(36px) scale(0.97); } to { opacity: 1; transform: none; } }
+  @keyframes landIn { from { opacity: 0; transform: translateY(-22px); } to { opacity: 1; transform: none; } }
+  @keyframes ticketIn { from { opacity: 0; transform: rotate(-12deg) translateY(26px); } to { opacity: 1; transform: rotate(-3deg); } }
   .stage-copy > * { animation: riseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both; }
   .stage-copy > .stage-eyebrow { animation-delay: 0.02s; }
   .stage-copy > .stage-h1 { animation-delay: 0.08s; }
   .stage-copy > .stage-sub { animation-delay: 0.14s; }
   .stage-copy > .capture  { animation-delay: 0.20s; }
-  .demo { animation: counterIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.26s both; }
+  .demo { animation: fridgeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both; }
+  .k-ing { animation: landIn 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) both; animation-delay: calc(0.5s + var(--i) * 70ms); }
+  .demo-foot { animation: ticketIn 0.7s cubic-bezier(0.34, 1.3, 0.64, 1) 1.05s both; }
 
   @media (prefers-reduced-motion: reduce) {
-    .stage-copy > *, .demo { animation: none; opacity: 1; transform: none; }
-    .stage-texture .tx { transform: none; }
-    .k-ing, .k-ing img, .pick-icons.swap span, .dish, .dish-meta { animation: none; transition: none; }
-    .demo-rule.go .demo-sweep { animation: none; }
+    .stage-copy > *, .demo, .k-ing, .demo-foot { animation: none; }
+    .k-ing img, .k-ing span, .pick-icons.swap span, .dish, .dish-meta { animation: none; transition: none; }
+    .steam path { animation: none; opacity: 0.4; }
   }
 
   @media (max-width: 980px) {
-    .stage-copy { padding: 44px 0 36px; }
-    .demo {
-      grid-template-columns: 1fr; gap: 0;
-      padding: 22px 20px 24px;
-    }
-    /* Stacked, the rule goes back to being a horizontal divider. */
-    .demo-rule { width: auto; height: 1px; align-self: auto; margin: 22px 0 20px; }
-    .demo-sweep { transform: translateX(-100%); background: linear-gradient(90deg, transparent, var(--accent), transparent); }
-    .demo-rule.go .demo-sweep { animation: sweepX 0.72s cubic-bezier(0.4, 0, 0.3, 1); }
-    @keyframes sweepX { to { transform: translateX(100%); } }
+    .stage::before { width: 760px; right: 50%; top: auto; bottom: -260px; transform: translateX(50%); }
+    .stage-grid { grid-template-columns: 1fr; gap: 44px; min-height: 0; padding-block: 40px 56px; }
+    .stage-copy { align-items: center; text-align: center; }
+    .stage-copy .capture-row, .stage-copy .privacy { justify-content: center; }
+    h1.stage-h1 { max-width: 14ch; }
+    .stage-sub { margin-inline: auto; }
+    .demo-foot { left: 0; right: 0; margin-inline: auto; }
   }
   @media (max-width: 560px) {
-    .k-list { grid-template-columns: 1fr 1fr; gap: 10px 12px; }
-    .k-ing { font-size: 13px; gap: 7px; }
-    .k-ing img { width: 28px; height: 28px; }
-    .stage-copy .capture-row { flex-direction: column; }
+    .stage-fridge { padding-bottom: 132px; }
+    .demo { border-radius: 36px; padding: 11px; }
+    .fr-top { border-radius: 26px 26px 12px 12px; padding: 14px 18px; }
+    .k-list { border-radius: 12px 12px 26px 26px; }
+    .k-ing { padding: 14px 6px 12px; font-size: 12px; }
+    .fr-handle { top: 96px; height: 104px; }
+    .dish { font-size: 18px; }
   }
 
-  /* The device now lives under "What is leftovr?". */
   .define-device { display: flex; justify-content: center; margin: 44px 0 8px; overflow: hidden; }
 
   @media (prefers-reduced-motion: reduce) {
@@ -372,7 +438,7 @@
   }
 
   @media (max-width: 860px) {
-    .phone-glow { width: 300px; height: 300px; }
+    .phone-glow { width: 360px; height: 360px; }
   }
 
   /* Inline email capture */
@@ -381,9 +447,9 @@
   .capture-row { display: flex; gap: 10px; }
   .field {
     flex: 1; height: 52px; padding: 0 18px;
-    background: var(--card); color: var(--text);
+    background: #fff; color: var(--text);
     border: 1.5px solid var(--hairline-strong); border-radius: var(--r-btn);
-    font-family: inherit; font-size: 15px; outline: none;
+    font-family: inherit; font-size: 16px; outline: none;
     transition: border 0.15s ease, box-shadow 0.15s ease;
   }
   .field::placeholder { color: var(--muted-2); }
@@ -395,8 +461,8 @@
   }
   .privacy svg { flex-shrink: 0; }
   .form-msg { font-size: 13px; margin-top: 10px; min-height: 18px; }
-  .form-msg.err { color: var(--red); }
-  .form-msg.ok { color: var(--green); }
+  .form-msg.err { color: var(--red-ink); }
+  .form-msg.ok { color: #3E6B45; }
   .form-success {
     display: none;
     align-items: center; gap: 12px;
@@ -405,7 +471,7 @@
     max-width: 470px;
   }
   .form-success.show { display: flex; }
-  .form-success .tick { width: 34px; height: 34px; border-radius: 999px; background: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .form-success .tick { width: 34px; height: 34px; border-radius: 999px; background: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
   /* Entrance: the hero assembles itself once, on load. */
   @keyframes riseIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
@@ -435,33 +501,33 @@
      the pointer and can be redirected at any frame. */
 
   .phone-glow {
-    position: absolute; width: 520px; height: 520px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(242,193,78,0.26), transparent 68%);
-    top: 44%; left: 50%; transform: translate(-50%,-50%); z-index: 0;
+    position: absolute; width: 560px; height: 560px; border-radius: 50%;
+    background: var(--surface-2);
+    top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 0;
   }
   /* Contact shadow: the device sits on the page rather than hovering over it. */
   .phone-stage::after {
     content: ""; position: absolute; z-index: 0;
     left: 50%; bottom: -26px; width: 300px; height: 52px;
     transform: translateX(-50%);
-    background: radial-gradient(ellipse at center, rgba(35,75,52,0.26), transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(170, 90, 50, 0.3), transparent 70%);
     filter: blur(14px); pointer-events: none;
   }
   .phone {
     position: relative; z-index: 1;
     width: 300px; height: 616px;
-    background: linear-gradient(155deg, #16291E, #0B1610);
+    background: #1E1B19;
     border-radius: 52px; padding: 9px;
-    box-shadow: 0 50px 90px -28px rgba(11,22,16,0.55), 0 14px 36px rgba(0,0,0,0.16), inset 0 0 0 1.5px rgba(255,255,255,0.05);
+    box-shadow: 0 50px 90px -28px rgba(120, 50, 25, 0.45), 0 14px 36px rgba(120, 50, 25, 0.14), inset 0 0 0 1.5px rgba(255,255,255,0.06);
   }
-  .phone::before { content: ""; position: absolute; left: -3px; top: 132px; width: 3px; height: 62px; border-radius: 3px 0 0 3px; background: #0A130D; }
-  .phone::after { content: ""; position: absolute; right: -3px; top: 156px; width: 3px; height: 40px; border-radius: 0 3px 3px 0; background: #0A130D; }
+  .phone::before { content: ""; position: absolute; left: -3px; top: 132px; width: 3px; height: 62px; border-radius: 3px 0 0 3px; background: #1E1B19; }
+  .phone::after { content: ""; position: absolute; right: -3px; top: 156px; width: 3px; height: 40px; border-radius: 0 3px 3px 0; background: #1E1B19; }
   .phone-screen {
-    width: 100%; height: 100%; background: var(--surface);
+    width: 100%; height: 100%; background: var(--page);
     border-radius: 44px; overflow: hidden; position: relative;
     display: flex; flex-direction: column;
   }
-  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 86px; height: 24px; background: #0B1610; border-radius: 999px; z-index: 6; }
+  .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 86px; height: 24px; background: #1E1B19; border-radius: 999px; z-index: 6; }
 
   /* Refined phone content */
   .sb { display: flex; align-items: center; justify-content: space-between; padding: 15px 24px 0; }
@@ -472,21 +538,21 @@
      TryNextCard, dock (Recipes · Kitchen · Add · Insights · Settings). ── */
   .lo-body { flex: 1; display: flex; flex-direction: column; padding: 10px 14px 0; overflow: hidden; gap: 10px; }
   .lo-head { display: flex; align-items: center; justify-content: space-between; }
-  .lo-logo { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; color: var(--primary); display: inline-flex; align-items: baseline; }
-  .lo-logo i { font-style: normal; color: var(--accent-deep); display: inline-block; transform: rotate(9deg) translateY(0.03em); }
-  .lo-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); margin-left: 5px; align-self: flex-start; margin-top: 2px; }
+  .lo-logo { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; color: var(--text); display: inline-flex; align-items: baseline; }
+  .lo-logo i { font-style: normal; color: var(--primary); display: inline-block; transform: rotate(9deg) translateY(0.03em); }
+  .lo-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--primary); margin-left: 5px; align-self: flex-start; margin-top: 2px; }
   .lo-hh { display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--card-line); font-size: 10.5px; font-weight: 600; color: var(--muted); }
-  .lo-hh b { width: 20px; height: 20px; border-radius: 999px; background: var(--primary); color: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+  .lo-hh b { width: 20px; height: 20px; border-radius: 999px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
 
   /* Use-first strip (yellow tint, only when something is urgent) */
-  .lo-urgent { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: var(--r-card); background: var(--accent-soft); color: var(--accent-ink); font-size: 11.5px; font-weight: 700; }
+  .lo-urgent { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 14px; background: var(--red-soft); color: var(--red-ink); font-size: 11.5px; font-weight: 700; }
   .lo-urgent span { flex: 1; min-width: 0; }
 
   /* WeekStrip: today's goal ring, streak, last seven days */
-  .lo-week { background: var(--paper); border: 1px solid var(--card-line); border-radius: var(--r-card); padding: 11px 12px; }
+  .lo-week { background: var(--paper); border: 1px solid var(--card-line); border-radius: 16px; padding: 11px 12px; }
   .lo-goal { display: flex; align-items: center; gap: 10px; }
   .lo-ring { width: 36px; height: 36px; flex-shrink: 0; position: relative; }
-  .lo-ring span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; color: var(--primary); }
+  .lo-ring span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; color: var(--text); }
   .lo-goal .gl { font-size: 11.5px; font-weight: 600; color: var(--text); line-height: 1.25; }
   .lo-wmeta { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-2); }
   .lo-wmeta .st { display: flex; align-items: center; gap: 5px; color: var(--muted); }
@@ -494,33 +560,33 @@
   .lo-day { flex: 1; border-radius: 999px; padding: 5px 0 6px; text-align: center; font-size: 9px; font-weight: 700; color: var(--muted-2); background: var(--surface-2); }
   .lo-day i { display: block; width: 4px; height: 4px; border-radius: 999px; background: var(--sage); margin: 3px auto 0; }
   .lo-day.off i { background: transparent; }
-  .lo-day.today { background: var(--primary); color: var(--surface); }
-  .lo-day.today i { background: var(--accent); }
+  .lo-day.today { background: var(--primary); color: #fff; }
+  .lo-day.today i { background: #fff; }
   .lo-wfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--card-line); font-size: 10px; color: var(--muted); }
-  .lo-pill { padding: 3px 9px; border-radius: 999px; border: 1px solid var(--card-line); font-weight: 700; font-size: 9.5px; color: var(--primary); flex-shrink: 0; }
+  .lo-pill { padding: 3px 9px; border-radius: 999px; border: 1px solid var(--card-line); font-weight: 700; font-size: 9.5px; color: var(--text); flex-shrink: 0; }
 
   /* TryNextCard — tonight's dish */
-  .lo-try { background: var(--card); border: 1px solid var(--card-line); border-radius: var(--r-card); padding: 11px; }
+  .lo-try { background: var(--card); border: 1px solid var(--card-line); border-radius: 16px; padding: 11px; }
   .lo-tryhead { display: flex; gap: 10px; }
-  .lo-tile { width: 54px; height: 54px; border-radius: var(--r-card); flex-shrink: 0; background: linear-gradient(135deg, var(--sage-tint), #BFD4B8); display: flex; align-items: center; justify-content: center; color: var(--primary); }
+  .lo-tile { width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0; background: var(--sage-tint); display: flex; align-items: center; justify-content: center; color: var(--primary); }
   .lo-trymeta { flex: 1; min-width: 0; }
   .lo-trymeta .eb { font-size: 8.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
   .lo-trymeta .tt { font-weight: 800; font-size: 14.5px; letter-spacing: -0.01em; margin-top: 2px; }
   .lo-trymeta .mt { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
-  .lo-trymeta .mt em { width: 4px; height: 4px; border-radius: 999px; background: var(--accent); font-style: normal; }
-  .lo-why { margin-top: 9px; padding: 7px 9px; border-radius: 10px; background: var(--sage-tint); font-size: 10.5px; font-weight: 600; color: var(--primary); }
+  .lo-trymeta .mt em { width: 4px; height: 4px; border-radius: 999px; background: var(--muted-2); font-style: normal; }
+  .lo-why { margin-top: 9px; padding: 7px 9px; border-radius: 10px; background: var(--surface-2); font-size: 10.5px; font-weight: 700; color: var(--red-ink); }
   .lo-chips { display: flex; align-items: center; gap: 4px; margin-top: 8px; flex-wrap: nowrap; }
   .lo-chip { padding: 4px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--card-line); font-size: 9.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
   .lo-chip.soon { background: var(--accent-soft); border-color: transparent; color: var(--accent-ink); }
   .lo-chips .steps { margin-left: auto; font-size: 9.5px; font-weight: 700; color: var(--muted-2); white-space: nowrap; }
   .lo-tryfoot { display: flex; gap: 7px; margin-top: 10px; }
-  .lo-btn { flex: 1; height: 32px; border-radius: var(--r-btn); background: var(--primary); color: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; }
-  .lo-btn.ghost { flex: 0 0 auto; padding: 0 11px; background: transparent; color: var(--primary); border: 1px solid var(--hairline-strong); }
+  .lo-btn { flex: 1; height: 32px; border-radius: 10px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; }
+  .lo-btn.ghost { flex: 0 0 auto; padding: 0 11px; background: transparent; color: var(--text); border: 1px solid var(--hairline-strong); }
 
   /* Dock: Recipes · Kitchen · Add · Insights · Settings */
   .lo-tabbar { margin-top: auto; height: 60px; border-top: 1px solid var(--card-line); background: var(--surface); display: flex; align-items: center; justify-content: space-around; color: var(--muted-2); }
   .lo-tabbar .on { color: var(--primary); }
-  .lo-add { width: 46px; height: 46px; border-radius: 999px; background: var(--primary); border: 4px solid var(--surface); color: var(--surface); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 18px rgba(35,75,52,0.30); transform: translateY(-12px); }
+  .lo-add { width: 46px; height: 46px; border-radius: 999px; background: var(--primary); border: 4px solid var(--surface); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 18px rgba(217, 80, 58, 0.3); transform: translateY(-12px); }
 
   /* ── Section scaffolding ───────────────── */
   section { position: relative; }
@@ -528,7 +594,7 @@
   .sec-head { max-width: 680px; margin-bottom: 52px; }
   .sec-head.wide-title { max-width: 1120px; }
   .sec-head.center { margin-left: auto; margin-right: auto; text-align: center; }
-  .eyebrow { color: var(--accent); margin-bottom: 14px; }
+  .eyebrow { color: var(--red-ink); margin-bottom: 14px; }
   h2.sec-title {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800;
     font-size: 42px; line-height: 1.08; letter-spacing: -0.025em;
@@ -539,16 +605,16 @@
   /* How it works */
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
   .step-card {
-    background: var(--card); border: 1px solid var(--card-line);
+    background: var(--card); box-shadow: var(--shadow-soft);
     border-radius: var(--r-lg); padding: 30px 26px;
   }
   .step-num {
-    width: 40px; height: 40px; border-radius: 12px; background: var(--primary-50);
+    width: 40px; height: 40px; border-radius: 12px; background: var(--surface-2);
     color: var(--primary); font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 20px;
     display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
   }
   .step-ill {
-    position: relative; height: 164px; border-radius: var(--r-card); margin-bottom: 24px;
+    position: relative; height: 164px; border-radius: 16px; margin-bottom: 24px;
     display: flex; align-items: center; justify-content: center; overflow: hidden;
     background: var(--surface-2);
   }
@@ -556,17 +622,17 @@
 
   /* 1. Taking the photo: an open fridge on the left, the phone held up to it
      on the right, screen showing the same shelf it is pointed at. */
-  .ill-capture { background: var(--primary); gap: 0; }
+  .ill-capture { background: var(--sage-tint); gap: 0; }
   .fridge {
     width: 112px; height: 126px; flex-shrink: 0;
     border-radius: 10px; background: var(--paper);
-    border: 1px solid rgba(35,75,52,0.14);
+    border: 1px solid var(--card-line);
     padding: 11px 9px; display: flex; flex-direction: column; justify-content: space-between;
-    box-shadow: 0 14px 26px -14px rgba(11,22,16,0.6);
+    box-shadow: 0 14px 26px -14px rgba(60, 90, 70, 0.5);
   }
   .fridge-shelf {
     display: flex; align-items: flex-end; justify-content: center; gap: 6px;
-    padding-bottom: 5px; border-bottom: 2px solid rgba(35,75,52,0.24);
+    padding-bottom: 5px; border-bottom: 2px solid var(--surface-3);
   }
   .fridge .fi { width: 31px; height: 31px; }
 
@@ -574,9 +640,9 @@
     position: relative; z-index: 2;
     width: 78px; height: 134px; flex-shrink: 0;
     margin-left: -13px; transform: rotate(5deg);
-    border-radius: 15px; background: #11231A; padding: 5px;
+    border-radius: 15px; background: #1E1B19; padding: 5px;
     display: flex; flex-direction: column;
-    box-shadow: 0 18px 32px -14px rgba(11,22,16,0.75), inset 0 0 0 1px rgba(249,246,241,0.07);
+    box-shadow: 0 18px 32px -14px rgba(40, 60, 50, 0.7), inset 0 0 0 1px rgba(255,255,255,0.07);
   }
   .snap-screen {
     flex: 1; position: relative; overflow: hidden;
@@ -585,26 +651,26 @@
   }
   .snap-shelf {
     display: flex; align-items: flex-end; justify-content: center; gap: 5px;
-    width: 100%; padding-bottom: 5px; border-bottom: 2px solid rgba(35,75,52,0.24);
+    width: 100%; padding-bottom: 5px; border-bottom: 2px solid var(--surface-3);
   }
   .snap-screen .fi { width: 24px; height: 24px; }
   /* The app's scan guide, which is what tells you it is a camera. */
   .snap-guide {
     position: absolute; inset: 6px; border-radius: 7px;
-    border: 1.5px solid var(--accent); opacity: 0.9;
+    border: 1.5px solid var(--primary); opacity: 0.9;
   }
   .snap-shutter {
     width: 15px; height: 15px; border-radius: 999px; margin: 5px auto 0;
-    background: var(--surface); box-shadow: 0 0 0 2px rgba(249,246,241,0.32);
+    background: var(--surface); box-shadow: 0 0 0 2px rgba(255,255,255,0.32);
   }
 
   /* 2. The kitchen list: what you have, in the order it should be eaten,
      each with a window rather than a countdown. */
-  .ill-kitchen { background: var(--sage-tint); padding: 12px 20px; }
+  .ill-kitchen { background: var(--surface-2); padding: 12px 20px; }
   .k-card {
     width: 100%; background: var(--card); border: 1px solid var(--card-line);
-    border-radius: var(--r-card); overflow: hidden;
-    box-shadow: 0 10px 20px -14px rgba(35,75,52,0.35);
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 10px 20px -14px rgba(170, 90, 50, 0.4);
   }
   .k-row { display: flex; align-items: center; gap: 10px; padding: 7px 11px; }
   .k-row + .k-row { border-top: 1px solid var(--card-line); }
@@ -621,14 +687,14 @@
   }
   .k-tag.today { background: var(--red-soft); color: var(--red-ink); }
   .k-tag.soon  { background: var(--accent-soft); color: var(--accent-ink); }
-  .k-tag.fresh { background: rgba(94,154,100,0.16); color: #3E6B45; }
+  .k-tag.fresh { background: var(--sage-tint); color: #3E6B45; }
 
   /* 3. The recipe the kitchen already covers, and what cooking it spends. */
-  .ill-recipe { background: var(--accent-soft); padding: 12px 20px; }
+  .ill-recipe { background: var(--primary); padding: 12px 20px; }
   .r-card {
     width: 100%; background: var(--card); border: 1px solid var(--card-line);
-    border-radius: var(--r-card); padding: 11px;
-    box-shadow: 0 10px 20px -14px rgba(138,90,11,0.4);
+    border-radius: 16px; padding: 11px;
+    box-shadow: 0 10px 20px -12px rgba(110, 30, 15, 0.5);
   }
   .r-head { display: flex; align-items: center; gap: 10px; }
   .r-dish {
@@ -651,14 +717,14 @@
   .r-tick {
     position: absolute; right: -3px; bottom: -3px; width: 14px; height: 14px;
     padding: 2px; border-radius: 999px;
-    background: var(--primary); color: var(--surface);
+    background: var(--green); color: #fff;
     opacity: 0; transform: scale(0.6);
     transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .r-cta {
     display: flex; align-items: center; justify-content: center;
-    height: 28px; border-radius: var(--r-btn);
-    background: var(--primary); color: var(--surface);
+    height: 28px; border-radius: 10px;
+    background: var(--primary); color: #fff;
     font-size: 11.5px; font-weight: 700;
   }
 
@@ -699,32 +765,31 @@
     .step-card .k-row, .step-card.seen .k-row { animation: none; opacity: 1; }
     .r-chip, .r-tick { transition: none !important; }
   }
-  .step-card h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 8px; }
+  .step-card h3 { font-size: 20px; font-weight: 800; letter-spacing: -0.015em; margin-bottom: 8px; }
   .step-card p { font-size: 15px; color: var(--muted); line-height: 1.5; }
 
   /* Stats band */
-  .stats { background: var(--primary); color: var(--surface); }
+  .stats { background: var(--surface-2); color: var(--text); }
   .stats .sec-pad { padding-block: 76px; }
   .stats-head { max-width: 660px; margin-bottom: 52px; }
-  .stats-head .eyebrow { color: var(--accent); }
-  .stats-head h2 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: clamp(30px, 3.4vw, 40px); line-height: 1.12; letter-spacing: -0.025em; color: var(--surface); }
+  .stats-head h2 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: clamp(30px, 3.4vw, 40px); line-height: 1.12; letter-spacing: -0.025em; color: var(--text); }
   .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
   /* Flex column so the three source lines sit on one baseline even when the
      descriptions run to different depths. */
   .stat-card { display: flex; flex-direction: column; padding: 4px 38px 0; }
   .stat-card:first-child { padding-left: 0; }
   .stat-card:last-child { padding-right: 0; }
-  .stat-card + .stat-card { border-left: 1px solid var(--inverse-hairline); }
+  .stat-card + .stat-card { border-left: 1px solid var(--surface-3); }
   .stat-num {
     font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif;
     font-weight: 800; font-size: clamp(48px, 5vw, 68px);
-    line-height: 0.95; letter-spacing: -0.035em; color: var(--accent);
+    line-height: 0.95; letter-spacing: -0.035em; color: var(--primary);
     font-variant-numeric: tabular-nums;
   }
-  .stat-desc { font-size: 16.5px; line-height: 1.5; margin-top: 18px; opacity: 0.92; max-width: 30ch; }
-  .stat-src { font-size: 13px; margin-top: auto; padding-top: 20px; opacity: 0.55; }
-  .stat-src a { border-bottom: 1px solid var(--inverse-hairline-strong); }
-  .stat-src a:hover { border-bottom-color: var(--accent); }
+  .stat-desc { font-size: 16.5px; line-height: 1.5; margin-top: 18px; max-width: 30ch; }
+  .stat-src { font-size: 13px; margin-top: auto; padding-top: 20px; color: var(--muted); }
+  .stat-src a { border-bottom: 1px solid var(--hairline-strong); }
+  .stat-src a:hover { border-bottom-color: var(--primary); }
 
   /* Feature showcase */
   .feat { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
@@ -733,23 +798,22 @@
   .feat-copy h3 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 30px; line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 14px; }
   .feat-copy p { font-size: 17px; color: var(--muted); line-height: 1.55; margin-bottom: 20px; }
   .feat-list { display: flex; flex-direction: column; gap: 12px; }
-  .feat-li { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; }
+  .feat-li { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 600; }
   .feat-li .lic { width: 24px; height: 24px; border-radius: 999px; background: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .feat-visual {
     border-radius: 24px; padding: 36px; min-height: 320px;
     display: flex; align-items: center; justify-content: center;
-    border: 1px solid var(--hairline);
   }
-  .eatfirst-lab { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+  .eatfirst-lab { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--red-ink); }
   .eatfirst-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .ef-card { background: rgba(248,244,238,0.96); border-radius: 10px; padding: 7px; }
-  .ef-thumb { aspect-ratio: 1/1; border-radius: 7px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .ef-card { background: var(--card); border-radius: 14px; padding: 7px; box-shadow: var(--shadow-soft); }
+  .ef-thumb { aspect-ratio: 1/1; border-radius: 10px; display: flex; align-items: center; justify-content: center; position: relative; }
   .ef-name { font-weight: 700; font-size: 10px; line-height: 1.1; margin-top: 5px; }
-  .ef-when { font-size: 9px; font-weight: 600; color: var(--red); margin-top: 1px; }
+  .ef-when { font-size: 9px; font-weight: 700; color: var(--red-ink); margin-top: 1px; }
   .udot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; }
 
   /* Pricing */
-  .pricing { background: var(--surface); }
+  .pricing { background: var(--page); }
   .honest-strip {
     max-width: 760px; margin: 0 auto 40px; text-align: center;
     font-size: 16px; color: var(--muted); line-height: 1.55;
@@ -757,29 +821,28 @@
   .honest-strip b { color: var(--text); font-weight: 700; }
   .price-toggle {
     display: inline-flex; padding: 4px; border-radius: 999px;
-    background: var(--surface-2); border: 1px solid var(--hairline);
+    background: var(--surface-2);
     margin: 0 auto 40px; gap: 4px;
   }
   .toggle-wrap { display: flex; justify-content: center; }
   .price-toggle button {
     height: 40px; padding: 0 22px; border: none; border-radius: 999px;
     background: transparent; color: var(--muted); cursor: pointer;
-    font-family: inherit; font-weight: 600; font-size: 14px;
+    font-family: inherit; font-weight: 800; font-size: 14px;
     display: flex; align-items: center; gap: 8px;
   }
-  .price-toggle button.on { background: var(--primary); color: var(--surface); }
-  .save-pill { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; background: var(--accent); color: var(--text); }
-  .price-toggle button.on .save-pill { background: var(--accent); }
+  .price-toggle button.on { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(170, 90, 50, 0.18); }
+  .save-pill { font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: var(--primary); color: #fff; }
 
   .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; align-items: stretch; }
   .plan {
-    background: var(--card); border: 1px solid var(--card-line);
+    background: var(--card); box-shadow: var(--shadow-soft);
     border-radius: var(--r-lg); padding: 32px 28px;
     display: flex; flex-direction: column;
   }
-  .plan.featured { border: 1.5px solid var(--primary); box-shadow: 0 20px 50px rgba(27,67,50,0.14); position: relative; }
-  .plan-flag { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--text); font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 999px; white-space: nowrap; }
-  .plan-name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .plan.featured { outline: 2px solid var(--primary); box-shadow: 0 20px 50px rgba(217, 80, 58, 0.16); position: relative; }
+  .plan-flag { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; padding: 5px 14px; border-radius: 999px; white-space: nowrap; }
+  .plan-name { font-weight: 800; font-size: 18px; letter-spacing: -0.01em; }
   .plan-for { font-size: 14px; color: var(--muted); margin-top: 4px; }
   .plan-price { display: flex; align-items: baseline; gap: 4px; margin: 22px 0 4px; }
   .plan-price .amt { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 46px; letter-spacing: -0.03em; }
@@ -787,7 +850,7 @@
   .plan-note { font-size: 13px; color: var(--muted); min-height: 18px; }
   .plan ul { list-style: none; padding: 0; margin: 24px 0; display: flex; flex-direction: column; gap: 12px; flex: 1; }
   .plan li { display: flex; align-items: flex-start; gap: 11px; font-size: 14.5px; line-height: 1.4; }
-  .plan li .lic { width: 20px; height: 20px; border-radius: 999px; background: var(--primary-50); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .plan li .lic { width: 20px; height: 20px; border-radius: 999px; color: var(--primary); background: var(--surface-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
   .plan li.off { color: var(--muted-2); }
   .plan li.off .lic { background: transparent; }
   .plan .btn { width: 100%; }
@@ -806,11 +869,11 @@
   .faq-a-inner b { color: var(--text); font-weight: 700; }
 
   /* What is leftovr (definition block) */
-  .define { background: var(--surface); }
+  .define { background: var(--page); }
   .define-card { max-width: 820px; margin: 0 auto; text-align: center; }
   .define-card p.lede { font-size: 20px; line-height: 1.55; color: var(--text); }
   .define-facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 28px; }
-  .define-facts span { background: var(--card); border: 1px solid var(--hairline); border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .define-facts span { background: var(--surface-2); border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 700; color: var(--red-ink); }
   .updated { margin-top: 24px; font-size: 13px; color: var(--muted-2); }
 
   /* Ways to add food */
@@ -825,7 +888,7 @@
   table.compare thead th { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: var(--surface-2); }
   table.compare thead th.us { color: var(--primary); }
   table.compare tbody th { font-weight: 700; color: var(--text); width: 22%; }
-  table.compare td.us { font-weight: 600; color: var(--primary); background: var(--primary-50); }
+  table.compare td.us { font-weight: 700; color: var(--red-ink); background: var(--primary-50); }
   table.compare tbody tr:last-child th, table.compare tbody tr:last-child td { border-bottom: none; }
   .compare-note { max-width: 760px; margin: 20px auto 0; text-align: center; font-size: 13px; color: var(--muted-2); line-height: 1.5; }
 
@@ -833,37 +896,37 @@
   .readmore { max-width: 760px; margin: 56px auto 0; }
   .readmore h3 { font-size: 16px; font-weight: 700; margin-bottom: 14px; text-align: center; }
   .readmore-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-  .readmore-links a { background: var(--card); border: 1px solid var(--hairline); border-radius: 999px; padding: 9px 16px; font-size: 14px; font-weight: 600; color: var(--primary); }
+  .readmore-links a { background: var(--card); border: 1px solid var(--card-line); border-radius: 999px; padding: 9px 16px; font-size: 14px; font-weight: 700; color: var(--red-ink); }
   .readmore-links a:hover { border-color: var(--hairline-strong); }
 
   @media (max-width: 860px) {
     .stats-grid, .stats-grid.three { grid-template-columns: 1fr; }
     .stat-card { padding: 28px 0 0; }
-    .stat-card + .stat-card { border-left: none; border-top: 1px solid var(--inverse-hairline); }
+    .stat-card + .stat-card { border-left: none; border-top: 1px solid var(--surface-3); }
     .stat-desc { max-width: none; }
     .define-card p.lede { font-size: 18px; }
     table.compare th, table.compare td { padding: 13px 14px; font-size: 14px; }
   }
 
-  /* Final CTA */
-  .final { background: var(--primary); color: var(--surface); }
-  .final .sec-pad { padding-block: 80px; }
+  /* Final CTA: the one tomato surface on the page, a card on the cream
+     like everything else, with a white action. */
+  .final { padding: 0 28px 84px; color: #fff; }
+  .final .sec-pad { padding-block: 76px; background: var(--primary); border-radius: 32px; }
   .final-inner { max-width: 640px; margin: 0 auto; text-align: center; }
-  .final-logo { color: var(--surface); font-size: 30px; margin-bottom: 18px; }
-  .final-logo .logo-r { color: var(--accent); }   /* gold reads on green */
-  .final h2 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 44px; line-height: 1.08; letter-spacing: -0.025em; color: var(--surface); margin-bottom: 18px; }
-  .final h2 .mark { color: var(--accent); }
-  .final p.lead { font-size: 19px; opacity: 0.85; margin-bottom: 34px; }
+  .final-logo { color: #fff; font-size: 30px; margin-bottom: 18px; }
+  .final-logo .logo-r { color: var(--text); }
+  .final h2 { font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 44px; line-height: 1.08; letter-spacing: -0.025em; color: #fff; margin-bottom: 18px; }
+  .final h2 .mark { color: var(--text); }
+  .final p.lead { font-size: 19px; font-weight: 700; margin-bottom: 34px; }
   .final .capture { margin: 0 auto; }
-  .final .field { background: rgba(248,244,238,0.1); border-color: rgba(248,244,238,0.28); color: var(--surface); }
-  .final .field::placeholder { color: rgba(248,244,238,0.55); }
-  .final .field:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(212,168,67,0.18); }
-  .final .privacy { color: rgba(248,244,238,0.65); justify-content: center; }
-  .final .capture-label { color: var(--surface); text-align: left; }
-  .final .post { font-size: 14px; opacity: 0.7; margin-top: 18px; }
+  .final .field { border-color: transparent; }
+  .final .field:focus { border-color: var(--text); box-shadow: 0 0 0 4px rgba(30, 27, 25, 0.18); }
+  .final .privacy { color: #fff; font-weight: 600; justify-content: center; }
+  .final .capture-label { color: #fff; text-align: left; }
+  .final .post { font-size: 14px; font-weight: 600; margin-top: 18px; }
   .final .form-msg { text-align: center; }
-  .final .form-success { background: rgba(248,244,238,0.1); border-color: rgba(248,244,238,0.24); color: var(--surface); margin: 0 auto; }
-  .final .form-success .tick { background: var(--accent); }
+  .final .form-msg.err, .final .form-msg.ok { color: #fff; font-weight: 700; }
+  .final .form-success { background: var(--surface); border-color: transparent; color: var(--text); margin: 0 auto; text-align: left; }
 
   /* Footer */
   footer { padding: 44px 0; border-top: 1px solid var(--hairline); }
@@ -879,7 +942,7 @@
     display: none;
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
     padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
-    background: rgba(239,233,221,0.94); backdrop-filter: blur(12px);
+    background: rgba(253, 241, 232, 0.94); backdrop-filter: blur(12px);
     border-top: 1px solid var(--hairline);
   }
   .sticky-cta .btn { width: 100%; }
@@ -905,10 +968,12 @@
     .sec-pad { padding-block: 60px; }
     h2.sec-title { font-size: 33px; }
     .final h2 { font-size: 34px; }
+    .final { padding: 0 12px 56px; }
+    .final .sec-pad { padding-block: 52px; border-radius: 28px; }
     .capture-row { flex-direction: column; }
     .capture-row .btn { width: 100%; height: 56px; }
     /* Full width + 16px font stops iOS Safari zooming on focus; taller for presence. */
-    .capture-row .field { width: 100%; height: 56px; font-size: 16px; }
+    .capture-row .field { flex: none; width: 100%; height: 56px; font-size: 16px; }
     .nav .btn { height: 44px; padding: 0 18px; font-size: 14px; }
     .sticky-cta { display: block; }
     body { padding-bottom: 84px; }
@@ -960,7 +1025,7 @@
         "@id": "https://leftovr.co/#app"
       },
       "datePublished": "2026-06-19",
-      "dateModified": "2026-11-06",
+      "dateModified": "2026-11-10",
       "primaryImageOfPage": {
         "@type": "ImageObject",
         "url": "https://leftovr.co/og-image-2.png"
@@ -1183,6 +1248,41 @@
 </head>
 <body>
 
+<!-- ─────────────── LAUNCH SPLASH (once per session) ─────────────── -->
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="splash-mark">
+    <img src="/splash-logo.png" alt="" width="200" height="200">
+    <div class="wisp-clip" style="left:83px"><div class="wisp"><svg viewBox="11 6.5 5 8.5"><path d="M12.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#F2B640" stroke-width="3" stroke-linecap="round" fill="none"/></svg></div></div>
+    <div class="wisp-clip" style="left:101px"><div class="wisp"><svg viewBox="20 6.5 5 8.5"><path d="M21.5 13 c0 -2.4 2 -2.4 2 -4.8" stroke="#F2B640" stroke-width="3" stroke-linecap="round" fill="none"/></svg></div></div>
+  </div>
+</div>
+<noscript><style>.splash { display: none; }</style></noscript>
+<script>
+  // Runs before first paint. Holds for one rise of the steam (1.6s, as in the
+  // app) and until the page has loaded, capped at 4s so a slow asset can't
+  // keep the door shut.
+  (function () {
+    var el = document.getElementById('splash'), root = document.documentElement;
+    var seen = false;
+    try { seen = sessionStorage.getItem('leftovr-splash') === '1'; sessionStorage.setItem('leftovr-splash', '1'); } catch (e) {}
+    if (seen) { el.remove(); return; }
+    root.classList.add('splashing');
+    var min = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1600;
+    var t0 = Date.now(), closed = false;
+    function close() {
+      if (closed) return;
+      closed = true;
+      setTimeout(function () {
+        el.classList.add('out');
+        root.classList.remove('splashing');
+        setTimeout(function () { el.remove(); }, 300);
+      }, Math.max(0, min - (Date.now() - t0)));
+    }
+    if (document.readyState === 'complete') close(); else window.addEventListener('load', close);
+    setTimeout(close, 4000);
+  })();
+</script>
+
 <!-- ─────────────── HEADER (logo + language toggle + single CTA) ─────────────── -->
 <header>
   <div class="wrap nav">
@@ -1204,29 +1304,21 @@
 
   <!-- ─────────────── HERO ─────────────── -->
   <section class="stage" id="top-stage" data-screen-label="Hero">
-    <!-- Food at wall scale, cropped by the viewport. On green it is texture:
-         the dark gets something to catch light on, nothing competes. -->
-    <div class="stage-texture" aria-hidden="true">
-      <img class="tx tx-1" src="/food/spinach.png" alt="" width="192" height="192" decoding="async">
-      <img class="tx tx-2" src="/food/tomato.png" alt="" width="192" height="192" decoding="async">
-      <img class="tx tx-3" src="/food/pasta.png" alt="" width="192" height="192" decoding="async">
-      <img class="tx tx-4" src="/food/cheese.png" alt="" width="192" height="192" decoding="async">
-    </div>
+    <div class="wrap stage-grid">
+      <div class="stage-copy">
+        <span class="micro stage-eyebrow" data-i18n="hero.eyebrow">iPhone &middot; free to start</span>
 
-    <div class="wrap stage-copy">
-      <span class="micro stage-eyebrow" data-i18n="hero.eyebrow">iPhone &middot; free to start</span>
+        <h1 class="stage-h1" data-i18n-html="hero.h1">
+          Dinner, from what&#39;s <em>already in your fridge</em>.
+        </h1>
 
-      <h1 class="stage-h1" data-i18n-html="hero.h1">
-        Dinner, from what&#39;s <em>already in your fridge</em>.
-      </h1>
-
-      <p class="stage-sub" data-i18n="hero.sub">Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight&#39;s dinner from it.</p>
+        <p class="stage-sub" data-i18n="hero.sub">Photograph your fridge. leftovr fills your kitchen, flags what spoils first, and builds tonight&#39;s dinner from it.</p>
 
       <form class="capture" id="hero-form" novalidate>
         <label class="capture-label sr-only" for="hero-email" data-i18n="hero.formLabel">Get early access</label>
         <div class="capture-row">
           <input class="field" type="email" id="hero-email" name="email" placeholder="you@email.com" data-i18n-ph="hero.placeholder" autocomplete="email" required>
-          <button class="btn btn-accent" type="submit" data-i18n="hero.submit">Join the waitlist</button>
+          <button class="btn btn-primary" type="submit" data-i18n="hero.submit">Join the waitlist</button>
         </div>
         <div id="hero-captcha" class="captcha-widget"></div>
         <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -1237,48 +1329,46 @@
         <p class="form-msg" id="hero-msg" role="status" aria-live="polite"></p>
       </form>
       <div class="form-success" id="hero-success">
-        <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#1A3A28" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div><b style="font-weight:700;" data-i18n="hero.successTitle">You&#39;re on the list.</b><br><span class="fs-sub" data-i18n="hero.successBody">We&#39;ll email your invite as soon as a spot opens, usually within a few days.</span></div>
       </div>
-    </div>
+      </div>
 
-    <!-- The counter: your food on the left, tonight's dinner on the right,
-         a gold sweep down the rule on every swap. -->
-    <div class="wrap stage-counter">
-      <div class="demo" role="img" aria-label="leftovr turning the food in your kitchen into tonight&#39;s dinner">
-        <div class="demo-main">
-          <div class="demo-head">
+      <!-- The open fridge: your food on its shelves, and the ticket on the door
+           names tonight's dinner. What the dish uses lifts off the shelf. -->
+      <div class="stage-fridge">
+        <div class="demo" role="img" aria-label="leftovr turning the food in your kitchen into tonight&#39;s dinner">
+          <span class="fr-handle" aria-hidden="true"></span>
+          <div class="fr-top">
             <span class="demo-label" data-i18n="stage.have">Your kitchen</span>
             <span class="demo-count" data-i18n="stage.count">6 items</span>
           </div>
-
           <ul class="k-list">
-            <li class="k-ing" data-ing="0"><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing0">Baby spinach</span></li>
-            <li class="k-ing" data-ing="1"><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing1">Feta</span></li>
-            <li class="k-ing" data-ing="2"><img src="/food/eggs.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing2">Free-range eggs</span></li>
-            <li class="k-ing" data-ing="3"><img src="/food/tomato.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing3">Cherry tomatoes</span></li>
-            <li class="k-ing" data-ing="4"><img src="/food/chicken_breast.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing4">Chicken breast</span></li>
-            <li class="k-ing" data-ing="5"><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing5">Pasta</span></li>
+            <li class="k-ing" data-ing="0" style="--i:0"><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing0">Baby spinach</span></li>
+            <li class="k-ing" data-ing="1" style="--i:1"><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing1">Feta</span></li>
+            <li class="k-ing" data-ing="2" style="--i:2"><img src="/food/eggs.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing2">Free-range eggs</span></li>
+            <li class="k-ing" data-ing="3" style="--i:3"><img src="/food/tomato.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing3">Cherry tomatoes</span></li>
+            <li class="k-ing" data-ing="4" style="--i:4"><img src="/food/chicken_breast.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing4">Chicken breast</span></li>
+            <li class="k-ing" data-ing="5" style="--i:5"><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"><span data-i18n="stage.ing5">Pasta</span></li>
           </ul>
-        </div>
 
-        <div class="demo-rule"><span class="demo-sweep"></span></div>
-
-        <div class="demo-foot">
-          <span class="demo-label" data-i18n="stage.tonight">Tonight</span>
-          <div class="pick">
-            <div class="pick-icons" id="dish-cluster" aria-hidden="true">
-              <span><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"></span>
-              <span><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"></span>
-              <span><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"></span>
+          <div class="demo-foot">
+            <svg class="steam" viewBox="0 0 44 30" aria-hidden="true"><path d="M8 28c0-6 5-6 5-12S8 10 8 4"/><path d="M22 28c0-6 5-6 5-12s-5-6-5-12"/><path d="M36 28c0-6 5-6 5-12s-5-6-5-12"/></svg>
+            <span class="demo-label" data-i18n="stage.tonight">Tonight</span>
+            <div class="pick">
+              <div class="pick-icons" id="dish-cluster" aria-hidden="true">
+                <span><img src="/food/spinach.png" alt="" width="192" height="192" decoding="async"></span>
+                <span><img src="/food/cheese.png" alt="" width="192" height="192" decoding="async"></span>
+                <span><img src="/food/pasta.png" alt="" width="192" height="192" decoding="async"></span>
+              </div>
+              <div class="pick-text">
+                <div class="dish" id="dish" data-i18n="stage.dish0">Spinach &amp; feta pasta</div>
+                <div class="dish-meta" id="dish-meta" data-i18n="stage.meta0">20 min &middot; uses the spinach before it turns</div>
+              </div>
+              <button type="button" class="dish-next" id="dish-next" data-i18n-aria="stage.next" aria-label="Show another dinner">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h12M11 5.5 15.5 10 11 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
             </div>
-            <div class="pick-text">
-              <div class="dish" id="dish" data-i18n="stage.dish0">Spinach &amp; feta pasta</div>
-              <div class="dish-meta" id="dish-meta" data-i18n="stage.meta0">20 min &middot; uses the spinach before it turns</div>
-            </div>
-            <button type="button" class="dish-next" id="dish-next" data-i18n-aria="stage.next" aria-label="Show another dinner">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h12M11 5.5 15.5 10 11 14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
           </div>
         </div>
       </div>
@@ -1387,7 +1477,7 @@
       </div>
       </div>
       <div class="define-card" style="margin-top:36px;">
-        <p class="updated" data-i18n="what.updated">Page last updated 6 November 2026 by the leftovr team.</p>
+        <p class="updated" data-i18n="what.updated">Page last updated 10 November 2026 by the leftovr team.</p>
       </div>
     </div>
   </section>
@@ -1532,18 +1622,18 @@
           <h3 data-i18n="feat1.title">Know what to eat first</h3>
           <p data-i18n="feat1.body">leftovr ranks your food by how soon it'll spoil and puts the at-risk items front and centre — so you use the spinach before it wilts, not after.</p>
           <div class="feat-list">
-            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li1">A daily "use today" shelf, ranked by shelf life</span></div>
-            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li2">Colour-coded freshness on every item</span></div>
-            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li3">One tap to cook with what's about to turn</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li1">A daily "use today" shelf, ranked by shelf life</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li2">Colour-coded freshness on every item</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat1.li3">One tap to cook with what's about to turn</span></div>
           </div>
         </div>
-        <div class="feat-visual" style="background:linear-gradient(135deg,var(--primary) 0%,#1F4E39 100%);">
-          <div style="width:100%;max-width:340px;">
-            <div class="eatfirst-lab" style="color:var(--accent);margin-bottom:12px;" data-i18n="feat1.vlabel">Eat first · use today</div>
+        <div class="feat-visual" style="background:var(--surface-2);">
+          <div style="width:100%;max-width:380px;">
+            <div class="eatfirst-lab" style="margin-bottom:12px;" data-i18n="feat1.vlabel">Eat first · use today</div>
             <div class="eatfirst-grid">
-              <div class="ef-card"><div class="ef-thumb" style="background:#C8D5C2;"><svg width="34" height="34" viewBox="0 0 36 36"><path d="M6 22 Q10 8 18 8 Q26 8 30 22 Q26 28 18 28 Q10 28 6 22Z" stroke="#1B4332" stroke-width="1.5" fill="none" stroke-linejoin="round"/><line x1="18" y1="8" x2="18" y2="28" stroke="#1B4332" stroke-width="1.5"/></svg><span class="udot" style="background:var(--red);"></span></div><div class="ef-name" data-i18n="ef.spinach">Baby spinach</div><div class="ef-when" data-i18n="ef.bestToday">Best today</div></div>
-              <div class="ef-card"><div class="ef-thumb" style="background:#F0DDA8;"><svg width="34" height="34" viewBox="0 0 36 36"><ellipse cx="18" cy="20" rx="10" ry="13" stroke="#1B4332" stroke-width="1.5" fill="none"/></svg><span class="udot" style="background:var(--red);"></span></div><div class="ef-name" data-i18n="ef.eggs">Free range eggs</div><div class="ef-when" data-i18n="ef.bestToday">Best today</div></div>
-              <div class="ef-card"><div class="ef-thumb" style="background:#E8C3B0;"><svg width="34" height="34" viewBox="0 0 36 36"><path d="M10 20 Q10 12 18 12 Q26 12 26 20 Q26 26 18 26 Q10 26 10 20Z" stroke="#1B4332" stroke-width="1.5" fill="none"/><circle cx="18" cy="20" r="3" stroke="#1B4332" stroke-width="1.5" fill="none"/></svg><span class="udot" style="background:var(--accent);"></span></div><div class="ef-name" data-i18n="ef.chicken">Chicken</div><div class="ef-when" style="color:var(--accent);" data-i18n="ef.in1day">In 1 day</div></div>
+              <div class="ef-card"><div class="ef-thumb" style="background:#C8D5C2;"><img src="/food/spinach.png" alt="" width="44" height="44" loading="lazy" decoding="async" style="width:44px;height:44px;object-fit:contain;"><span class="udot" style="background:var(--red);"></span></div><div class="ef-name" data-i18n="ef.spinach">Baby spinach</div><div class="ef-when" data-i18n="ef.bestToday">Best today</div></div>
+              <div class="ef-card"><div class="ef-thumb" style="background:#F0DDA8;"><img src="/food/eggs.png" alt="" width="44" height="44" loading="lazy" decoding="async" style="width:44px;height:44px;object-fit:contain;"><span class="udot" style="background:var(--red);"></span></div><div class="ef-name" data-i18n="ef.eggs">Free range eggs</div><div class="ef-when" data-i18n="ef.bestToday">Best today</div></div>
+              <div class="ef-card"><div class="ef-thumb" style="background:#E8C3B0;"><img src="/food/chicken_breast.png" alt="" width="44" height="44" loading="lazy" decoding="async" style="width:44px;height:44px;object-fit:contain;"><span class="udot" style="background:var(--accent);"></span></div><div class="ef-name" data-i18n="ef.chicken">Chicken</div><div class="ef-when" style="color:var(--accent-ink);" data-i18n="ef.in1day">In 1 day</div></div>
             </div>
           </div>
         </div>
@@ -1555,30 +1645,30 @@
           <h3 data-i18n="feat2.title">Recipes from what's actually in there</h3>
           <p data-i18n="feat2.body">Every idea is built from the food you already own and leads with the items that need using. Open one and the steps are right there.</p>
           <div class="feat-list">
-            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li1">No "buy these 9 extra things" recipes</span></div>
-            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li2">Filter by time, effort, or "uses the most"</span></div>
-            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#F8F4EE" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li3">Tap "I cooked this" and your kitchen updates</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li1">No "buy these 9 extra things" recipes</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li2">Filter by time, effort, or "uses the most"</span></div>
+            <div class="feat-li"><span class="lic"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="feat2.li3">Tap "I cooked this" and your kitchen updates</span></div>
           </div>
         </div>
-        <div class="feat-visual" style="background:var(--surface-2);">
-          <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;">
-            <div style="background:var(--card);border:1px solid var(--hairline);border-radius:16px;padding:11px;display:flex;gap:11px;align-items:stretch;">
-              <div style="width:74px;height:74px;border-radius:11px;background:linear-gradient(135deg,#C8D5C2,#A8BDA0);flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;">
-                <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="28" rx="16" ry="8" stroke="#1B4332" stroke-width="1.8" fill="none"/><path d="M12 28 Q16 22 24 22 Q32 22 36 28" stroke="#1B4332" stroke-width="1.5" fill="none"/><circle cx="20" cy="26" r="1.5" fill="#1B4332"/><circle cx="28" cy="25" r="1.5" fill="#1B4332"/></svg>
-                <div style="position:absolute;top:6px;left:6px;padding:2px 6px;border-radius:999px;background:var(--accent);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;" data-i18n="recipe1.tag">Top pick</div>
+        <div class="feat-visual" style="background:var(--sage-tint);">
+          <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;">
+            <div style="background:var(--card);box-shadow:var(--shadow-soft);border-radius:16px;padding:11px;display:flex;gap:11px;align-items:stretch;">
+              <div style="width:74px;height:74px;border-radius:11px;background:#E5D9C4;flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;">
+                <img src="/food/pasta.png" alt="" width="48" height="48" loading="lazy" decoding="async" style="width:48px;height:48px;object-fit:contain;">
+                <div style="position:absolute;top:6px;left:6px;padding:2px 6px;border-radius:999px;background:var(--primary);color:#fff;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;" data-i18n="recipe1.tag">Top pick</div>
               </div>
               <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
-                <div><div style="font-weight:700;font-size:15px;" data-i18n="recipe1.title">Spinach &amp; feta pasta</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" data-i18n="recipe1.meta">20 min · 5 ingredients</div></div>
-                <div style="font-size:12px;color:var(--primary);font-weight:600;display:flex;align-items:center;gap:6px;"><span class="udot" style="position:static;background:var(--red);"></span><span data-i18n="recipe1.note">Saves spinach (best today)</span></div>
+                <div><div style="font-weight:800;font-size:15px;" data-i18n="recipe1.title">Spinach &amp; feta pasta</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" data-i18n="recipe1.meta">20 min · 5 ingredients</div></div>
+                <div style="font-size:12px;color:var(--red-ink);font-weight:700;display:flex;align-items:center;gap:6px;"><span class="udot" style="position:static;background:var(--red);"></span><span data-i18n="recipe1.note">Saves spinach (best today)</span></div>
               </div>
             </div>
-            <div style="background:var(--card);border:1px solid var(--hairline);border-radius:16px;padding:11px;display:flex;gap:11px;align-items:stretch;opacity:0.85;">
-              <div style="width:74px;height:74px;border-radius:11px;background:linear-gradient(135deg,#F0DDA8,#E8C98A);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
-                <svg width="40" height="40" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="28" rx="16" ry="8" stroke="#1B4332" stroke-width="1.8" fill="none"/><path d="M12 28 Q16 22 24 22 Q32 22 36 28" stroke="#1B4332" stroke-width="1.5" fill="none"/></svg>
+            <div style="background:var(--card);box-shadow:var(--shadow-soft);border-radius:16px;padding:11px;display:flex;gap:11px;align-items:stretch;opacity:0.85;">
+              <div style="width:74px;height:74px;border-radius:11px;background:#F0DDA8;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                <img src="/food/eggs.png" alt="" width="48" height="48" loading="lazy" decoding="async" style="width:48px;height:48px;object-fit:contain;">
               </div>
               <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;">
-                <div><div style="font-weight:700;font-size:15px;" data-i18n="recipe2.title">Cheesy egg toast</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" data-i18n="recipe2.meta">10 min · 3 ingredients</div></div>
-                <div style="font-size:12px;color:var(--primary);font-weight:600;display:flex;align-items:center;gap:6px;"><span class="udot" style="position:static;background:var(--accent);"></span><span data-i18n="recipe2.note">Uses 3 items at risk</span></div>
+                <div><div style="font-weight:800;font-size:15px;" data-i18n="recipe2.title">Cheesy egg toast</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" data-i18n="recipe2.meta">10 min · 3 ingredients</div></div>
+                <div style="font-size:12px;color:var(--red-ink);font-weight:700;display:flex;align-items:center;gap:6px;"><span class="udot" style="position:static;background:var(--accent);"></span><span data-i18n="recipe2.note">Uses 3 items at risk</span></div>
               </div>
             </div>
           </div>
@@ -1682,10 +1772,10 @@
           <div class="plan-price"><span class="amt" data-i18n="plan.free.amt">$0</span></div>
           <div class="plan-note" data-i18n="plan.free.note">Free forever</div>
           <ul>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li1">Your first scan, pantry or receipt</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li2">Your first recipe generation</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li3">Unlimited manual + barcode add</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li4">Your kitchen, kept current</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li1">Your first scan, pantry or receipt</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li2">Your first recipe generation</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li3">Unlimited manual + barcode add</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.free.li4">Your kitchen, kept current</span></li>
           </ul>
           <a class="btn btn-ghost" href="#get" data-i18n="plan.free.cta">Start free</a>
         </div>
@@ -1698,10 +1788,10 @@
           <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.prem.amtM" data-yearly="plan.prem.amtY">$7.99</span><span class="per" data-i18n="plan.per">/month</span></div>
           <div class="plan-note" data-period-key data-monthly="plan.prem.noteM" data-yearly="plan.prem.noteY">Billed monthly</div>
           <ul>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li1">Unlimited pantry and receipt scans</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li2">Unlimited recipes, expiry-ranked</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li3">Daily "what to cook" suggestion</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li4">Weekly insights</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li1">Unlimited pantry and receipt scans</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li2">Unlimited recipes, expiry-ranked</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li3">Daily "what to cook" suggestion</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.prem.li4">Weekly insights</span></li>
           </ul>
           <a class="btn btn-primary" href="#get" data-i18n="plan.prem.cta">Get early access</a>
         </div>
@@ -1713,10 +1803,10 @@
           <div class="plan-price"><span class="amt" data-period-key data-monthly="plan.house.amtM" data-yearly="plan.house.amtY">$14.99</span><span class="per" data-i18n="plan.per">/month</span></div>
           <div class="plan-note" data-period-key data-monthly="plan.house.noteM" data-yearly="plan.house.noteY">Billed monthly</div>
           <ul>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li1">Everything in Premium</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li2">One shared kitchen for the home</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li3">Up to 3 people, synced</span></li>
-            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="#1B4332" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li4">Shared shopping + insights</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li1">Everything in Premium</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li2">One shared kitchen for the home</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li3">Up to 3 people, synced</span></li>
+            <li><span class="lic"><svg width="10" height="10" viewBox="0 0 11 11"><path d="M2 6L4.5 8.5L9 3" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="plan.house.li4">Shared shopping + insights</span></li>
           </ul>
           <a class="btn btn-ghost" href="#get" data-i18n="plan.house.cta">Get early access</a>
         </div>
@@ -1808,19 +1898,19 @@
           <label class="capture-label sr-only" for="final-email" data-i18n="hero.formLabel">Get early access</label>
           <div class="capture-row">
             <input class="field" type="email" id="final-email" name="email" placeholder="you@email.com" data-i18n-ph="hero.placeholder" autocomplete="email" required>
-            <button class="btn btn-accent" type="submit" data-i18n="hero.submit">Join the waitlist</button>
+            <button class="btn btn-light" type="submit" data-i18n="hero.submit">Join the waitlist</button>
           </div>
           <div id="final-captcha" class="captcha-widget"></div>
           <input class="sr-only" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true">
           <div class="privacy">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="rgba(248,244,238,0.65)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3v3.5C2 9.5 4.2 12 7 13c2.8-1 5-3.5 5-6.5V3L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
             <span data-i18n="hero.privacy">Early-access updates only. Unsubscribe anytime.</span>
           </div>
           <p class="form-msg" id="final-msg" role="status" aria-live="polite"></p>
           <p class="post" data-i18n="final.post">We'll email your invite as soon as a spot opens, usually within a few days.</p>
         </form>
         <div class="form-success" id="final-success">
-          <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#1B4332" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tick"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8.5L6.5 12L13 4.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           <div><b style="font-weight:700;" data-i18n="final.successTitle">You're on the list.</b><br><span style="opacity:0.8;font-size:14px;" data-i18n="final.successBody">Check your inbox — we'll send your invite as soon as a spot opens.</span></div>
         </div>
       </div>
@@ -1882,7 +1972,7 @@
   }
 
 
-  // ---------- The plate: ingredients in, dinner out ----------
+  // ---------- The fridge: ingredients in, dinner out ----------
   // Three dinners drawn from the same six ingredients. Each one lights up the
   // things it uses, so the swap demonstrates the product rather than decorating
   // it. Pauses when the tab is hidden; static under reduced motion.
@@ -1911,7 +2001,6 @@
       });
     }
 
-    var rule = document.querySelector('.demo-rule');
     var cluster = document.getElementById('dish-cluster');
 
     function group(idx, animate) {
@@ -1937,11 +2026,6 @@
         dish.classList.remove('swap'); meta.classList.remove('swap');
         void dish.offsetWidth;                       // restart the keyframes
         dish.classList.add('swap'); meta.classList.add('swap');
-        if (rule) {                                  // sweep the rule between them
-          rule.classList.remove('go');
-          void rule.offsetWidth;
-          rule.classList.add('go');
-        }
       }
       group(idx, animate);
       light(idx);
@@ -2007,7 +2091,7 @@
   // ---------- Header: show its hairline only once content is under it ----------
   (function () {
     var header = document.querySelector('header');
-    var top = document.querySelector('.hero');
+    var top = document.querySelector('.stage');
     if (!header || !top || !('IntersectionObserver' in window)) return;
     var sentinel = document.createElement('div');
     sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;';
@@ -2186,7 +2270,7 @@
       "what.fact2": "English & Serbian",
       "what.fact3": "Five ways to add food",
       "what.fact4": "Free to start",
-      "what.updated": "Page last updated 6 November 2026 by the leftovr team.",
+      "what.updated": "Page last updated 10 November 2026 by the leftovr team.",
       "how.ways": "<b>Five ways to fill your kitchen:</b> pantry photo (up to three shelves at once), receipt photo, PDF e-receipt, barcode scan, or manual add. Barcode and manual add are free and unlimited, forever.",
       "stat3.desc": "About this much of the food thrown out at home was still edible. It just was not used in time.",
       "compare.eyebrow": "How it compares",
@@ -2393,7 +2477,7 @@
       "what.fact2": "Engleski i srpski",
       "what.fact3": "Pet načina da dodaš hranu",
       "what.fact4": "Besplatno za početak",
-      "what.updated": "Stranica ažurirana 6. novembra 2026.",
+      "what.updated": "Stranica ažurirana 10. novembra 2026.",
       "how.ways": "<b>Pet načina da napuniš kuhinju:</b> slika ostave (do tri police odjednom), slika računa, PDF e-račun, bar-kod ili ručni unos. Bar-kod i ručni unos su besplatni i neograničeni, zauvek.",
       "stat3.desc": "Otprilike toliko hrane bačene kod kuće bilo je još za jelo. Samo nije iskorišćena na vreme.",
       "compare.eyebrow": "Kako se poredi",
