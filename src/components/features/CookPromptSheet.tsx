@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomSheet, Button, IconButton, SegmentedControl, Text } from "../primitives";
+import { FoodGlyph } from "../illustrations";
+import { BottomSheet, Button, IconButton, Tappable, Text } from "../primitives";
 import { colors, radii, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
 import { BasePreference } from "@/services";
@@ -42,11 +43,9 @@ type TimeOption = "any" | "15" | "30" | "norush";
 type Props = {
   visible: boolean;
   labels: {
-    eyebrow: string;
     title: string;
     meal: string;
     mealOptions: Record<MealOption, string>;
-    mealSubtitles: Record<Meal, string>;
     buildAround: string;
     baseOptions: Record<BasePreference, string>;
     time: string;
@@ -95,9 +94,23 @@ const CUISINE_OPTIONS: Cuisine[] = [
   "spanish",
   "eastern_european",
 ];
+// Each base wears the food icon that reads as it.
+const BASE_ICONS: Record<BasePreference, string> = {
+  protein: "chicken",
+  vegetables: "broccoli",
+  pasta: "pasta",
+  rice: "rice",
+  potatoes: "potato",
+  bread: "bread",
+  cheese: "cheese",
+};
 const SERVINGS_MIN = 1;
 const SERVINGS_MAX = 12;
 
+// The cook prompt in the home's language: no cards, no tabs. Each question is
+// a sentence-case label over a row of the home's ingredient chips (outlined
+// pills, an icon and a name); the picked one fills tomato. Servings is one
+// inline row with a stepper.
 export function CookPromptSheet({
   visible,
   labels,
@@ -131,12 +144,9 @@ export function CookPromptSheet({
     <BottomSheet visible={visible} onDismiss={onDismiss} style={styles.sheet}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <View style={styles.headerText}>
-            <Text variant="micro" muted uppercase>
-              {labels.eyebrow}
-            </Text>
-            <Text variant="h3">{labels.title}</Text>
-          </View>
+          <Text variant="h3" accessibilityRole="header" style={styles.headerText}>
+            {labels.title}
+          </Text>
           <IconButton label="Close" transparent onPress={onDismiss}>
             <CloseIcon />
           </IconButton>
@@ -144,25 +154,26 @@ export function CookPromptSheet({
 
         {showCookingFor ? (
           <Section label={labels.cookingFor ?? ""}>
-            <SegmentedControl
-              options={(["household", "just_me"] as CookingMode[]).map((option) => ({
-                label: labels.cookingForOptions?.[option] ?? option,
-                value: option,
-              }))}
-              value={cookingMode as CookingMode}
-              onChange={onCookingModeChange!}
-            />
+            <View style={styles.chipWrap}>
+              {(["household", "just_me"] as CookingMode[]).map((option) => (
+                <Chip
+                  key={option}
+                  label={labels.cookingForOptions?.[option] ?? option}
+                  active={cookingMode === option}
+                  onPress={() => onCookingModeChange?.(option)}
+                />
+              ))}
+            </View>
           </Section>
         ) : null}
 
         <Section label={labels.meal}>
-          <View style={styles.mealGrid}>
+          <View style={styles.chipWrap}>
             {MEAL_OPTIONS.map((option) => (
-              <MealCard
+              <Chip
                 key={option}
-                meal={option}
-                title={labels.mealOptions[option]}
-                subtitle={labels.mealSubtitles[option]}
+                label={labels.mealOptions[option]}
+                icon={(color) => <MealIcon meal={option} color={color} />}
                 active={meal === option}
                 onPress={() => setMeal((current) => (current === option ? "any" : option))}
               />
@@ -170,28 +181,31 @@ export function CookPromptSheet({
           </View>
         </Section>
 
-        <Section label={labels.buildAround}>
-          <View style={styles.chipWrap}>
-            {baseOptions.map((option) => (
-              <Chip
-                key={option}
-                label={labels.baseOptions[option]}
-                active={base === option}
-                onPress={() => setBase((current) => (current === option ? null : option))}
-              />
-            ))}
-          </View>
-        </Section>
+        {baseOptions.length > 0 ? (
+          <Section label={labels.buildAround}>
+            <View style={styles.chipWrap}>
+              {baseOptions.map((option) => (
+                <Chip
+                  key={option}
+                  label={labels.baseOptions[option]}
+                  icon={() => <FoodGlyph name={BASE_ICONS[option]} size={20} />}
+                  active={base === option}
+                  onPress={() => setBase((current) => (current === option ? null : option))}
+                />
+              ))}
+            </View>
+          </Section>
+        ) : null}
 
         <Section label={labels.time}>
-          <View style={styles.timeRow}>
+          <View style={styles.chipWrap}>
             {TIME_OPTIONS.map((option) => (
-              <IconOptionCard
+              <Chip
                 key={option}
-                compact
-                title={labels.timeOptions[option]}
-                subtitle={labels.timeSubtitles[option]}
-                icon={<TimeIcon option={option} color={colors.primary} />}
+                // "Under 15 min" and "About 30 min" say more than "Quick" and
+                // "Weeknight"; "No rush" says it best itself.
+                label={option === "norush" ? labels.timeOptions.norush : labels.timeSubtitles[option]}
+                icon={(color) => <TimeIcon option={option} color={color} />}
                 active={time === option}
                 onPress={() => setTime((current) => (current === option ? "any" : option))}
               />
@@ -199,35 +213,27 @@ export function CookPromptSheet({
           </View>
         </Section>
 
-        <Section label={labels.servingsLabel}>
-          <View style={styles.stepperRow}>
-            <View style={styles.stepperLabel}>
-              <PeopleIcon />
-              <Text variant="label">
-                {labels.peopleCount(servings)}
-              </Text>
-            </View>
-            <View style={styles.stepperControls}>
-              <StepperButton
-                label="−"
-                disabled={servings <= SERVINGS_MIN}
-                onPress={() => onServingsChange?.(Math.max(SERVINGS_MIN, servings - 1))}
-              />
-              <StepperButton
-                label="+"
-                disabled={servings >= SERVINGS_MAX}
-                onPress={() => onServingsChange?.(Math.min(SERVINGS_MAX, servings + 1))}
-              />
-            </View>
+        <View style={styles.servings}>
+          <Text variant="title">{labels.servingsLabel}</Text>
+          <View style={styles.stepper}>
+            <StepperButton
+              label="−"
+              disabled={servings <= SERVINGS_MIN}
+              onPress={() => onServingsChange?.(Math.max(SERVINGS_MIN, servings - 1))}
+            />
+            <Text variant="label" center style={styles.servingsValue}>
+              {labels.peopleCount(servings)}
+            </Text>
+            <StepperButton
+              label="+"
+              disabled={servings >= SERVINGS_MAX}
+              onPress={() => onServingsChange?.(Math.min(SERVINGS_MAX, servings + 1))}
+            />
           </View>
-        </Section>
+        </View>
 
         <Section label={labels.cuisine}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipRow}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
             {CUISINE_OPTIONS.map((option) => (
               <Chip
                 key={option}
@@ -237,20 +243,19 @@ export function CookPromptSheet({
               />
             ))}
           </ScrollView>
-          <Text variant="small" muted style={styles.eatFirstNote}>
+          <Text variant="small" muted>
             {labels.eatFirstNote}
           </Text>
         </Section>
       </ScrollView>
 
-      <View style={styles.ctaGroup}>
+      <View style={styles.cta}>
         <Button
           title={labels.generate}
           loading={generating}
           disabled={generating}
           iconRight={<ChevronRightIcon />}
           onPress={() => onGenerate(buildFilters())}
-          style={styles.ctaPrimary}
         />
       </View>
     </BottomSheet>
@@ -260,133 +265,43 @@ export function CookPromptSheet({
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={styles.section}>
-      <Text variant="micro" muted uppercase style={styles.sectionLabel}>
-        {label}
-      </Text>
+      <Text variant="title">{label}</Text>
       {children}
     </View>
   );
 }
 
-function MealCard({
-  meal,
-  title,
-  subtitle,
-  active,
-  onPress,
-}: {
-  meal: Meal;
-  title: string;
-  subtitle: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [styles.mealCard, active && styles.mealCardActive, pressed && styles.pressed]}
-    >
-      <View style={[styles.mealIconTile, active && styles.mealIconTileActive]}>
-        <MealIcon meal={meal} color={colors.primary} />
-      </View>
-      <View style={styles.mealCardText}>
-        <Text variant="label" color={colors.text}>
-          {title}
-        </Text>
-        <Text variant="small" color={colors.muted}>
-          {subtitle}
-        </Text>
-      </View>
-    </Pressable>
-  );
-}
-
-function IconOptionCard({
-  title,
-  subtitle,
-  icon,
-  active,
-  compact,
-  onPress,
-}: {
-  title: string;
-  subtitle?: string;
-  icon: React.ReactNode;
-  active: boolean;
-  compact?: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.mealCard,
-        compact && styles.mealCardCompact,
-        active && styles.mealCardActive,
-        pressed && styles.pressed,
-      ]}
-    >
-      <View style={[styles.mealIconTile, active && styles.mealIconTileActive]}>{icon}</View>
-      <View style={[styles.mealCardText, compact && styles.mealCardTextCompact]}>
-        <Text variant="label" color={colors.text}>
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text
-            variant="small"
-            color={colors.muted}
-            style={compact ? styles.compactSubtitle : undefined}
-          >
-            {subtitle}
-          </Text>
-        ) : null}
-      </View>
-    </Pressable>
-  );
-}
-
+// The home's ingredient chip: outlined pill on the page cream, an icon, the
+// name. Picked: solid tomato with white text (line icons go white too).
 function Chip({
   label,
+  icon,
   active,
   onPress,
 }: {
   label: string;
+  icon?: (color: string) => React.ReactNode;
   active: boolean;
   onPress: () => void;
 }) {
+  const ink = active ? colors.onPrimary : colors.text;
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [styles.chip, active && styles.chipActive, pressed && styles.pressed]}
-    >
-      {active ? <CheckIcon /> : null}
-      <Text variant="small" color={colors.text}>
+    <Tappable label={label} selected={active} onPress={onPress} hitSlop={4} style={[styles.chip, active && styles.chipActive]}>
+      {icon ? icon(active ? colors.onPrimary : colors.primary) : null}
+      <Text variant="small" weight="bold" color={ink}>
         {label}
       </Text>
-    </Pressable>
+    </Tappable>
   );
 }
 
 function StepperButton({ label, disabled, onPress }: { label: string; disabled?: boolean; onPress: () => void }) {
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      disabled={disabled}
-      hitSlop={spacing.xs}
-      onPress={onPress}
-      style={({ pressed }) => [styles.stepBtn, disabled && styles.stepBtnDisabled, pressed && !disabled && styles.pressed]}
-    >
+    <Tappable label={label} disabled={disabled} hitSlop={spacing.xs} onPress={onPress} style={styles.stepBtn}>
       <Text variant="h3" color={colors.primary}>
         {label}
       </Text>
-    </Pressable>
+    </Tappable>
   );
 }
 
@@ -466,24 +381,6 @@ function TimeIcon({ option, color }: { option: Exclude<TimeOption, "any">; color
   );
 }
 
-function PeopleIcon() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Circle cx={9} cy={8} r={3} stroke={colors.primary} strokeWidth={1.7} />
-      <Path d="M3.5 19a5.5 5.5 0 0 1 11 0" stroke={colors.primary} strokeWidth={1.7} strokeLinecap="round" />
-      <Path d="M15.5 5.5a3 3 0 0 1 0 5M16 13.8a5.5 5.5 0 0 1 4.5 5.2" stroke={colors.primary} strokeWidth={1.7} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <Svg width={15} height={15} viewBox="0 0 16 16" fill="none">
-      <Path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
 function CloseIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
@@ -504,7 +401,7 @@ const styles = StyleSheet.create({
   sheet: {
     maxHeight: "92%",
   },
-  // Lets the scroll area shrink so the CTA footer below it always stays in view.
+  // Lets the scroll area shrink so the CTA below it always stays in view.
   scroll: {
     flexShrink: 1,
   },
@@ -514,118 +411,55 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
   },
   headerText: {
     flex: 1,
-    gap: spacing.xs,
   },
   section: {
     gap: spacing.sm,
-  },
-  sectionLabel: {
-    marginBottom: spacing.xxs,
-  },
-  mealGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  mealCard: {
-    width: "48%",
-    flexGrow: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    backgroundColor: colors.surface,
-  },
-  // Inline 3-up variant (time): icon stacked over centered label.
-  timeRow: {
-    flexDirection: "row",
-    alignItems: "stretch",
-    gap: spacing.sm,
-  },
-  mealCardCompact: {
-    width: undefined,
-    flex: 1,
-    flexBasis: 0,
-    flexDirection: "column",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xs,
-  },
-  mealCardTextCompact: {
-    alignItems: "center",
-  },
-  compactSubtitle: {
-    textAlign: "center",
-  },
-  mealCardActive: {
-    backgroundColor: colors.sageTint,
-  },
-  mealIconTile: {
-    width: 42,
-    height: 42,
-    borderRadius: radii.md,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surface2,
-  },
-  mealIconTileActive: {
-    backgroundColor: colors.surface,
-  },
-  mealCardText: {
-    flex: 1,
-    gap: 1,
   },
   chipWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.sm,
   },
-  // Single-row horizontal carousel (cuisine) — no wrap, scrolls sideways.
+  // Single-row carousel (cuisine): no wrap, scrolls sideways.
   chipRow: {
     flexDirection: "row",
     gap: spacing.sm,
     paddingRight: spacing.lg,
   },
   chip: {
-    minHeight: 44,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.lg,
-    backgroundColor: colors.surface,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.xs,
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.bg,
   },
   chipActive: {
-    backgroundColor: colors.sageTint,
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
   },
-  stepperRow: {
+  servings: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.surface,
+    gap: spacing.md,
   },
-  stepperLabel: {
+  stepper: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
   },
-  stepperControls: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
+  servingsValue: {
+    minWidth: 76,
   },
   stepBtn: {
     width: 40,
@@ -635,26 +469,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.surface2,
   },
-  stepBtnDisabled: {
-    opacity: 0.4,
-  },
-  eatFirstNote: {
-    marginTop: spacing.xs,
-  },
-  // Pinned footer below the scroll area — separated by a hairline so it reads
-  // as a fixed action bar even when content scrolls behind it.
-  ctaGroup: {
-    flexDirection: "row",
-    alignItems: "stretch",
-    gap: spacing.sm,
+  cta: {
     paddingTop: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.hairline,
-  },
-  ctaPrimary: {
-    flex: 2,
-  },
-  pressed: {
-    opacity: 0.85,
   },
 });
