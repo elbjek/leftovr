@@ -9,7 +9,7 @@ export type BasePreference =
 // Maps coarse inventory (category + item name) onto cook bases. Name keywords are
 // the only way to split pasta/rice/potatoes — they all land in the `pantry` category.
 // ponytail: keyword heuristic, known ceiling; extend the lists as misses show up.
-const BASE_MATCHERS: { base: BasePreference; categories?: InventoryCategory[]; keywords?: string[] }[] = [
+export const BASE_MATCHERS: { base: BasePreference; categories?: InventoryCategory[]; keywords?: string[] }[] = [
   { base: "protein", categories: ["meat", "fish"], keywords: ["chicken", "beef", "pork", "turkey", "egg", "tofu", "bean", "lentil", "chickpea", "ham", "bacon", "sausage", "mince", "tuna", "salmon"] },
   { base: "vegetables", categories: ["vegetables"] },
   { base: "pasta", keywords: ["pasta", "spaghetti", "penne", "noodle", "macaroni", "lasagn", "fusilli", "rigatoni", "tagliatelle", "gnocchi"] },

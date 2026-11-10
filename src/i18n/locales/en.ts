@@ -778,6 +778,7 @@ export const en = {
         eastern_european: "Eastern European",
       },
       eatFirstNote: "We always cook with what needs eating first.",
+      feedsAbout: "Your kitchen has about enough for {{count}}. A recipe for {{servings}} may come out short.",
       vibeOptions: {
         comfort: "Comfort",
         healthy: "Healthy",
@@ -814,6 +815,8 @@ export const en = {
       savedCta: "Saved",
       bestToday: "best today",
       have: "You have {{amount}}",
+      short: "{{amount}} short",
+      enoughFor: "Enough for about {{count}} of {{servings}}. Some ingredients are short.",
       servings: "{{count}} servings",
     },
     cooked: {

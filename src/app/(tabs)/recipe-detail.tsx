@@ -8,10 +8,10 @@ import { Image } from "expo-image";
 
 import { BottomSheet, Button, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
 import type { ShareCardProps, ShareFormat } from "@/components";
-import { isPremium, useAuth } from "@/features";
+import { isPremium, useAuth, useMeasurementSystem } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
 import { asCountedPack, foodIconKey, formatMoney, newClientId } from "@/lib";
-import { addAmounts, canonicalFoodName, isLiquidAmount, dailyGoal, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
+import { addAmounts, canonicalFoodName, formatAmount, ingredientCoverage, recipeFeeds, isLiquidAmount, dailyGoal, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { reportRecipe, toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
@@ -57,6 +57,7 @@ export default function RecipeDetailRoute() {
   const { profile, activeHousehold } = useAuth();
   const { showToast } = useToast();
   const { groups: inventoryGroups, lots, loading: inventoryLoading } = useInventory(activeHousehold?.id);
+  const { system: measurementSystem } = useMeasurementSystem();
   // Recipe id still waiting for its phase-2 expand (set by the seeding effect,
   // consumed once inventory has loaded).
   const pendingExpandRef = useRef<string | null>(null);
@@ -297,6 +298,21 @@ export default function RecipeDetailRoute() {
     return matches
       .map((group) => (group.partialState === "full" ? group.amountLabel : `${group.amountLabel} (${group.partialLabel.toLowerCase()})`))
       .join(" + ");
+  };
+
+  // Is there enough of each required ingredient for these servings? Worked
+  // out on the device from the recipe amounts and the kitchen's (no AI); null
+  // where it can't be compared (liquids, spoonfuls, packs of unknown weight).
+  const coverages = ingredients.map((ing) => {
+    if (!ing.required || isLiquidAmount(ing.amount)) return null;
+    const matching = inventoryGroups.filter((group) => group.normalizedName === ingredientKey(ing)).flatMap((group) => group.lots);
+    return ingredientCoverage(ing.amount, matching, ingredientKey(ing));
+  });
+  const feeds = recipeFeeds(coverages, servings);
+  const shortLabel = (index: number) => {
+    const coverage = coverages[index];
+    if (!coverage || coverage.short <= 0) return null;
+    return coverage.dimension === "mass" ? formatAmount(coverage.short, "g", measurementSystem) : String(Math.ceil(coverage.short));
   };
 
   function handleCookPress() {
@@ -632,6 +648,14 @@ export default function RecipeDetailRoute() {
           <MetaChip icon={<ServingsIcon />} label={t("recipes.detail.servings", { count: servings })} />
           <MetaChip icon={<ComplexityIcon />} label={complexityLabel} />
         </View>
+        {feeds !== null ? (
+          <View style={styles.shortNote}>
+            <WarnIcon />
+            <Text variant="small" color={colors.text} style={styles.shortNoteText}>
+              {t("recipes.detail.enoughFor", { count: Math.max(1, feeds), servings })}
+            </Text>
+          </View>
+        ) : null}
 
         {ingredients.length > 0 ? (
           <>
@@ -669,7 +693,8 @@ export default function RecipeDetailRoute() {
                 const inFridge = isOwned(ing);
                 const isUrgent = matchedUrgentItems.includes(ing.name);
                 const missingRequired = !inFridge && ing.required;
-                const dotColor = isUrgent || missingRequired ? colors.redInk : inFridge ? colors.green : colors.muted2;
+                const short = shortLabel(i);
+                const dotColor = isUrgent || missingRequired || short ? colors.redInk : inFridge ? colors.green : colors.muted2;
                 const meta = isUrgent
                   ? t("recipes.detail.bestToday")
                   : missingRequired
@@ -701,8 +726,10 @@ export default function RecipeDetailRoute() {
                           {ing.name}
                         </Text>
                         {have ? (
-                          <Text variant="small" muted>
-                            {t("recipes.detail.have", { amount: have })}
+                          <Text variant="small" color={short ? colors.redInk : colors.muted}>
+                            {short
+                              ? `${t("recipes.detail.have", { amount: have })} · ${t("recipes.detail.short", { amount: short })}`
+                              : t("recipes.detail.have", { amount: have })}
                           </Text>
                         ) : null}
                       </View>
@@ -1080,6 +1107,15 @@ function ClockIcon() {
   );
 }
 
+function WarnIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3.5 21 20H3L12 3.5Z" stroke={colors.accentInk} strokeWidth={1.9} strokeLinejoin="round" />
+      <Path d="M12 10v4.5M12 17.2v.3" stroke={colors.accentInk} strokeWidth={1.9} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 function ServingsIcon() {
   return (
     <Svg width={13} height={13} viewBox="0 0 24 24" fill="none">
@@ -1098,6 +1134,21 @@ function ComplexityIcon() {
 }
 
 const styles = StyleSheet.create({
+  // The home's butter note, saying the dish may come out short.
+  shortNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: -spacing.md,
+    marginBottom: spacing.xl,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    backgroundColor: colors.accentSoft,
+  },
+  shortNoteText: {
+    flex: 1,
+  },
   screen: {
     flex: 1,
     backgroundColor: colors.bg,

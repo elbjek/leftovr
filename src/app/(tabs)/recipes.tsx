@@ -671,6 +671,7 @@ export default function RecipesRoute() {
           peopleCount: (count: number) => t("recipes.cookPrompt.peopleCount", { count }),
           cuisine: t("recipes.cookPrompt.cuisine"),
           eatFirstNote: t("recipes.cookPrompt.eatFirstNote"),
+          feedsAbout: (count, servings) => t("recipes.cookPrompt.feedsAbout", { count, servings }),
           cuisineOptions: {
             any: t("recipes.cookPrompt.cuisineOptions.any"),
             italian: t("recipes.cookPrompt.cuisineOptions.italian"),
@@ -697,6 +698,7 @@ export default function RecipesRoute() {
             just_me: t("recipes.cookingMode.justMe"),
           },
         }}
+        inventory={inventory}
         baseOptions={baseOptions}
         generating={generating}
         servings={servings}

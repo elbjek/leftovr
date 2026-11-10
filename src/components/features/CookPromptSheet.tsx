@@ -6,7 +6,7 @@ import { FoodGlyph } from "../illustrations";
 import { BottomSheet, Button, IconButton, Tappable, Text } from "../primitives";
 import { colors, radii, shadows, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
-import { BasePreference } from "@/services";
+import { BasePreference, estimateServings, type InventoryLot } from "@/services";
 
 export type { BasePreference };
 export type Cuisine =
@@ -57,11 +57,15 @@ type Props = {
     peopleCount: (count: number) => string;
     cuisine: string;
     eatFirstNote: string;
+    /** "Your kitchen has about enough for 3…" when the servings ask for more. */
+    feedsAbout: (count: number, servings: number) => string;
     cuisineOptions: Record<Cuisine, string>;
     generate: string;
     cookingFor?: string;
     cookingForOptions?: Record<CookingMode, string>;
   };
+  /** The kitchen, for the on-device "about enough for N" estimate. */
+  inventory: InventoryLot[];
   /** Build-around bases the household has stock for, most-stocked first. */
   baseOptions: BasePreference[];
   /** Shown only when provided (households with 2+ members). */
@@ -117,6 +121,7 @@ const SERVINGS_MAX = 12;
 export function CookPromptSheet({
   visible,
   labels,
+  inventory,
   baseOptions,
   cookingMode,
   servings = 2,
@@ -142,6 +147,10 @@ export function CookPromptSheet({
   }
 
   const showCookingFor = Boolean(cookingMode && onCookingModeChange && labels.cookingForOptions);
+  // On-device guess at how many the kitchen feeds for the picked meal and
+  // base; a warning only, never a block. Nothing to say for an empty kitchen.
+  const feeds = estimateServings(inventory, { meal: meal === "any" ? undefined : meal, base: base ?? undefined });
+  const short = feeds > 0 && feeds < servings;
 
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss} style={styles.sheet}>
@@ -243,6 +252,14 @@ export function CookPromptSheet({
             />
           </View>
         </View>
+        {short ? (
+          <View style={styles.note} accessibilityLiveRegion="polite">
+            <WarnIcon />
+            <Text variant="small" color={colors.text} style={styles.noteText}>
+              {labels.feedsAbout(feeds, servings)}
+            </Text>
+          </View>
+        ) : null}
 
         <Section label={labels.cuisine}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.chipRow}>
@@ -351,6 +368,15 @@ function StepperButton({ label, disabled, onPress }: { label: string; disabled?:
         {label}
       </Text>
     </Tappable>
+  );
+}
+
+function WarnIcon() {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3.5 21 20H3L12 3.5Z" stroke={colors.accentInk} strokeWidth={1.9} strokeLinejoin="round" />
+      <Path d="M12 10v4.5M12 17.2v.3" stroke={colors.accentInk} strokeWidth={1.9} strokeLinecap="round" />
+    </Svg>
   );
 }
 
@@ -541,6 +567,20 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
     backgroundColor: colors.surface,
     ...shadows.soft,
+  },
+  // The home's butter note ("Uses Milk before they go off").
+  note: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: -spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    backgroundColor: colors.accentSoft,
+  },
+  noteText: {
+    flex: 1,
   },
   stepper: {
     flexDirection: "row",

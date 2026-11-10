@@ -796,6 +796,7 @@ export const sr = {
         eastern_european: "Istočnoevropska",
       },
       eatFirstNote: "Uvek kuvamo od onoga što prvo treba potrošiti.",
+      feedsAbout: "U kuhinji ima hrane za otprilike {{count}}. Za {{servings}} možda neće biti dovoljno.",
       vibeOptions: {
         comfort: "Utesno",
         healthy: "Zdravo",
@@ -833,6 +834,8 @@ export const sr = {
       savedCta: "Sacuvano",
       bestToday: "najbolje danas",
       have: "Imaš {{amount}}",
+      short: "fali {{amount}}",
+      enoughFor: "Dovoljno za otprilike {{count}} od {{servings}}. Nekih sastojaka nema dovoljno.",
       servings: "{{count}} porcija",
     },
     cooked: {
