@@ -23,8 +23,8 @@ const AVOIDANCE_OPTIONS = ["meat", "fish", "dairy", "gluten", "nuts"] as const;
 const SERVINGS_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
 const CURRENCY_OPTIONS = ["USD", "EUR", "RSD", "GBP"] as const;
 
-const PRIVACY_URL = "https://leftovr.co/privacy/";
-const TERMS_URL = "https://leftovr.co/terms/";
+const legalUrl = (page: "privacy" | "terms", language: string) =>
+  `https://leftovr.co/${language === "sr" ? "sr/" : ""}${page}/`;
 const SUPPORT_EMAIL = "support@twobricklabs.com";
 
 export default function SettingsRoute() {
@@ -531,11 +531,11 @@ export default function SettingsRoute() {
         <SettingsGroup label={t("settings.legal.title")}>
           <SettingsRow
             label={t("settings.legal.privacy")}
-            onPress={() => Linking.openURL(PRIVACY_URL)}
+            onPress={() => Linking.openURL(legalUrl("privacy", currentLanguage))}
           />
           <SettingsRow
             label={t("settings.legal.terms")}
-            onPress={() => Linking.openURL(TERMS_URL)}
+            onPress={() => Linking.openURL(legalUrl("terms", currentLanguage))}
             last
           />
         </SettingsGroup>

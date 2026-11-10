@@ -17,6 +17,7 @@ const MANAGE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
 // than a custom License Agreement.
 const TERMS_URL = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 const PRIVACY_URL = "https://leftovr.co/privacy/";
+const PRIVACY_URL_SR = "https://leftovr.co/sr/privacy/";
 
 type PremiumPlan = "individual" | "household";
 type BillingPeriod = "monthly" | "yearly";
@@ -31,7 +32,7 @@ type Props = {
 };
 
 export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile, activeHousehold } = useAuth();
   const hasHouseholdPlan =
     profile?.tier === "household_premium" || activeHousehold?.plan_tier === "household_premium";
@@ -253,7 +254,7 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
           <Text variant="micro" muted>{t("premium.terms")}</Text>
         </Pressable>
         <Text variant="micro" muted>·</Text>
-        <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} hitSlop={8}>
+        <Pressable onPress={() => Linking.openURL(i18n.language === "sr" ? PRIVACY_URL_SR : PRIVACY_URL)} hitSlop={8}>
           <Text variant="micro" muted>{t("premium.privacy")}</Text>
         </Pressable>
       </View>
