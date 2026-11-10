@@ -27,7 +27,7 @@ export default function InviteCodeRoute() {
         <View style={styles.wrap}>
           <BackButton onPress={() => router.back()} />
           <View style={styles.copy}>
-            <Text variant="micro" color={colors.accentInk} uppercase>
+            <Text variant="micro" muted uppercase>
               {t("onboarding.invite.eyebrow")}
             </Text>
             <Text variant="h3">{t("onboarding.invite.title")}</Text>

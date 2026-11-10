@@ -39,7 +39,6 @@ export default function HookCarouselRoute() {
   const lastIndex = slides.length - 1;
   const last = current === lastIndex;
   const theme = showcaseThemes[slides[current].key];
-  const onGold = theme.bg === colors.accent;
 
   const currentRef = useRef(0);
 
@@ -143,10 +142,8 @@ export default function HookCarouselRoute() {
                     backgroundColor:
                       index <= current
                         ? theme.dark
-                          ? colors.accent
-                          : onGold
-                            ? colors.text
-                            : colors.primary
+                          ? colors.onPrimary
+                          : colors.primary
                         : theme.dark
                           ? colors.inverseHairlineStrong
                           : colors.hairlineStrong,
@@ -202,11 +199,7 @@ export default function HookCarouselRoute() {
               style={[
                 styles.back,
                 {
-                  backgroundColor: theme.dark
-                    ? colors.inverseHairline
-                    : onGold
-                      ? "rgba(31, 31, 31, 0.1)"
-                      : colors.primary50,
+                  backgroundColor: theme.dark ? colors.inverseHairline : colors.surface2,
                 },
               ]}
             >
@@ -217,9 +210,10 @@ export default function HookCarouselRoute() {
           ) : null}
           <Button
             title={current === 0 ? t("onboarding.hook.start") : t("onboarding.hook.next")}
+            // On the tomato slide the action is the white card surface with ink text.
             variant={theme.dark ? "accent" : "primary"}
             onPress={() => goTo(current + 1)}
-            style={styles.next}
+            style={[styles.next, theme.dark && styles.nextOnDark]}
           />
         </View>
       )}
@@ -298,6 +292,9 @@ const styles = StyleSheet.create({
   },
   next: {
     flex: 1,
+  },
+  nextOnDark: {
+    backgroundColor: colors.surface,
   },
   auth: {
     position: "absolute",

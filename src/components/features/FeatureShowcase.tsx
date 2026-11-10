@@ -8,9 +8,11 @@ import { FoodCard } from "./FoodCard";
 import { KitchenPulse } from "./KitchenPulse";
 import { ScanMethod, ScanMethodIcon } from "./ScanMethodCard";
 
-// Pre-sign-in feature tour. Each slide is full-bleed in its own colour with a
-// "stage" built from app components fed with demo copy from the locale files
-// (`onboarding.hook.slides[].demo`), so the deck always looks like the app.
+// Pre-sign-in feature tour. Slides sit on the app's cream page with white
+// lifted cards and peach wells, like the home and Kitchen; Recipes is the one
+// tomato slide. Each "stage" is built from app components fed with demo copy
+// from the locale files (`onboarding.hook.slides[].demo`), so the deck always
+// looks like the app.
 
 export type ShowcaseSceneKey =
   | "welcome"
@@ -42,37 +44,30 @@ export type ShowcaseTheme = {
   dark: boolean;
 };
 
-const gold: ShowcaseTheme = {
-  bg: colors.accent,
-  ink: colors.text,
-  muted: colors.accentInk,
-  eyebrow: colors.accentInk,
-  dark: false,
-};
-const light = (bg: string): ShowcaseTheme => ({
-  bg,
+const light: ShowcaseTheme = {
+  bg: colors.bg,
   ink: colors.text,
   muted: colors.muted,
-  eyebrow: colors.accentInk,
+  eyebrow: colors.muted,
   dark: false,
-});
+};
 const dark: ShowcaseTheme = {
   bg: colors.primary,
   ink: colors.onPrimary,
-  muted: colors.sage,
-  eyebrow: colors.accent,
+  muted: colors.onPrimary,
+  eyebrow: colors.onPrimary,
   dark: true,
 };
 
 export const showcaseThemes: Record<ShowcaseSceneKey, ShowcaseTheme> = {
-  welcome: gold,
-  add: light(colors.onPrimary),
-  kitchen: light(colors.card),
+  welcome: light,
+  add: light,
+  kitchen: light,
   recipes: dark,
-  cook: light(colors.onPrimary),
-  insights: light(colors.card),
-  household: light(colors.onPrimary),
-  start: gold,
+  cook: light,
+  insights: light,
+  household: light,
+  start: light,
 };
 
 export function ShowcaseStage({ slide, active }: { slide: ShowcaseSlide; active: boolean }) {
@@ -167,7 +162,7 @@ function WelcomeScene({ demo, active }: SceneProps<WelcomeDemo>) {
   const [first, second] = demo.cards;
   return (
     <View style={styles.stage}>
-      <Logo size={26} variant="onAccent" />
+      <Logo size={26} />
       <View style={styles.welcomeBoard}>
         {[first, second].map((card, index) => (
           <Reveal
@@ -196,8 +191,8 @@ function WelcomeScene({ demo, active }: SceneProps<WelcomeDemo>) {
         <Reveal active={active} delay={320} style={styles.welcomeRecipe}>
           <View style={[styles.darkCard, styles.tiltRecipe]}>
             <View style={styles.rowBetween}>
-              <Pill label={demo.recipe.uses} bg={colors.primary700} color={colors.accent} />
-              <Text variant="label" color={colors.sage}>
+              <Pill label={demo.recipe.uses} bg={colors.primary700} color={colors.onPrimary} />
+              <Text variant="label" color={colors.onPrimary} style={styles.onDarkQuiet}>
                 {demo.recipe.time}
               </Text>
             </View>
@@ -349,13 +344,20 @@ const darkNoteInk: Partial<Record<Urgency, string>> = {
   urgent: colors.redSoft,
   useSoon: colors.accent,
 };
+// urgencyColors' red sinks into the tomato card, so its dots use the lighter tints.
+const darkDot: Record<Urgency, string> = {
+  urgent: colors.redSoft,
+  useSoon: colors.accent,
+  safe: colors.sageTint,
+  expired: colors.surface3,
+};
 
 function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
   return (
     <View style={[styles.stage, styles.stageGap]}>
       <Reveal active={active} style={styles.center}>
         <View style={styles.readingPill}>
-          <View style={[styles.dot8, { backgroundColor: colors.accent }]} />
+          <View style={[styles.dot8, { backgroundColor: colors.onPrimary }]} />
           <Text variant="label" color={colors.onPrimary}>
             {demo.reading}
           </Text>
@@ -367,8 +369,8 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
         <Reveal active={active} delay={300}>
           <View style={[styles.darkCard, styles.recipeFront]}>
             <View style={styles.rowBetween}>
-              <Pill label={demo.uses} bg={colors.primary} color={colors.redSoft} />
-              <Text variant="label" color={colors.sage}>
+              <Pill label={demo.uses} bg={colors.primary} color={colors.onPrimary} />
+              <Text variant="label" color={colors.onPrimary} style={styles.onDarkQuiet}>
                 {demo.time}
               </Text>
             </View>
@@ -382,21 +384,22 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
                     style={[
                       styles.dot8,
                       item.urgency
-                        ? { backgroundColor: urgencyColors[item.urgency] }
+                        ? { backgroundColor: darkDot[item.urgency] }
                         : styles.dotHollow,
                     ]}
                   />
                   <Text
                     variant="label"
-                    color={item.urgency ? colors.onPrimary : colors.sage}
-                    style={styles.flex1}
+                    color={colors.onPrimary}
+                    style={[styles.flex1, !item.urgency && styles.onDarkQuiet]}
                   >
                     {item.name}
                   </Text>
                   {item.note ? (
                     <Text
                       variant="small"
-                      color={(item.urgency && darkNoteInk[item.urgency]) || colors.sage}
+                      color={(item.urgency && darkNoteInk[item.urgency]) || colors.onPrimary}
+                      style={!(item.urgency && darkNoteInk[item.urgency]) && styles.onDarkQuiet}
                     >
                       {item.note}
                     </Text>
@@ -448,7 +451,7 @@ function CookScene({ demo, active }: SceneProps<CookDemo>) {
                 style={[styles.cookRow, index < demo.rows.length - 1 && styles.cookRowLine]}
               >
                 <View style={styles.checkbox}>
-                  <Check color={colors.text} size={11} />
+                  <Check color={colors.onPrimary} size={11} />
                 </View>
                 <Text variant="title" style={styles.flex1}>
                   {row.name}
@@ -467,7 +470,7 @@ function CookScene({ demo, active }: SceneProps<CookDemo>) {
               </View>
             ))}
           </View>
-          <Text variant="label" color={colors.accentInk}>
+          <Text variant="label" color={colors.primary}>
             {demo.swap}
           </Text>
         </View>
@@ -637,10 +640,10 @@ function StartScene({ active }: { active: boolean }) {
   return (
     <View style={[styles.stage, styles.startStage]}>
       <Reveal active={active}>
-        <Logo size={64} variant="onAccent" />
+        <Logo size={64} />
       </Reveal>
       <Reveal active={active} delay={300} style={styles.startDots}>
-        {[colors.redInk, colors.primary, colors.green].map((color) => (
+        {[urgencyColors.urgent, urgencyColors.useSoon, urgencyColors.safe].map((color) => (
           <View key={color} style={[styles.startDot, { backgroundColor: color }]} />
         ))}
       </Reveal>
@@ -691,9 +694,9 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: spacing.lg,
-    backgroundColor: colors.card,
-    borderRadius: radii.lg,
-    ...shadows.elevated,
+    backgroundColor: colors.surface,
+    borderRadius: radii.xl,
+    ...shadows.soft,
   },
   cardGap: {
     gap: spacing.md,
@@ -702,8 +705,12 @@ const styles = StyleSheet.create({
     padding: 18,
     gap: spacing.md,
     backgroundColor: colors.primary,
-    borderRadius: radii.lg,
+    borderRadius: radii.xl,
     ...shadows.elevated,
+  },
+  // Secondary text on tomato: white, one step back (as WeekStrip's detail line).
+  onDarkQuiet: {
+    opacity: 0.8,
   },
   pill: {
     height: 24,
@@ -723,7 +730,7 @@ const styles = StyleSheet.create({
   },
   dotHollow: {
     borderWidth: 1.5,
-    borderColor: colors.sage,
+    borderColor: colors.inverseHairlineStrong,
   },
   // welcome
   welcomeBoard: {
@@ -754,16 +761,16 @@ const styles = StyleSheet.create({
   miniCard: {
     padding: spacing.lg,
     gap: spacing.xl,
-    backgroundColor: colors.card,
-    borderRadius: radii.lg,
-    ...shadows.elevated,
+    backgroundColor: colors.surface,
+    borderRadius: radii.xl,
+    ...shadows.soft,
   },
   // add
   methodTile: {
     padding: spacing.sm,
     gap: 10,
-    backgroundColor: colors.card,
-    borderRadius: radii.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radii.xl,
     ...shadows.soft,
   },
   methodArt: {
@@ -820,7 +827,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    borderRadius: radii.lg,
+    borderRadius: radii.xl,
     backgroundColor: colors.primary700,
   },
   deckLayerBack: {
@@ -868,7 +875,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: radii.xs,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -948,7 +955,7 @@ const styles = StyleSheet.create({
     height: 76,
     borderRadius: radii.xxl,
     borderWidth: 5,
-    borderColor: colors.onPrimary,
+    borderColor: colors.bg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -977,7 +984,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: radii.sm,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.sage,
     alignItems: "center",
     justifyContent: "center",
   },

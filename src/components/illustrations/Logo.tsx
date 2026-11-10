@@ -5,15 +5,13 @@ import { colors, fonts } from "../../theme";
 type Props = {
   /** Font size of the wordmark text. */
   size?: number;
-  /** "primary" = green text for light surfaces; "inverse" = cream text for dark/green surfaces;
-   * "onAccent" = green with a green "r" for gold surfaces, where a gold "r" would vanish. */
-  variant?: "primary" | "inverse" | "onAccent";
+  /** "primary" = ink text for light surfaces; "inverse" = white text for tomato surfaces. */
+  variant?: "primary" | "inverse";
 };
 
 const inkByVariant = {
   primary: { word: colors.text, r: colors.primary },
   inverse: { word: colors.onPrimary, r: colors.accent },
-  onAccent: { word: colors.primary, r: colors.primary },
 } as const;
 
 /**
