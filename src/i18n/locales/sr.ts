@@ -47,6 +47,7 @@ export const sr = {
     apple: "Nastavi uz Apple",
     google: "Nastavi uz Google",
     termsCopy: "Nastavkom prihvatas nase",
+    and: "i",
     terms: "Uslove",
     privacy: "Privatnost",
     otp: {

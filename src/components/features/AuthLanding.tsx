@@ -1,7 +1,9 @@
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import Svg, { Path, Rect } from "react-native-svg";
 
+import { legalUrl } from "@/lib/legalUrl";
 import { colors, radii, spacing } from "@/theme";
 
 import { Logo } from "../illustrations";
@@ -32,6 +34,7 @@ export function AuthLanding({
   onGoogle,
   onEmail,
 }: Props) {
+  const { t, i18n } = useTranslation();
   return (
     <View style={styles.wrap}>
       <View style={styles.brandBlock}>
@@ -54,11 +57,23 @@ export function AuthLanding({
 
       <Text variant="small" muted center style={styles.terms}>
         {termsCopy}{" "}
-        <Text variant="small" color={colors.primary} style={styles.link}>
+        <Text
+          variant="small"
+          color={colors.primary}
+          style={styles.link}
+          accessibilityRole="link"
+          onPress={() => Linking.openURL(legalUrl("terms", i18n.language))}
+        >
           {termsLabel}
         </Text>{" "}
-        and{" "}
-        <Text variant="small" color={colors.primary} style={styles.link}>
+        {t("auth.and")}{" "}
+        <Text
+          variant="small"
+          color={colors.primary}
+          style={styles.link}
+          accessibilityRole="link"
+          onPress={() => Linking.openURL(legalUrl("privacy", i18n.language))}
+        >
           {privacyLabel}
         </Text>
         .

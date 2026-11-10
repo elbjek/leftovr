@@ -16,6 +16,7 @@ import {
   updateProfileField,
 } from "@/repositories";
 import { colors, radii, shadows, spacing } from "@/theme";
+import { legalUrl } from "@/lib/legalUrl";
 
 const PRIMARY_GOAL_OPTIONS = ["waste", "money", "quick", "all"] as const;
 const SHOPPING_STYLE_OPTIONS = ["weekly", "few", "asneed"] as const;
@@ -23,8 +24,6 @@ const AVOIDANCE_OPTIONS = ["meat", "fish", "dairy", "gluten", "nuts"] as const;
 const SERVINGS_OPTIONS = [1, 2, 3, 4, 5, 6] as const;
 const CURRENCY_OPTIONS = ["USD", "EUR", "RSD", "GBP"] as const;
 
-const legalUrl = (page: "privacy" | "terms", language: string) =>
-  `https://leftovr.co/${language === "sr" ? "sr/" : ""}${page}/`;
 const SUPPORT_EMAIL = "support@twobricklabs.com";
 
 export default function SettingsRoute() {

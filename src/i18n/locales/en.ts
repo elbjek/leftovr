@@ -47,6 +47,7 @@ export const en = {
     apple: "Continue with Apple",
     google: "Continue with Google",
     termsCopy: "By continuing you agree to our",
+    and: "and",
     terms: "Terms",
     privacy: "Privacy",
     otp: {
