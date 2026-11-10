@@ -25,6 +25,7 @@ export * from "./SavedRecipeRow";
 export * from "./ShareCard";
 export * from "./ShareStatsSheet";
 export * from "./ScanMethodCard";
+export * from "./UnfinishedScanCard";
 export * from "./StreakMilestone";
 export * from "./WeekStrip";
 export * from "./WinsList";

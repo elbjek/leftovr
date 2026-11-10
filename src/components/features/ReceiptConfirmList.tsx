@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
@@ -14,6 +14,9 @@ type Props = {
   confirming: boolean;
   onConfirm: (items: ReceiptConfirmItem[]) => void;
   onCancel: () => void;
+  // Called with the list as it would be confirmed, on mount and after every
+  // edit, so an unfinished review can be saved.
+  onChange?: (items: ReceiptConfirmItem[]) => void;
   // Label above each item's raw text. Defaults to the receipt "Scanned as";
   // pantry passes its own ("Spotted") so shelf descriptions don't read as OCR.
   rawLabel?: string;
@@ -40,7 +43,7 @@ function parseAmount(text: string) {
   return text.trim() !== "" && Number.isFinite(value) && value > 0 ? value : null;
 }
 
-export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, rawLabel, sourceLabel, showPrice, requireDetails }: Props) {
+export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, onChange, rawLabel, sourceLabel, showPrice, requireDetails }: Props) {
   const { t } = useTranslation();
   const [rows, setRows] = useState<EditableRow[]>(() =>
     items.map((item) => ({
@@ -81,8 +84,8 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
     setRows((current) => current.filter((row) => row.id !== id));
   }
 
-  function handleConfirm() {
-    const finalItems: ReceiptConfirmItem[] = rows.map((row) => {
+  function currentItems(): ReceiptConfirmItem[] {
+    return rows.map((row) => {
       const { quantityText, priceText, noExpiry: _noExpiry, ...item } = row;
       const parsed = Number(quantityText.replace(",", "."));
       const parsedPrice = Number(priceText.replace(",", "."));
@@ -94,6 +97,8 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
         // Blank or invalid edits fall back to the scanned values.
         name: name.length > 0 ? name : items.find((i) => i.id === item.id)?.name ?? item.name,
         quantity: Number.isFinite(parsed) && parsed > 0 ? parsed : item.quantity,
+        // Still uncounted while the amount is blank, so a restored list asks again.
+        quantityUnknown: item.quantityUnknown && parseAmount(quantityText) == null,
         unit: item.unit || DEFAULT_UNIT,
         // A cleared price means "unknown"; an invalid one keeps the scanned price.
         price: !showPrice
@@ -105,7 +110,13 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, raw
               : item.price,
       };
     });
-    onConfirm(finalItems);
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- report edits only; the rest is derived from rows
+  useEffect(() => onChange?.(currentItems()), [rows]);
+
+  function handleConfirm() {
+    onConfirm(currentItems());
   }
 
   return (

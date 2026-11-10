@@ -9,8 +9,8 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleShe
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, DateField, HouseholdPill, HouseholdSheet, Logo, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnitPicker } from "@/components";
-import { acceptAiDisclosure, hasAcceptedAiDisclosure, isPremium as resolvePremium, useAuth } from "@/features";
+import { BackButton, BottomSheet, Button, Card, DateField, HouseholdPill, HouseholdSheet, Logo, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnfinishedScanCard, UnitPicker } from "@/components";
+import { acceptAiDisclosure, hasAcceptedAiDisclosure, isPremium as resolvePremium, loadScanDraft, saveScanDraft, ScanDraft, useAuth, useScanDraft } from "@/features";
 import { useInventory, useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import {
@@ -183,6 +183,42 @@ export default function ScanRoute() {
   const receiptCameraRef = useRef<CameraView>(null);
   // Scan row created by the normalize-receipt edge function; confirm completes it.
   const [pendingScanId, setPendingScanId] = useState<string | null>(null);
+  // The review list outlives the app being closed: saved on every edit,
+  // offered again here and on the home until confirmed or discarded.
+  const { draft: scanDraft, discard: discardScanDraft } = useScanDraft(activeHousehold?.id);
+
+  const resumeScanDraft = useCallback((draft: ScanDraft) => {
+    setChoice(draft.kind);
+    setPendingScanId(draft.scanId);
+    setConfirmItems(draft.items);
+    setDuplicate(draft.duplicate);
+    setConfirmAllowsDuplicate(draft.duplicate != null);
+    setError(null);
+    setMode("confirm");
+  }, []);
+
+  // The home's "Review" lands here with mode=resume.
+  useEffect(() => {
+    if (params.mode !== "resume" || !activeHousehold?.id) return;
+    router.setParams({ mode: "choice" });
+    void loadScanDraft(activeHousehold.id).then((draft) => {
+      if (draft) resumeScanDraft(draft);
+    });
+  }, [activeHousehold?.id, params.mode, resumeScanDraft]);
+
+  const saveReviewDraft = useCallback(
+    (items: ReceiptConfirmItem[]) => {
+      if (!activeHousehold?.id || !pendingScanId) return;
+      void saveScanDraft({
+        scanId: pendingScanId,
+        kind: choice === "pantry" ? "pantry" : "receipt",
+        householdId: activeHousehold.id,
+        items,
+        duplicate: confirmAllowsDuplicate ? duplicate : null,
+      });
+    },
+    [activeHousehold?.id, choice, confirmAllowsDuplicate, duplicate, pendingScanId],
+  );
 
   // Returning to the Scan tab should show the choice screen, not a leftover
   // post-scan terminal screen (success / notifications) from a previous flow.
@@ -396,6 +432,8 @@ export default function ScanRoute() {
   function returnToChoice() {
     consumedModeRef.current = "choice";
     router.setParams({ mode: "choice" });
+    // Leaving a review (Cancel) drops its saved copy too.
+    if (pendingScanId) discardScanDraft();
     setConfirmItems([]);
     setConfirmAllowsDuplicate(false);
     setConfirming(false);
@@ -635,6 +673,7 @@ export default function ScanRoute() {
         await completeFirstFillIfNeeded();
       }
 
+      discardScanDraft();
       await refresh();
       setResult(nextResult);
       setMode("success");
@@ -1316,6 +1355,7 @@ export default function ScanRoute() {
           confirming={confirming}
           onConfirm={handleConfirmScan}
           onCancel={returnToChoice}
+          onChange={saveReviewDraft}
           rawLabel={choice === "pantry" ? t("scan.pantry.spotted") : undefined}
           sourceLabel={choice === "pantry" ? t("scan.pantry.photoShows") : undefined}
           showPrice
@@ -1451,6 +1491,14 @@ export default function ScanRoute() {
         ) : null}
         <ScreenHeader title={t("scan.title")} subtitle={t("scan.body")} />
       </View>
+
+      {scanDraft ? (
+        <UnfinishedScanCard
+          count={scanDraft.items.length}
+          onReview={() => resumeScanDraft(scanDraft)}
+          onDiscard={discardScanDraft}
+        />
+      ) : null}
 
       {/* The recommended way (receipt by default) leads as a tomato banner;
           the rest sit under it two to a row. */}

@@ -5,8 +5,8 @@ import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, WeekStrip } from "@/components";
-import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth } from "@/features";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
+import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { formatMoney } from "@/lib";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
@@ -35,6 +35,7 @@ export default function RecipesRoute() {
   const { autoGenerate } = useLocalSearchParams<{ autoGenerate?: string }>();
   const { profile, activeHousehold, refresh } = useAuth();
   const { lots: inventory, groups: inventoryGroups, loading: inventoryLoading } = useInventory(activeHousehold?.id);
+  const { draft: scanDraft, discard: discardScanDraft } = useScanDraft(activeHousehold?.id);
   const baseOptions = useMemo(() => availableBaseOptions(inventory), [inventory]);
   const { members, combinedAvoidances } = useHousehold(activeHousehold?.id);
   const isPremium = resolvePremium(profile, activeHousehold);
@@ -423,6 +424,15 @@ export default function RecipesRoute() {
           ) : null}
         </View>
 
+        {scanDraft ? (
+          <UnfinishedScanCard
+            count={scanDraft.items.length}
+            onReview={() => router.navigate({ pathname: "/(tabs)/scan", params: { mode: "resume" } })}
+            onDiscard={discardScanDraft}
+            style={styles.unfinishedScan}
+          />
+        ) : null}
+
         {!isPremium ? (
           <View style={[styles.limitBanner, !canGenerate && styles.limitWarning]}>
             <View style={styles.limitMessage}>
@@ -780,6 +790,10 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: spacing.lg,
     paddingBottom: spacing.tabBarClearance,
+  },
+  unfinishedScan: {
+    marginHorizontal: spacing.screenX,
+    marginBottom: spacing.md,
   },
   header: {
     paddingHorizontal: spacing.screenX,

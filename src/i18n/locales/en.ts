@@ -446,6 +446,13 @@ export const en = {
       needsDetails_one: "Add an amount and a date (or \"No date on it\") for 1 item",
       needsDetails_other: "Add an amount and a date (or \"No date on it\") for {{count}} items",
     },
+    unfinished: {
+      title: "Unfinished scan",
+      body_one: "1 item is waiting for your review",
+      body_other: "{{count}} items are waiting for your review",
+      review: "Review",
+      discard: "Discard",
+    },
     duplicateTitle: "Already added?",
     duplicateBody: "Looks like this receipt was already added.",
     duplicateMeta: "Previous scan: {{date}}",
