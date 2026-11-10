@@ -57,11 +57,7 @@ export default function TabsLayout() {
         name="scan"
         options={{
           title: t("tabs.scan"),
-          tabBarIcon: () => (
-            <View style={styles.scanButton}>
-              <ScanIcon color={colors.primary} size={28} />
-            </View>
-          ),
+          tabBarIcon: ({ color }) => <ScanIcon color={String(color)} size={26} />,
         }}
       />
       <Tabs.Screen
@@ -121,20 +117,6 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
           }
         }
 
-        if (route.name === "scan") {
-          return (
-            <View key={route.key} style={styles.tabCell}>
-              <Tappable
-                label={label}
-                onPress={onPress}
-                style={[styles.scanButton]}
-              >
-                <ScanIcon color={colors.primary} size={28} />
-              </Tappable>
-            </View>
-          );
-        }
-
         return (
           <Tappable
             key={route.key}
@@ -143,8 +125,9 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
             onPress={onPress}
             style={styles.tabCell}
           >
-            {/* Icons only, like the tomato layout; the label is still spoken. */}
-            {getTabIcon(route.name, color)}
+            {/* Icons only, like the tomato layout; the label is still spoken.
+                The peach circle marks the active tab, Scan included. */}
+            <View style={[styles.bubble, focused && styles.bubbleActive]}>{getTabIcon(route.name, color)}</View>
           </Tappable>
         );
       })}
@@ -161,6 +144,7 @@ function getTabLabel(name: string, t: ReturnType<typeof useTranslation>["t"]) {
 }
 
 function getTabIcon(name: string, color: string) {
+  if (name === "scan") return <ScanIcon color={color} size={26} />;
   if (name === "fridge") return <KitchenIcon color={color} />;
   if (name === "recipes") return <RecipesIcon color={color} />;
   if (name === "insights") return <InsightsIcon color={color} />;
@@ -231,12 +215,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 64,
   },
-  scanButton: {
+  bubble: {
     width: 64,
     height: 64,
     borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
+  },
+  bubbleActive: {
+    backgroundColor: colors.surface2,
   },
 });
