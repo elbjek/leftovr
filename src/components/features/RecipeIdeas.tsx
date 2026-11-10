@@ -52,7 +52,7 @@ export function TryNextCard({
   coverPath?: string | null;
 }) {
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.darkCard, pressed && styles.pressed]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.hero}>
       {/* Layout C: the dish leads on the left on a peach blob; the pill,
           title and meta stack beside it, so long titles wrap in a real
@@ -66,21 +66,21 @@ export function TryNextCard({
         </View>
         <View style={styles.heroCopy}>
           <View style={styles.eyebrowPill}>
-            <Text variant="micro" uppercase color={colors.onPrimary} numberOfLines={1}>
+            <Text variant="micro" uppercase color={colors.primary} numberOfLines={1}>
               {eyebrow}
             </Text>
           </View>
-          <Text variant="h3" color={colors.onPrimary}>{title}</Text>
+          <Text variant="h3" style={styles.heroTitle}>{title}</Text>
           <View style={styles.heroMeta}>
-            <ClockIcon size={16} color={colors.onPrimary} />
-            <Text variant="small" color={colors.onPrimary}>
+            <ClockIcon size={16} />
+            <Text variant="small" color={colors.text}>
               {time}
             </Text>
-            <Text variant="small" color={colors.muted2}>
+            <Text variant="small" muted>
               ·
             </Text>
             <View style={styles.metaDot} />
-            <Text variant="small" color={colors.onPrimary}>
+            <Text variant="small" color={colors.text}>
               {complexity}
             </Text>
           </View>
@@ -102,18 +102,18 @@ export function TryNextCard({
           </View>
         ) : null}
         {description ? (
-          <Text variant="small" color={colors.onPrimary} numberOfLines={2} style={styles.onDarkSoft}>
+          <Text variant="small" color={colors.text} numberOfLines={2}>
             {description}
           </Text>
         ) : null}
         {ingredients.length > 0 ? (
           <>
             <View style={styles.rowBetween}>
-              <Text variant="title" color={colors.onPrimary}>
+              <Text variant="title">
                 {ingredientsLabel}
               </Text>
               {stepsLabel ? (
-                <Text variant="small" color={colors.accent} weight="bold">
+                <Text variant="small" color={colors.primary} weight="bold">
                   {stepsLabel}
                 </Text>
               ) : null}
@@ -121,13 +121,13 @@ export function TryNextCard({
             <View style={styles.chips}>
               {ingredients.map((chip) => (
                 <View key={chip.label} style={styles.chip}>
-                  <FoodGlyph name={chip.label} size={18} color={colors.onPrimary} />
-                  <Text variant="small" color={colors.onPrimary} weight="bold">
+                  <FoodGlyph name={chip.label} size={18} color={colors.text} />
+                  <Text variant="small" color={colors.text} weight="bold">
                     {chip.label}
                   </Text>
                   {chip.tag ? (
                     <View style={styles.chipTag}>
-                      <Text variant="micro" color={colors.onPrimary}>
+                      <Text variant="micro" color={colors.primary}>
                         {chip.tag}
                       </Text>
                     </View>
@@ -195,27 +195,19 @@ export function RecipeListCard({
   onPress: () => void;
   coverPath?: string | null;
 }) {
-  // Dark like tonight's dish; one of tonight's ideas stays gold.
-  const dark = !highlight;
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.listCard, dark ? styles.darkCard : styles.listCardHighlight, pressed && styles.pressed]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, styles.listCard, highlight && styles.listCardHighlight, pressed && styles.pressed]}>
       <View style={styles.listThumb}>
         <RecipeCover path={coverPath} glyphSize={36} />
       </View>
       <View style={styles.copy}>
-        <Text
-          variant="micro"
-          uppercase
-          numberOfLines={1}
-          color={dark ? (badgeAccent ? colors.accent : colors.muted2) : badgeAccent ? colors.primary : colors.muted}
-          style={styles.eyebrow}
-        >
+        <Text variant="micro" uppercase numberOfLines={1} color={badgeAccent ? colors.primary : colors.muted} style={styles.eyebrow}>
           {badge}
         </Text>
-        <Text variant="title" numberOfLines={2} color={dark ? colors.onPrimary : colors.text} style={styles.listGap}>
+        <Text variant="title" numberOfLines={2} style={styles.listTitle}>
           {title}
         </Text>
-        <MetaLine text={meta} color={dark ? colors.onPrimary : colors.text} />
+        <MetaLine text={meta} />
       </View>
       {onFavorite ? <Heart active={favorite} label={favoriteLabel} onPress={onFavorite} /> : null}
     </Pressable>
@@ -346,11 +338,11 @@ export function IdeasResults({
   );
 }
 
-function MetaLine({ text, color = colors.text }: { text: string; color?: string }) {
+function MetaLine({ text }: { text: string }) {
   return (
     <View style={styles.meta}>
-      <ClockIcon size={14} color={color} />
-      <Text variant="small" color={color} numberOfLines={1} style={styles.copy}>
+      <ClockIcon size={14} />
+      <Text variant="small" color={colors.text} numberOfLines={1} style={styles.copy}>
         {text}
       </Text>
     </View>
@@ -389,10 +381,10 @@ function Heart({ active, label, onPress }: { active?: boolean; label: string; on
   );
 }
 
-function ClockIcon({ size, color = colors.text }: { size: number; color?: string }) {
+function ClockIcon({ size }: { size: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4v5l3 2" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4v5l3 2" stroke={colors.text} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -435,13 +427,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.xxl,
     ...shadows.soft,
   },
-  // Tonight's dish on dark, like Insights' Premium and heatmap cards.
-  darkCard: {
-    backgroundColor: colors.text,
-  },
-  onDarkSoft: {
-    opacity: 0.85,
-  },
   hero: {
     padding: spacing.lg,
     gap: spacing.md,
@@ -469,7 +454,7 @@ const styles = StyleSheet.create({
     width: 104,
     height: 96,
     borderRadius: radii.pill,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.surface2,
     transform: [{ rotate: "-14deg" }],
   },
   heroDish: {
@@ -493,7 +478,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: spacing.md,
     borderRadius: radii.pill,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.surface2,
   },
   heroMeta: {
     flexDirection: "row",
@@ -516,7 +501,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: radii.pill,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.surface2,
   },
   cook: {
     flex: 1,
@@ -581,9 +566,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginTop: 2,
   },
-  listGap: {
-    marginTop: 2,
-  },
   meta: {
     flexDirection: "row",
     alignItems: "center",
@@ -601,8 +583,7 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: -spacing.xs,
   },
-  // Faint white pills on the dark card with the food's icon; "Use soon" is a
-  // small tomato tag.
+  // Outlined pills with the food's icon; "Use soon" is a small peach tag.
   chip: {
     flexDirection: "row",
     alignItems: "center",
@@ -612,8 +593,8 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
     borderRadius: radii.pill,
     borderWidth: 1,
-    borderColor: colors.inverseHairlineStrong,
-    backgroundColor: colors.inverseHairline,
+    borderColor: colors.cardLine,
+    backgroundColor: colors.bg,
   },
   why: {
     alignSelf: "flex-start",

@@ -17,7 +17,7 @@ type Props = {
   onPress: () => void;
 };
 
-// Today's goal as a small tomato block: the ring in a white circle, the
+// Today's goal as a small dark block: the ring in a white circle, the
 // headline over the progress in white, a tomato in the corner and the streak
 // as a butter-yellow flame pill. Small on purpose: the recipe below is the
 // home's main thing.
@@ -122,7 +122,7 @@ export function FlameIcon({ size = 13, color = colors.accentInk }: { size?: numb
 }
 
 const styles = StyleSheet.create({
-  // Solid tomato, no shadow, like a banner; the tomato mark clips at its edge.
+  // Solid dark, no shadow, like a banner; the tomato mark clips at its edge.
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.md,
     paddingRight: spacing.md,
     borderRadius: radii.xl,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.text,
     overflow: "hidden",
   },
   ringTile: {
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     width: 104,
     height: 96,
     borderRadius: radii.pill,
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.primary,
   },
   tomatoLeaf: {
     position: "absolute",
