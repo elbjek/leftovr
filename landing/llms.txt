@@ -51,8 +51,8 @@ In early access. The waitlist at https://leftovr.co/#get is the way in.
 ## Pricing
 
 Free to start: first scan (pantry photo or receipt) and first recipe generation, plus
-unlimited manual and barcode add. Premium $7.99/month or $54.99/year. Household (up to 3 people) $14.99/month or
-$99.99/year. Full detail: https://leftovr.co/pricing.md
+unlimited manual and barcode add. Premium $6.99/month or $44.99/year. Household (up to 3 people) $9.99/month or
+$69.99/year. Full detail: https://leftovr.co/pricing.md
 
 ## Pages
 
