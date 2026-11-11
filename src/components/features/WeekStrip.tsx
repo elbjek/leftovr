@@ -35,7 +35,7 @@ export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
         <GoalRing done={goal.done} total={goal.total} size={52} stroke={7} track={colors.accent} color={colors.text} />
       </View>
       <View style={styles.text}>
-        <Text variant="h3" color={colors.onPrimary} numberOfLines={1}>
+        <Text variant="h3" color={colors.onPrimary} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
           {headline}
         </Text>
         <Text variant="small" color={colors.onPrimary} numberOfLines={1} style={styles.detail}>
@@ -157,10 +157,11 @@ const styles = StyleSheet.create({
   ringLabel: {
     position: "absolute",
   },
+  // Tucked behind the streak pill so the leaf never crosses the headline.
   tomato: {
     position: "absolute",
-    right: 72,
-    bottom: -44,
+    right: 4,
+    bottom: -64,
     width: 104,
     height: 104,
   },
