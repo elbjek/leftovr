@@ -622,8 +622,8 @@ export default function RecipeDetailRoute() {
         {urgentBadge || hasCooked ? (
           <View style={styles.badges}>
             {urgentBadge ? (
-              <View style={[styles.badge, styles.badgeUrgent]}>
-                <Text variant="micro" uppercase color={colors.accentInk}>
+              <View style={styles.badge}>
+                <Text variant="micro" uppercase color={colors.primary}>
                   {t("recipes.saves", { item: urgentBadge })}
                 </Text>
               </View>
@@ -814,10 +814,10 @@ export default function RecipeDetailRoute() {
           onPress={handleFavoriteToggle}
           style={[styles.roundButton, { top: insets.top + spacing.sm, right: spacing.xl }]}
         >
-          <Svg width={19} height={19} viewBox="0 0 24 24" fill={favorite ? colors.accent : "none"}>
+          <Svg width={19} height={19} viewBox="0 0 24 24" fill={favorite ? colors.primary : "none"}>
             <Path
               d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"
-              stroke={favorite ? colors.accentInk : colors.primary}
+              stroke={colors.primary}
               strokeWidth={2}
               strokeLinejoin="round"
             />
@@ -828,7 +828,7 @@ export default function RecipeDetailRoute() {
       <View style={styles.bottomGradient}>
         <Button
           title={hasCooked ? t("recipes.detail.cookAgainCta") : t("recipes.detail.cookCta")}
-          variant="accent"
+          variant="primary"
           onPress={handleCookPress}
         />
       </View>
@@ -881,7 +881,7 @@ export default function RecipeDetailRoute() {
       >
         {swapIndex === null ? (
           <>
-            <Text variant="micro" color={colors.accent} style={styles.cookedEyebrow}>
+            <Text variant="micro" color={colors.primary} style={styles.cookedEyebrow}>
               {t("recipes.cooked.eyebrow")}
             </Text>
             <Text variant="h3" style={styles.cookedTitle}>{t("recipes.cooked.title")}</Text>
@@ -1071,7 +1071,7 @@ export default function RecipeDetailRoute() {
   );
 }
 
-/** One fact about the dish (time, servings, effort) as a sage chip. */
+/** One fact about the dish (time, servings, effort) as a peach chip. */
 function MetaChip({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <View style={styles.metaChip}>
@@ -1110,8 +1110,8 @@ function ClockIcon() {
 function WarnIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 3.5 21 20H3L12 3.5Z" stroke={colors.accentInk} strokeWidth={1.9} strokeLinejoin="round" />
-      <Path d="M12 10v4.5M12 17.2v.3" stroke={colors.accentInk} strokeWidth={1.9} strokeLinecap="round" />
+      <Path d="M12 3.5 21 20H3L12 3.5Z" stroke={colors.primary} strokeWidth={1.9} strokeLinejoin="round" />
+      <Path d="M12 10v4.5M12 17.2v.3" stroke={colors.primary} strokeWidth={1.9} strokeLinecap="round" />
     </Svg>
   );
 }
@@ -1144,7 +1144,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.surface2,
   },
   shortNoteText: {
     flex: 1,
@@ -1167,7 +1167,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: HERO_HEIGHT,
-    backgroundColor: colors.sageTint,
+    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1204,9 +1204,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
   },
-  badgeUrgent: {
-    backgroundColor: colors.accentSoft,
-  },
   metaRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -1221,7 +1218,7 @@ const styles = StyleSheet.create({
     minHeight: 30,
     paddingHorizontal: spacing.md,
     borderRadius: radii.pill,
-    backgroundColor: colors.sageTint,
+    backgroundColor: colors.surface2,
   },
   description: {
     marginTop: spacing.sm,
