@@ -139,18 +139,15 @@ export const en = {
           title: "*Recipes* written from *your pantry.*",
           body: "AI builds meals around what you have, starting with what's due soonest. Don't like them? Ask for others.",
           demo: {
-            reading: "Reading your kitchen",
-            uses: "Uses 2 due today",
             time: "25 min",
             title: "Creamy chicken & spinach orzo",
+            description: "Golden chicken thighs and wilted spinach folded through creamy orzo, finished with lemon.",
             ingredients: [
-              { name: "Chicken thighs", urgency: "urgent", note: "today" },
-              { name: "Spinach", urgency: "urgent", note: "today" },
-              { name: "Greek yogurt", urgency: "useSoon", note: "2 days" },
+              { name: "Chicken thighs", urgency: "urgent" },
+              { name: "Spinach", urgency: "urgent" },
+              { name: "Greek yogurt", urgency: "useSoon" },
               { name: "Orzo", urgency: "safe" },
-              { name: "Lemon", note: "need" },
             ],
-            chips: ["Dinner", "2 people", "Under 30 min", "No nuts"],
           },
         },
         {

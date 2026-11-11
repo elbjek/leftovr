@@ -1,16 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Easing, Image, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Svg, { Path } from "react-native-svg";
+import { useTranslation } from "react-i18next";
 import { colors, fonts, radii, shadows, spacing, Urgency, urgencyColors } from "../../theme";
 import { Logo } from "../illustrations";
 import { Text } from "../primitives";
 import { FoodCard } from "./FoodCard";
 import { KitchenPulse } from "./KitchenPulse";
+import { TryNextCard } from "./RecipeIdeas";
 import { ScanMethod, ScanMethodIcon } from "./ScanMethodCard";
 
 // Pre-sign-in feature tour. Every slide sits on the app's own page colour with
-// white lifted cards on top, like the home (no peach pages); Recipes is the one
-// tomato slide, and its cards are white too. Each "stage" is built from app components fed with demo copy
+// white lifted cards on top, like the home (no peach pages); the Recipes slide
+// is the home's own TryNextCard. Each "stage" is built from app components fed with demo copy
 // from the locale files (`onboarding.hook.slides[].demo`), so the deck always
 // looks like the app.
 
@@ -55,20 +57,12 @@ const light = (bg: string, chip: string = colors.surface): ShowcaseTheme => ({
   dark: false,
 });
 const page = light(colors.bg);
-const dark: ShowcaseTheme = {
-  bg: colors.primary,
-  ink: colors.onPrimary,
-  muted: colors.onPrimary,
-  eyebrow: colors.onPrimary,
-  chip: colors.inverseHairline,
-  dark: true,
-};
 
 export const showcaseThemes: Record<ShowcaseSceneKey, ShowcaseTheme> = {
   welcome: page,
   add: page,
   kitchen: page,
-  recipes: dark,
+  recipes: page,
   cook: page,
   insights: page,
   household: page,
@@ -337,74 +331,44 @@ function KitchenScene({ demo, active }: SceneProps<KitchenDemo>) {
 }
 
 type RecipesDemo = {
-  reading: string;
-  uses: string;
   time: string;
   title: string;
-  ingredients: { name: string; urgency?: Urgency; note?: string }[];
-  chips: string[];
+  description: string;
+  /** What the dish uses from the kitchen; urgent / useSoon ones get the "Use soon" tag. */
+  ingredients: { name: string; urgency: Urgency }[];
 };
 
-
+// The app's own home hero (TryNextCard) with demo data and the app's labels,
+// so this slide is the Recipes screen itself.
 function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
+  const { t } = useTranslation();
+  const soon = demo.ingredients.filter((item) => item.urgency === "urgent" || item.urgency === "useSoon");
+  const noop = () => {};
   return (
-    <View style={[styles.stage, styles.stageGap]}>
-      <Reveal active={active} style={styles.center}>
-        <View style={styles.readingPill}>
-          <View style={[styles.dot8, { backgroundColor: colors.primary }]} />
-          <Text variant="label" color={colors.primary}>
-            {demo.reading}
-          </Text>
-        </View>
-      </Reveal>
-      <View style={styles.deck}>
-        <View style={[styles.deckLayer, styles.deckLayerBack]} />
-        <View style={[styles.deckLayer, styles.deckLayerMid]} />
-        <Reveal active={active} delay={300}>
-          <View style={[styles.darkCard, styles.recipeFront]}>
-            <View style={styles.rowBetween}>
-              <Pill label={demo.uses} bg={colors.primary} color={colors.onPrimary} />
-              <Text variant="label" muted>
-                {demo.time}
-              </Text>
-            </View>
-            <Text variant="h3">{demo.title}</Text>
-            <View style={styles.ingredients}>
-              {demo.ingredients.map((item) => (
-                <View key={item.name} style={styles.rowGap}>
-                  <View
-                    style={[
-                      styles.dot8,
-                      item.urgency
-                        ? { backgroundColor: urgencyColors[item.urgency] }
-                        : styles.dotHollow,
-                    ]}
-                  />
-                  <Text variant="label" muted={!item.urgency} style={styles.flex1}>
-                    {item.name}
-                  </Text>
-                  {item.note ? (
-                    <Text
-                      variant="small"
-                      color={item.urgency ? urgencyInk[item.urgency] : colors.muted}
-                    >
-                      {item.note}
-                    </Text>
-                  ) : null}
-                </View>
-              ))}
-            </View>
-          </View>
-        </Reveal>
-      </View>
-      <Reveal active={active} delay={800} style={styles.chips}>
-        {demo.chips.map((chip) => (
-          <View key={chip} style={styles.darkChip}>
-            <Text variant="micro" color={colors.primary}>
-              {chip}
-            </Text>
-          </View>
-        ))}
+    <View style={styles.stage}>
+      <Reveal active={active}>
+        <TryNextCard
+          eyebrow={t("recipes.tryNext.tonight")}
+          title={demo.title}
+          time={demo.time}
+          complexity={t("recipes.complexity.simple")}
+          description={demo.description}
+          ingredientsLabel={t("recipes.tryNext.youHave")}
+          stepsLabel={t("recipes.tryNext.steps", { count: 5 })}
+          ingredients={demo.ingredients.slice(0, 4).map((item) => ({
+            label: item.name,
+            tag: soon.includes(item) ? t("recipes.tryNext.soonTag") : undefined,
+          }))}
+          why={t("recipes.tryNext.whySoon", {
+            foods: soon.slice(0, 2).map((item) => item.name.toLowerCase()).join(" & "),
+          })}
+          favoriteLabel={t("recipes.list.favorite")}
+          onFavorite={noop}
+          onPress={noop}
+          ctaLabel={t("recipes.home.cookThis")}
+          secondaryLabel={t("recipes.home.moreIdeas")}
+          onSecondary={noop}
+        />
       </Reveal>
     </View>
   );
@@ -718,10 +682,6 @@ const styles = StyleSheet.create({
     height: 9,
     borderRadius: radii.xs,
   },
-  dotHollow: {
-    borderWidth: 1.5,
-    borderColor: colors.hairlineStrong,
-  },
   // welcome
   welcomeBoard: {
     height: 290,
@@ -796,56 +756,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: radii.sm,
     alignItems: "center",
-    justifyContent: "center",
-  },
-  // recipes
-  readingPill: {
-    height: 32,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
-  },
-  deck: {
-    marginHorizontal: spacing.md,
-  },
-  deckLayer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    borderRadius: radii.xl,
-    backgroundColor: colors.surface,
-  },
-  deckLayerBack: {
-    opacity: 0.5,
-    transform: [{ translateY: 24 }, { scale: 0.88 }],
-  },
-  deckLayerMid: {
-    opacity: 0.8,
-    transform: [{ translateY: 12 }, { scale: 0.94 }],
-  },
-  recipeFront: {
-    backgroundColor: colors.surface,
-  },
-  ingredients: {
-    gap: 10,
-  },
-  chips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: spacing.xs,
-    marginTop: spacing.lg,
-  },
-  darkChip: {
-    height: 30,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface,
     justifyContent: "center",
   },
   // cook

@@ -139,18 +139,15 @@ export const sr = {
           title: "*Recepti* od onoga *što imaš.*",
           body: "AI pravi obroke od tvojih namirnica, počevši od onih kojima rok najpre ističe. Ne sviđaju ti se? Traži druge.",
           demo: {
-            reading: "Čitam tvoju kuhinju",
-            uses: "Koristi 2 koja ističu danas",
             time: "25 min",
             title: "Kremasti orzo sa piletinom i spanaćem",
+            description: "Zlatni pileći bataci i spanać umešani u kremasti orzo, sa malo limuna na kraju.",
             ingredients: [
-              { name: "Pileći bataci", urgency: "urgent", note: "danas" },
-              { name: "Spanać", urgency: "urgent", note: "danas" },
-              { name: "Grčki jogurt", urgency: "useSoon", note: "2 dana" },
+              { name: "Pileći bataci", urgency: "urgent" },
+              { name: "Spanać", urgency: "urgent" },
+              { name: "Grčki jogurt", urgency: "useSoon" },
               { name: "Orzo", urgency: "safe" },
-              { name: "Limun", note: "treba" },
             ],
-            chips: ["Večera", "2 osobe", "Do 30 min", "Bez orašastih"],
           },
         },
         {
