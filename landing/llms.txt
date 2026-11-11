@@ -58,6 +58,7 @@ $69.99/year. Yearly plans start with a 7-day free trial. Full detail: https://le
 
 - [Home](https://leftovr.co/): what it is, how it works, pricing, FAQ
 - [Home in Serbian](https://leftovr.co/sr/): the same page in Serbian (srpski)
+- [Blog in Serbian](https://leftovr.co/sr/blog/): the guides in Serbian
 - [Pricing as data](https://leftovr.co/pricing.md): plans, limits, prices
 - [Blog](https://leftovr.co/blog/): guides on cooking from what you already have, food waste, storage and pantry apps
 - [Privacy](https://leftovr.co/privacy/): receipt data is never sold; deletable any time
@@ -77,6 +78,20 @@ $69.99/year. Yearly plans start with a 7-day free trial. Full detail: https://le
 - [Sharing a Kitchen Without the Food Chaos](https://leftovr.co/blog/sharing-kitchen-roommates-family/): Shared kitchens fail on information, not goodwill: nobody knows what is there, so everyone buys it again.
 - [How to Use Leftover Ingredients Before They Spoil](https://leftovr.co/blog/use-leftover-ingredients/): Leftover ingredients are unfinished meals, not failures. Here is how to give each odd and end a job.
 - [Why "What's for Dinner?" Is the Wrong Question](https://leftovr.co/blog/whats-for-dinner-wrong-question/): Dinner gets easier when you stop searching the whole world of recipes and start from the food that needs eating.
+
+## Guides in Serbian (vodiči na srpskom)
+
+- [Planer obroka, aplikacija za ostavu ili pretraga recepata?](https://leftovr.co/sr/blog/planer-obroka-ili-aplikacija-za-ostavu/): Četiri vrste alata rešavaju večeru na različite načine. Evo šta svaki traži od tebe, gde puca i kome odgovara.
+- [Kako da ne bacaš hranu: 7 navika koje stvarno rade](https://leftovr.co/sr/blog/kako-da-ne-bacas-hranu/): Većina bačene hrane bila je savršeno dobra onog dana kad si je kupio. Rešenje je uglavnom u pažnji, ne u snazi volje.
+- [Koliko te zaista košta bacanje hrane](https://leftovr.co/sr/blog/koliko-kosta-bacanje-hrane/): Bacanje hrane je lako zanemariti jer je raspoređeno na mnogo malih odlazaka do kante. Kad se sabere, to je prava stavka u budžetu.
+- [Planiranje obroka od onoga što već imaš](https://leftovr.co/sr/blog/planiranje-obroka-od-onoga-sto-imas/): Prvo pogledaj kuhinju, isplaniraj dve do četiri večere oko onoga što treba pojesti i kupi samo ono što fali.
+- [Slika, račun ili ručni unos: kako da popišeš ostavu](https://leftovr.co/sr/blog/slika-racun-ili-rucni-unos/): Tri načina da popišeš namirnice u kuhinji, šta svaki propušta i zašto spisak uvek treba da proveriš.
+- [Koliko traje hrana? Praktičan vodič za čuvanje](https://leftovr.co/sr/blog/koliko-traje-hrana/): Datum na pakovanju je samo polazna tačka. Čuvanje, temperatura i ono što radiš sa hranom važniji su od odštampanog dana.
+- [Sedam večera iz skoro praznog frižidera](https://leftovr.co/sr/blog/sedam-vecera-iz-praznog-frizidera/): Prazan frižider retko znači praznu kuhinju. Šest osnovnih namirnica i malo začina pokrivaju celu nedelju večera.
+- [Pametnija kupovina: kupi manje, kuvaj više](https://leftovr.co/sr/blog/pametnija-kupovina/): Pametnija kupovina ne znači kupovati manje svega. Znači kupovati sa namerom, da više onoga što platiš postane večera.
+- [Zajednička kuhinja bez haosa sa hranom](https://leftovr.co/sr/blog/zajednicka-kuhinja/): Zajedničke kuhinje ne propadaju zbog loše volje, nego zbog manjka informacija: niko ne zna šta ima, pa svi kupuju ponovo.
+- [Kako iskoristiti ostatke namirnica pre nego što se pokvare](https://leftovr.co/sr/blog/kako-iskoristiti-ostatke/): Ostaci namirnica nisu promašaj, nego nedovršeni obroci. Evo kako da svaki ostatak dobije posao.
+- [Zašto je „Šta ima za večeru?” pogrešno pitanje](https://leftovr.co/sr/blog/sta-ima-za-veceru-pogresno-pitanje/): Večera postaje lakša kad prestaneš da pretražuješ sve recepte sveta i kreneš od hrane koju treba pojesti.
 
 ## Contact
 

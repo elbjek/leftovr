@@ -353,6 +353,21 @@ article.post .faq-item p { font-size: 16px; line-height: 1.6; color: var(--muted
   .cta-band { padding: 32px 24px; border-radius: 24px; }
   .cta-band h2 { font-size: 26px; }
 }
+
+/* Language toggle (same as the landing header) */
+.lang-toggle {
+  display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2);
+}
+.lang-toggle a {
+  display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 999px;
+  font-weight: 700; font-size: 13px; color: var(--muted); transition: background 0.15s ease, color 0.15s ease;
+}
+.lang-toggle a[aria-current] { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(170, 90, 50, 0.18); }
+.lang-toggle a:not([aria-current]):hover { color: var(--text); }
+@media (max-width: 520px) {
+  .nav-right .nav-link { display: none; }
+  .nav-right .btn-sm { padding: 0 14px; }
+}
 /* Footer */
 footer {
   padding: 44px 0;

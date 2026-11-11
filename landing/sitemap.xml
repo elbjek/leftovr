@@ -20,73 +20,217 @@
   </url>
   <url>
     <loc>https://leftovr.co/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/meal-planner-vs-pantry-app-vs-ingredient-search/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/meal-planner-vs-pantry-app-vs-ingredient-search/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/planer-obroka-ili-aplikacija-za-ostavu/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/meal-planner-vs-pantry-app-vs-ingredient-search/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/stop-throwing-away-food/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/stop-throwing-away-food/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/kako-da-ne-bacas-hranu/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/stop-throwing-away-food/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/real-cost-of-food-waste/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/real-cost-of-food-waste/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/koliko-kosta-bacanje-hrane/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/real-cost-of-food-waste/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/meal-planning-from-what-you-have/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/meal-planning-from-what-you-have/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/planiranje-obroka-od-onoga-sto-imas/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/meal-planning-from-what-you-have/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/photo-receipt-or-manual-pantry-inventory/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/photo-receipt-or-manual-pantry-inventory/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/slika-racun-ili-rucni-unos/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/photo-receipt-or-manual-pantry-inventory/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/how-long-does-food-last/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/how-long-does-food-last/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/koliko-traje-hrana/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/how-long-does-food-last/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/seven-dinner-ideas-empty-fridge/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/seven-dinner-ideas-empty-fridge/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/sedam-vecera-iz-praznog-frizidera/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/seven-dinner-ideas-empty-fridge/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/shopping-smarter-buy-less-cook-more/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/shopping-smarter-buy-less-cook-more/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/pametnija-kupovina/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/shopping-smarter-buy-less-cook-more/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/sharing-kitchen-roommates-family/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/sharing-kitchen-roommates-family/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/zajednicka-kuhinja/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/sharing-kitchen-roommates-family/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/use-leftover-ingredients/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/use-leftover-ingredients/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/kako-iskoristiti-ostatke/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/use-leftover-ingredients/" />
     <lastmod>2026-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://leftovr.co/blog/whats-for-dinner-wrong-question/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/whats-for-dinner-wrong-question/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/sta-ima-za-veceru-pogresno-pitanje/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/whats-for-dinner-wrong-question/" />
     <lastmod>2026-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/planer-obroka-ili-aplikacija-za-ostavu/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/meal-planner-vs-pantry-app-vs-ingredient-search/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/planer-obroka-ili-aplikacija-za-ostavu/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/meal-planner-vs-pantry-app-vs-ingredient-search/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/kako-da-ne-bacas-hranu/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/stop-throwing-away-food/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/kako-da-ne-bacas-hranu/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/stop-throwing-away-food/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/koliko-kosta-bacanje-hrane/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/real-cost-of-food-waste/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/koliko-kosta-bacanje-hrane/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/real-cost-of-food-waste/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/planiranje-obroka-od-onoga-sto-imas/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/meal-planning-from-what-you-have/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/planiranje-obroka-od-onoga-sto-imas/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/meal-planning-from-what-you-have/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/slika-racun-ili-rucni-unos/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/photo-receipt-or-manual-pantry-inventory/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/slika-racun-ili-rucni-unos/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/photo-receipt-or-manual-pantry-inventory/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/koliko-traje-hrana/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/how-long-does-food-last/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/koliko-traje-hrana/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/how-long-does-food-last/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/sedam-vecera-iz-praznog-frizidera/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/seven-dinner-ideas-empty-fridge/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/sedam-vecera-iz-praznog-frizidera/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/seven-dinner-ideas-empty-fridge/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/pametnija-kupovina/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/shopping-smarter-buy-less-cook-more/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/pametnija-kupovina/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/shopping-smarter-buy-less-cook-more/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/zajednicka-kuhinja/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/sharing-kitchen-roommates-family/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/zajednicka-kuhinja/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/sharing-kitchen-roommates-family/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/kako-iskoristiti-ostatke/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/use-leftover-ingredients/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/kako-iskoristiti-ostatke/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/use-leftover-ingredients/" />
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://leftovr.co/sr/blog/sta-ima-za-veceru-pogresno-pitanje/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://leftovr.co/blog/whats-for-dinner-wrong-question/" />
+    <xhtml:link rel="alternate" hreflang="sr" href="https://leftovr.co/sr/blog/sta-ima-za-veceru-pogresno-pitanje/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://leftovr.co/blog/whats-for-dinner-wrong-question/" />
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
