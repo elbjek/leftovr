@@ -141,12 +141,9 @@ export const en = {
           demo: {
             time: "25 min",
             title: "Creamy chicken & spinach orzo",
-            description: "Golden chicken thighs and wilted spinach folded through creamy orzo, finished with lemon.",
             ingredients: [
               { name: "Chicken thighs", urgency: "urgent" },
               { name: "Spinach", urgency: "urgent" },
-              { name: "Greek yogurt", urgency: "useSoon" },
-              { name: "Orzo", urgency: "safe" },
             ],
           },
         },

@@ -333,13 +333,13 @@ function KitchenScene({ demo, active }: SceneProps<KitchenDemo>) {
 type RecipesDemo = {
   time: string;
   title: string;
-  description: string;
   /** What the dish uses from the kitchen; urgent / useSoon ones get the "Use soon" tag. */
   ingredients: { name: string; urgency: Urgency }[];
 };
 
 // The app's own home hero (TryNextCard) with demo data and the app's labels,
-// so this slide is the Recipes screen itself.
+// so this slide is the Recipes screen itself. No description and two
+// ingredients, so the card fits the stage above the slide's copy.
 function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
   const { t } = useTranslation();
   const soon = demo.ingredients.filter((item) => item.urgency === "urgent" || item.urgency === "useSoon");
@@ -352,10 +352,9 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
           title={demo.title}
           time={demo.time}
           complexity={t("recipes.complexity.simple")}
-          description={demo.description}
           ingredientsLabel={t("recipes.tryNext.youHave")}
           stepsLabel={t("recipes.tryNext.steps", { count: 5 })}
-          ingredients={demo.ingredients.slice(0, 4).map((item) => ({
+          ingredients={demo.ingredients.map((item) => ({
             label: item.name,
             tag: soon.includes(item) ? t("recipes.tryNext.soonTag") : undefined,
           }))}

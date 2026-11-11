@@ -141,12 +141,9 @@ export const sr = {
           demo: {
             time: "25 min",
             title: "Kremasti orzo sa piletinom i spanaćem",
-            description: "Zlatni pileći bataci i spanać umešani u kremasti orzo, sa malo limuna na kraju.",
             ingredients: [
               { name: "Pileći bataci", urgency: "urgent" },
               { name: "Spanać", urgency: "urgent" },
-              { name: "Grčki jogurt", urgency: "useSoon" },
-              { name: "Orzo", urgency: "safe" },
             ],
           },
         },
