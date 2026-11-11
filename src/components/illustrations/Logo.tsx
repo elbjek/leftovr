@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { colors, fonts } from "../../theme";
 
 type Props = {
@@ -19,7 +20,8 @@ const inkByVariant = {
  * Sans ExtraBold, trailing "r" in gold rotated 9° (the intentional "crooked
  * r"). The "r" is colors.accent on every light surface — the one brand gold.
  * A logotype carries no contrast requirement (WCAG 1.4.11 exempts it), which
- * is why it can be the real gold here and nowhere else. The stacked version is the app icon (assets/images/icon.png). Colors
+ * is why it can be the real gold here and nowhere else. Two steam wisps rise
+ * over "left", in the r's colour. The stacked version is the app icon (assets/images/icon.png). Colors
  * come from theme tokens so a colorscheme change carries the logo with it.
  */
 export function Logo({ size = 48, variant = "primary" }: Props) {
@@ -30,7 +32,33 @@ export function Logo({ size = 48, variant = "primary" }: Props) {
         leftov
       </Word>
       <CrookedR fontSize={size} color={ink.r} />
+      <Steam fontSize={size} color={ink.r} />
     </View>
+  );
+}
+
+// The two steam wisps over "left", as on the app icon and splash: same paths
+// as SteamSplash, in its 36-unit grid, one unit = 0.034em of the wordmark.
+// Placed absolutely so the logo's layout box doesn't grow.
+const STEAM_UNIT = 0.034;
+const STEAM_LEFT = 0.46;
+const STEAM_TOP = -0.115;
+const WISPS = ["M12.5 13 c0 -2.4 2 -2.4 2 -4.8", "M21.5 13 c0 -2.4 2 -2.4 2 -4.8"];
+
+function Steam({ fontSize, color }: GlyphProps) {
+  const u = fontSize * STEAM_UNIT;
+  return (
+    <Svg
+      pointerEvents="none"
+      width={15 * u}
+      height={8 * u}
+      viewBox="10 6.5 15 8"
+      style={{ position: "absolute", left: fontSize * STEAM_LEFT, top: fontSize * STEAM_TOP }}
+    >
+      {WISPS.map((d) => (
+        <Path key={d} d={d} stroke={color} strokeWidth={2.55} strokeLinecap="round" fill="none" />
+      ))}
+    </Svg>
   );
 }
 
