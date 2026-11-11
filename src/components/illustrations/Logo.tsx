@@ -20,8 +20,8 @@ const inkByVariant = {
  * Sans ExtraBold, trailing "r" in gold rotated 9° (the intentional "crooked
  * r"). The "r" is colors.accent on every light surface — the one brand gold.
  * A logotype carries no contrast requirement (WCAG 1.4.11 exempts it), which
- * is why it can be the real gold here and nowhere else. Two steam wisps rise
- * over "left", in the r's colour. The stacked version is the app icon (assets/images/icon.png). Colors
+ * is why it can be the real gold here and nowhere else. Two gold steam wisps
+ * rise over "left", as on the icon. The stacked version is the app icon (assets/images/icon.png). Colors
  * come from theme tokens so a colorscheme change carries the logo with it.
  */
 export function Logo({ size = 48, variant = "primary" }: Props) {
@@ -32,12 +32,12 @@ export function Logo({ size = 48, variant = "primary" }: Props) {
         leftov
       </Word>
       <CrookedR fontSize={size} color={ink.r} />
-      <Steam fontSize={size} color={ink.r} />
+      <Steam fontSize={size} color={colors.accent} />
     </View>
   );
 }
 
-// The two steam wisps over "left", as on the app icon and splash: same paths
+// The two gold steam wisps over "left", as on the app icon and splash: same paths
 // as SteamSplash, in its 36-unit grid, one unit = 0.034em of the wordmark.
 // Placed absolutely so the logo's layout box doesn't grow.
 const STEAM_UNIT = 0.034;
