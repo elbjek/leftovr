@@ -7,6 +7,7 @@ import Svg, { Path } from "react-native-svg";
 import { BottomSheet, Button, FilterChip, ListRow, PlusIcon, Screen, Tappable, Text, useToast } from "@/components";
 import { FoodGlyph } from "@/components/illustrations";
 import { useAuth } from "@/features";
+import { foodMatchKey } from "@/lib";
 import { useInventory, useShoppingList } from "@/hooks";
 import { canonicalFoodName, isMetricAmountRunningLow } from "@/services";
 import { colors, radii, shadows, spacing, typography } from "@/theme";
@@ -14,14 +15,27 @@ import { colors, radii, shadows, spacing, typography } from "@/theme";
 // Monday first; values are JS getDay() numbers, which the server uses too.
 const WEEK = [1, 2, 3, 4, 5, 6, 0];
 
+// What the Remind me sheet suggests before anyone has saved a schedule, from
+// onboarding's "How do you usually shop?". Nothing is sent until saved.
+const SUGGESTED_REMINDER: Record<string, { days: number[]; hour: number }> = {
+  weekly: { days: [6], hour: 10 },
+  few: { days: [1, 4], hour: 17 },
+};
+
+// The same food under any name: catalog food, else the canonical name.
+function itemKeyOf(name: string) {
+  return foodMatchKey(name) ?? canonicalFoodName(name);
+}
+
 // The household's shopping list: what to buy, what's run out ("Buy again"),
 // and when to be reminded. Opened from Kitchen's card and the reminder push.
 export default function ShoppingRoute() {
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const { activeHousehold } = useAuth();
+  const { activeHousehold, profile } = useAuth();
   const householdId = activeHousehold?.id;
-  const { items, buyAgain, reminder, openCount, refresh, add, setChecked, remove, setReminder } = useShoppingList(householdId);
+  const { items, buyAgain, dismissals, reminder, openCount, refresh, add, setChecked, remove, dismiss, setReminder } =
+    useShoppingList(householdId);
   const { groups, refresh: refreshInventory } = useInventory(householdId);
 
   const [draft, setDraft] = useState("");
@@ -41,24 +55,32 @@ export default function ShoppingRoute() {
   const open = items.filter((item) => !item.checked_at);
   const bought = items.filter((item) => item.checked_at);
 
-  // Used-up staples from the server, then whatever Kitchen says is running
-  // low, minus anything already on the list.
+  // Used-up staples from the server (already minus dismissed ones), then
+  // whatever Kitchen says is running low, minus anything already on the list
+  // or dismissed since it was last added.
   const suggestions = useMemo(() => {
-    const listed = new Set(open.map((item) => item.normalized_name));
+    const listed = new Set(open.flatMap((item) => [item.normalized_name, item.food_key ?? item.normalized_name]));
     const out: { key: string; name: string; reason: string }[] = [];
     for (const item of buyAgain) {
-      if (listed.has(item.normalized_name)) continue;
-      listed.add(item.normalized_name);
-      out.push({ key: item.normalized_name, name: item.name, reason: t("shopping.usedUp") });
+      if (listed.has(item.item_key) || listed.has(item.normalized_name)) continue;
+      listed.add(item.item_key);
+      out.push({
+        key: item.item_key,
+        name: item.name,
+        reason: item.thrown_out ? t("shopping.thrownOut") : t("shopping.usedUp"),
+      });
     }
     for (const group of groups.filter(isMetricAmountRunningLow)) {
-      const key = canonicalFoodName(group.name);
-      if (listed.has(key)) continue;
+      const key = itemKeyOf(group.name);
+      if (listed.has(key) || listed.has(canonicalFoodName(group.name))) continue;
+      const dismissedAt = dismissals[key];
+      const lastAdded = group.lots.reduce((latest, lot) => (lot.added_at > latest ? lot.added_at : latest), "");
+      if (dismissedAt && dismissedAt > lastAdded) continue;
       listed.add(key);
       out.push({ key, name: group.name, reason: t("shopping.runningLow") });
     }
     return out;
-  }, [buyAgain, groups, open, t]);
+  }, [buyAgain, dismissals, groups, open, t]);
 
   async function run(action: () => Promise<void>) {
     try {
@@ -76,8 +98,10 @@ export default function ShoppingRoute() {
   }
 
   function openReminder() {
-    setDays(reminder?.days ?? []);
-    setHour(reminder?.hour ?? 10);
+    const saved = reminder && reminder.days.length > 0 ? reminder : null;
+    const suggested = SUGGESTED_REMINDER[profile?.shopping_style ?? ""];
+    setDays(saved?.days ?? suggested?.days ?? []);
+    setHour(saved?.hour ?? suggested?.hour ?? reminder?.hour ?? 10);
     setReminderOpen(true);
   }
 
@@ -218,10 +242,16 @@ export default function ShoppingRoute() {
                     </View>
                   }
                   trailing={
-                    <View style={styles.addPill}>
-                      <Text variant="label" color={colors.primary}>
-                        {t("shopping.add")}
-                      </Text>
+                    <View style={styles.suggestionActions}>
+                      <View style={styles.addPill}>
+                        <Text variant="label" color={colors.primary}>
+                          {t("shopping.add")}
+                        </Text>
+                      </View>
+                      <RemoveButton
+                        label={t("shopping.dismiss", { name: s.name })}
+                        onPress={() => void run(() => dismiss(s.key))}
+                      />
                     </View>
                   }
                   chevron={false}
@@ -418,6 +448,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
+  },
+  suggestionActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
   addPill: {
     paddingHorizontal: spacing.md,

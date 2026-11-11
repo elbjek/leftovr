@@ -132,3 +132,40 @@ export function foodIconKey(name: string | null | undefined, category?: string |
   cache.set(cacheKey, hit);
   return hit;
 }
+
+// For matching one food across names (shopping list ticks, Buy again
+// grouping): only each icon's own English and Serbian names, never the EXTRA
+// aliases, which lump distinct products under one icon (ketchup and mustard
+// are both "sauce"). English plurals fold as above; a Serbian name ending in a
+// vowel also matches its other endings ("jaja" ~ "jaje", "jabuka" ~ "jabuke").
+// ponytail: last-vowel swap only, so "hleb" ~ "hlebovi" doesn't match.
+const OWN_PHRASES: [string, string][] = (() => {
+  const pairs = new Map<string, string>();
+  const add = (phrase: string, id: string) => {
+    const key = words(phrase).trim();
+    if (key && !pairs.has(key)) pairs.set(key, id);
+  };
+  for (const icon of icons.foods) {
+    const en = words(icon.name).trim();
+    add(en, icon.id);
+    if (en.endsWith("ies")) add(`${en.slice(0, -3)}y`, icon.id);
+    else if (en.endsWith("s") && !en.endsWith("ss")) add(en.slice(0, -1), icon.id);
+    const sr = words(icon.sr).trim();
+    add(sr, icon.id);
+    // Skip 2-3 letter names: "so" (salt) would turn into "sa"/"se", which are
+    // everyday Serbian words.
+    if (sr.length >= 4 && /[aeiou]$/.test(sr)) {
+      for (const vowel of "aeiou") add(`${sr.slice(0, -1)}${vowel}`, icon.id);
+    }
+  }
+  return [...pairs].sort((a, b) => b[0].length - a[0].length);
+})();
+
+/** The catalog food a name is, by the icon's own names only; null if none. */
+export function foodMatchKey(name: string | null | undefined): string | null {
+  const text = words(name ?? "");
+  for (const [phrase, id] of OWN_PHRASES) {
+    if (text.includes(` ${phrase} `) || text.includes(` ${phrase}s `) || text.includes(` ${phrase}es `)) return id;
+  }
+  return null;
+}

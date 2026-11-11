@@ -1,15 +1,24 @@
 import { getSupabaseClient } from "@/lib/supabase";
+import { foodMatchKey } from "@/lib/foodIcons";
 import { canonicalFoodName } from "@/services/inventoryRules";
 
 export type ShoppingListItem = {
   id: string;
   name: string;
   normalized_name: string;
+  food_key: string | null;
   checked_at: string | null;
   created_at: string;
 };
 
-export type BuyAgainItem = { name: string; normalized_name: string };
+export type BuyAgainItem = {
+  name: string;
+  normalized_name: string;
+  /** Catalog food, else normalized name: what a dismissal is keyed by. */
+  item_key: string;
+  /** The last one was thrown out: suggest buying less. */
+  thrown_out: boolean;
+};
 
 export type ShoppingReminder = { days: number[]; hour: number };
 
@@ -19,7 +28,7 @@ export async function listShoppingItems(householdId: string): Promise<ShoppingLi
   const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
   const { data, error } = await supabase
     .from("shopping_list_items")
-    .select("id, name, normalized_name, checked_at, created_at")
+    .select("id, name, normalized_name, food_key, checked_at, created_at")
     .eq("household_id", householdId)
     .or(`checked_at.is.null,checked_at.gt.${since}`)
     .order("created_at", { ascending: true });
@@ -36,6 +45,7 @@ export async function addShoppingItem(householdId: string, name: string): Promis
     household_id: householdId,
     name: trimmed,
     normalized_name: canonicalFoodName(trimmed),
+    food_key: foodMatchKey(trimmed),
     added_by: userResult.user.id,
   });
   if (error) throw error;
@@ -62,6 +72,33 @@ export async function listBuyAgain(householdId: string): Promise<BuyAgainItem[]>
   const { data, error } = await supabase.rpc("buy_again", { p_household: householdId });
   if (error) throw error;
   return (data ?? []) as BuyAgainItem[];
+}
+
+/** item_key → when it was dismissed. Hidden until that food is added again. */
+export async function listShoppingDismissals(householdId: string): Promise<Record<string, string>> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("shopping_dismissals")
+    .select("item_key, dismissed_at")
+    .eq("household_id", householdId);
+  if (error) throw error;
+  return Object.fromEntries((data ?? []).map((row) => [row.item_key, row.dismissed_at]));
+}
+
+export async function dismissShoppingSuggestion(householdId: string, itemKey: string): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  const { error } = await supabase.from("shopping_dismissals").upsert(
+    {
+      household_id: householdId,
+      item_key: itemKey,
+      dismissed_by: userResult.user.id,
+      dismissed_at: new Date().toISOString(),
+    },
+    { onConflict: "household_id,item_key" },
+  );
+  if (error) throw error;
 }
 
 export async function getShoppingReminder(householdId: string): Promise<ShoppingReminder> {

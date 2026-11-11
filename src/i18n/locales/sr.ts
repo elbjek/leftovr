@@ -1299,6 +1299,8 @@ export const sr = {
     buyAgainTitle: "Kupi ponovo",
     buyAgainBody: "Ono što često kupuješ, a ponestalo je.",
     usedUp: "Potrošeno",
+    thrownOut: "Prošli put bačeno, kupi manje?",
+    dismiss: "Sakrij {{name}} do sledeće kupovine",
     runningLow: "Pri kraju",
     reminderTitle: "Podseti me",
     reminderBody: "Poslaćemo ti šta je na spisku. Kad dodaš namirnicu, računom, slikom ostave ili ručno, ona se čekira.",

@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import icons from "../../assets/food-icons/icons.json";
-import { foodIconKey } from "./foodIcons";
+import { foodIconKey, foodMatchKey } from "./foodIcons";
 
 describe("foodIconKey", () => {
   it("matches the item names in use today", () => {
@@ -67,5 +67,31 @@ describe("foodIconKey", () => {
       expect(existsSync(new URL(`../../assets/food-icons/${id}.png`, import.meta.url)), id).toBe(true);
       expect(map.includes(`  ${id}: require("../../../assets/food-icons/${id}.png"),`), id).toBe(true);
     }
+  });
+});
+
+describe("foodMatchKey", () => {
+  it("folds English plurals and Serbian endings to one food", () => {
+    expect(foodMatchKey("Jaje")).toBe("eggs");
+    expect(foodMatchKey("Jaja M 10/1")).toBe("eggs");
+    expect(foodMatchKey("eggs")).toBe("eggs");
+    expect(foodMatchKey("egg")).toBe("eggs");
+    expect(foodMatchKey("Jabuke")).toBe("apple");
+    expect(foodMatchKey("apples")).toBe("apple");
+    expect(foodMatchKey("Mleko 2.8% 1L")).toBe("milk");
+    expect(foodMatchKey("whole milk")).toBe("milk");
+  });
+
+  it("never matches through aliases that lump products together", () => {
+    expect(foodMatchKey("ketchup")).toBeNull();
+    expect(foodMatchKey("mustard")).toBeNull();
+    expect(foodMatchKey("oregano")).toBeNull();
+    expect(foodMatchKey("eggplant")).not.toBe("eggs");
+  });
+
+  it("doesn't turn short Serbian names into everyday words", () => {
+    // "so" (salt) must not become "sa" / "se".
+    expect(foodMatchKey("hleb sa semenkama")).toBe("bread");
+    expect(foodMatchKey("pasta sa sirom")).not.toBe("salt");
   });
 });

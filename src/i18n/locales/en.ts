@@ -1258,6 +1258,8 @@ export const en = {
     buyAgainTitle: "Buy again",
     buyAgainBody: "Things you buy often that have run out.",
     usedUp: "Used up",
+    thrownOut: "Thrown out last time, buy less?",
+    dismiss: "Hide {{name}} until you buy it again",
     runningLow: "Running low",
     reminderTitle: "Remind me",
     reminderBody: "We'll send what's on your list. Adding food, by receipt, pantry photo or by hand, ticks it off.",

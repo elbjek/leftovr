@@ -1,3 +1,4 @@
+import { foodMatchKey } from "@/lib/foodIcons";
 import { asCountedPack } from "@/lib/units";
 import {
   canonicalFoodName,
@@ -196,18 +197,23 @@ export function buildConfirmedReceiptInventoryRows(
       // Basis for proportional attribution: the amount the price covers.
       const purchaseAmount = netAmount ?? quantity;
 
+      // A recognized or edited name wins — the user's correction is
+      // authoritative, even for foods outside the catalog (B6). Otherwise
+      // use the model's English canonical so a foreign receipt name still
+      // matches English recipe ingredients; fall back to the raw name only
+      // when neither is available.
+      const normalizedName =
+        getCatalogFood(name) || (item.scannedName != null && name !== item.scannedName.trim())
+          ? canonicalFoodName(name)
+          : item.normalizedName?.trim() || normalizeFoodName(name);
+
       return {
         household_id: input.householdId,
         name,
-        // A recognized or edited name wins — the user's correction is
-        // authoritative, even for foods outside the catalog (B6). Otherwise
-        // use the model's English canonical so a foreign receipt name still
-        // matches English recipe ingredients; fall back to the raw name only
-        // when neither is available.
-        normalized_name:
-          getCatalogFood(name) || (item.scannedName != null && name !== item.scannedName.trim())
-            ? canonicalFoodName(name)
-            : item.normalizedName?.trim() || normalizeFoodName(name),
+        normalized_name: normalizedName,
+        // A receipt line ("JAJA M 10/1") may only be recognisable by its
+        // English canonical, so try both.
+        food_key: foodMatchKey(name) ?? foodMatchKey(normalizedName),
         category: item.category,
         quantity,
         unit,

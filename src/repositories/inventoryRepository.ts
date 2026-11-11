@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase";
+import { foodMatchKey } from "@/lib/foodIcons";
 import { asCountedPack } from "@/lib/units";
 import { valueOfAmount, lotRemainingValue } from "@/lib/money";
 import {
@@ -116,6 +117,7 @@ export async function addInventoryItem(input: AddInventoryItemInput) {
       household_id: input.householdId,
       name,
       normalized_name: canonicalFoodName(name),
+      food_key: foodMatchKey(name),
       brand_name: input.brandName?.trim() || null,
       category,
       quantity,
