@@ -8,9 +8,9 @@ import { FoodCard } from "./FoodCard";
 import { KitchenPulse } from "./KitchenPulse";
 import { ScanMethod, ScanMethodIcon } from "./ScanMethodCard";
 
-// Pre-sign-in feature tour. Each slide has its own page colour from the app's
-// tints, alternating pink and white, with white lifted cards on top, like the
-// home; Recipes is the one tomato slide. Each "stage" is built from app components fed with demo copy
+// Pre-sign-in feature tour. Every slide sits on the app's own page colour with
+// white lifted cards on top, like the home (no peach pages); Recipes is the one
+// tomato slide, and its cards are white too. Each "stage" is built from app components fed with demo copy
 // from the locale files (`onboarding.hook.slides[].demo`), so the deck always
 // looks like the app.
 
@@ -54,9 +54,7 @@ const light = (bg: string, chip: string = colors.surface): ShowcaseTheme => ({
   chip,
   dark: false,
 });
-const pink = light(colors.surface3);
-// White chips would vanish on the white page, so they take the peach well.
-const white = light(colors.white, colors.surface2);
+const page = light(colors.bg);
 const dark: ShowcaseTheme = {
   bg: colors.primary,
   ink: colors.onPrimary,
@@ -67,15 +65,14 @@ const dark: ShowcaseTheme = {
 };
 
 export const showcaseThemes: Record<ShowcaseSceneKey, ShowcaseTheme> = {
-  // Pink and white take turns; Recipes keeps the tomato slot in the rhythm.
-  welcome: pink,
-  add: white,
-  kitchen: pink,
+  welcome: page,
+  add: page,
+  kitchen: page,
   recipes: dark,
-  cook: white,
-  insights: pink,
-  household: white,
-  start: pink,
+  cook: page,
+  insights: page,
+  household: page,
+  start: page,
 };
 
 export function ShowcaseStage({ slide, active }: { slide: ShowcaseSlide; active: boolean }) {
@@ -348,25 +345,14 @@ type RecipesDemo = {
   chips: string[];
 };
 
-const darkNoteInk: Partial<Record<Urgency, string>> = {
-  urgent: colors.redSoft,
-  useSoon: colors.accent,
-};
-// urgencyColors' red sinks into the tomato card, so its dots use the lighter tints.
-const darkDot: Record<Urgency, string> = {
-  urgent: colors.redSoft,
-  useSoon: colors.accent,
-  safe: colors.sageTint,
-  expired: colors.surface3,
-};
 
 function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
   return (
     <View style={[styles.stage, styles.stageGap]}>
       <Reveal active={active} style={styles.center}>
         <View style={styles.readingPill}>
-          <View style={[styles.dot8, { backgroundColor: colors.onPrimary }]} />
-          <Text variant="label" color={colors.onPrimary}>
+          <View style={[styles.dot8, { backgroundColor: colors.primary }]} />
+          <Text variant="label" color={colors.primary}>
             {demo.reading}
           </Text>
         </View>
@@ -378,13 +364,11 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
           <View style={[styles.darkCard, styles.recipeFront]}>
             <View style={styles.rowBetween}>
               <Pill label={demo.uses} bg={colors.primary} color={colors.onPrimary} />
-              <Text variant="label" color={colors.onPrimary} style={styles.onDarkQuiet}>
+              <Text variant="label" muted>
                 {demo.time}
               </Text>
             </View>
-            <Text variant="h3" color={colors.onPrimary}>
-              {demo.title}
-            </Text>
+            <Text variant="h3">{demo.title}</Text>
             <View style={styles.ingredients}>
               {demo.ingredients.map((item) => (
                 <View key={item.name} style={styles.rowGap}>
@@ -392,22 +376,17 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
                     style={[
                       styles.dot8,
                       item.urgency
-                        ? { backgroundColor: darkDot[item.urgency] }
+                        ? { backgroundColor: urgencyColors[item.urgency] }
                         : styles.dotHollow,
                     ]}
                   />
-                  <Text
-                    variant="label"
-                    color={colors.onPrimary}
-                    style={[styles.flex1, !item.urgency && styles.onDarkQuiet]}
-                  >
+                  <Text variant="label" muted={!item.urgency} style={styles.flex1}>
                     {item.name}
                   </Text>
                   {item.note ? (
                     <Text
                       variant="small"
-                      color={(item.urgency && darkNoteInk[item.urgency]) || colors.onPrimary}
-                      style={!(item.urgency && darkNoteInk[item.urgency]) && styles.onDarkQuiet}
+                      color={item.urgency ? urgencyInk[item.urgency] : colors.muted}
                     >
                       {item.note}
                     </Text>
@@ -421,7 +400,7 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
       <Reveal active={active} delay={800} style={styles.chips}>
         {demo.chips.map((chip) => (
           <View key={chip} style={styles.darkChip}>
-            <Text variant="micro" color={colors.onPrimary}>
+            <Text variant="micro" color={colors.primary}>
               {chip}
             </Text>
           </View>
@@ -741,7 +720,7 @@ const styles = StyleSheet.create({
   },
   dotHollow: {
     borderWidth: 1.5,
-    borderColor: colors.inverseHairlineStrong,
+    borderColor: colors.hairlineStrong,
   },
   // welcome
   welcomeBoard: {
@@ -827,7 +806,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     borderRadius: radii.pill,
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.surface,
   },
   deck: {
     marginHorizontal: spacing.md,
@@ -839,7 +818,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     borderRadius: radii.xl,
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.surface,
   },
   deckLayerBack: {
     opacity: 0.5,
@@ -850,9 +829,7 @@ const styles = StyleSheet.create({
     transform: [{ translateY: 12 }, { scale: 0.94 }],
   },
   recipeFront: {
-    backgroundColor: colors.primary700,
-    borderWidth: 1,
-    borderColor: colors.inverseHairline,
+    backgroundColor: colors.surface,
   },
   ingredients: {
     gap: 10,
@@ -868,7 +845,7 @@ const styles = StyleSheet.create({
     height: 30,
     paddingHorizontal: spacing.md,
     borderRadius: radii.pill,
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.surface,
     justifyContent: "center",
   },
   // cook
@@ -967,7 +944,7 @@ const styles = StyleSheet.create({
     height: 76,
     borderRadius: radii.xxl,
     borderWidth: 5,
-    borderColor: white.bg,
+    borderColor: page.bg,
     alignItems: "center",
     justifyContent: "center",
   },
