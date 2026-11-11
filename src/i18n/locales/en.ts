@@ -352,7 +352,6 @@ export const en = {
     },
     statsStrip: {
       title: "Avoided wasting ~{{count}} items this week",
-      premiumSub: "About ${{amount}} saved · Tap for insights",
     },
     shelves: {
       seeAllCount: "See all {{count}}",
@@ -1204,9 +1203,7 @@ export const en = {
     sparseTitle: "Just getting started",
     sparseBody: "Add more items and cook a meal to see your stats fill in.",
     summaryWaste: "You kept an estimated {{count}} items from going to waste.",
-    summaryMoney: "You saved an estimated ${{amount}} this week.",
     summaryQuick: "You cooked {{count}} meals with what you had on hand.",
-    summaryAll: "{{count}} items saved from waste — about ${{amount}} in savings.",
   },
   premium: {
     title: "Leftovr Premium",

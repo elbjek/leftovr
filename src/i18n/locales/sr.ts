@@ -356,7 +356,6 @@ export const sr = {
     },
     statsStrip: {
       title: "Sprečeno bacanje ~{{count}} stavki ove nedelje",
-      premiumSub: "Oko ${{amount}} ušteđeno · Dodirni za uvide",
     },
     shelves: {
       seeAllCount: "Prikaži sve ({{count}})",
@@ -1243,9 +1242,7 @@ export const sr = {
     sparseTitle: "Tek počinjete",
     sparseBody: "Dodajte više artikala i skuvajte obrok da vidite statistike.",
     summaryWaste: "Sačuvali ste oko {{count}} artikala od bacanja.",
-    summaryMoney: "Uštedeli ste oko ${{amount}} ove nedelje.",
     summaryQuick: "Skuvali ste {{count}} obroka sa onim što ste imali.",
-    summaryAll: "{{count}} artikala sačuvano od bacanja — oko ${{amount}} uštede.",
   },
   premium: {
     title: "Leftovr Premium",
