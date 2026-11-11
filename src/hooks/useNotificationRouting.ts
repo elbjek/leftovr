@@ -18,6 +18,7 @@ const ROUTE_BY_TYPE: Record<string, Href> = {
   streak: "/(tabs)/recipes",
   reengagement: "/(tabs)/recipes",
   topup: "/(tabs)/scan",
+  shopping: "/(tabs)/shopping",
 };
 
 function routeFor(response: Notifications.NotificationResponse | null): Href | null {

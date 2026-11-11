@@ -1,5 +1,6 @@
 export * from "./AuthLanding";
 export * from "./CheckTheseShelf";
+export * from "./ShoppingListCard";
 export * from "./CookPromptSheet";
 export * from "./CookReward";
 export * from "./DaySheet";

@@ -3,10 +3,10 @@ import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdPill, HouseholdSheet, PlusIcon, PremiumSheet, Screen, SegmentedControl, Tappable, Text, TextField, UnitPicker } from "@/components";
+import { BottomSheet, Button, CartIcon, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdPill, HouseholdSheet, PlusIcon, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
 import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
-import { useHousehold, useInsights, useInventory } from "@/hooks";
+import { useHousehold, useInsights, useInventory, useShoppingList } from "@/hooks";
 import {
   daysLeft,
   PartialState,
@@ -53,6 +53,9 @@ export default function FridgeRoute() {
     removeGroups,
     refresh,
   } = useInventory(activeHousehold?.id);
+  const shopping = useShoppingList(activeHousehold?.id);
+  const refreshShopping = shopping.refresh;
+  const { showToast } = useToast();
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   const [view, setView] = useState<KitchenView>(null);
   const [search, setSearch] = useState("");
@@ -190,13 +193,14 @@ export default function FridgeRoute() {
     useCallback(() => {
       void refresh();
       void refreshInsights();
+      void refreshShopping().catch(() => undefined);
       // Leaving the tab drops back to the overview, so the Kitchen never
       // reopens on a category the user left behind.
       return () => {
         setView(null);
         setSearch("");
       };
-    }, [refresh, refreshInsights]),
+    }, [refresh, refreshInsights, refreshShopping]),
   );
 
   const [refreshing, setRefreshing] = useState(false);
@@ -457,6 +461,18 @@ export default function FridgeRoute() {
             />
           ) : null}
 
+          <ShoppingListCard
+            title={shopping.openCount > 0 ? `${t("shopping.title")} · ${shopping.openCount}` : t("shopping.title")}
+            subtitle={
+              shopping.buyAgain.length > 0
+                ? t("shopping.cardBuyAgain", { count: shopping.buyAgain.length })
+                : shopping.openCount > 0
+                  ? t("shopping.toBuy", { count: shopping.openCount })
+                  : t("shopping.cardEmpty")
+            }
+            onPress={() => router.push("/(tabs)/shopping")}
+          />
+
           {/* Guideline 1.4.1: the dates here are estimates, not printed
               best-before dates, so never let the app be the last word on
               whether food is safe. */}
@@ -480,6 +496,14 @@ export default function FridgeRoute() {
         }}
         onRemove={async (group, reason) => {
           if (await runFridgeAction(() => removeGroup(group, reason))) setActionGroup(null);
+        }}
+        onAddToList={async (group) => {
+          try {
+            await shopping.add(group.name);
+            showToast(t("shopping.addedToast", { name: group.name }));
+          } catch {
+            showToast(t("shopping.error"));
+          }
         }}
       />
 
@@ -880,12 +904,14 @@ function ItemActionSheet({
   onDismiss,
   onSave,
   onRemove,
+  onAddToList,
 }: {
   group: InventoryGroup | null;
   labels: {
     save: string;
     cancel: string;
     remove: string;
+    addToList: string;
     removeTitle: string;
     removeBody: string;
     usedConfirm: string;
@@ -907,6 +933,7 @@ function ItemActionSheet({
     input: { name: string; quantity: number; unit: string; expiresAt: string | null; netAmount?: number; partialState?: PartialState },
   ) => Promise<void>;
   onRemove: (group: InventoryGroup, reason: "used" | "discarded") => void;
+  onAddToList: (group: InventoryGroup) => void;
 }) {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -1057,6 +1084,19 @@ function ItemActionSheet({
         </View>
 
         <Tappable
+          label={labels.addToList}
+          onPress={() => {
+            if (group) onAddToList(group);
+          }}
+          style={[styles.removeRow]}
+        >
+          <CartIcon size={20} />
+          <Text variant="label" color={colors.primary}>
+            {labels.addToList}
+          </Text>
+        </Tappable>
+
+        <Tappable
           label={labels.remove}
           onPress={() => setConfirmingRemove(true)}
           style={[styles.removeRow]}
@@ -1179,6 +1219,7 @@ function getActionLabels(t: ReturnType<typeof useTranslation>["t"]) {
     save: t("fridge.actions.save"),
     cancel: t("common.cancel"),
     remove: t("fridge.actions.remove"),
+    addToList: t("shopping.addToList"),
     removeTitle: t("fridge.removeSheet.title"),
     removeBody: t("fridge.removeSheet.body"),
     usedConfirm: t("fridge.removeSheet.usedConfirm"),

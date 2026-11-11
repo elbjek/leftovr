@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       : Promise.resolve({ data: [] });
   const [
     households, inventory, recipes, recipeSessions, cookedEvents, usageEvents,
-    valueEvents, receiptScans, householdNotificationSettings,
+    valueEvents, receiptScans, householdNotificationSettings, shoppingListItems,
   ] = await Promise.all([
     byHousehold("households", "id"),
     byHousehold("inventory_items"),
@@ -70,6 +70,7 @@ Deno.serve(async (req) => {
     byHousehold("value_events"),
     byHousehold("receipt_scans"),
     byHousehold("household_notification_settings"),
+    byHousehold("shopping_list_items"),
   ]);
 
   return Response.json({
@@ -92,5 +93,6 @@ Deno.serve(async (req) => {
     recipe_sessions: recipeSessions.data ?? [],
     recipes: recipes.data ?? [],
     cooked_events: cookedEvents.data ?? [],
+    shopping_list_items: shoppingListItems.data ?? [],
   });
 });

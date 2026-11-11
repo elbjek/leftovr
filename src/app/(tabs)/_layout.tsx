@@ -80,11 +80,12 @@ export default function TabsLayout() {
           tab and redirects away from it as soon as it is focused. */}
       <Tabs.Screen name="recipe-detail" />
       <Tabs.Screen name="all-recipes" />
+      <Tabs.Screen name="shopping" />
     </Tabs>
   );
 }
 
-const NON_TAB_ROUTES = new Set(["recipe-detail", "all-recipes"]);
+const NON_TAB_ROUTES = new Set(["recipe-detail", "all-recipes", "shopping"]);
 
 function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
   const { t } = useTranslation();

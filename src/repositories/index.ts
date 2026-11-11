@@ -5,3 +5,4 @@ export * from "./notificationRepository";
 export * from "./profileRepository";
 export * from "./receiptRepository";
 export * from "./recipeRepository";
+export * from "./shoppingRepository";

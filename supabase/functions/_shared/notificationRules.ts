@@ -45,6 +45,15 @@ export function isStreakReminderHour(now: Date, tz: string): boolean {
   return Math.floor(tzParts(now, tz).minutes / 60) === 19;
 }
 
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Shopping reminder: one of the household's weekdays (0 = Sunday, like JS
+// getDay) at its chosen local hour.
+export function isShoppingReminderTime(now: Date, tz: string, days: number[], hour: number): boolean {
+  const { weekday, minutes } = tzParts(now, tz);
+  return days.includes(WEEKDAYS.indexOf(weekday)) && Math.floor(minutes / 60) === hour;
+}
+
 // Honest copy: with a freeze banked the streak survives tonight anyway.
 export function buildStreakReminder(
   streak: number,

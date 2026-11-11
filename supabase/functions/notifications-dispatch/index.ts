@@ -4,7 +4,7 @@ import { secretsMatch } from "../_shared/secrets.ts";
 import { copy, Lang, Payload, toLang } from "../_shared/pushCopy.ts";
 import {
   isWithinSendWindow, isRecapDay, sentToday, buildDailySuggestion, toUrgencyGroups,
-  isStreakReminderHour, buildStreakReminder,
+  isStreakReminderHour, buildStreakReminder, isShoppingReminderTime,
 } from "../_shared/notificationRules.ts";
 
 // Hourly cron entrypoint. Guarded by CRON_SECRET (shared with the Vault
@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
     { auth: { persistSession: false } },
   );
   const now = new Date();
-  const results: Record<string, number> = { daily: 0, recap: 0, eatfirst: 0, topup: 0, reengagement: 0, streak: 0 };
+  const results: Record<string, number> = { daily: 0, recap: 0, eatfirst: 0, topup: 0, reengagement: 0, streak: 0, shopping: 0 };
 
   // --- Household premium rules: daily + recap ---
   const { data: households } = await supabase
@@ -102,6 +102,9 @@ Deno.serve(async (req) => {
 
   // --- Evening streak reminder (free, own opt-out) ---
   results.streak = await runStreak(supabase, now);
+
+  // --- Shopping list reminder (free, household schedule, own opt-out) ---
+  results.shopping = await runShopping(supabase, now);
 
   return Response.json({ ok: true, results });
 });
@@ -265,6 +268,64 @@ async function runStreak(supabase: any, now: Date): Promise<number> {
     await recordSends(supabase, [p.user_id], householdId, "streak", now);
     await nullDeadTokens(supabase, dead);
     count += 1;
+  }
+  return count;
+}
+
+// Shopping reminder: on the household's chosen weekdays at its chosen hour,
+// to members who haven't opted out, when the list or "buy again" has
+// something. Free, ignores the send window (the user picked the time), one
+// per user per local day, outside the suggestion cap.
+async function runShopping(supabase: any, now: Date): Promise<number> {
+  const { data: households } = await supabase
+    .from("household_notification_settings")
+    .select("household_id, timezone, shopping_reminder_days, shopping_reminder_hour")
+    .neq("shopping_reminder_days", "{}");
+
+  let count = 0;
+  for (const h of households ?? []) {
+    const tz = h.timezone ?? "UTC";
+    if (!isShoppingReminderTime(now, tz, h.shopping_reminder_days ?? [], h.shopping_reminder_hour)) continue;
+
+    const { data: listed } = await supabase
+      .from("shopping_list_items")
+      .select("name")
+      .eq("household_id", h.household_id)
+      .is("checked_at", null)
+      .order("created_at");
+    const { data: again, error } = await supabase.rpc("buy_again", { p_household: h.household_id });
+    if (error) console.error("buy_again failed:", error.message);
+    const names = [...(listed ?? []), ...(again ?? [])].map((r: { name: string }) => r.name);
+    if (names.length === 0) continue;
+
+    const { data: members } = await supabase
+      .from("household_members")
+      .select("user_id, profiles!inner(language), notification_preferences!inner(push_token, notifications_enabled, shopping_reminders_enabled)")
+      .eq("household_id", h.household_id)
+      .eq("status", "active");
+    const recipients: Recipient[] = [];
+    for (const m of members ?? []) {
+      const p = (m as any).notification_preferences;
+      if (!p?.push_token || !p?.notifications_enabled || !p?.shopping_reminders_enabled) continue;
+      const { data: rows } = await supabase
+        .from("notification_sends")
+        .select("sent_at")
+        .eq("user_id", m.user_id)
+        .eq("type", "shopping")
+        .gte("sent_at", startOfDayUtcFloor(now));
+      if (sentToday(rows ?? [], now, tz)) continue;
+      recipients.push({ token: p.push_token, userId: m.user_id, lang: toLang((m as any).profiles?.language) });
+    }
+
+    for (const [lang, group] of byLanguage(recipients)) {
+      const dead = await sendPush(group.map((r) => r.token), {
+        ...copy(lang).shopping(names.slice(0, 3), names.length - 3),
+        data: { type: "shopping" },
+      });
+      await recordSends(supabase, group.map((r) => r.userId), h.household_id, "shopping", now);
+      await nullDeadTokens(supabase, dead);
+      count += group.length;
+    }
   }
   return count;
 }

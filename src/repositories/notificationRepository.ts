@@ -10,6 +10,7 @@ export type NotificationPreferences = {
   tips_enabled: boolean;
   reengagement_enabled: boolean;
   streak_reminders_enabled: boolean;
+  shopping_reminders_enabled: boolean;
   push_token: string | null;
   platform: string | null;
 };
@@ -32,7 +33,7 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
 
   const { data, error } = await supabase
     .from("notification_preferences")
-    .select("id, user_id, permission_status, notifications_enabled, smart_suggestions_enabled, member_activity_enabled, tips_enabled, reengagement_enabled, streak_reminders_enabled, push_token, platform")
+    .select("id, user_id, permission_status, notifications_enabled, smart_suggestions_enabled, member_activity_enabled, tips_enabled, reengagement_enabled, streak_reminders_enabled, shopping_reminders_enabled, push_token, platform")
     .eq("user_id", userResult.user.id)
     .single<NotificationPreferences>();
 
@@ -41,7 +42,7 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
 }
 
 export async function updateNotificationPreferences(
-  updates: Partial<Pick<NotificationPreferences, "permission_status" | "notifications_enabled" | "smart_suggestions_enabled" | "member_activity_enabled" | "tips_enabled" | "reengagement_enabled" | "streak_reminders_enabled" | "push_token" | "platform">>,
+  updates: Partial<Pick<NotificationPreferences, "permission_status" | "notifications_enabled" | "smart_suggestions_enabled" | "member_activity_enabled" | "tips_enabled" | "reengagement_enabled" | "streak_reminders_enabled" | "shopping_reminders_enabled" | "push_token" | "platform">>,
 ): Promise<void> {
   const supabase = getSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();

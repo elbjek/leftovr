@@ -70,6 +70,7 @@ export default function SettingsRoute() {
     toggleMemberActivity,
     toggleTips,
     toggleStreakReminders,
+    toggleShoppingReminders,
     toggleDailySuggestion,
     toggleRecap,
     updateSendWindow,
@@ -382,6 +383,14 @@ export default function SettingsRoute() {
               value={notifPrefs?.streak_reminders_enabled ?? true}
               disabled={!notifMaster}
               onToggle={onToggleWith(toggleStreakReminders)}
+            />
+
+            <ToggleRow
+              title={t("notifications.shoppingReminders")}
+              body={t("notifications.shoppingRemindersBody")}
+              value={notifPrefs?.shopping_reminders_enabled ?? true}
+              disabled={!notifMaster}
+              onToggle={onToggleWith(toggleShoppingReminders)}
             />
 
             {household.members.length > 1 ? (

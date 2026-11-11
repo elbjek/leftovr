@@ -32,6 +32,7 @@ type Copy = {
   memberActivity: (name: string, count: number) => { title: string; body: string };
   memberCooked: (name: string, dish: string | null) => { title: string; body: string };
   memberChange: (name: string, kind: "joined" | "left" | "removed") => { title: string; body: string };
+  shopping: (names: string[], extra: number) => { title: string; body: string };
 };
 
 const en: Copy = {
@@ -82,6 +83,10 @@ const en: Copy = {
       : kind === "removed"
         ? `${name} was removed from your kitchen.`
         : `${name} left your kitchen.`,
+  }),
+  shopping: (names, extra) => ({
+    title: "Shopping today?",
+    body: `Don't forget ${names.join(", ")}${extra > 0 ? ` and ${extra} more` : ""}.`,
   }),
 };
 
@@ -136,6 +141,10 @@ const sr: Copy = {
       : kind === "removed"
         ? `${name} je uklonjen/a iz tvoje kuhinje.`
         : `${name} je napustio/la tvoju kuhinju.`,
+  }),
+  shopping: (names, extra) => ({
+    title: "Ideš u kupovinu?",
+    body: `Ne zaboravi: ${names.join(", ")}${extra > 0 ? ` i još ${extra}` : ""}.`,
   }),
 };
 

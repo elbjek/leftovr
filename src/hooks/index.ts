@@ -11,3 +11,4 @@ export * from "./useStreakMilestone";
 export * from "./useWins";
 export * from "./useShareImage";
 export * from "./useReducedMotion";
+export * from "./useShoppingList";

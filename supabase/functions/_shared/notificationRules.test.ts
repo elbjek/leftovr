@@ -7,7 +7,18 @@ import {
   coalesceOpen,
   urgencyFromExpiry,
   isStreakReminderHour,
+  isShoppingReminderTime,
 } from "./notificationRules.ts";
+
+Deno.test("isShoppingReminderTime on a chosen weekday at the chosen local hour", () => {
+  // 2026-11-07 is a Saturday (6). 09:00Z = 10:00 in Belgrade (+01:00).
+  assertEquals(isShoppingReminderTime(new Date("2026-11-07T09:00:00Z"), "Europe/Belgrade", [6], 10), true);
+  assertEquals(isShoppingReminderTime(new Date("2026-11-07T10:00:00Z"), "Europe/Belgrade", [6], 10), false);
+  assertEquals(isShoppingReminderTime(new Date("2026-11-07T09:00:00Z"), "Europe/Belgrade", [0, 3], 10), false);
+  // 23:30Z Saturday is already Sunday 00:30 in Belgrade.
+  assertEquals(isShoppingReminderTime(new Date("2026-11-07T23:30:00Z"), "Europe/Belgrade", [0], 0), true);
+  assertEquals(isShoppingReminderTime(new Date("2026-11-07T09:00:00Z"), "Europe/Belgrade", [], 10), false);
+});
 
 Deno.test("isWithinSendWindow true when now inside window in tz", () => {
   const now = new Date("2026-06-19T11:30:00Z"); // 13:30 +02:00
