@@ -4,6 +4,11 @@
       "source": "/blog/receipt-scanning-vs-manual-pantry/:path*",
       "destination": "/blog/photo-receipt-or-manual-pantry-inventory/",
       "permanent": true
+    },
+    {
+      "source": "/blog/receipt-scanning-vs-manual-pantry/",
+      "destination": "/blog/photo-receipt-or-manual-pantry-inventory/",
+      "permanent": true
     }
   ]
 }
