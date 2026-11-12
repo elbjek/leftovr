@@ -648,7 +648,8 @@ const SYSTEM_PROMPT = [
   "You suggest meals for leftovr, an app that helps a household cook from the food it already has and use things up before they go off. The people reading your suggestions are home cooks, often beginners, deciding what to make. Keep the tone practical and encouraging: no guilt about waste, no exact expiry dates, no calories or nutrition talk.",
   "A good suggestion is a dish a home cook would recognise and want to eat, made from a subset of the household's food that genuinely belongs together: a classic pairing, a shared cuisine, a sauce that bridges the ingredients, a familiar breakfast, lunch or dinner pattern. You don't need to use everything; two or three items used well beat a dish that crams in more. Leave out anything that only fits a different kind of dish rather than bending its role (sweet fruit stays out of eggs and stir-fries, for example). Novelty combinations that read as a dare or a joke aren't useful to anyone.",
   "The household list is sorted most urgent first. Build each dish around something that's going off soon when it fits naturally. When the urgent items don't belong together, use one of them well, or cook a good dish from the rest: a coherent dish that skips the urgent items is better than none.",
-  "Snacks, drinks and finished sweet products (a chocolate croissant, a candy bar, soda) aren't cooking ingredients. Use them only as themselves, or in a dessert where they make sense.",
+  "Snacks and finished sweet products (a chocolate croissant, a candy bar) aren't cooking ingredients. Use them only as themselves, or in a dessert where they make sense.",
+  "Some drinks are real cooking liquids: wine or beer in a stew, sauce or batter, juice in a marinade or glaze, coffee in a dessert, coconut milk in a curry, lemon or lime juice almost anywhere. Use them when a recognised recipe calls for them. Soft drinks, energy drinks, flavoured or plain water, iced tea and smoothies never go into a dish.",
   "Only suggest dishes the household can make right now. Every essential ingredient, meaning one the dish can't be made without (flour in pancakes, rice in fried rice), must be in the household list. You can assume water, salt, pepper, cooking oil and common dried herbs and spices. Optional extras like a garnish or a squeeze of lemon can be missing.",
   "If the food can't make a real dish (for example, the kitchen holds only snacks and drinks), return an empty list rather than inventing one. When there is a real dish to make, return it, even if it leaves some items unused.",
   "When the meal type is side, suggest side dishes that go with a main (coleslaw, roasted potatoes, a side salad). Otherwise, unless the meal type is snack, each suggestion is a dish that makes the meal on its own: a main course, not a side (coleslaw, a side salad, plain rice or mash) and not a dessert. A salad or soup is fine when it's a full meal (a chicken Caesar, a lentil soup).",
@@ -786,10 +787,13 @@ function jaccard(a: Set<string>, b: Set<string>) {
 const DESSERT_ONLY_FRUIT = [
   "banana", "strawberr", "blueberr", "raspberr", "blackberr", "watermelon", "fig",
 ];
-// Drinks-category items that are really cooking ingredients: scans file a
-// bottle of lemon or lime juice under drinks, and a squeeze of it in a bowl
-// is not "a drink as an ingredient" (2026-11-12: it dropped a third idea).
-const COOKING_JUICE = /\b(lemon|lime|limun|limeta)\b/;
+// Drinks that never go into a dish. Everything else filed under drinks (wine,
+// beer, juice, coffee, coconut milk, lemon juice) is a cooking liquid the
+// model may use when a real recipe calls for it (2026-11-12: blocking every
+// drink dropped a black bean bowl for its lime juice).
+// ponytail: word list, add a name when one slips through.
+const NEVER_COOK_DRINK =
+  /\b(soda|cola|coke|pepsi|sprite|fanta|energy drink|red bull|monster|water|voda|kisela|iced tea|ice tea|lemonade|limunada|smoothie|soft drink|tonic|isotonic|sports drink)\b/;
 
 const SAVORY_COOK_SIGNAL = [
   "frittata", "omelet", "scramble", "stir-fry", "stir fry", "stirfry", "quiche",
@@ -990,10 +994,10 @@ function validateCards(
     }
     if (
       usedItems.some(
-        (i) => i.category === "drinks" && !COOKING_JUICE.test(`${i.name ?? ""} ${i.normalized_name ?? ""}`.toLowerCase()),
+        (i) => i.category === "drinks" && NEVER_COOK_DRINK.test(`${i.name ?? ""} ${i.normalized_name ?? ""}`.toLowerCase()),
       )
     ) {
-      dropReasons.push(`"${card.title}": uses a drink as an ingredient`);
+      dropReasons.push(`"${card.title}": cooks with a soft drink or water`);
       continue;
     }
     if (savory && usedItems.some((i) => i.category === "snacks")) {
