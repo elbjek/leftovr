@@ -1,13 +1,13 @@
 import { Redirect, Tabs, useLocalSearchParams } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as QuickActions from "expo-quick-actions";
 import { RouterAction, useQuickActionRouting } from "expo-quick-actions/router";
 
-import { CartIcon, Tappable, Text } from "@/components";
+import { AddSheet, CartIcon, OpenAddSheetProvider, Tappable, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useShoppingList } from "@/hooks";
 import { colors, radii, spacing } from "@/theme";
@@ -23,6 +23,8 @@ type TabBarProps = {
     };
   };
   navigateToTab: (routeKey: string) => void;
+  onLayout: (event: LayoutChangeEvent) => void;
+  onTabPress: () => void;
 };
 
 // Recipes is the home: the app opens here, and a hidden or unknown tab falls
@@ -32,6 +34,10 @@ export const unstable_settings = { anchor: "recipes" };
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { loading, session } = useAuth();
+  // The Add sheet sits over the screens but stops at the dock's top edge, so
+  // the dock stays visible and tappable while it is open.
+  const [addOpen, setAddOpen] = useState(false);
+  const [dockHeight, setDockHeight] = useState(0);
 
   // Long-press the app icon: "Shopping list" opens the tab.
   useQuickActionRouting();
@@ -46,62 +52,75 @@ export default function TabsLayout() {
   }
 
   return (
-    <Tabs
-      tabBar={(props) => <LeftovrTabBar {...props} />}
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Tabs.Screen
-        name="recipes"
-        options={{
-          title: t("tabs.recipes"),
-          tabBarIcon: ({ color }) => <RecipesIcon color={String(color)} />,
-        }}
-      />
-      <Tabs.Screen
-        name="fridge"
-        options={{
-          title: t("tabs.fridge"),
-          tabBarIcon: ({ color }) => <KitchenIcon color={String(color)} />,
-        }}
-      />
-      <Tabs.Screen
-        name="shopping"
-        options={{
-          title: t("tabs.shopping"),
-          tabBarIcon: ({ color }) => <CartIcon color={String(color)} size={24} />,
-        }}
-      />
-      <Tabs.Screen
-        name="insights"
-        options={{
-          title: t("tabs.insights"),
-          tabBarIcon: ({ color }) => <InsightsIcon color={String(color)} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: t("tabs.settings"),
-          tabBarIcon: ({ color }) => <SettingsIcon color={String(color)} />,
-        }}
-      />
-      {/* Detail and the full recipe list live inside the tab group so the
-          dock stays visible, but they are not tabs: LeftovrTabBar skips them
-          by name. No `href: null` — expo-router 58 treats that as a hidden
-          tab and redirects away from it as soon as it is focused. */}
-      <Tabs.Screen name="recipe-detail" />
-      <Tabs.Screen name="all-recipes" />
-      {/* Add opens from the "+" beside the household pill (2026-11-12). */}
-      <Tabs.Screen name="scan" />
-    </Tabs>
+    <OpenAddSheetProvider value={() => setAddOpen(true)}>
+      <View style={styles.root}>
+        <Tabs
+          tabBar={(props) => (
+            <LeftovrTabBar
+              {...props}
+              onLayout={(event) => setDockHeight(event.nativeEvent.layout.height)}
+              onTabPress={() => setAddOpen(false)}
+            />
+          )}
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Tabs.Screen
+            name="recipes"
+            options={{
+              title: t("tabs.recipes"),
+              tabBarIcon: ({ color }) => <RecipesIcon color={String(color)} />,
+            }}
+          />
+          <Tabs.Screen
+            name="fridge"
+            options={{
+              title: t("tabs.fridge"),
+              tabBarIcon: ({ color }) => <KitchenIcon color={String(color)} />,
+            }}
+          />
+          <Tabs.Screen
+            name="shopping"
+            options={{
+              title: t("tabs.shopping"),
+              tabBarIcon: ({ color }) => <CartIcon color={String(color)} size={24} />,
+            }}
+          />
+          <Tabs.Screen
+            name="insights"
+            options={{
+              title: t("tabs.insights"),
+              tabBarIcon: ({ color }) => <InsightsIcon color={String(color)} />,
+            }}
+          />
+          <Tabs.Screen
+            name="settings"
+            options={{
+              title: t("tabs.settings"),
+              tabBarIcon: ({ color }) => <SettingsIcon color={String(color)} />,
+            }}
+          />
+          {/* Detail and the full recipe list live inside the tab group so the
+              dock stays visible, but they are not tabs: LeftovrTabBar skips them
+              by name. No `href: null` — expo-router 58 treats that as a hidden
+              tab and redirects away from it as soon as it is focused. */}
+          <Tabs.Screen name="recipe-detail" />
+          <Tabs.Screen name="all-recipes" />
+          {/* Add opens from the "+" beside the household pill (2026-11-12). */}
+          <Tabs.Screen name="scan" />
+        </Tabs>
+        <View style={[styles.addLayer, { bottom: dockHeight }]} pointerEvents="box-none">
+          <AddSheet visible={addOpen} onClose={() => setAddOpen(false)} />
+        </View>
+      </View>
+    </OpenAddSheetProvider>
   );
 }
 
 const NON_TAB_ROUTES = new Set(["recipe-detail", "all-recipes", "scan"]);
 
-function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
+function LeftovrTabBar({ state, emitter, navigateToTab, onLayout, onTabPress }: TabBarProps) {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ mode?: string }>();
   const { activeHousehold } = useAuth();
@@ -120,7 +139,7 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
   if (hideForScanCamera) return null;
 
   return (
-    <View style={styles.dock}>
+    <View style={styles.dock} onLayout={onLayout}>
       {state.routes.map((route, index) => {
         // Routes in the group that aren't tabs don't get a dock slot.
         if (NON_TAB_ROUTES.has(route.name)) return null;
@@ -129,6 +148,7 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
         const label = getTabLabel(route.name, t);
 
         function onPress() {
+          onTabPress();
           const event = emitter.emit({
             type: "tabPress",
             target: route.key,
@@ -228,6 +248,12 @@ function SettingsIcon({ color }: { color: string }) {
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  addLayer: {
+    ...StyleSheet.absoluteFill,
+  },
   dock: {
     position: "relative",
     backgroundColor: colors.surface,

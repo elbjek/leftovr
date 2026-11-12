@@ -18,12 +18,18 @@ type Props = {
    * sheet) from here, never right after onDismiss — iOS would dismiss it too.
    */
   onClosed?: () => void;
+  /**
+   * Draw in place (absolutely filling the parent) instead of in a Modal, so
+   * whatever sits outside the parent, like the dock, stays visible and
+   * tappable. The parent decides how much of the screen the sheet covers.
+   */
+  inline?: boolean;
 };
 
 // The dim backdrop fades in place while only the sheet slides up; the Modal
 // itself doesn't animate (its "slide" moved the backdrop with the sheet).
 // It stays mounted until the closing animation ends.
-export function BottomSheet({ visible, onDismiss, children, style, overlay, onClosed }: Props) {
+export function BottomSheet({ visible, onDismiss, children, style, overlay, onClosed, inline = false }: Props) {
   const { height } = useWindowDimensions();
   const [progress] = useState(() => new Animated.Value(0));
   const [mounted, setMounted] = useState(visible);
@@ -45,19 +51,13 @@ export function BottomSheet({ visible, onDismiss, children, style, overlay, onCl
       if (finished && !visible) {
         setMounted(false);
         // iOS reports this from Modal.onDismiss, after the native dismissal.
-        if (Platform.OS !== "ios") onClosedRef.current?.();
+        if (inline || Platform.OS !== "ios") onClosedRef.current?.();
       }
     });
-  }, [visible, mounted, progress]);
+  }, [visible, mounted, progress, inline]);
 
-  return (
-    <Modal
-      animationType="none"
-      transparent
-      visible={mounted}
-      onRequestClose={onDismiss}
-      onDismiss={Platform.OS === "ios" ? onClosed : undefined}
-    >
+  const content = (
+    <>
       <Animated.View style={[styles.backdrop, { opacity: progress }]}>
         <Pressable accessibilityRole="button" style={StyleSheet.absoluteFill} onPress={onDismiss} />
       </Animated.View>
@@ -74,11 +74,35 @@ export function BottomSheet({ visible, onDismiss, children, style, overlay, onCl
         </Animated.View>
       </View>
       {overlay}
+    </>
+  );
+
+  if (inline) {
+    return mounted ? (
+      <View style={styles.inline} pointerEvents="box-none">
+        {content}
+      </View>
+    ) : null;
+  }
+
+  return (
+    <Modal
+      animationType="none"
+      transparent
+      visible={mounted}
+      onRequestClose={onDismiss}
+      onDismiss={Platform.OS === "ios" ? onClosed : undefined}
+    >
+      {content}
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  inline: {
+    ...StyleSheet.absoluteFill,
+    overflow: "hidden",
+  },
   root: {
     flex: 1,
     justifyContent: "flex-end",

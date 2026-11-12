@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { createContext, useContext } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -22,36 +22,35 @@ export function recommendedAddMethod(shoppingStyle?: string | null): ScanMethod 
   return shoppingStyle ? RECOMMENDED_BY_SHOPPING_STYLE[shoppingStyle] : undefined;
 }
 
+// The tab layout hosts the sheet; the household pill's "+" opens it.
+const OpenAddSheetContext = createContext<() => void>(() => undefined);
+export const OpenAddSheetProvider = OpenAddSheetContext.Provider;
+export function useOpenAddSheet() {
+  return useContext(OpenAddSheetContext);
+}
+
 type Props = {
   visible: boolean;
   onClose: () => void;
 };
 
 // The "+" beside the household pill: Add's ways in as a sheet over the
-// current screen (2026-11-12). Picking one opens Add straight into it once
-// the sheet's Modal is gone (Add handles gates like the AI notice there).
+// current screen (2026-11-12). Drawn inline by (tabs)/_layout above the dock,
+// not in a Modal, so the dock stays visible and tappable. Picking a method
+// opens Add straight into it (Add handles gates like the AI notice there).
 export function AddSheet({ visible, onClose }: Props) {
   const { t } = useTranslation();
   const { profile, activeHousehold } = useAuth();
-  const picked = useRef<ScanMethod | null>(null);
   const recommended = recommendedAddMethod(profile?.shopping_style);
   const featured = recommended ?? ADD_METHODS[0];
 
   function pick(method: ScanMethod) {
-    picked.current = method;
     onClose();
+    router.navigate({ pathname: "/(tabs)/scan", params: { mode: method } });
   }
 
   return (
-    <BottomSheet
-      visible={visible}
-      onDismiss={onClose}
-      onClosed={() => {
-        const method = picked.current;
-        picked.current = null;
-        if (method) router.navigate({ pathname: "/(tabs)/scan", params: { mode: method } });
-      }}
-    >
+    <BottomSheet inline visible={visible} onDismiss={onClose} style={styles.sheet}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.copy}>
           <Text variant="h3">{t("scan.title")}</Text>
@@ -78,6 +77,10 @@ export function AddSheet({ visible, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
+  // The dock below already clears the home indicator.
+  sheet: {
+    paddingBottom: spacing.lg,
+  },
   // Scrolls only on small phones, where five cards outgrow the sheet.
   scroll: {
     flexShrink: 1,
