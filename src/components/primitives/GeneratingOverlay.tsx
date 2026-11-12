@@ -1,6 +1,5 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Animated, Easing, ScrollView, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
 import { useReducedMotion } from "../../hooks/useReducedMotion";
@@ -113,7 +112,6 @@ type StepState = "pending" | "active" | "done";
  * unmounts. Honors the system reduce-motion setting.
  */
 export function GeneratingOverlay({ eyebrow, title, listLabel, steps, header }: GeneratingOverlayProps) {
-  const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
   const [activeStep, setActiveStep] = useState(0);
   const [screenOpacity] = useState(() => new Animated.Value(0));
@@ -143,7 +141,8 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps, header }: 
       accessibilityLabel={`${title}. ${steps[activeStep] ?? ""}`}
       accessibilityLiveRegion="polite"
     >
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]} scrollEnabled={false}>
+      {/* The screen's safe area already clears the notch; lg matches the home's top. */}
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: spacing.lg }]} scrollEnabled={false}>
         {header}
         <View style={styles.body}>
           <View style={styles.card}>
