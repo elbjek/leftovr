@@ -105,17 +105,20 @@ function StatTile({ figure, icon, children }: { figure: Figure; icon: ReactNode;
         </Text>
       </View>
       <View style={styles.tileBody}>
-        <Text variant="h2" color={colors.text} style={styles.num} numberOfLines={1} adjustsFontSizeToFit>
-          {figure.value}
-        </Text>
-        {delta ? (
-          <View style={[styles.delta, delta.good ? styles.deltaGood : styles.deltaBad]}>
-            <Caret direction={delta.direction} color={delta.good ? colors.green : colors.redInk} size={12} />
-            <Text variant="micro" color={delta.good ? colors.text : colors.redInk} numberOfLines={1}>
-              {delta.label}
-            </Text>
-          </View>
-        ) : null}
+        {/* Value and its change side by side: about half the old tile height. */}
+        <View style={styles.valueRow}>
+          <Text variant="h3" color={colors.text} style={styles.num} numberOfLines={1} adjustsFontSizeToFit>
+            {figure.value}
+          </Text>
+          {delta ? (
+            <View style={[styles.delta, delta.good ? styles.deltaGood : styles.deltaBad]}>
+              <Caret direction={delta.direction} color={delta.good ? colors.green : colors.redInk} size={12} />
+              <Text variant="micro" color={delta.good ? colors.text : colors.redInk} numberOfLines={1}>
+                {delta.label}
+              </Text>
+            </View>
+          ) : null}
+        </View>
         {figure.sub ? (
           <Text variant="small" muted>
             {figure.sub}
@@ -206,13 +209,12 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
+  // Compact since 2026-11-12 (Lena: "make these 4 blocks smaller").
   tile: {
     flex: 1,
     minWidth: 0,
-    minHeight: 132,
-    justifyContent: "space-between",
-    gap: spacing.md,
-    padding: spacing.lg,
+    gap: spacing.sm,
+    padding: spacing.md,
     borderRadius: radii.xxl,
     backgroundColor: colors.surface,
     ...shadows.soft,
@@ -227,8 +229,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   iconSquare: {
-    width: 32,
-    height: 32,
+    width: 26,
+    height: 26,
     borderRadius: radii.xs,
     backgroundColor: colors.surface2,
     alignItems: "center",
@@ -237,7 +239,15 @@ const styles = StyleSheet.create({
   tileBody: {
     gap: spacing.xxs,
   },
+  valueRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    columnGap: spacing.xs,
+    rowGap: spacing.xxs,
+  },
   num: {
+    flexShrink: 1,
     fontVariant: ["tabular-nums"],
   },
   delta: {
