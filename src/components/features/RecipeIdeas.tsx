@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
@@ -217,33 +218,51 @@ export function RecipeListCard({
 type Idea = {
   key: string;
   title: string;
-  meta: string;
+  time: string;
+  complexity: string;
   description?: string;
-  pill?: string;
+  /** The foods you have for it, soon ones first, as on the home's hero. */
+  chips: IngredientChip[];
+  why?: string;
+  /** "{time} · {have} of {total} in your kitchen", as on the home's list. */
+  listMeta: string;
   coverPath?: string | null;
   onPress: () => void;
 };
 
-/** Where a generation lands: the best match, the others, and "Give me 3 more". */
+/**
+ * Where a generation lands, built from the home's own pieces: the header,
+ * a back button with the title (Kitchen's results head), the best match as
+ * the home's hero card, the others as the home's list cards under an h3, and
+ * "Give me 3 more" as the home's Browse all button.
+ */
 export function IdeasResults({
+  header,
   title,
   subtitle,
   backLabel,
   onBack,
   bestLabel,
   viewLabel,
+  ingredientsLabel,
   othersLabel,
+  otherBadge,
+  favoriteLabel,
   ideas,
   moreLabel,
   onMore,
 }: {
+  header?: ReactNode;
   title: string;
   subtitle?: string;
   backLabel: string;
   onBack: () => void;
   bestLabel: string;
   viewLabel: string;
+  ingredientsLabel: string;
   othersLabel: string;
+  otherBadge: string;
+  favoriteLabel: string;
   ideas: Idea[];
   moreLabel: string;
   onMore: () => void;
@@ -251,89 +270,75 @@ export function IdeasResults({
   const [best, ...others] = ideas;
   return (
     <ScrollView contentContainerStyle={styles.results} showsVerticalScrollIndicator={false}>
-      <Pressable accessibilityRole="button" onPress={onBack} hitSlop={6} style={({ pressed }) => [styles.back, pressed && styles.pressed]}>
-        <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-          <Path d="M15 5l-7 7 7 7" stroke={colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
-        </Svg>
-        <Text variant="label">
-          {backLabel}
-        </Text>
-      </Pressable>
-      <View style={styles.resultsHead}>
-        <Text variant="h3" accessibilityRole="header">
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text variant="body" muted>
-            {subtitle}
-          </Text>
-        ) : null}
-      </View>
-
-      {best ? (
-        <View style={[styles.card, styles.best]}>
-          <View style={styles.heroTop}>
-            <View style={styles.copy}>
-              <Text variant="micro" uppercase color={colors.accentInk} style={styles.eyebrow}>
-                {bestLabel}
-              </Text>
-              <Text variant="h3" style={styles.heroTitle}>{best.title}</Text>
-              <Text variant="small" muted>
-                {best.meta}
-              </Text>
-            </View>
-            <View style={styles.tileLarge}>
-              <RecipeCover path={best.coverPath} glyphSize={40} />
-            </View>
-          </View>
-          {best.description ? <Text variant="body">{best.description}</Text> : null}
-          {best.pill ? <Pill label={best.pill} /> : null}
-          <Pressable accessibilityRole="button" onPress={best.onPress} style={({ pressed }) => [styles.view, pressed && styles.pressed]}>
-            <Text variant="label" color={colors.onPrimary}>
-              {viewLabel}
-            </Text>
+      {header}
+      <View style={styles.resultsBody}>
+        <View style={styles.resultsHead}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={backLabel}
+            onPress={onBack}
+            hitSlop={6}
+            style={({ pressed }) => [styles.back, pressed && styles.pressed]}
+          >
+            <Svg width={8} height={14} viewBox="0 0 9 16" fill="none">
+              <Path d="M8 1 2 8l6 7" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
           </Pressable>
+          <View style={styles.copy}>
+            <Text variant="h3" accessibilityRole="header" numberOfLines={1}>
+              {title}
+            </Text>
+            {subtitle ? (
+              <Text variant="small" muted>
+                {subtitle}
+              </Text>
+            ) : null}
+          </View>
         </View>
-      ) : null}
 
-      {others.length > 0 ? (
-        <View style={styles.section}>
-          <Text variant="micro" uppercase muted style={styles.eyebrow}>
-            {othersLabel}
+        {best ? (
+          <TryNextCard
+            eyebrow={bestLabel}
+            title={best.title}
+            time={best.time}
+            complexity={best.complexity}
+            description={best.description}
+            ingredientsLabel={ingredientsLabel}
+            ingredients={best.chips}
+            why={best.why}
+            favoriteLabel={favoriteLabel}
+            onPress={best.onPress}
+            ctaLabel={viewLabel}
+            coverPath={best.coverPath}
+          />
+        ) : null}
+
+        {others.length > 0 ? (
+          <View style={styles.section}>
+            <Text variant="h3" accessibilityRole="header">
+              {othersLabel}
+            </Text>
+            {others.map((idea) => (
+              <RecipeListCard
+                key={idea.key}
+                badge={otherBadge}
+                badgeAccent
+                title={idea.title}
+                meta={idea.listMeta}
+                favoriteLabel={favoriteLabel}
+                onPress={idea.onPress}
+                coverPath={idea.coverPath}
+              />
+            ))}
+          </View>
+        ) : null}
+
+        <Pressable accessibilityRole="button" onPress={onMore} style={({ pressed }) => [styles.more, pressed && styles.pressed]}>
+          <Text variant="label" color={colors.primary}>
+            {moreLabel}
           </Text>
-          {others.map((idea) => (
-            <Pressable
-              key={idea.key}
-              accessibilityRole="button"
-              onPress={idea.onPress}
-              style={({ pressed }) => [styles.card, styles.listCard, pressed && styles.pressed]}
-            >
-              <View style={styles.tileSmall}>
-                <RecipeCover path={idea.coverPath} glyphSize={28} />
-              </View>
-              <View style={[styles.copy, styles.otherCopy]}>
-                <Text variant="title" numberOfLines={2} style={styles.listTitle}>
-                  {idea.title}
-                </Text>
-                <Text variant="small" muted>
-                  {idea.meta}
-                </Text>
-                {idea.pill ? <Pill label={idea.pill} /> : null}
-              </View>
-              <Chevron />
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-
-      <Pressable accessibilityRole="button" onPress={onMore} style={({ pressed }) => [styles.more, pressed && styles.pressed]}>
-        <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-          <Path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4.5h-4.5" stroke={colors.accentInk} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
-        </Svg>
-        <Text variant="label">
-          {moreLabel}
-        </Text>
-      </Pressable>
+        </Pressable>
+      </View>
     </ScrollView>
   );
 }
@@ -344,16 +349,6 @@ function MetaLine({ text }: { text: string }) {
       <ClockIcon size={14} />
       <Text variant="small" color={colors.text} numberOfLines={1} style={styles.copy}>
         {text}
-      </Text>
-    </View>
-  );
-}
-
-function Pill({ label }: { label: string }) {
-  return (
-    <View style={styles.pill}>
-      <Text variant="small" color={colors.primary} weight="bold">
-        {label}
       </Text>
     </View>
   );
@@ -409,14 +404,6 @@ function SparkIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
       <Path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" stroke={colors.accentInk} strokeWidth={1.8} strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function Chevron() {
-  return (
-    <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
-      <Path d="M5 2.5 9.5 7 5 11.5" stroke={colors.muted2} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -533,24 +520,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
   },
-  tileLarge: {
-    width: 64,
-    height: 64,
-    borderRadius: radii.lg,
-    backgroundColor: colors.sageTint,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
-  tileSmall: {
-    width: 48,
-    height: 48,
-    borderRadius: radii.md,
-    backgroundColor: colors.sageTint,
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
   copy: {
     flex: 1,
     minWidth: 0,
@@ -630,60 +599,42 @@ const styles = StyleSheet.create({
   },
   results: {
     paddingTop: spacing.lg,
-    paddingHorizontal: spacing.screenX,
     paddingBottom: spacing.tabBarClearance,
+  },
+  resultsBody: {
+    paddingHorizontal: spacing.screenX,
     gap: spacing.lg,
   },
+
+  // Kitchen's results back button.
   back: {
-    alignSelf: "flex-start",
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  resultsHead: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    minHeight: 40,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface2,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-  },
-  resultsHead: {
-    gap: spacing.xs,
-  },
-  best: {
-    padding: spacing.lg,
     gap: spacing.md,
   },
-  pill: {
-    alignSelf: "flex-start",
-    minHeight: 28,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.md,
-    justifyContent: "center",
-    // Peach, like the home's "Use soon" tag: tomato on sage clashed.
-    backgroundColor: colors.surface2,
-  },
-  view: {
-    minHeight: 52,
-    borderRadius: radii.lg,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+
   section: {
     gap: spacing.sm,
   },
-  otherCopy: {
-    gap: 4,
-  },
+  // The home's Browse all button.
   more: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    minHeight: 52,
+    minHeight: 48,
     borderRadius: radii.lg,
     backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadows.soft,
   },
+
   pressed: {
     opacity: 0.7,
   },

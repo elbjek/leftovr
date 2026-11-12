@@ -8,7 +8,7 @@ import Svg, { Path } from "react-native-svg";
 import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
-import { formatMoney } from "@/lib";
+import { foodIconKey, formatMoney } from "@/lib";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
 import {
   formatComplexity,
@@ -295,21 +295,29 @@ export default function RecipesRoute() {
     parseRecipeIngredients(ingredients).filter((ing) => inventoryNames.has(normalizeFoodName(ing.name)));
   const soonOf = (ingredients: unknown) => haveOf(ingredients).filter((ing) => soonNames.has(normalizeFoodName(ing.name)));
 
-  // Try next: tonight's dish, the foods you have for it (soon ones first) and why it fits.
-  const dishHave = dish ? haveOf(dish.ingredients) : [];
-  const dishSoon = dish ? soonOf(dish.ingredients) : [];
-  const dishChips = [...dishSoon, ...dishHave.filter((ing) => !dishSoon.includes(ing))].slice(0, 4).map((ing) => ({
-    label: capitalize(ing.name),
-    tag: dishSoon.includes(ing) ? t("recipes.tryNext.soonTag") : undefined,
-  }));
+  // Try next: a dish's foods you have (soon ones first) and why it fits. The
+  // home's hero and the ideas view's best match both use it.
+  const heroBits = (ingredients: unknown) => {
+    const have = haveOf(ingredients);
+    const soon = soonOf(ingredients);
+    const coverage = fridgeCoverage(ingredients, inventoryNames);
+    return {
+      chips: [...soon, ...have.filter((ing) => !soon.includes(ing))].slice(0, 4).map((ing) => ({
+        label: capitalize(ing.name),
+        tag: soon.includes(ing) ? t("recipes.tryNext.soonTag") : undefined,
+      })),
+      why:
+        soon.length > 0
+          ? t("recipes.tryNext.whySoon", { foods: soon.slice(0, 2).map((ing) => ing.name).join(" & ") })
+          : coverage.total > 0
+            ? t("recipes.tryNext.whyHave", { have: coverage.have, total: coverage.total })
+            : undefined,
+    };
+  };
+  const dishBits = dish ? heroBits(dish.ingredients) : null;
+  const dishChips = dishBits?.chips ?? [];
   const dishSteps = dish && Array.isArray(dish.steps) ? dish.steps.length : 0;
-  const dishWhy = dish
-    ? dishSoon.length > 0
-      ? t("recipes.tryNext.whySoon", { foods: dishSoon.slice(0, 2).map((ing) => ing.name).join(" & ") })
-      : dishCoverage && dishCoverage.total > 0
-        ? t("recipes.tryNext.whyHave", { have: dishCoverage.have, total: dishCoverage.total })
-        : undefined
-    : undefined;
+  const dishWhy = dishBits?.why;
 
   // The list under it, TinyMeals' "More for you": every recipe you have, with chips.
   // Tonight's other ideas lead it, highlighted; the one in the card above stays out.
@@ -358,32 +366,44 @@ export default function RecipesRoute() {
             : { label: t("recipes.list.recipe"), accent: false };
 
   // The "N ideas" view: this generation's picks (or today's, read back after a restart).
-  const coveragePill = (ingredients: unknown) => {
+  // Same meta line as the home's list: time, then how much you have.
+  const listMetaFor = (minutes: number, ingredients: unknown) => {
     const coverage = fridgeCoverage(ingredients, inventoryNames);
-    if (coverage.total === 0) return undefined;
-    return coverage.have === coverage.total
-      ? t("recipes.home.haveAll")
-      : t("recipes.home.haveSome", { have: coverage.have, total: coverage.total });
+    return [
+      formatTimeLabel(minutes),
+      coverage.total > 0 ? t("recipes.list.have", { have: coverage.have, total: coverage.total }) : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
   };
   const ideas = hasSuggestions
     ? suggestions.map((match) => ({
         key: match.key,
         title: match.title,
-        meta: [formatTimeLabel(match.timeMinutes), formatComplexity(match.complexity)].join(" · "),
+        time: formatTimeLabel(match.timeMinutes),
+        complexity: formatComplexity(match.complexity),
         description: match.description,
-        pill: coveragePill(match.ingredients),
+        ...heroBits(match.ingredients),
+        listMeta: listMetaFor(match.timeMinutes, match.ingredients),
         coverPath: savedForMatch(match)?.cover_path,
         onPress: () => navigateToDetail(match, savedForMatch(match)?.id),
       }))
     : restoredTonight.map((recipe) => ({
         key: recipe.id,
         title: recipe.title,
-        meta: [formatTimeLabel(recipe.time_minutes ?? 20), formatComplexity(recipe.complexity ?? "simple")].join(" · "),
+        time: formatTimeLabel(recipe.time_minutes ?? 20),
+        complexity: formatComplexity(recipe.complexity ?? "simple"),
         description: recipe.description ?? undefined,
-        pill: coveragePill(recipe.ingredients),
+        ...heroBits(recipe.ingredients),
+        listMeta: listMetaFor(recipe.time_minutes ?? 20, recipe.ingredients),
         coverPath: recipe.cover_path,
         onPress: () => openSavedRecipe(recipe),
       }));
+
+  // The loader's plate: kitchen foods with an illustrated icon, soonest to go off first.
+  const loaderFoods = [...new Set([...urgentGroups, ...inventoryGroups].map((group) => group.name))]
+    .filter((name) => foodIconKey(name))
+    .slice(0, 8);
 
   // Logo left, household pill right; the generating overlay shows it too.
   const topBar = (
@@ -414,13 +434,17 @@ export default function RecipesRoute() {
     <Screen padded={false} bottomInset={false} contentContainerStyle={styles.screen}>
       {ideasOpen && hasTonight ? (
         <IdeasResults
+          header={topBar}
           title={t("recipes.ideas.title", { count: ideas.length })}
           subtitle={t("recipes.ideas.subtitle")}
           backLabel={t("recipes.ideas.back")}
           onBack={() => setIdeasOpen(false)}
           bestLabel={t("recipes.ideas.best")}
           viewLabel={t("recipes.ideas.view")}
+          ingredientsLabel={t("recipes.tryNext.youHave")}
           othersLabel={t("recipes.ideas.others")}
+          otherBadge={t("recipes.list.tonight")}
+          favoriteLabel={t("recipes.list.favorite")}
           ideas={ideas}
           moreLabel={t("recipes.ideas.more")}
           onMore={handleShowOthers}
@@ -752,6 +776,7 @@ export default function RecipesRoute() {
       {generating ? (
         <GeneratingOverlay
           header={topBar}
+          foods={loaderFoods}
           eyebrow={t("recipes.generatingOverlay.eyebrow")}
           title={t("recipes.generatingOverlay.title")}
           listLabel={t("recipes.generatingOverlay.listLabel")}

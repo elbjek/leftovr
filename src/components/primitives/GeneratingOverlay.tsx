@@ -93,28 +93,30 @@ type GeneratingOverlayProps = {
   /** Small label over the title ("New ideas"). */
   eyebrow: string;
   title: string;
-  /** Label over the placeholder cards ("Ideas for tonight"). */
+  /** Label over the placeholder cards ("Your ideas"). */
   listLabel: string;
-  /** Ordered pipeline steps; each lights up then completes as work proceeds. */
+  /** Ordered pipeline steps; one shows at a time as work proceeds. */
   steps: string[];
   /** The screen's own top (logo, household pill), so the overlay keeps it. */
   header?: ReactNode;
+  /** Kitchen foods to show on the plate, soonest to go off first. */
+  foods?: string[];
 };
 
-type StepState = "pending" | "active" | "done";
-
 /**
- * Full-screen loading state for AI recipe generation, in the home's style:
- * the screen's header, one white card with the eyebrow, title and step
- * checklist, then an h3 section of placeholder recipe cards where the ideas
- * will land. Steps advance pending → active → done on a
- * timer (perceived progress), holding the last step until the overlay
- * unmounts. Honors the system reduce-motion setting.
+ * Full-screen loading state for AI recipe generation, built from the home's
+ * own pieces: the header, then a white card with the hero's peach blob
+ * holding a plate where the household's own foods (going-off first) take
+ * turns under the logo's butter steam; the title, the current step, and a
+ * four-part progress bar. Under it, h3 "Your ideas" over placeholder recipe
+ * cards. Steps advance on a timer (perceived progress) and hold on the last
+ * until the overlay unmounts. Honors reduce motion.
  */
-export function GeneratingOverlay({ eyebrow, title, listLabel, steps, header }: GeneratingOverlayProps) {
+export function GeneratingOverlay({ eyebrow, title, listLabel, steps, header, foods }: GeneratingOverlayProps) {
   const reduceMotion = useReducedMotion();
   const [activeStep, setActiveStep] = useState(0);
   const [screenOpacity] = useState(() => new Animated.Value(0));
+  const [phrase] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
     Animated.timing(screenOpacity, {
@@ -134,6 +136,13 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps, header }: 
     return () => clearTimeout(timer);
   }, [activeStep, steps.length]);
 
+  // Each new step's line fades up in place of the last.
+  useEffect(() => {
+    if (reduceMotion) return;
+    phrase.setValue(0);
+    Animated.timing(phrase, { toValue: 1, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [activeStep, phrase, reduceMotion]);
+
   return (
     <Animated.View
       style={[styles.overlay, { opacity: screenOpacity }]}
@@ -142,25 +151,36 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps, header }: 
       accessibilityLiveRegion="polite"
     >
       {/* The screen's safe area already clears the notch; lg matches the home's top. */}
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: spacing.lg }]} scrollEnabled={false}>
+      <ScrollView contentContainerStyle={styles.content} scrollEnabled={false}>
         {header}
         <View style={styles.body}>
           <View style={styles.card}>
-            <View style={styles.cardHead}>
+            <Plate foods={foods && foods.length > 0 ? foods : GLYPHS} reduceMotion={reduceMotion} />
+            <View style={styles.copy}>
               <Text variant="micro" uppercase color={colors.primary}>
                 {eyebrow}
               </Text>
-              <Text variant="h3">{title}</Text>
+              <Text variant="h3" style={styles.center}>
+                {title}
+              </Text>
+              <Animated.View
+                style={
+                  !reduceMotion && {
+                    opacity: phrase,
+                    transform: [{ translateY: phrase.interpolate({ inputRange: [0, 1], outputRange: [6, 0] }) }],
+                  }
+                }
+              >
+                <Text variant="small" muted style={styles.center}>
+                  {steps[activeStep]}
+                </Text>
+              </Animated.View>
             </View>
-            {steps.map((label, i) => (
-              <StepRow
-                key={i}
-                label={label}
-                index={i}
-                state={i < activeStep ? "done" : i === activeStep ? "active" : "pending"}
-                reduceMotion={reduceMotion}
-              />
-            ))}
+            <View style={styles.progress}>
+              {steps.map((_, i) => (
+                <Segment key={i} state={i < activeStep ? "done" : i === activeStep ? "active" : "pending"} reduceMotion={reduceMotion} />
+              ))}
+            </View>
           </View>
           <Text variant="h3" style={styles.listLabel}>
             {listLabel}
@@ -174,77 +194,104 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps, header }: 
   );
 }
 
-function StepRow({
-  label,
-  index,
-  state,
-  reduceMotion,
-}: {
-  label: string;
-  index: number;
-  state: StepState;
-  reduceMotion: boolean;
-}) {
-  const [enter] = useState(() => new Animated.Value(reduceMotion ? 1 : 0));
-  const [pulse] = useState(() => new Animated.Value(0));
+// The home hero's tilted peach blob with a white plate on it; the foods take
+// turns on the plate and the logo's two butter wisps rise off it.
+function Plate({ foods, reduceMotion }: { foods: string[]; reduceMotion: boolean }) {
+  const [index, setIndex] = useState(0);
+  const [pop] = useState(() => new Animated.Value(1));
 
-  // Staggered entrance as the list appears.
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((i) => (i + 1) % foods.length);
+      if (reduceMotion) return;
+      pop.setValue(0);
+      Animated.timing(pop, { toValue: 1, duration: 320, easing: Easing.out(Easing.back(1.6)), useNativeDriver: true }).start();
+    }, GLYPH_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [foods.length, pop, reduceMotion]);
+
+  return (
+    <View style={styles.art}>
+      <View style={styles.blob} />
+      <View style={styles.steam}>
+        <Wisp delay={0} reduceMotion={reduceMotion} />
+        <Wisp delay={550} reduceMotion={reduceMotion} />
+      </View>
+      <View style={styles.plate}>
+        <Animated.View
+          style={
+            !reduceMotion && {
+              opacity: pop.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, 1, 1] }),
+              transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }],
+            }
+          }
+        >
+          <FoodGlyph name={foods[index % foods.length]} size={64} />
+        </Animated.View>
+      </View>
+    </View>
+  );
+}
+
+// One steam wisp, as on the logo: rises, sways, fades, starts again.
+function Wisp({ delay, reduceMotion }: { delay: number; reduceMotion: boolean }) {
+  const [rise] = useState(() => new Animated.Value(0));
   useEffect(() => {
     if (reduceMotion) return;
-    Animated.timing(enter, {
-      toValue: 1,
-      duration: 320,
-      delay: index * 90,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [enter, index, reduceMotion]);
-
-  // Breathing halo on the active step only.
-  useEffect(() => {
-    if (reduceMotion || state !== "active") return;
-    pulse.setValue(0);
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 800, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.delay(delay),
+        Animated.timing(rise, { toValue: 1, duration: 1400, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(rise, { toValue: 0, duration: 0, useNativeDriver: true }),
       ]),
     );
     loop.start();
     return () => loop.stop();
-  }, [pulse, state, reduceMotion]);
-
-  const enterStyle = {
-    opacity: enter,
-    transform: [{ translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
-  };
-  const ringScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.6] });
-  const ringOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.45, 0] });
+  }, [delay, reduceMotion, rise]);
 
   return (
-    <Animated.View style={[styles.stepRow, !reduceMotion && enterStyle]}>
-      <View style={styles.indicator}>
-        {state === "done" ? (
-          <View style={styles.dotDone}>
-            <CheckMark />
-          </View>
-        ) : state === "active" ? (
-          <>
-            {!reduceMotion ? (
-              <Animated.View style={[styles.pulseRing, { transform: [{ scale: ringScale }], opacity: ringOpacity }]} />
-            ) : null}
-            <View style={styles.dotActiveRing}>
-              <View style={styles.dotActiveCore} />
-            </View>
-          </>
-        ) : (
-          <View style={styles.dotPending} />
-        )}
-      </View>
-      <Text variant={state === "pending" ? "body" : "label"} color={state === "pending" ? colors.muted : colors.text}>
-        {label}
-      </Text>
+    <Animated.View
+      style={
+        !reduceMotion && {
+          opacity: rise.interpolate({ inputRange: [0, 0.2, 0.7, 1], outputRange: [0, 1, 0.8, 0] }),
+          transform: [
+            { translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [8, -10] }) },
+            { rotate: rise.interpolate({ inputRange: [0, 0.5, 1], outputRange: ["-6deg", "6deg", "-4deg"] }) },
+          ],
+        }
+      }
+    >
+      <Svg width={10} height={20} viewBox="0 0 10 20" fill="none">
+        <Path d="M4 18c0-4 4-4 4-8.5S4 5 5 2" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
+      </Svg>
     </Animated.View>
+  );
+}
+
+// One quarter of the progress bar: tomato once reached, the current one breathing.
+function Segment({ state, reduceMotion }: { state: "done" | "active" | "pending"; reduceMotion: boolean }) {
+  const [pulse] = useState(() => new Animated.Value(1));
+  useEffect(() => {
+    if (reduceMotion || state !== "active") return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 0.45, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => {
+      loop.stop();
+      pulse.setValue(1);
+    };
+  }, [pulse, reduceMotion, state]);
+
+  return (
+    <View style={styles.segment}>
+      {state !== "pending" ? (
+        <Animated.View style={[styles.segmentFill, state === "active" && !reduceMotion && { opacity: pulse }]} />
+      ) : null}
+    </View>
   );
 }
 
@@ -276,13 +323,6 @@ function SkeletonCard({ index, reduceMotion }: { index: number; reduceMotion: bo
   );
 }
 
-function CheckMark() {
-  return (
-    <Svg width={13} height={13} viewBox="0 0 16 16" fill="none">
-      <Path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke={colors.onPrimary} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
 const styles = StyleSheet.create({
   overlay: {
@@ -295,6 +335,7 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   content: {
+    paddingTop: spacing.lg,
     paddingBottom: spacing.xxl,
   },
   body: {
@@ -302,15 +343,66 @@ const styles = StyleSheet.create({
   },
   // The home's card surface: white, 24pt corners, the soft lift, no outline.
   card: {
+    alignItems: "center",
+    gap: spacing.lg,
     backgroundColor: colors.surface,
     borderRadius: radii.xxl,
-    padding: spacing.lg,
-    paddingBottom: spacing.sm,
+    padding: spacing.xl,
     ...shadows.soft,
   },
-  cardHead: {
+  art: {
+    width: 168,
+    height: 150,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // RecipeIdeas' heroBlob, scaled up.
+  blob: {
+    position: "absolute",
+    width: 168,
+    height: 140,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    transform: [{ rotate: "-14deg" }],
+  },
+  steam: {
+    position: "absolute",
+    top: 0,
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  plate: {
+    width: 104,
+    height: 104,
+    marginTop: spacing.lg,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadows.soft,
+  },
+  copy: {
+    alignItems: "center",
     gap: spacing.xxs,
-    marginBottom: spacing.sm,
+  },
+  center: {
+    textAlign: "center",
+  },
+  progress: {
+    alignSelf: "stretch",
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
+  segment: {
+    flex: 1,
+    height: 6,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    overflow: "hidden",
+  },
+  segmentFill: {
+    flex: 1,
+    backgroundColor: colors.primary,
   },
   listLabel: {
     marginTop: spacing.xxl,
@@ -364,56 +456,5 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: colors.accentSoft,
     opacity: 0.55,
-  },
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    minHeight: 48,
-  },
-  indicator: {
-    width: 26,
-    height: 26,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  // Round like the shopping list's tick: hollow, peach with a tomato core, tomato with a check.
-  dotPending: {
-    width: 22,
-    height: 22,
-    borderRadius: radii.pill,
-    borderWidth: 2,
-    borderColor: colors.hairlineStrong,
-  },
-  dotActiveRing: {
-    width: 22,
-    height: 22,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dotActiveCore: {
-    width: 10,
-    height: 10,
-    borderRadius: radii.pill,
-    backgroundColor: colors.primary,
-  },
-  pulseRing: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
-  },
-  dotDone: {
-    width: 22,
-    height: 22,
-    borderRadius: radii.pill,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });
