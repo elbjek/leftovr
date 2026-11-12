@@ -53,7 +53,7 @@ export function ScanMethodCard({ method, body, recommended = false, featured = f
             </View>
           ) : null}
           <View style={styles.heroIcon}>
-            <ScanMethodIcon method={method} size={26} />
+            <ScanMethodIcon method={method} size={26} color={soft ? colors.redInk : colors.primary} />
           </View>
           <Text variant="h3" color={soft ? colors.redInk : colors.onPrimary}>
             {title}
@@ -63,7 +63,7 @@ export function ScanMethodCard({ method, body, recommended = false, featured = f
           </Text>
         </View>
         <View style={styles.heroGo}>
-          <ArrowIcon />
+          <ArrowIcon color={soft ? colors.redInk : colors.primary} />
         </View>
       </Pressable>
     );
@@ -154,10 +154,10 @@ export function ScanMethodIcon({ method, color = colors.primary, size = 22 }: { 
   );
 }
 
-function ArrowIcon() {
+function ArrowIcon({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Path d="M5 12h14M13 6l6 6-6 6" stroke={colors.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M5 12h14M13 6l6 6-6 6" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
