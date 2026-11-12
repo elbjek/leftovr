@@ -5,7 +5,7 @@ export * from "./CookPromptSheet";
 export * from "./CookReward";
 export * from "./DaySheet";
 export * from "./DinnerHero";
-export * from "./EatFirstShelf";
+export * from "./LockedCard";
 export * from "./EmptyFridge";
 export * from "./FeatureShowcase";
 export * from "./HouseholdPill";

@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
 import {
-  Button,
   DaySheet,
   EmptyNote,
   FoodGroups,
@@ -13,6 +12,7 @@ import {
   GoingOffList,
   HouseholdPill,
   HouseholdSheet,
+  LockedCard,
   Logo,
   PeriodSummary,
   PremiumSheet,
@@ -205,41 +205,13 @@ export default function InsightsRoute() {
       <Screen bottomInset={false} contentContainerStyle={styles.lockScreen}>
         {header()}
         <View style={styles.lockCenter}>
-          <View style={styles.lock}>
-            <View style={styles.lockMark} pointerEvents="none" />
-            <View style={styles.lockSeal}>
-              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-                <Path
-                  d="M4.5 10h15v10.5h-15zM8.2 10V7.6a3.8 3.8 0 017.6 0V10"
-                  stroke={colors.primary}
-                  strokeWidth={2.2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </Svg>
-            </View>
-            <Text variant="h3" color={colors.onPrimary}>
-              {t("insights.lock.title")}
-            </Text>
-            <Text variant="small" color={colors.onPrimary} style={styles.lockBody}>
-              {t("insights.lock.body")}
-            </Text>
-            <View style={styles.lockPoints}>
-              {["money", "waste", "share"].map((point) => (
-                <View key={point} style={styles.lockPoint}>
-                  <View style={styles.lockTick}>
-                    <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-                      <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
-                    </Svg>
-                  </View>
-                  <Text variant="small" weight="bold" color={colors.onPrimary} style={styles.lockPointText}>
-                    {t(`insights.lock.points.${point}`)}
-                  </Text>
-                </View>
-              ))}
-            </View>
-            <Button title={t("insights.lock.action")} variant="accent" onPress={() => setShowPremium(true)} style={styles.lockButton} />
-          </View>
+          <LockedCard
+            title={t("insights.lock.title")}
+            body={t("insights.lock.body")}
+            points={["money", "waste", "share"].map((point) => t(`insights.lock.points.${point}`))}
+            action={t("insights.lock.action")}
+            onPress={() => setShowPremium(true)}
+          />
         </View>
         {sheets}
       </Screen>
@@ -581,65 +553,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Free accounts see a placeholder summary faded behind the Unlock card.
+  // Free accounts: one screen, the LockedCard centred under the header.
   lockScreen: {
     paddingBottom: spacing.xl,
   },
   lockCenter: {
     flex: 1,
     justifyContent: "center",
-  },
-  // Buttons on red use pale butter (2026-11-12).
-  lockButton: {
-    backgroundColor: colors.accentSoft,
-  },
-  // Solid tomato like the home's goal block, a darker disc clipping the
-  // corner; the Unlock button is butter so it reads on tomato.
-  lock: {
-    gap: spacing.md,
-    padding: spacing.xl,
-    borderRadius: radii.xxl,
-    backgroundColor: colors.primary,
-    overflow: "hidden",
-  },
-  lockMark: {
-    position: "absolute",
-    top: -50,
-    right: -50,
-    width: 140,
-    height: 140,
-    borderRadius: radii.pill,
-    backgroundColor: colors.primary700,
-  },
-  lockBody: {
-    opacity: 0.8,
-  },
-  lockSeal: {
-    width: 48,
-    height: 48,
-    borderRadius: radii.lg,
-    backgroundColor: colors.onPrimary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  lockPoints: {
-    gap: spacing.sm,
-  },
-  lockPoint: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  lockTick: {
-    width: 22,
-    height: 22,
-    borderRadius: radii.pill,
-    backgroundColor: colors.onPrimary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  lockPointText: {
-    flex: 1,
-    minWidth: 0,
   },
 });

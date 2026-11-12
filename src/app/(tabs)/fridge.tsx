@@ -3,7 +3,7 @@ import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, CartIcon, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdPill, HouseholdSheet, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
+import { BottomSheet, Button, CartIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
 import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useShoppingList } from "@/hooks";
@@ -121,7 +121,6 @@ export default function FridgeRoute() {
   const isPremium = resolvePremium(profile, activeHousehold);
   const { refresh: refreshInsights } = useInsights(activeHousehold?.id);
   // Eat-first is global (urgency, not the active category/search filter).
-  const eatFirstGroups = getEatFirstGroups(groups);
   // Premium "Use soon" list (TinyMeals' Try next): today and soon, soonest first.
   const useSoonGroups = sortBySoonest(groups.filter(isUseSoon));
   const runningLowGroups = activeGroups.filter(isMetricAmountRunningLow);
@@ -361,16 +360,14 @@ export default function FridgeRoute() {
           ) : null}
 
           {!isPremium && groups.length > 0 ? (
-            <EatFirstShelf
-              count={eatFirstGroups.length}
-              labels={{
-                kicker: t("fridge.eatFirstTitle"),
-                previewTitle: t("fridge.eatFirstPreviewTitle"),
-                previewBody: t("fridge.eatFirstPreviewBody"),
-                unlockAction: t("fridge.eatFirstUnlock"),
-              }}
-              onUpgradePress={() => setShowPremium(true)}
-            />
+            <View style={styles.cookNextWrap}>
+              <LockedCard
+                title={t("fridge.eatFirstPreviewTitle")}
+                body={t("fridge.eatFirstPreviewBody")}
+                action={t("fridge.eatFirstUnlock")}
+                onPress={() => setShowPremium(true)}
+              />
+            </View>
           ) : null}
 
           {expiredGroups.length > 0 ? (
@@ -1145,12 +1142,6 @@ function getCardMetaLines(meta: string) {
 // Urgent items only — these are the ones worth a dedicated, actionable block
 // ("Cook with these"). Soonest-expiring first. Soon/fresh live in the pulse
 // overview and the category shelves below.
-function getEatFirstGroups(groups: InventoryGroup[]) {
-  return groups
-    .filter((group) => group.urgency === "urgent")
-    .sort((a, b) => groupDaysLeft(a) - groupDaysLeft(b));
-}
-
 function isUseSoon(group: InventoryGroup) {
   return group.urgency === "urgent" || group.urgency === "use_soon";
 }

@@ -13,7 +13,7 @@ Structure:
 
 - `primitives/`: generic UI blocks such as `Screen`, `Text`, `Button`, `Card`, `BottomSheet`, `ChoiceCard`, and `SegmentedControl`.
 - `illustrations/`: reusable native SVG illustrations and glyphs.
-- `features/`: Leftovr-specific composed components such as `FoodCard`, `ShelfRow`, `EatFirstShelf`, `PremiumSheet`, `RecipeCard`, review cards, and retention cards.
+- `features/`: Leftovr-specific composed components such as `FoodCard`, `ShelfRow`, `LockedCard`, `PremiumSheet`, `RecipeCard`, review cards, and retention cards.
 
 Example:
 
