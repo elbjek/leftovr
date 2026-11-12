@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { useAuth } from "@/features";
+import { isPremium, useAuth } from "@/features";
 import { spacing } from "../../theme";
 import { BottomSheet, Text } from "../primitives";
 import { ScanMethod, ScanMethodCard } from "./ScanMethodCard";
@@ -32,7 +32,7 @@ type Props = {
 // the sheet's Modal is gone (Add handles gates like the AI notice there).
 export function AddSheet({ visible, onClose }: Props) {
   const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, activeHousehold } = useAuth();
   const picked = useRef<ScanMethod | null>(null);
   const recommended = recommendedAddMethod(profile?.shopping_style);
   const featured = recommended ?? ADD_METHODS[0];
@@ -64,6 +64,7 @@ export function AddSheet({ visible, onClose }: Props) {
           method={featured}
           body={t(`scan.${featured}.body`)}
           recommended={featured === recommended}
+          soft={!isPremium(profile, activeHousehold)}
           onPress={() => pick(featured)}
         />
         <View style={styles.grid}>

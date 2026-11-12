@@ -477,6 +477,7 @@ export default function RecipesRoute() {
             detail={goalDetail}
             streak={{ count: streak, label: t("recipes.week.streak", { count: streak }) }}
             onPress={() => showDay(new Date())}
+            soft={!isPremium}
           />
         </View>
 

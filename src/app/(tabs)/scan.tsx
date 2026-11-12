@@ -1504,6 +1504,7 @@ export default function ScanRoute() {
           method={featuredMethod}
           body={t(`scan.${featuredMethod}.body`)}
           recommended={featuredMethod === recommendedMethod}
+          soft={!resolvePremium(profile, activeHousehold)}
           onPress={() => openSelectedChoice(featuredMethod)}
         />
         <View style={styles.choiceGrid}>

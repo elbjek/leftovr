@@ -331,6 +331,7 @@ export default function FridgeRoute() {
               body={t("fridge.cookNext.body")}
               cta={t("fridge.cookNext.cta")}
               onPress={openRecipesAndGenerate}
+              soft={!isPremium}
             />
           ) : null}
 
@@ -541,12 +542,16 @@ export default function FridgeRoute() {
 // "What to cook next?": the Kitchen's way into recipes that use what's going
 // off. The home's goal block, taller: solid tomato, white copy and a butter
 // button on the left, broccoli and avocado on a darker tomato blob right.
-function CookNextCard({ title, body, cta, onPress }: { title: string; body: string; cta: string; onPress: () => void }) {
+// Solid tomato for Premium; pale red with red ink and a tomato button on the
+// free plan, where solid tomato is kept for upgrade prompts.
+function CookNextCard({ title, body, cta, onPress, soft }: { title: string; body: string; cta: string; onPress: () => void; soft: boolean }) {
+  const ink = soft ? colors.redInk : colors.onPrimary;
+  const buttonInk = soft ? colors.onPrimary : colors.text;
   return (
     <View style={styles.cookNextWrap}>
-      <View style={styles.cookNext}>
+      <View style={[styles.cookNext, soft && styles.cookNextSoft]}>
         <View style={styles.cookNextArt} pointerEvents="none">
-          <View style={styles.cookNextBlob} />
+          <View style={[styles.cookNextBlob, soft && styles.cookNextBlobSoft]} />
           <Svg width={34} height={30} viewBox="0 0 30 26" style={styles.cookNextSpark}>
             <Path d="M4 16l7 3M10 6l5 7M22 2l-1 8" stroke={colors.accent} strokeWidth={3} strokeLinecap="round" />
           </Svg>
@@ -559,19 +564,19 @@ function CookNextCard({ title, body, cta, onPress }: { title: string; body: stri
           </View>
         </View>
         <View style={styles.cookNextCopy}>
-          <Text variant="h3" color={colors.onPrimary}>
+          <Text variant="h3" color={ink}>
             {title}
           </Text>
-          <Text variant="small" color={colors.onPrimary} style={styles.cookNextBody}>
+          <Text variant="small" color={ink} style={styles.cookNextBody}>
             {body}
           </Text>
         </View>
-        <Tappable label={cta} onPress={onPress} style={[styles.cookNextButton]}>
-          <Text variant="label" color={colors.text}>
+        <Tappable label={cta} onPress={onPress} style={[styles.cookNextButton, soft && styles.cookNextButtonSoft]}>
+          <Text variant="label" color={buttonInk}>
             {cta}
           </Text>
           <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-            <Path d="M5 12h14M13 6l6 6-6 6" stroke={colors.text} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+            <Path d="M5 12h14M13 6l6 6-6 6" stroke={buttonInk} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
         </Tappable>
       </View>
@@ -1242,6 +1247,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
+  cookNextSoft: {
+    backgroundColor: colors.redSoft,
+  },
   cookNextCopy: {
     width: "64%",
     gap: spacing.xxs,
@@ -1264,6 +1272,9 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: radii.pill,
     backgroundColor: colors.primary700,
+  },
+  cookNextBlobSoft: {
+    backgroundColor: colors.primary,
   },
   cookNextSpark: {
     position: "absolute",
@@ -1289,6 +1300,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     borderRadius: radii.lg,
     backgroundColor: colors.accentSoft,
+  },
+  cookNextButtonSoft: {
+    backgroundColor: colors.primary,
   },
   safetyNote: {
     paddingHorizontal: spacing.screenX,

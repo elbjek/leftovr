@@ -15,31 +15,33 @@ type Props = {
   streak: { count: number; label: string };
   /** Opens what happened today. */
   onPress: () => void;
+  /** Free plan: pale red, so only upgrade prompts are solid tomato. */
+  soft?: boolean;
 };
 
-// Today's goal as a small light-red block (2026-11-12: solid tomato is kept
-// for the home's real warning, out of free generations): the ring in a white
-// circle, the headline over the progress in red ink, a tomato in the corner and the streak
+// Today's goal as a small tomato block (pale red with red ink on the free plan,
+// where solid tomato is kept for upgrade prompts): the ring in a white
+// circle, the headline over the progress, a tomato in the corner and the streak
 // as a butter-yellow flame pill. Small on purpose: the recipe below is the
 // home's main thing.
-export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
+export function WeekStrip({ goal, headline, detail, streak, onPress, soft = false }: Props) {
   const active = streak.count > 0;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${headline}. ${detail}. ${streak.label}`}
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.card, soft && styles.cardSoft, pressed && styles.pressed]}
     >
-      <TomatoMark />
-      <View style={styles.ringTile}>
+      <TomatoMark soft={soft} />
+      <View style={[styles.ringTile, soft && styles.ringTileSoft]}>
         <GoalRing done={goal.done} total={goal.total} size={52} stroke={7} track={colors.accent} color={colors.text} />
       </View>
       <View style={styles.text}>
-        <Text variant="h3" color={colors.redInk} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+        <Text variant="h3" color={soft ? colors.redInk : colors.onPrimary} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
           {headline}
         </Text>
-        <Text variant="small" color={colors.redInk} numberOfLines={1} style={styles.detail}>
+        <Text variant="small" color={soft ? colors.redInk : colors.onPrimary} numberOfLines={1} style={styles.detail}>
           {detail}
         </Text>
       </View>
@@ -54,10 +56,10 @@ export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
 }
 
 // The tomato peeking out behind the streak: decoration only.
-function TomatoMark() {
+function TomatoMark({ soft }: { soft: boolean }) {
   return (
     <View style={styles.tomato} pointerEvents="none" accessible={false}>
-      <View style={styles.tomatoBody} />
+      <View style={[styles.tomatoBody, soft && styles.tomatoBodySoft]} />
       <Svg width={34} height={20} viewBox="0 0 34 20" style={styles.tomatoLeaf}>
         <Path d="M17 14C12 4 4 6 1 9c5 0 9 2 12 6M17 14c5-10 13-8 16-5-5 0-9 2-12 6M17 14V2" stroke={colors.green} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </Svg>
@@ -123,7 +125,7 @@ export function FlameIcon({ size = 13, color = colors.accentInk }: { size?: numb
 }
 
 const styles = StyleSheet.create({
-  // Light red, no shadow, like a banner; the tomato mark clips at its edge.
+  // Solid tomato, no shadow, like a banner; the tomato mark clips at its edge.
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -133,8 +135,11 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.md,
     paddingRight: spacing.md,
     borderRadius: radii.xl,
-    backgroundColor: colors.redSoft,
+    backgroundColor: colors.primary,
     overflow: "hidden",
+  },
+  cardSoft: {
+    backgroundColor: colors.redSoft,
   },
   ringTile: {
     width: 60,
@@ -142,6 +147,9 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: colors.onPrimary,
+  },
+  ringTileSoft: {
     backgroundColor: colors.surface,
   },
   text: {
@@ -172,6 +180,9 @@ const styles = StyleSheet.create({
     width: 104,
     height: 96,
     borderRadius: radii.pill,
+    backgroundColor: colors.primary700,
+  },
+  tomatoBodySoft: {
     backgroundColor: colors.primary,
   },
   tomatoLeaf: {

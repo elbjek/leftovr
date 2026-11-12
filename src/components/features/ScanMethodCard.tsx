@@ -15,12 +15,14 @@ type Props = {
   /** The lead method: a tomato banner, like the home's goal strip. */
   featured?: boolean;
   onPress: () => void;
+  /** Free plan: the featured card turns pale red. */
+  soft?: boolean;
 };
 
 // One way to add food. The featured one is a tomato banner with food on a
 // peach blob; the rest are warm tiles (half width, two per row) with the icon
 // on a peach blob, like the home's cards.
-export function ScanMethodCard({ method, body, recommended = false, featured = false, onPress }: Props) {
+export function ScanMethodCard({ method, body, recommended = false, featured = false, soft = false, onPress }: Props) {
   const { t } = useTranslation();
   const title = t(`scanMethods.${method}.title`);
   const label = recommended ? `${title}, ${t("scanMethods.recommended")}. ${body}` : `${title}. ${body}`;
@@ -31,10 +33,10 @@ export function ScanMethodCard({ method, body, recommended = false, featured = f
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={onPress}
-        style={({ pressed }) => [styles.hero, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.hero, soft && styles.heroSoft, pressed && styles.pressed]}
       >
         <View style={styles.heroArt} pointerEvents="none" accessible={false}>
-          <View style={styles.heroBlob} />
+          <View style={[styles.heroBlob, soft && styles.heroBlobSoft]} />
           <View style={styles.heroFoodBig}>
             <FoodGlyph name="broccoli" size={64} />
           </View>
@@ -53,10 +55,10 @@ export function ScanMethodCard({ method, body, recommended = false, featured = f
           <View style={styles.heroIcon}>
             <ScanMethodIcon method={method} size={26} />
           </View>
-          <Text variant="h3" color={colors.onPrimary}>
+          <Text variant="h3" color={soft ? colors.redInk : colors.onPrimary}>
             {title}
           </Text>
-          <Text variant="small" color={colors.onPrimary} style={styles.heroBody}>
+          <Text variant="small" color={soft ? colors.redInk : colors.onPrimary} style={styles.heroBody}>
             {body}
           </Text>
         </View>
@@ -168,6 +170,13 @@ const styles = StyleSheet.create({
     borderRadius: radii.xxl,
     backgroundColor: colors.primary,
     overflow: "hidden",
+  },
+  // Free plan: pale red, solid tomato is kept for upgrade prompts.
+  heroSoft: {
+    backgroundColor: colors.redSoft,
+  },
+  heroBlobSoft: {
+    backgroundColor: colors.surface,
   },
   heroArt: {
     position: "absolute",
