@@ -50,11 +50,11 @@ export function HouseholdPill({ name, initial, label, onPress, hideAdd }: Props)
 // unlike a "+" or the receipt, which is only one of Add's ways in.
 function ScanFrameIcon() {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" accessible={false}>
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" accessible={false}>
       <Path
         d="M3.5 8V5.5a2 2 0 012-2H8M16 3.5h2.5a2 2 0 012 2V8M20.5 16v2.5a2 2 0 01-2 2H16M8 20.5H5.5a2 2 0 01-2-2V16M7 12h10"
         stroke={colors.onPrimary}
-        strokeWidth={2}
+        strokeWidth={2.4}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -91,9 +91,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // Same height as the pill (28pt avatar + 4pt padding top and bottom).
   add: {
-    width: 52,
-    height: 52,
+    width: 36,
+    height: 36,
     borderRadius: radii.pill,
     backgroundColor: colors.primary,
     alignItems: "center",
