@@ -4,7 +4,7 @@ import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, FilterChip, HouseholdPill, HouseholdSheet, ListRow, Logo, PlusIcon, Screen, Tappable, Text, useToast } from "@/components";
+import { BottomSheet, Button, FilterChip, HouseholdPill, HouseholdSheet, ListRow, Logo, PlusIcon, Screen, ShoppingListIcon, Tappable, Text, useToast } from "@/components";
 import { FoodGlyph } from "@/components/illustrations";
 import { useAuth } from "@/features";
 import { foodMatchKey } from "@/lib";
@@ -45,6 +45,7 @@ export default function ShoppingRoute() {
   const [days, setDays] = useState<number[]>([]);
   const [hour, setHour] = useState(10);
   const [householdOpen, setHouseholdOpen] = useState(false);
+  const [addFocused, setAddFocused] = useState(false);
   const rawName = profile?.display_name?.trim() ?? "";
   const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
 
@@ -133,6 +134,7 @@ export default function ShoppingRoute() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
       }
     >
+      {/* Same top as the other tabs: logo, household pill and scan. */}
       <View style={styles.head}>
         <View style={styles.headRow}>
           <Logo size={26} />
@@ -145,7 +147,7 @@ export default function ShoppingRoute() {
             />
           ) : null}
         </View>
-        <View style={styles.headCopy}>
+        <View>
           <Text variant="h3" accessibilityRole="header" numberOfLines={1}>
             {t("shopping.title")}
           </Text>
@@ -155,12 +157,15 @@ export default function ShoppingRoute() {
         </View>
       </View>
 
+      {/* Kitchen's search field, with the scan button's round tomato "+". */}
       <View style={styles.gutter}>
-        <View style={styles.addCard}>
+        <View style={[styles.addField, addFocused && styles.addFieldFocused]}>
           <TextInput
             value={draft}
             onChangeText={setDraft}
             onSubmitEditing={submit}
+            onFocus={() => setAddFocused(true)}
+            onBlur={() => setAddFocused(false)}
             placeholder={t("shopping.addPlaceholder")}
             placeholderTextColor={colors.muted}
             accessibilityLabel={t("shopping.addPlaceholder")}
@@ -169,104 +174,107 @@ export default function ShoppingRoute() {
             maxLength={80}
             style={styles.addInput}
           />
-          <Tappable label={t("shopping.add")} onPress={submit} disabled={!draft.trim()} style={[styles.addButton]}>
-            <PlusIcon color={colors.onPrimary} size={18} />
+          <Tappable
+            label={t("shopping.add")}
+            onPress={submit}
+            disabled={!draft.trim()}
+            style={[styles.addButton, !draft.trim() && styles.addButtonIdle]}
+          >
+            <PlusIcon color={colors.onPrimary} size={16} />
           </Tappable>
         </View>
       </View>
 
-      <View style={styles.gutter}>
-        <View style={styles.card}>
-          {open.length === 0 ? (
-            <Text variant="small" muted style={styles.empty}>
+      {/* Each item its own white card, like Kitchen's food rows. */}
+      <View style={styles.list}>
+        {open.length === 0 ? (
+          <View style={[styles.card, styles.emptyCard]}>
+            <View style={styles.iconWell}>
+              <ShoppingListIcon size={24} />
+            </View>
+            <Text variant="small" muted style={styles.emptyText}>
               {t("shopping.empty")}
             </Text>
-          ) : null}
-          {open.map((item) => (
-            <ListRow
-              key={item.id}
-              title={item.name}
-              leading={<Tick checked={false} />}
-              trailing={<RemoveButton label={t("shopping.remove", { name: item.name })} onPress={() => void run(() => remove(item.id))} />}
-              chevron={false}
-              label={t("shopping.tick", { name: item.name })}
-              onPress={() => void run(() => setChecked(item.id, true))}
-            />
-          ))}
-          {bought.length > 0 ? (
-            <>
-              <Text variant="micro" muted style={styles.boughtLabel}>
-                {t("shopping.bought")}
-              </Text>
-              {bought.map((item) => (
-                <ListRow
-                  key={item.id}
-                  title={item.name}
-                  leading={<Tick checked />}
-                  chevron={false}
-                  label={t("shopping.untick", { name: item.name })}
-                  onPress={() => void run(() => setChecked(item.id, false))}
-                  style={styles.boughtRow}
-                />
-              ))}
-            </>
-          ) : null}
-        </View>
+          </View>
+        ) : null}
+        {open.map((item) => (
+          <ListRow
+            key={item.id}
+            style={styles.card}
+            title={item.name}
+            leading={<ItemLeading name={item.name} checked={false} />}
+            trailing={<RemoveButton label={t("shopping.remove", { name: item.name })} onPress={() => void run(() => remove(item.id))} />}
+            chevron={false}
+            label={t("shopping.tick", { name: item.name })}
+            onPress={() => void run(() => setChecked(item.id, true))}
+          />
+        ))}
       </View>
 
-      <View style={styles.gutter}>
-        <View style={styles.card}>
-          <ListRow
-            title={t("shopping.reminderTitle")}
-            subtitle={reminderSummary}
-            leading={<BellIcon />}
-            onPress={openReminder}
-          />
+      {bought.length > 0 ? (
+        <View style={styles.list}>
+          <SectionHead title={t("shopping.bought")} count={bought.length} />
+          {bought.map((item) => (
+            <ListRow
+              key={item.id}
+              style={[styles.card, styles.boughtCard]}
+              title={item.name}
+              leading={<ItemLeading name={item.name} checked />}
+              chevron={false}
+              label={t("shopping.untick", { name: item.name })}
+              onPress={() => void run(() => setChecked(item.id, false))}
+            />
+          ))}
         </View>
+      ) : null}
+
+      {/* Kitchen's Shopping list card: icon, title, summary, peach arrow. */}
+      <View style={styles.gutter}>
+        <ListRow
+          style={styles.card}
+          title={t("shopping.reminderTitle")}
+          subtitle={reminderSummary}
+          leading={
+            <View style={styles.iconWell}>
+              <BellIcon />
+            </View>
+          }
+          trailing={
+            <View style={styles.go}>
+              <ArrowIcon />
+            </View>
+          }
+          chevron={false}
+          onPress={openReminder}
+        />
       </View>
 
       {suggestions.length > 0 ? (
-        <View style={styles.section}>
-          <View style={styles.gutter}>
-            <Text variant="h3" accessibilityRole="header">
-              {t("shopping.buyAgainTitle")}
-            </Text>
-            <Text variant="small" muted>
-              {t("shopping.buyAgainBody")}
-            </Text>
-          </View>
-          <View style={styles.gutter}>
-            <View style={styles.card}>
-              {suggestions.map((s) => (
-                <ListRow
-                  key={s.key}
-                  title={s.name}
-                  subtitle={s.reason}
-                  leading={
-                    <View style={styles.glyphWell}>
-                      <FoodGlyph name={s.name} size={30} />
-                    </View>
-                  }
-                  trailing={
-                    <View style={styles.suggestionActions}>
-                      <View style={styles.addPill}>
-                        <Text variant="label" color={colors.primary}>
-                          {t("shopping.add")}
-                        </Text>
-                      </View>
-                      <RemoveButton
-                        label={t("shopping.dismiss", { name: s.name })}
-                        onPress={() => void run(() => dismiss(s.key))}
-                      />
-                    </View>
-                  }
-                  chevron={false}
-                  label={t("shopping.addName", { name: s.name })}
-                  onPress={() => void run(() => add(s.name))}
-                />
-              ))}
-            </View>
-          </View>
+        <View style={styles.list}>
+          <SectionHead title={t("shopping.buyAgainTitle")} body={t("shopping.buyAgainBody")} />
+          {suggestions.map((s) => (
+            <ListRow
+              key={s.key}
+              style={styles.card}
+              title={s.name}
+              subtitle={s.reason}
+              leading={<FoodTile name={s.name} />}
+              trailing={
+                <View style={styles.suggestionActions}>
+                  <View style={styles.go}>
+                    <PlusIcon color={colors.primary} size={16} />
+                  </View>
+                  <RemoveButton
+                    label={t("shopping.dismiss", { name: s.name })}
+                    onPress={() => void run(() => dismiss(s.key))}
+                  />
+                </View>
+              }
+              chevron={false}
+              label={t("shopping.addName", { name: s.name })}
+              onPress={() => void run(() => add(s.name))}
+            />
+          ))}
         </View>
       ) : null}
 
@@ -320,23 +328,59 @@ function formatHour(hour: number) {
   return `${String(hour).padStart(2, "0")}:00`;
 }
 
-function Tick({ checked }: { checked: boolean }) {
+// Kitchen's section head: h3 left, the count (or a line under it).
+function SectionHead({ title, count, body }: { title: string; count?: number; body?: string }) {
   return (
-    <View style={[styles.tick, checked && styles.tickOn]}>
-      {checked ? (
-        <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-          <Path d="M5 12.5 10 17l9-10" stroke={colors.onPrimary} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
-        </Svg>
+    <View>
+      <View style={styles.sectionHead}>
+        <Text variant="h3" accessibilityRole="header">
+          {title}
+        </Text>
+        {count !== undefined ? (
+          <Text variant="small" muted>
+            {count}
+          </Text>
+        ) : null}
+      </View>
+      {body ? (
+        <Text variant="small" muted>
+          {body}
+        </Text>
       ) : null}
     </View>
   );
 }
 
+// Kitchen's food thumbnail: sage tile, the food's icon.
+function FoodTile({ name }: { name: string }) {
+  return (
+    <View style={styles.food}>
+      <FoodGlyph name={name} size={42} />
+    </View>
+  );
+}
+
+function ItemLeading({ name, checked }: { name: string; checked: boolean }) {
+  return (
+    <View style={styles.leading}>
+      <View style={[styles.tick, checked && styles.tickOn]}>
+        {checked ? (
+          <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+            <Path d="M5 12.5 10 17l9-10" stroke={colors.onPrimary} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+          </Svg>
+        ) : null}
+      </View>
+      <FoodTile name={name} />
+    </View>
+  );
+}
+
+// Kitchen's search clear button: small peach square, tomato cross.
 function RemoveButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <Tappable label={label} onPress={onPress} hitSlop={8} style={[styles.removeButton]}>
-      <Svg width={10} height={10} viewBox="0 0 24 24" fill="none">
-        <Path d="M5 5l14 14M19 5 5 19" stroke={colors.muted} strokeWidth={2.6} strokeLinecap="round" />
+    <Tappable label={label} onPress={onPress} hitSlop={12} style={[styles.removeButton]}>
+      <Svg width={9} height={9} viewBox="0 0 24 24" fill="none">
+        <Path d="M5 5l14 14M19 5 5 19" stroke={colors.primary} strokeWidth={2.6} strokeLinecap="round" />
       </Svg>
     </Tappable>
   );
@@ -344,7 +388,7 @@ function RemoveButton({ label, onPress }: { label: string; onPress: () => void }
 
 function BellIcon() {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
       <Path
         d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16ZM10 20.5a2 2 0 0 0 4 0"
         stroke={colors.primary}
@@ -352,6 +396,14 @@ function BellIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </Svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 12h14M13 6l6 6-6 6" stroke={colors.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -375,48 +427,86 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: spacing.md,
   },
-  headCopy: {
-    minWidth: 0,
-  },
-  addCard: {
+  addField: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    paddingLeft: spacing.lg,
+    paddingLeft: spacing.md,
     paddingRight: spacing.sm,
-    paddingVertical: spacing.sm,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surface,
+    borderRadius: radii.lg,
+    minHeight: 52,
     ...shadows.soft,
+  },
+  addFieldFocused: {
+    borderColor: colors.primary,
   },
   addInput: {
     flex: 1,
-    minHeight: 44,
     color: colors.text,
+    paddingVertical: spacing.md,
     ...typography.body,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.lg,
+    width: 36,
+    height: 36,
+    borderRadius: radii.pill,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
+  addButtonIdle: {
+    opacity: 0.4,
+  },
+  list: {
+    paddingHorizontal: spacing.screenX,
+    gap: spacing.sm,
+  },
+  sectionHead: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+  },
+  // Kitchen's food row card: white, 24pt corners, the soft lift.
   card: {
+    padding: spacing.md,
+    borderRadius: radii.xxl,
     backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    paddingHorizontal: spacing.lg,
     ...shadows.soft,
   },
-  empty: {
-    paddingVertical: spacing.lg,
+  emptyCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
   },
-  boughtLabel: {
-    paddingTop: spacing.md,
+  emptyText: {
+    flex: 1,
   },
-  boughtRow: {
+  boughtCard: {
     opacity: 0.55,
+  },
+  leading: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  food: {
+    width: 52,
+    height: 52,
+    borderRadius: radii.lg,
+    backgroundColor: colors.sageTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconWell: {
+    width: 52,
+    height: 52,
+    borderRadius: radii.lg,
+    backgroundColor: colors.surface2,
+    alignItems: "center",
+    justifyContent: "center",
   },
   tick: {
     width: 26,
@@ -432,20 +522,17 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   removeButton: {
-    width: 28,
-    height: 28,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
+    width: 22,
+    height: 22,
+    borderRadius: radii.md,
+    backgroundColor: colors.surface3,
     alignItems: "center",
     justifyContent: "center",
   },
-  section: {
-    gap: spacing.md,
-  },
-  glyphWell: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.md,
+  go: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
@@ -453,13 +540,7 @@ const styles = StyleSheet.create({
   suggestionActions: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-  },
-  addPill: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
+    gap: spacing.md,
   },
   sheet: {
     gap: spacing.xl,
