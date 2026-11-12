@@ -273,10 +273,13 @@ export default function RecipesRoute() {
   // Premium names the food that goes off first (the eat-first list is
   // premium on Kitchen too); free keeps the nudge above.
   const firstFood = isPremium && usedToday < goalTotal ? urgentRanked[0] : undefined;
+  // Capitalised: foods are stored lowercase and "{name} goes off today" leads with one.
   const goalHeadline = firstFood
-    ? t(
-        firstFood.left <= 0 ? "recipes.week.goalFoodToday" : firstFood.left === 1 ? "recipes.week.goalFoodTomorrow" : "recipes.week.goalFoodFirst",
-        { name: firstFood.group.name },
+    ? capitalize(
+        t(
+          firstFood.left <= 0 ? "recipes.week.goalFoodToday" : firstFood.left === 1 ? "recipes.week.goalFoodTomorrow" : "recipes.week.goalFoodFirst",
+          { name: firstFood.group.name },
+        ),
       )
     : goalTitle;
   const othersSoon = urgentRanked.length - (firstFood ? 1 : 0);
