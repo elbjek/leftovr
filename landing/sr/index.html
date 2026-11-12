@@ -436,7 +436,7 @@
   .define-device { display: flex; justify-content: center; margin: 44px 0 8px; overflow: hidden; }
 
   @media (prefers-reduced-motion: reduce) {
-    .phone-stage, .lo-head, .lo-urgent, .lo-week, .lo-try
+    .phone-stage
       { animation: none; opacity: 1; transform: none; filter: none; }
   }
 
@@ -484,16 +484,9 @@
     from { opacity: 0; transform: translateY(26px) scale(0.965); filter: blur(10px); }
     to   { opacity: 1; transform: none; filter: blur(0); }
   }
-  /* The app assembles itself once, top down, after the device lands. */
-  .lo-head, .lo-urgent, .lo-week, .lo-try { animation: riseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .lo-head   { animation-delay: 0.46s; }
-  .lo-urgent { animation-delay: 0.58s; }
-  .lo-week   { animation-delay: 0.70s; }
-  .lo-try    { animation-delay: 0.82s; }
   .phone-stage { animation: phoneIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
   @media (prefers-reduced-motion: reduce) {
-    .phone-stage,
-    .lo-head, .lo-urgent, .lo-week, .lo-try { animation: none; opacity: 1; filter: none; }
+    .phone-stage { animation: none; opacity: 1; filter: none; }
     .phone { --rx: 0deg; --ry: 0deg; }
   }
 
@@ -536,60 +529,10 @@
   .sb { display: flex; align-items: center; justify-content: space-between; padding: 15px 24px 0; }
   .sb .t { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
   .sb .ic { display: flex; align-items: center; gap: 6px; color: var(--text); }
-  /* ── Phone screen: the app's Recipes tab (the home), slot for slot.
-     Source: src/app/(tabs)/recipes.tsx — header, Use-first strip, WeekStrip,
-     TryNextCard, dock (Recipes · Kitchen · Add · Insights · Settings). ── */
-  .lo-body { flex: 1; display: flex; flex-direction: column; padding: 10px 14px 0; overflow: hidden; gap: 10px; }
-  .lo-head { display: flex; align-items: center; justify-content: space-between; }
-  .lo-logo { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 19px; letter-spacing: -0.02em; color: var(--text); display: inline-flex; align-items: baseline; }
-  .lo-logo i { font-style: normal; color: var(--primary); display: inline-block; transform: rotate(9deg) translateY(0.03em); }
-  .lo-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--primary); margin-left: 5px; align-self: flex-start; margin-top: 2px; }
-  .lo-hh { display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--card-line); font-size: 10.5px; font-weight: 600; color: var(--muted); }
-  .lo-hh b { width: 20px; height: 20px; border-radius: 999px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
-
-  /* Use-first strip (yellow tint, only when something is urgent) */
-  .lo-urgent { display: flex; align-items: center; gap: 8px; padding: 9px 11px; border-radius: 14px; background: var(--red-soft); color: var(--red-ink); font-size: 11.5px; font-weight: 700; }
-  .lo-urgent span { flex: 1; min-width: 0; }
-
-  /* WeekStrip: today's goal ring, streak, last seven days */
-  .lo-week { background: var(--paper); border: 1px solid var(--card-line); border-radius: 16px; padding: 11px 12px; }
-  .lo-goal { display: flex; align-items: center; gap: 10px; }
-  .lo-ring { width: 36px; height: 36px; flex-shrink: 0; position: relative; }
-  .lo-ring span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; color: var(--text); }
-  .lo-goal .gl { font-size: 11.5px; font-weight: 600; color: var(--text); line-height: 1.25; }
-  .lo-wmeta { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-2); }
-  .lo-wmeta .st { display: flex; align-items: center; gap: 5px; color: var(--muted); }
-  .lo-days { display: flex; justify-content: space-between; gap: 3px; margin-top: 7px; }
-  .lo-day { flex: 1; border-radius: 999px; padding: 5px 0 6px; text-align: center; font-size: 9px; font-weight: 700; color: var(--muted-2); background: var(--surface-2); }
-  .lo-day i { display: block; width: 4px; height: 4px; border-radius: 999px; background: var(--sage); margin: 3px auto 0; }
-  .lo-day.off i { background: transparent; }
-  .lo-day.today { background: var(--primary); color: #fff; }
-  .lo-day.today i { background: #fff; }
-  .lo-wfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--card-line); font-size: 10px; color: var(--muted); }
-  .lo-pill { padding: 3px 9px; border-radius: 999px; border: 1px solid var(--card-line); font-weight: 700; font-size: 9.5px; color: var(--text); flex-shrink: 0; }
-
-  /* TryNextCard — tonight's dish */
-  .lo-try { background: var(--card); border: 1px solid var(--card-line); border-radius: 16px; padding: 11px; }
-  .lo-tryhead { display: flex; gap: 10px; }
-  .lo-tile { width: 54px; height: 54px; border-radius: 16px; flex-shrink: 0; background: var(--sage-tint); display: flex; align-items: center; justify-content: center; color: var(--primary); }
-  .lo-trymeta { flex: 1; min-width: 0; }
-  .lo-trymeta .eb { font-size: 8.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
-  .lo-trymeta .tt { font-weight: 800; font-size: 14.5px; letter-spacing: -0.01em; margin-top: 2px; }
-  .lo-trymeta .mt { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
-  .lo-trymeta .mt em { width: 4px; height: 4px; border-radius: 999px; background: var(--muted-2); font-style: normal; }
-  .lo-why { margin-top: 9px; padding: 7px 9px; border-radius: 10px; background: var(--surface-2); font-size: 10.5px; font-weight: 700; color: var(--red-ink); }
-  .lo-chips { display: flex; align-items: center; gap: 4px; margin-top: 8px; flex-wrap: nowrap; }
-  .lo-chip { padding: 4px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--card-line); font-size: 9.5px; font-weight: 600; color: var(--muted); white-space: nowrap; }
-  .lo-chip.soon { background: var(--accent-soft); border-color: transparent; color: var(--accent-ink); }
-  .lo-chips .steps { margin-left: auto; font-size: 9.5px; font-weight: 700; color: var(--muted-2); white-space: nowrap; }
-  .lo-tryfoot { display: flex; gap: 7px; margin-top: 10px; }
-  .lo-btn { flex: 1; height: 32px; border-radius: 10px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 700; }
-  .lo-btn.ghost { flex: 0 0 auto; padding: 0 11px; background: transparent; color: var(--text); border: 1px solid var(--hairline-strong); }
-
-  /* Dock: Recipes · Kitchen · Add · Insights · Settings */
-  .lo-tabbar { margin-top: auto; height: 60px; border-top: 1px solid var(--card-line); background: var(--surface); display: flex; align-items: center; justify-content: space-around; color: var(--muted-2); }
-  .lo-tabbar .on { color: var(--primary); }
-  .lo-add { width: 46px; height: 46px; border-radius: 999px; background: var(--primary); border: 4px solid var(--surface); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 18px rgba(217, 80, 58, 0.3); transform: translateY(-12px); }
+  /* ── Phone screen: a real screenshot of the app's home (Recipes tab).
+     .sb sits over the screenshot's own status bar and draws a clean 9:41. ── */
+  .phone-screen > .sb { position: relative; z-index: 5; background: var(--page); padding-bottom: 6px; }
+  .phone-shot { position: absolute; top: 0; left: 0; width: 100%; height: auto; display: block; }
 
   /* ── Section scaffolding ───────────────── */
   section { position: relative; }
@@ -1498,72 +1441,7 @@
                 <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="16" height="8" rx="1.6" fill="currentColor"/><rect x="23" y="3.5" width="1.6" height="5" rx="0.8" fill="currentColor" opacity="0.4"/></svg>
               </span>
             </div>
-            <div class="lo-body">
-              <!-- 1. Header: wordmark (+ premium dot) and the household pill -->
-              <div class="lo-head">
-                <span class="lo-logo">leftov<i>r</i><span class="lo-dot"></span></span>
-                <span class="lo-hh"><b>L</b><span data-i18n="phone.household">Lenina kuhinja</span></span>
-              </div>
-
-              <!-- 2. Use first (urgent only) -->
-              <div class="lo-urgent">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2 3-1 4.5-1 7a3 3 0 0 0 6 0c0-1-.3-2-.8-2.8C17.9 9 19 11.3 19 13.5a7 7 0 1 1-14 0C5 8.8 9 7 12 3z"/></svg>
-                <span data-i18n="phone.urgent">Spanać, jaja i piletina: za danas</span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l6 7-6 7"/></svg>
-              </div>
-
-              <!-- 3. WeekStrip: today&#39;s goal, streak, last seven days -->
-              <div class="lo-week">
-                <div class="lo-goal">
-                  <div class="lo-ring">
-                    <svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-dasharray="97.4" stroke-dashoffset="32.5" transform="rotate(-90 18 18)"/></svg>
-                    <span>2/3</span>
-                  </div>
-                  <div class="gl" data-i18n="phone.goal">1 stvar se danas kvari, iskoristi je</div>
-                </div>
-                <div class="lo-wmeta">
-                  <span data-i18n="phone.month">Novembar</span>
-                  <span class="st"><span data-i18n="phone.streak">5 dana zaredom</span> <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="5" y1="8" x2="19" y2="16"/><line x1="5" y1="16" x2="19" y2="8"/></svg> 1</span>
-                </div>
-                <div class="lo-days"><div class="lo-day"><span data-i18n="phone.d1">P</span><i></i></div><div class="lo-day"><span data-i18n="phone.d2">U</span><i></i></div><div class="lo-day off"><span data-i18n="phone.d3">S</span><i></i></div><div class="lo-day"><span data-i18n="phone.d4">Č</span><i></i></div><div class="lo-day"><span data-i18n="phone.d5">P</span><i></i></div><div class="lo-day"><span data-i18n="phone.d6">S</span><i></i></div><div class="lo-day today"><span data-i18n="phone.d7">N</span><i></i></div></div>
-                <div class="lo-wfoot">
-                  <span data-i18n="phone.lastCooked">Poslednje kuvano: Šakšuka · ponedeljak</span>
-                  <span class="lo-pill" data-i18n="phone.history">Istorija</span>
-                </div>
-              </div>
-
-              <!-- 4. Tonight (TryNextCard) -->
-              <div class="lo-try">
-                <div class="lo-tryhead">
-                  <div class="lo-tile"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg></div>
-                  <div class="lo-trymeta">
-                    <div class="eb" data-i18n="phone.tonightLbl">Večeras · iz tvoje kuhinje</div>
-                    <div class="tt" data-i18n="phone.tonightTitle">Pasta sa spanaćem i fetom</div>
-                    <div class="mt"><span data-i18n="phone.tonightMeta">20 min</span><em></em><span data-i18n="phone.tonightLevel">lako</span></div>
-                  </div>
-                  <span style="color:var(--muted-2);flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 6.5a4.2 4.2 0 0 0-6-.3L12 7.6l-1.5-1.4a4.2 4.2 0 0 0-6 6L12 20l7.5-7.8a4.2 4.2 0 0 0 0-5.7z"/></svg></span>
-                </div>
-                <div class="lo-why" data-i18n="phone.why">Troši spanać i fetu pre nego što se pokvare.</div>
-                <div class="lo-chips">
-                  <span class="lo-chip soon" data-i18n="phone.chipSpinach">Mladi spanać</span>
-                  <span class="lo-chip" data-i18n="phone.chipFeta">Feta</span>
-                  <span class="lo-chip" data-i18n="phone.chipMore">+1</span>
-                  <span class="steps" data-i18n="phone.steps">6 koraka</span>
-                </div>
-                <div class="lo-tryfoot">
-                  <span class="lo-btn" data-i18n="phone.cookThis">Skuvaj ovo</span>
-                  <span class="lo-btn ghost" data-i18n="phone.moreIdeas">Još ideja</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="lo-tabbar">
-              <span class="on"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18"/><path d="M5 3v5a2 2 0 0 0 4 0V3"/><path d="M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21"/></svg></span>
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v14H4z"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="12" y1="11" x2="12" y2="19.5"/><line x1="9" y1="8" x2="15" y2="8"/></svg>
-              <div class="lo-add"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="6" x2="12" y2="18"/><line x1="6" y1="12" x2="18" y2="12"/></svg></div>
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="19" y1="20" x2="19" y2="11"/></svg>
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="8" x2="20" y2="8"/><circle cx="15" cy="8" r="2.6" fill="var(--surface)"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="9" cy="16" r="2.6" fill="var(--surface)"/></svg>
-            </div>
+            <img class="phone-shot" src="/screens/home.webp" width="921" height="2000" alt="The leftovr home: today's goal, a recipe from your kitchen and more ideas." data-i18n-aria="phone.alt" decoding="async" aria-label="Početni ekran aplikacije leftovr: današnji cilj, recept od onoga što imaš i još ideja.">
           </div>
         </div>
       </div>
@@ -2332,6 +2210,7 @@
       "meta.desc": "leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start.",
       "nav.tag": "What's for dinner?",
       "nav.aria": "leftovr, what's for dinner",
+      "phone.alt": "The leftovr home: today's goal, a recipe from your kitchen and more ideas.",
       "nav.lang": "Language",
       "nav.cta": "Get early access",
       "hero.eyebrow": "iPhone · free to start",
@@ -2360,31 +2239,6 @@
       "hero.privacy": "Early-access updates only. Unsubscribe anytime.",
       "hero.successTitle": "You're on the list.",
       "hero.successBody": "We'll email your invite as soon as a spot opens, usually within a few days.",
-      "phone.household": "Lena's kitchen",
-      "phone.urgent": "Use today: spinach, eggs & chicken",
-      "phone.goal": "1 thing goes off today. Use it.",
-      "phone.month": "November",
-      "phone.streak": "5-day streak",
-      "phone.d1": "M",
-      "phone.d2": "T",
-      "phone.d3": "W",
-      "phone.d4": "T",
-      "phone.d5": "F",
-      "phone.d6": "S",
-      "phone.d7": "T",
-      "phone.lastCooked": "Last cooked Shakshuka · Monday",
-      "phone.history": "History",
-      "phone.tonightLbl": "Tonight · from your kitchen",
-      "phone.tonightTitle": "Spinach & feta pasta",
-      "phone.tonightMeta": "20 min",
-      "phone.tonightLevel": "easy",
-      "phone.why": "Uses spinach & feta before they go off.",
-      "phone.chipSpinach": "Baby spinach",
-      "phone.chipFeta": "Feta",
-      "phone.chipMore": "+1",
-      "phone.steps": "6 steps",
-      "phone.cookThis": "Cook this",
-      "phone.moreIdeas": "More ideas",
       "how.eyebrow": "How it works",
       "how.title": 'Shelves in. <span class="mark">Dinner out.</span>',
       "how.sub": "Three steps, one of which you already do every time you shop.",
@@ -2608,6 +2462,7 @@
       "meta.desc": "leftovr od slike frižidera ili ostave pravi recepte od hrane koju već imaš. Kuhinju ti pune i računi i bar-kodovi. Za iPhone, besplatno za početak.",
       "nav.tag": "Šta ima za večeru?",
       "nav.aria": "leftovr, šta ima za večeru",
+      "phone.alt": "Početni ekran aplikacije leftovr: današnji cilj, recept od onoga što imaš i još ideja.",
       "nav.lang": "Jezik",
       "nav.cta": "Rani pristup",
       "hero.eyebrow": "iPhone · besplatno za početak",
@@ -2636,31 +2491,6 @@
       "hero.privacy": "Samo vesti o ranom pristupu. Odjaviš se kad hoćeš.",
       "hero.successTitle": "Na listi si.",
       "hero.successBody": "Poslaćemo ti pozivnicu čim se oslobodi mesto, obično za nekoliko dana.",
-      "phone.household": "Lenina kuhinja",
-      "phone.urgent": "Spanać, jaja i piletina: za danas",
-      "phone.goal": "1 stvar se danas kvari, iskoristi je",
-      "phone.month": "Novembar",
-      "phone.streak": "5 dana zaredom",
-      "phone.d1": "P",
-      "phone.d2": "U",
-      "phone.d3": "S",
-      "phone.d4": "Č",
-      "phone.d5": "P",
-      "phone.d6": "S",
-      "phone.d7": "N",
-      "phone.lastCooked": "Poslednje kuvano: Šakšuka · ponedeljak",
-      "phone.history": "Istorija",
-      "phone.tonightLbl": "Večeras · iz tvoje kuhinje",
-      "phone.tonightTitle": "Pasta sa spanaćem i fetom",
-      "phone.tonightMeta": "20 min",
-      "phone.tonightLevel": "lako",
-      "phone.why": "Troši spanać i fetu pre nego što se pokvare.",
-      "phone.chipSpinach": "Mladi spanać",
-      "phone.chipFeta": "Feta",
-      "phone.chipMore": "+1",
-      "phone.steps": "6 koraka",
-      "phone.cookThis": "Skuvaj ovo",
-      "phone.moreIdeas": "Još ideja",
       "how.eyebrow": "Kako radi",
       "how.title": 'Police unutra. <span class="mark">Večera napolje.</span>',
       "how.sub": "Tri koraka, a jedan već radiš svaki put kad kupuješ.",
