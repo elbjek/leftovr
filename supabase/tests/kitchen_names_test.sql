@@ -1,4 +1,4 @@
--- Test: default kitchen names (migration 20261106160000)
+-- Test: default household names (migrations 20261106160000, 20261112230000)
 -- kitchen_name_for / rename_default_kitchen / create_solo_household.
 -- Run:  psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/kitchen_names_test.sql
 -- Seeds throwaway data, asserts, ROLLBACK at end (no residue).
@@ -18,10 +18,10 @@ begin
     (u_sr, 'sr@t', 'authenticated', 'authenticated', '{"display_name":"Lena"}');
 
   -- CASE1: the blank-name fallbacks never produce NULL.
-  assert public.kitchen_name_for(null, 'en') = 'My kitchen', 'CASE1 FAIL: en null name';
-  assert public.kitchen_name_for('  ', 'sr') = 'Moja kuhinja', 'CASE1 FAIL: sr blank name';
-  assert public.kitchen_name_for('Ann', 'en') = 'Ann''s kitchen', 'CASE1 FAIL: en name';
-  assert public.kitchen_name_for('Lena', 'sr') = 'Lena — kuhinja', 'CASE1 FAIL: sr name';
+  assert public.kitchen_name_for(null, 'en') = 'My home', 'CASE1 FAIL: en null name';
+  assert public.kitchen_name_for('  ', 'sr') = 'Moj dom', 'CASE1 FAIL: sr blank name';
+  assert public.kitchen_name_for('Ann', 'en') = 'Ann''s home', 'CASE1 FAIL: en name';
+  assert public.kitchen_name_for('Lena', 'sr') = 'Lena — dom', 'CASE1 FAIL: sr name';
   raise notice 'CASE1 PASS: kitchen_name_for covers both languages and blank names';
 
   -- CASE2: renaming follows the kitchen's own language.
@@ -29,12 +29,14 @@ begin
   select active_household_id into h_sr from public.profiles where id = u_sr;
   update public.households set name = public.kitchen_name_for('Lena', 'sr') where id = h_sr;
   update public.profiles set display_name = 'Lena K' where id = u_sr;
-  assert (select name from public.households where id = h_sr) = 'Lena K — kuhinja',
+  assert (select name from public.households where id = h_sr) = 'Lena K — dom',
     'CASE2 FAIL: sr rename, got ' || (select name from public.households where id = h_sr);
 
   select active_household_id into h_en from public.profiles where id = u_en;
+  assert (select name from public.households where id = h_en) = 'Ann''s home',
+    'CASE2 FAIL: sign-up name, got ' || (select name from public.households where id = h_en);
   update public.profiles set display_name = 'Ann B' where id = u_en;
-  assert (select name from public.households where id = h_en) = 'Ann B''s kitchen',
+  assert (select name from public.households where id = h_en) = 'Ann B''s home',
     'CASE2 FAIL: en rename, got ' || (select name from public.households where id = h_en);
   raise notice 'CASE2 PASS: rename follows the name the kitchen already has';
 
@@ -46,10 +48,17 @@ begin
 
   -- CASE4: the solo kitchen a leaver lands in is named in their language.
   solo := public.create_solo_household(u_sr, h_sr);
-  assert (select name from public.households where id = solo) = 'Lena M — kuhinja',
+  assert (select name from public.households where id = solo) = 'Lena M — dom',
     'CASE4 FAIL: solo kitchen name, got ' || (select name from public.households where id = solo);
   assert (select active_household_id from public.profiles where id = u_sr) = solo, 'CASE4 FAIL: not activated';
   raise notice 'CASE4 PASS: solo kitchen is named in the user''s language';
+
+  -- CASE5: a household still on the pre-2026-11-12 default follows a rename.
+  update public.households set name = 'Ann B''s kitchen' where id = h_en;
+  update public.profiles set display_name = 'Ann C' where id = u_en;
+  assert (select name from public.households where id = h_en) = 'Ann C''s home',
+    'CASE5 FAIL: legacy default not followed, got ' || (select name from public.households where id = h_en);
+  raise notice 'CASE5 PASS: old default names still count as default';
 
   raise notice 'ALL KITCHEN NAME CASES PASSED';
 end $$;
