@@ -786,6 +786,11 @@ function jaccard(a: Set<string>, b: Set<string>) {
 const DESSERT_ONLY_FRUIT = [
   "banana", "strawberr", "blueberr", "raspberr", "blackberr", "watermelon", "fig",
 ];
+// Drinks-category items that are really cooking ingredients: scans file a
+// bottle of lemon or lime juice under drinks, and a squeeze of it in a bowl
+// is not "a drink as an ingredient" (2026-11-12: it dropped a third idea).
+const COOKING_JUICE = /\b(lemon|lime|limun|limeta)\b/;
+
 const SAVORY_COOK_SIGNAL = [
   "frittata", "omelet", "scramble", "stir-fry", "stir fry", "stirfry", "quiche",
 ];
@@ -983,7 +988,11 @@ function validateCards(
       dropReasons.push(`"${card.title}": incoherent (dessert fruit in savory dish)`);
       continue;
     }
-    if (usedItems.some((i) => i.category === "drinks")) {
+    if (
+      usedItems.some(
+        (i) => i.category === "drinks" && !COOKING_JUICE.test(`${i.name ?? ""} ${i.normalized_name ?? ""}`.toLowerCase()),
+      )
+    ) {
       dropReasons.push(`"${card.title}": uses a drink as an ingredient`);
       continue;
     }
