@@ -53,17 +53,17 @@ export function ScanMethodCard({ method, body, recommended = false, featured = f
             </View>
           ) : null}
           <View style={styles.heroIcon}>
-            <ScanMethodIcon method={method} size={26} color={soft ? colors.redInk : colors.primary} />
+            <ScanMethodIcon method={method} size={26} color={colors.primary} />
           </View>
-          <Text variant="h3" color={soft ? colors.redInk : colors.onPrimary}>
+          <Text variant="h3" color={soft ? colors.primary : colors.onPrimary}>
             {title}
           </Text>
-          <Text variant="small" color={soft ? colors.redInk : colors.onPrimary} style={styles.heroBody}>
+          <Text variant="small" color={soft ? colors.primary : colors.onPrimary} style={styles.heroBody}>
             {body}
           </Text>
         </View>
         <View style={styles.heroGo}>
-          <ArrowIcon color={soft ? colors.redInk : colors.primary} />
+          <ArrowIcon color={colors.primary} />
         </View>
       </Pressable>
     );

@@ -19,7 +19,7 @@ type Props = {
   soft?: boolean;
 };
 
-// Today's goal as a small tomato block (pale red with red ink on the free plan,
+// Today's goal as a small tomato block (pale red with tomato text on the free plan,
 // where solid tomato is kept for upgrade prompts): the ring in a white
 // circle, the headline over the progress, a tomato in the corner and the streak
 // as a butter-yellow flame pill. Small on purpose: the recipe below is the
@@ -38,10 +38,10 @@ export function WeekStrip({ goal, headline, detail, streak, onPress, soft = fals
         <GoalRing done={goal.done} total={goal.total} size={52} stroke={7} track={colors.accent} color={colors.text} />
       </View>
       <View style={styles.text}>
-        <Text variant="h3" color={soft ? colors.redInk : colors.onPrimary} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+        <Text variant="h3" color={soft ? colors.primary : colors.onPrimary} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
           {headline}
         </Text>
-        <Text variant="small" color={soft ? colors.redInk : colors.onPrimary} numberOfLines={1} style={styles.detail}>
+        <Text variant="small" color={soft ? colors.primary : colors.onPrimary} numberOfLines={1} style={styles.detail}>
           {detail}
         </Text>
       </View>

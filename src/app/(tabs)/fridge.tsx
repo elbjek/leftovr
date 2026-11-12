@@ -542,10 +542,10 @@ export default function FridgeRoute() {
 // "What to cook next?": the Kitchen's way into recipes that use what's going
 // off. The home's goal block, taller: solid tomato, white copy and a butter
 // button on the left, broccoli and avocado on a darker tomato blob right.
-// Solid tomato for Premium; pale red with red ink and a tomato button on the
+// Solid tomato for Premium; pale red with tomato text and button on the
 // free plan, where solid tomato is kept for upgrade prompts.
 function CookNextCard({ title, body, cta, onPress, soft }: { title: string; body: string; cta: string; onPress: () => void; soft: boolean }) {
-  const ink = soft ? colors.redInk : colors.onPrimary;
+  const ink = soft ? colors.primary : colors.onPrimary;
   const buttonInk = soft ? colors.onPrimary : colors.text;
   return (
     <View style={styles.cookNextWrap}>
