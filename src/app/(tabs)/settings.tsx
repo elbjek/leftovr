@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Alert, Linking, Platform, StyleSheet, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { BottomSheet, Button, Card, ChoiceCard, Divider, HouseholdSheet, ListRow, PremiumSheet, Screen, ScreenHeader, Tappable, Text, TextField } from "@/components";
+import { BackButton, BottomSheet, Button, Card, ChoiceCard, Divider, HouseholdSheet, ListRow, PremiumSheet, Screen, ScreenHeader, Tappable, Text, TextField } from "@/components";
 import { useAuth, useMeasurementSystem } from "@/features";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { deleteAccount, exportAccountData, presentCodeRedemptionSheet, registerDevice } from "@/services";
@@ -254,7 +254,11 @@ export default function SettingsRoute() {
   return (
     <Screen scroll contentContainerStyle={styles.content}>
       <View style={styles.sections}>
-        <ScreenHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
+        {/* Not a tab any more: opened from the household pill's menu. */}
+        <View>
+          <BackButton onPress={() => (router.canGoBack() ? router.back() : router.navigate("/(tabs)/recipes"))} />
+          <ScreenHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
+        </View>
 
         {/* Profile */}
         <Tappable

@@ -1,10 +1,15 @@
 import { Redirect, Tabs, useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import Svg, { Circle, Line, Path } from "react-native-svg";
+import Svg, { Line, Path } from "react-native-svg";
 
-import { ScanIcon, Tappable } from "@/components";
+import { useEffect } from "react";
+import * as QuickActions from "expo-quick-actions";
+import { RouterAction, useQuickActionRouting } from "expo-quick-actions/router";
+
+import { CartIcon, ScanIcon, Tappable, Text } from "@/components";
 import { useAuth } from "@/features";
+import { useShoppingList } from "@/hooks";
 import { colors, radii, spacing } from "@/theme";
 
 type TabBarProps = {
@@ -27,6 +32,14 @@ export const unstable_settings = { anchor: "recipes" };
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { loading, session } = useAuth();
+
+  // Long-press the app icon: "Shopping list" opens the tab.
+  useQuickActionRouting();
+  useEffect(() => {
+    void QuickActions.setItems<RouterAction>([
+      { id: "shopping", title: t("shopping.title"), icon: "symbol:cart", params: { href: "/(tabs)/shopping" } },
+    ]);
+  }, [t]);
 
   if (!loading && !session) {
     return <Redirect href="/(auth)/sign-in" />;
@@ -68,10 +81,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="shopping"
         options={{
-          title: t("tabs.settings"),
-          tabBarIcon: ({ color }) => <SettingsIcon color={String(color)} />,
+          title: t("tabs.shopping"),
+          tabBarIcon: ({ color }) => <CartIcon color={String(color)} size={24} />,
         }}
       />
       {/* Detail and the full recipe list live inside the tab group so the
@@ -80,17 +93,26 @@ export default function TabsLayout() {
           tab and redirects away from it as soon as it is focused. */}
       <Tabs.Screen name="recipe-detail" />
       <Tabs.Screen name="all-recipes" />
-      <Tabs.Screen name="shopping" />
+      {/* Settings opens from the household pill's menu. */}
+      <Tabs.Screen name="settings" />
     </Tabs>
   );
 }
 
-const NON_TAB_ROUTES = new Set(["recipe-detail", "all-recipes", "shopping"]);
+const NON_TAB_ROUTES = new Set(["recipe-detail", "all-recipes", "settings"]);
 
 function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ mode?: string }>();
+  const { activeHousehold } = useAuth();
+  const { openCount, refresh } = useShoppingList(activeHousehold?.id);
   const activeRoute = state.routes[state.index]?.name;
+
+  // The badge counts what's left to buy. Re-read on every tab change: kitchen
+  // adds tick items off on the server without telling this copy.
+  useEffect(() => {
+    void refresh().catch(() => undefined);
+  }, [refresh, activeRoute]);
   const hideForScanCamera =
     activeRoute === "scan" &&
     (params.mode === "receipt" || params.mode === "ereceipt" || params.mode === "barcode");
@@ -128,7 +150,16 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
           >
             {/* Icons only, like the tomato layout; the label is still spoken.
                 The peach circle marks the active tab, Scan included. */}
-            <View style={[styles.bubble, focused && styles.bubbleActive]}>{getTabIcon(route.name, color)}</View>
+            <View style={[styles.bubble, focused && styles.bubbleActive]}>
+              {getTabIcon(route.name, color)}
+              {route.name === "shopping" && openCount > 0 ? (
+                <View style={styles.badge}>
+                  <Text variant="micro" weight="bold" color={colors.onPrimary}>
+                    {openCount > 99 ? "99+" : openCount}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </Tappable>
         );
       })}
@@ -141,7 +172,7 @@ function getTabLabel(name: string, t: ReturnType<typeof useTranslation>["t"]) {
   if (name === "recipes") return t("tabs.recipes");
   if (name === "scan") return t("tabs.scan");
   if (name === "insights") return t("tabs.insights");
-  return t("tabs.settings");
+  return t("tabs.shopping");
 }
 
 function getTabIcon(name: string, color: string) {
@@ -149,7 +180,7 @@ function getTabIcon(name: string, color: string) {
   if (name === "fridge") return <KitchenIcon color={color} />;
   if (name === "recipes") return <RecipesIcon color={color} />;
   if (name === "insights") return <InsightsIcon color={color} />;
-  return <SettingsIcon color={color} />;
+  return <CartIcon color={color} size={24} />;
 }
 
 function KitchenIcon({ color }: { color: string }) {
@@ -185,17 +216,6 @@ function InsightsIcon({ color }: { color: string }) {
   );
 }
 
-function SettingsIcon({ color }: { color: string }) {
-  return (
-    <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-      <Line x1={4} y1={8} x2={20} y2={8} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      <Circle cx={15} cy={8} r={2.6} fill={colors.onPrimary} stroke={color} strokeWidth={1.8} />
-      <Line x1={4} y1={16} x2={20} y2={16} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      <Circle cx={9} cy={16} r={2.6} fill={colors.onPrimary} stroke={color} strokeWidth={1.8} />
-    </Svg>
-  );
-}
-
 const styles = StyleSheet.create({
   dock: {
     position: "relative",
@@ -225,5 +245,17 @@ const styles = StyleSheet.create({
   },
   bubbleActive: {
     backgroundColor: colors.surface2,
+  },
+  badge: {
+    position: "absolute",
+    top: 10,
+    right: 8,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: spacing.xxs,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

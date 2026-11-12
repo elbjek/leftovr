@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { RefreshControl, StyleSheet, TextInput, View } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, FilterChip, ListRow, PlusIcon, Screen, Tappable, Text, useToast } from "@/components";
+import { BottomSheet, Button, FilterChip, HouseholdPill, HouseholdSheet, ListRow, Logo, PlusIcon, Screen, Tappable, Text, useToast } from "@/components";
 import { FoodGlyph } from "@/components/illustrations";
 import { useAuth } from "@/features";
 import { foodMatchKey } from "@/lib";
@@ -28,7 +28,8 @@ function itemKeyOf(name: string) {
 }
 
 // The household's shopping list: what to buy, what's run out ("Buy again"),
-// and when to be reminded. Opened from Kitchen's card and the reminder push.
+// and when to be reminded. A dock tab; also opened from Kitchen's card, the
+// app icon's quick action and the reminder push.
 export default function ShoppingRoute() {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -43,6 +44,9 @@ export default function ShoppingRoute() {
   const [reminderOpen, setReminderOpen] = useState(false);
   const [days, setDays] = useState<number[]>([]);
   const [hour, setHour] = useState(10);
+  const [householdOpen, setHouseholdOpen] = useState(false);
+  const rawName = profile?.display_name?.trim() ?? "";
+  const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
 
   useFocusEffect(
     useCallback(() => {
@@ -129,16 +133,17 @@ export default function ShoppingRoute() {
       }
     >
       <View style={styles.head}>
-        <Tappable
-          label={t("common.back")}
-          onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/fridge"))}
-          hitSlop={6}
-          style={[styles.backButton]}
-        >
-          <Svg width={8} height={14} viewBox="0 0 9 16" fill="none">
-            <Path d="M8 1 2 8l6 7" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-          </Svg>
-        </Tappable>
+        <View style={styles.headRow}>
+          <Logo size={26} />
+          {activeHousehold ? (
+            <HouseholdPill
+              name={activeHousehold.name}
+              initial={firstName || activeHousehold.name}
+              label={t("settings.household.openSheet", { name: activeHousehold.name })}
+              onPress={() => setHouseholdOpen(true)}
+            />
+          ) : null}
+        </View>
         <View style={styles.headCopy}>
           <Text variant="h3" accessibilityRole="header" numberOfLines={1}>
             {t("shopping.title")}
@@ -305,6 +310,7 @@ export default function ShoppingRoute() {
           />
         </View>
       </BottomSheet>
+      <HouseholdSheet visible={householdOpen} onClose={() => setHouseholdOpen(false)} itemCount={groups.length} />
     </Screen>
   );
 }
@@ -359,23 +365,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
   },
   head: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
+    gap: spacing.lg,
     paddingHorizontal: spacing.screenX,
   },
-  headCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.xl,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
+  headRow: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  headCopy: {
+    minWidth: 0,
   },
   addCard: {
     flexDirection: "row",

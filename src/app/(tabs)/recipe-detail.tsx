@@ -6,11 +6,11 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
-import { BottomSheet, Button, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
+import { BottomSheet, Button, CartIcon, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
 import type { ShareCardProps, ShareFormat } from "@/components";
 import { isPremium, useAuth, useMeasurementSystem } from "@/features";
-import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage } from "@/hooks";
-import { asCountedPack, foodIconKey, formatMoney, newClientId } from "@/lib";
+import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage, useShoppingList } from "@/hooks";
+import { asCountedPack, foodIconKey, foodMatchKey, formatMoney, newClientId } from "@/lib";
 import { addAmounts, canonicalFoodName, formatAmount, ingredientCoverage, recipeFeeds, isLiquidAmount, dailyGoal, expandRecipe, expandRecipeShared, formatComplexity, formatTimeLabel, ingredientUse, InventoryGroup, isPantryStaple, recipeCoverUrl, requestRecipeCover, resolveUrgency, sharedExpand } from "@/services";
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
@@ -57,6 +57,11 @@ export default function RecipeDetailRoute() {
   const { profile, activeHousehold } = useAuth();
   const { showToast } = useToast();
   const { groups: inventoryGroups, lots, loading: inventoryLoading } = useInventory(activeHousehold?.id);
+  const shopping = useShoppingList(activeHousehold?.id);
+  const refreshShopping = shopping.refresh;
+  useEffect(() => {
+    void refreshShopping().catch(() => undefined);
+  }, [refreshShopping]);
   const { system: measurementSystem } = useMeasurementSystem();
   // Recipe id still waiting for its phase-2 expand (set by the seeding effect,
   // consumed once inventory has loaded).
@@ -287,6 +292,26 @@ export default function RecipeDetailRoute() {
     isPantryStaple(ing.name) ||
     liveFridgeNames.has(ingredientKey(ing));
   const fridgeCount = ingredients.filter(isOwned).length;
+  // What's not in the kitchen can go straight onto the shopping list; a food
+  // already on it (by catalog food or name) shows as listed.
+  const listedKeys = new Set(
+    shopping.items.filter((item) => !item.checked_at).flatMap((item) => [item.normalized_name, item.food_key ?? item.normalized_name]),
+  );
+  const isListed = (ing: IngredientItem) =>
+    listedKeys.has(foodMatchKey(ing.name) ?? canonicalFoodName(ing.name)) || listedKeys.has(canonicalFoodName(ing.name));
+  const toBuy = ingredients.filter((ing) => !isOwned(ing) && !isListed(ing));
+  const addToList = async (names: string[]) => {
+    try {
+      for (const name of names) await shopping.add(name);
+      showToast(
+        names.length === 1
+          ? t("shopping.addedToast", { name: names[0] })
+          : t("shopping.addedMany", { count: names.length }),
+      );
+    } catch {
+      showToast(t("shopping.error"));
+    }
+  };
   // How much of an ingredient the kitchen holds, e.g. "500 g" or
   // "2 pcs + 300 g" (groups in different units are never summed).
   const haveLabel = (ing: IngredientItem) => {
@@ -734,13 +759,38 @@ export default function RecipeDetailRoute() {
                         ) : null}
                       </View>
                     </View>
-                    <Text variant="small" color={metaColor} style={styles.fridgeMeta}>
-                      {meta}
-                    </Text>
+                    <View style={styles.fridgeRowRight}>
+                      <Text variant="small" color={metaColor} style={styles.fridgeMeta}>
+                        {meta}
+                      </Text>
+                      {inFridge ? null : isListed(ing) ? (
+                        <View accessibilityLabel={t("shopping.onList", { name: ing.name })} style={[styles.listButton, styles.listButtonDone]}>
+                          <CheckIcon />
+                        </View>
+                      ) : (
+                        <Tappable
+                          label={t("shopping.addName", { name: ing.name })}
+                          onPress={() => void addToList([ing.name])}
+                          hitSlop={6}
+                          style={[styles.listButton]}
+                        >
+                          <CartIcon size={17} />
+                        </Tappable>
+                      )}
+                    </View>
                   </View>
                 );
               })}
             </View>
+            {ingredientsOpen && toBuy.length > 1 ? (
+              <Button
+                title={t("shopping.addMissing", { count: toBuy.length })}
+                variant="ghost"
+                fit
+                onPress={() => void addToList(toBuy.map((ing) => ing.name))}
+                style={styles.addMissing}
+              />
+            ) : null}
           </>
         ) : null}
 
@@ -1083,6 +1133,14 @@ function MetaChip({ icon, label }: { icon: React.ReactNode; label: string }) {
   );
 }
 
+function CheckIcon() {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 12.5 10 17l9-10" stroke={colors.onPrimary} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 function Chevron({ up }: { up: boolean }) {
   return (
     <Svg width={12} height={12} viewBox="0 0 14 14">
@@ -1310,6 +1368,27 @@ const styles = StyleSheet.create({
   },
   fridgeMeta: {
     textAlign: "right",
+  },
+  fridgeRowRight: {
+    flexShrink: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  listButton: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  listButtonDone: {
+    backgroundColor: colors.primary,
+  },
+  addMissing: {
+    alignSelf: "center",
+    marginTop: spacing.sm,
   },
   steps: {
     gap: 0,

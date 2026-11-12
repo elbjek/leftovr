@@ -144,7 +144,8 @@
             ]
           }
         }
-      ]
+      ],
+      "expo-quick-actions"
     ],
     "experiments": {
       "typedRoutes": true,

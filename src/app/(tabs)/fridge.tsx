@@ -470,7 +470,7 @@ export default function FridgeRoute() {
                   ? t("shopping.toBuy", { count: shopping.openCount })
                   : t("shopping.cardEmpty")
             }
-            onPress={() => router.push("/(tabs)/shopping")}
+            onPress={() => router.navigate("/(tabs)/shopping")}
           />
 
           {/* Guideline 1.4.1: the dates here are estimates, not printed
