@@ -1086,6 +1086,55 @@
     .nav-right .btn { display: none; }
   }
 </style>
+<!-- PRICING HIDDEN (temporary, 2026-11-12): structured data taken out of the JSON-LD below.
+{
+  "MobileApplication.offers": [
+    {
+      "@type": "Offer",
+      "name": "Free",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "First scan (pantry photo or receipt) and first recipe generation, plus unlimited manual and barcode add."
+    },
+    {
+      "@type": "Offer",
+      "name": "Premium (monthly)",
+      "price": "6.99",
+      "priceCurrency": "USD",
+      "description": "Unlimited scanning and recipes, daily suggestion, insights. Billed monthly."
+    },
+    {
+      "@type": "Offer",
+      "name": "Premium (yearly)",
+      "price": "44.99",
+      "priceCurrency": "USD",
+      "description": "Unlimited scanning and recipes, daily suggestion, insights. Billed yearly after a 7-day free trial."
+    },
+    {
+      "@type": "Offer",
+      "name": "Household (monthly)",
+      "price": "9.99",
+      "priceCurrency": "USD",
+      "description": "Everything in Premium plus one shared kitchen for up to three people. Billed monthly."
+    },
+    {
+      "@type": "Offer",
+      "name": "Household (yearly)",
+      "price": "69.99",
+      "priceCurrency": "USD",
+      "description": "Everything in Premium plus one shared kitchen for up to three people. Billed yearly after a 7-day free trial."
+    }
+  ],
+  "FAQPage.mainEntity (was after 'Are the recipes written by AI?')": {
+    "@type": "Question",
+    "name": "Is leftovr free?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes, to start. Your first scan (a pantry photo or a receipt) and first recipe are free, and manual add and barcode scan stay free forever. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is $6.99/month ($44.99/year) and Household is $9.99/month ($69.99/year) for up to three people. Yearly plans start with a 7-day free trial."
+    }
+  }
+}
+-->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -1168,43 +1217,6 @@
         "Shared household kitchen for up to three people",
         "Weekly insights on money saved, food used and food tossed",
         "English and Serbian"
-      ],
-      "offers": [
-        {
-          "@type": "Offer",
-          "name": "Free",
-          "price": "0",
-          "priceCurrency": "USD",
-          "description": "First scan (pantry photo or receipt) and first recipe generation, plus unlimited manual and barcode add."
-        },
-        {
-          "@type": "Offer",
-          "name": "Premium (monthly)",
-          "price": "6.99",
-          "priceCurrency": "USD",
-          "description": "Unlimited scanning and recipes, daily suggestion, insights. Billed monthly."
-        },
-        {
-          "@type": "Offer",
-          "name": "Premium (yearly)",
-          "price": "44.99",
-          "priceCurrency": "USD",
-          "description": "Unlimited scanning and recipes, daily suggestion, insights. Billed yearly after a 7-day free trial."
-        },
-        {
-          "@type": "Offer",
-          "name": "Household (monthly)",
-          "price": "9.99",
-          "priceCurrency": "USD",
-          "description": "Everything in Premium plus one shared kitchen for up to three people. Billed monthly."
-        },
-        {
-          "@type": "Offer",
-          "name": "Household (yearly)",
-          "price": "69.99",
-          "priceCurrency": "USD",
-          "description": "Everything in Premium plus one shared kitchen for up to three people. Billed yearly after a 7-day free trial."
-        }
       ]
     },
     {
@@ -1278,14 +1290,6 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "Yes. AI writes each recipe from the food in your kitchen. Recipes are kept to 8 steps and 12 ingredients so they are easy to follow on a phone. On Premium you can ask for three more if none of them appeal."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Is leftovr free?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes, to start. Your first scan (a pantry photo or a receipt) and first recipe are free, and manual add and barcode scan stay free forever. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is $6.99/month ($44.99/year) and Household is $9.99/month ($69.99/year) for up to three people. Yearly plans start with a 7-day free trial."
           }
         },
         {
@@ -1947,6 +1951,7 @@
   </section>
 
   <!-- ─────────────── PRICING ─────────────── -->
+  <!-- PRICING HIDDEN (temporary, 2026-11-12). Restore by uncommenting the section below.
   <section class="pricing sec-pad" id="pricing" data-screen-label="Pricing">
     <div class="wrap">
       <div class="sec-head center">
@@ -1965,7 +1970,7 @@
       <p class="trial-note" data-i18n-html="price.trial">Yearly plans start with a <b>7-day free trial</b>.</p>
 
       <div class="plans">
-        <!-- Free -->
+        [Free]
         <div class="plan">
           <div class="plan-name" data-i18n="plan.free.name">Free</div>
           <div class="plan-for" data-i18n="plan.free.for">Try the whole flow</div>
@@ -1980,7 +1985,7 @@
           <a class="btn btn-ghost" href="#get" data-i18n="plan.free.cta">Start free</a>
         </div>
 
-        <!-- Premium Individual -->
+        [Premium Individual]
         <div class="plan">
           <div class="plan-name" data-i18n="plan.prem.name">Premium</div>
           <div class="plan-for" data-i18n="plan.prem.for">For one cook</div>
@@ -1995,7 +2000,7 @@
           <a class="btn btn-ghost" href="#get" data-i18n="plan.prem.cta">Get early access</a>
         </div>
 
-        <!-- Household -->
+        [Household]
         <div class="plan featured">
           <div class="plan-flag" data-i18n="plan.house.flag">Best value</div>
           <div class="plan-name" data-i18n="plan.house.name">Household</div>
@@ -2013,6 +2018,7 @@
       </div>
     </div>
   </section>
+  END PRICING HIDDEN -->
 
   <!-- ─────────────── FAQ ─────────────── -->
   <section class="sec-pad" id="faq" data-screen-label="FAQ">
@@ -2039,10 +2045,12 @@
           <button class="faq-q"><span data-i18n="faq.q16">Are the recipes written by AI?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a16">Yes. AI writes each recipe from the food in your kitchen. Recipes are kept to <b>8 steps and 12 ingredients</b> so they are easy to follow on a phone. On Premium you can ask for three more if none of them appeal.</div></div>
         </div>
+        <!-- PRICING HIDDEN (temporary): FAQ "Is leftovr free?"
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q1">Is leftovr free?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a1">Yes, to start. Your <b>first scan</b> (a pantry photo or a receipt) and <b>first recipe</b> are free, and <b>manual and barcode add stay free forever</b>. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is <b>$6.99/month</b> ($44.99/year) and Household is <b>$9.99/month</b> ($69.99/year) for up to three people. Yearly plans start with a <b>7-day free trial</b>.</div></div>
         </div>
+        END PRICING HIDDEN -->
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q2">Do I have to log everything by hand?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a2">No. A <b>pantry photo</b> reads a whole shelf at a time (up to three shots), and a receipt scan adds 20 to 30 items in about ten seconds. For a single thing you can <b>scan a barcode</b> or <b>add it manually</b>, both free and unlimited.</div></div>
@@ -2144,7 +2152,7 @@
         <a href="#how" data-i18n="foot.how">How it works</a>
         <a href="#recipes" data-i18n="gen.eyebrow">Recipe generation</a>
         <a href="#compare" data-i18n="foot.compare">How it compares</a>
-        <a href="#pricing" data-i18n="foot.pricing">Pricing</a>
+        <!-- PRICING HIDDEN (temporary) <a href="#pricing" data-i18n="foot.pricing">Pricing</a> -->
         <a href="/blog/" data-i18n="foot.blog">Blog</a>
         <a href="#get" data-i18n="foot.early">Early access</a>
         <a href="mailto:support@twobricklabs.com" data-i18n="foot.contact">Contact support</a>

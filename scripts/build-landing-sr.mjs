@@ -92,7 +92,8 @@ export function build(source) {
 
   // ── JSON-LD ──
   // Serbian FAQ in the order it appears on the page; answers as plain text.
-  const faq = [...body.matchAll(/data-i18n="faq\.q(\d+)"/g)].map((m) => ({
+  // Commented-out questions (e.g. pricing while it is hidden) are skipped.
+  const faq = [...body.replace(/<!--[\s\S]*?-->/g, "").matchAll(/data-i18n="faq\.q(\d+)"/g)].map((m) => ({
     "@type": "Question",
     name: sr(`faq.q${m[1]}`),
     acceptedAnswer: { "@type": "Answer", text: sr(`faq.a${m[1]}`).replace(/<[^>]+>/g, "") },

@@ -1087,6 +1087,55 @@
     .nav-right .btn { display: none; }
   }
 </style>
+<!-- PRICING HIDDEN (temporary, 2026-11-12): structured data taken out of the JSON-LD below.
+{
+  "MobileApplication.offers": [
+    {
+      "@type": "Offer",
+      "name": "Free",
+      "price": "0",
+      "priceCurrency": "USD",
+      "description": "First scan (pantry photo or receipt) and first recipe generation, plus unlimited manual and barcode add."
+    },
+    {
+      "@type": "Offer",
+      "name": "Premium (monthly)",
+      "price": "6.99",
+      "priceCurrency": "USD",
+      "description": "Unlimited scanning and recipes, daily suggestion, insights. Billed monthly."
+    },
+    {
+      "@type": "Offer",
+      "name": "Premium (yearly)",
+      "price": "44.99",
+      "priceCurrency": "USD",
+      "description": "Unlimited scanning and recipes, daily suggestion, insights. Billed yearly after a 7-day free trial."
+    },
+    {
+      "@type": "Offer",
+      "name": "Household (monthly)",
+      "price": "9.99",
+      "priceCurrency": "USD",
+      "description": "Everything in Premium plus one shared kitchen for up to three people. Billed monthly."
+    },
+    {
+      "@type": "Offer",
+      "name": "Household (yearly)",
+      "price": "69.99",
+      "priceCurrency": "USD",
+      "description": "Everything in Premium plus one shared kitchen for up to three people. Billed yearly after a 7-day free trial."
+    }
+  ],
+  "FAQPage.mainEntity (was after 'Are the recipes written by AI?')": {
+    "@type": "Question",
+    "name": "Is leftovr free?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes, to start. Your first scan (a pantry photo or a receipt) and first recipe are free, and manual add and barcode scan stay free forever. For unlimited scanning, unlimited recipes, daily suggestions and insights, Premium is $6.99/month ($44.99/year) and Household is $9.99/month ($69.99/year) for up to three people. Yearly plans start with a 7-day free trial."
+    }
+  }
+}
+-->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -1193,14 +1242,6 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "Da. Veštačka inteligencija piše svaki recept od hrane iz tvoje kuhinje. Recepti imaju najviše 8 koraka i 12 sastojaka, da ih je lako pratiti na telefonu. Uz Premium možeš da tražiš još tri ako ti se nijedan ne dopada."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Da li je leftovr besplatan?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Da, za početak. Tvoje prvo skeniranje (slika ostave ili račun) i prvi recept su besplatni, a ručni unos i bar-kod ostaju besplatni zauvek. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i nedeljni pregled, Premium košta 6,99 €/mesec (44,99 € godišnje), a Domaćinstvo 9,99 €/mesec (69,99 € godišnje) za do tri osobe. Godišnji paketi kreću sa 7 dana besplatno."
           }
         },
         {
@@ -1805,6 +1846,7 @@
   </section>
 
   <!-- ─────────────── PRICING ─────────────── -->
+  <!-- PRICING HIDDEN (temporary, 2026-11-12). Restore by uncommenting the section below.
   <section class="pricing sec-pad" id="pricing" data-screen-label="Pricing">
     <div class="wrap">
       <div class="sec-head center">
@@ -1823,7 +1865,7 @@
       <p class="trial-note" data-i18n-html="price.trial">Godišnji paketi kreću sa <b>7 dana besplatno</b>.</p>
 
       <div class="plans">
-        <!-- Free -->
+        [Free]
         <div class="plan">
           <div class="plan-name" data-i18n="plan.free.name">Besplatno</div>
           <div class="plan-for" data-i18n="plan.free.for">Probaj sve</div>
@@ -1838,7 +1880,7 @@
           <a class="btn btn-ghost" href="#get" data-i18n="plan.free.cta">Počni besplatno</a>
         </div>
 
-        <!-- Premium Individual -->
+        [Premium Individual]
         <div class="plan">
           <div class="plan-name" data-i18n="plan.prem.name">Premium</div>
           <div class="plan-for" data-i18n="plan.prem.for">Za jednog kuvara</div>
@@ -1853,7 +1895,7 @@
           <a class="btn btn-ghost" href="#get" data-i18n="plan.prem.cta">Rani pristup</a>
         </div>
 
-        <!-- Household -->
+        [Household]
         <div class="plan featured">
           <div class="plan-flag" data-i18n="plan.house.flag">Najisplativije</div>
           <div class="plan-name" data-i18n="plan.house.name">Domaćinstvo</div>
@@ -1871,6 +1913,7 @@
       </div>
     </div>
   </section>
+  END PRICING HIDDEN -->
 
   <!-- ─────────────── FAQ ─────────────── -->
   <section class="sec-pad" id="faq" data-screen-label="FAQ">
@@ -1897,10 +1940,12 @@
           <button class="faq-q"><span data-i18n="faq.q16">Da li recepte piše veštačka inteligencija?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a16">Da. Veštačka inteligencija piše svaki recept od hrane iz tvoje kuhinje. Recepti imaju najviše <b>8 koraka i 12 sastojaka</b>, da ih je lako pratiti na telefonu. Uz Premium možeš da tražiš još tri ako ti se nijedan ne dopada.</div></div>
         </div>
+        <!-- PRICING HIDDEN (temporary): FAQ "Is leftovr free?"
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q1">Da li je leftovr besplatan?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a1">Da, za početak. Tvoje <b>prvo skeniranje</b> (slika ostave ili račun) i <b>prvi recept</b> su besplatni, a <b>ručni unos i bar-kod ostaju besplatni zauvek</b>. Za neograničeno skeniranje, neograničene recepte, dnevne predloge i nedeljni pregled, Premium košta <b>6,99 €/mesec</b> (44,99 € godišnje), a Domaćinstvo <b>9,99 €/mesec</b> (69,99 € godišnje) za do tri osobe. Godišnji paketi kreću sa <b>7 dana besplatno</b>.</div></div>
         </div>
+        END PRICING HIDDEN -->
         <div class="faq-item open">
           <button class="faq-q"><span data-i18n="faq.q2">Moram li sve ručno da unosim?</span><svg class="chev" width="18" height="18" viewBox="0 0 18 18"><path d="M4 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <div class="faq-a"><div class="faq-a-inner" data-i18n-html="faq.a2">Ne. <b>Slika ostave</b> pročita celu policu odjednom, do tri slike, a skeniranje računa doda 20 do 30 stavki za desetak sekundi. Za jednu stvar možeš da <b>skeniraš bar-kod</b> ili <b>dodaš ručno</b>, oboje besplatno i neograničeno.</div></div>
@@ -2002,7 +2047,7 @@
         <a href="#how" data-i18n="foot.how">Kako radi</a>
         <a href="#recipes" data-i18n="gen.eyebrow">Pravljenje recepata</a>
         <a href="#compare" data-i18n="foot.compare">Poređenje</a>
-        <a href="#pricing" data-i18n="foot.pricing">Cene</a>
+        <!-- PRICING HIDDEN (temporary) <a href="#pricing" data-i18n="foot.pricing">Cene</a> -->
         <a href="/blog/" data-i18n="foot.blog">Blog</a>
         <a href="#get" data-i18n="foot.early">Rani pristup</a>
         <a href="mailto:support@twobricklabs.com" data-i18n="foot.contact">Kontaktiraj podršku</a>
