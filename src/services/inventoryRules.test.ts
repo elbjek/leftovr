@@ -201,3 +201,9 @@ describe("groupInventoryLots keeps different units apart (C3)", () => {
     expect(groups[0].quantity).toBe(5);
   });
 });
+
+describe("shelf-stable staples", () => {
+  it("never puts hand-added sugar on the use-soon list", () => {
+    expect(getShelfLifeDays("Sugar", "other")[0]).toBeGreaterThanOrEqual(365);
+  });
+});
