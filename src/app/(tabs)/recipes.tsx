@@ -627,16 +627,15 @@ export default function RecipesRoute() {
                 );
               })}
             </View>
-            {filteredList.length > LIST_LIMIT ? (
-              <Tappable
-                onPress={() => router.push("/(tabs)/all-recipes")}
-                style={[styles.browseAll, styles.listMore]}
-              >
-                <Text variant="label" color={colors.primary}>
-                  {t("recipes.shelves.browseAll")}
-                </Text>
-              </Tappable>
-            ) : null}
+            {/* Always there once you have recipes (2026-11-12: it hid until 7+). */}
+            <Tappable
+              onPress={() => router.push("/(tabs)/all-recipes")}
+              style={[styles.browseAll, styles.listMore]}
+            >
+              <Text variant="label" color={colors.primary}>
+                {t("recipes.shelves.browseAll")}
+              </Text>
+            </Tappable>
           </View>
         ) : null}
       </ScrollView>
