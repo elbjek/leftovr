@@ -4,7 +4,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { BottomSheet, Button, Card, ChoiceCard, Divider, HouseholdSheet, ListRow, PremiumSheet, Screen, ScreenHeader, Tappable, Text, TextField } from "@/components";
+import { BottomSheet, Button, Card, ChoiceCard, Divider, HouseholdPill, HouseholdSheet, ListRow, Logo, PremiumSheet, Screen, ScreenHeader, Tappable, Text, TextField } from "@/components";
 import { useAuth, useMeasurementSystem } from "@/features";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { deleteAccount, exportAccountData, presentCodeRedemptionSheet, registerDevice } from "@/services";
@@ -251,9 +251,24 @@ export default function SettingsRoute() {
     ? (profile?.avoidances ?? []).map((a) => t(`settings.avoidanceChoices.${a}` as any)).join(", ")
     : "—";
 
+  const rawName = profile?.display_name?.trim() ?? "";
+  const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
+
   return (
     <Screen scroll bottomInset={false} contentContainerStyle={styles.content}>
       <View style={styles.sections}>
+        {/* Same top as the other dock tabs: logo left, household pill + scan right. */}
+        <View style={styles.headRow}>
+          <Logo size={26} />
+          {activeHousehold ? (
+            <HouseholdPill
+              name={activeHousehold.name}
+              initial={firstName || activeHousehold.name}
+              label={t("settings.household.openSheet", { name: activeHousehold.name })}
+              onPress={() => setHouseholdOpen(true)}
+            />
+          ) : null}
+        </View>
         <ScreenHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
         {/* Profile */}
@@ -851,6 +866,12 @@ function dateToHHMM(date: Date) {
 const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing.tabBarClearance,
+  },
+  headRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
   },
   windowPills: {
     flexDirection: "row",
