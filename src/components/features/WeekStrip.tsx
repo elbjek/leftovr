@@ -17,8 +17,9 @@ type Props = {
   onPress: () => void;
 };
 
-// Today's goal as a small tomato block: the ring in a white circle, the
-// headline over the progress in white, a tomato in the corner and the streak
+// Today's goal as a small light-red block (2026-11-12: solid tomato is kept
+// for the home's real warning, out of free generations): the ring in a white
+// circle, the headline over the progress in red ink, a tomato in the corner and the streak
 // as a butter-yellow flame pill. Small on purpose: the recipe below is the
 // home's main thing.
 export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
@@ -35,10 +36,10 @@ export function WeekStrip({ goal, headline, detail, streak, onPress }: Props) {
         <GoalRing done={goal.done} total={goal.total} size={52} stroke={7} track={colors.accent} color={colors.text} />
       </View>
       <View style={styles.text}>
-        <Text variant="h3" color={colors.onPrimary} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+        <Text variant="h3" color={colors.redInk} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
           {headline}
         </Text>
-        <Text variant="small" color={colors.onPrimary} numberOfLines={1} style={styles.detail}>
+        <Text variant="small" color={colors.redInk} numberOfLines={1} style={styles.detail}>
           {detail}
         </Text>
       </View>
@@ -122,7 +123,7 @@ export function FlameIcon({ size = 13, color = colors.accentInk }: { size?: numb
 }
 
 const styles = StyleSheet.create({
-  // Solid tomato, no shadow, like a banner; the tomato mark clips at its edge.
+  // Light red, no shadow, like a banner; the tomato mark clips at its edge.
   card: {
     flexDirection: "row",
     alignItems: "center",
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.md,
     paddingRight: spacing.md,
     borderRadius: radii.xl,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.redSoft,
     overflow: "hidden",
   },
   ringTile: {
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.onPrimary,
+    backgroundColor: colors.surface,
   },
   text: {
     flex: 1,
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
     width: 104,
     height: 96,
     borderRadius: radii.pill,
-    backgroundColor: colors.primary700,
+    backgroundColor: colors.primary,
   },
   tomatoLeaf: {
     position: "absolute",

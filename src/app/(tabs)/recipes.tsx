@@ -446,20 +446,27 @@ export default function RecipesRoute() {
             <View style={styles.limitMessage}>
               {!canGenerate ? (
                 <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false}>
-                  <Path d="M12 3 22 21H2L12 3Z" fill="none" stroke={colors.redInk} strokeWidth={1.8} strokeLinejoin="round" />
-                  <Path d="M12 9v5m0 3v.1" stroke={colors.redInk} strokeWidth={2} strokeLinecap="round" />
+                  <Path d="M12 3 22 21H2L12 3Z" fill="none" stroke={colors.onPrimary} strokeWidth={1.8} strokeLinejoin="round" />
+                  <Path d="M12 9v5m0 3v.1" stroke={colors.onPrimary} strokeWidth={2} strokeLinecap="round" />
                 </Svg>
               ) : null}
               <View style={styles.limitCopy}>
-                <Text variant="title" color={canGenerate ? colors.text : colors.redInk}>
+                <Text variant="title" color={canGenerate ? colors.text : colors.onPrimary}>
                   {t(canGenerate ? "recipes.freeGenerationLeft" : "recipes.freeGenerationUsed")}
                 </Text>
-                <Text variant="small" color={canGenerate ? colors.muted : colors.redInk} style={styles.limitSub}>
+                <Text variant="small" color={canGenerate ? colors.muted : colors.onPrimary} style={styles.limitSub}>
                   {t(canGenerate ? "recipes.freePlan" : "recipes.freeGenerationUsedBody")}
                 </Text>
               </View>
             </View>
-            <Button title={t("recipes.upgrade")} onPress={() => setShowPremium(true)} />
+            {/* Out of free generations is the home's one real warning: solid
+                tomato with a white button, louder than the goal card. */}
+            <Button
+              title={t("recipes.upgrade")}
+              variant={canGenerate ? "primary" : "ghost"}
+              onPress={() => setShowPremium(true)}
+              style={!canGenerate && styles.limitWarningButton}
+            />
           </View>
         ) : null}
 
@@ -834,7 +841,10 @@ const styles = StyleSheet.create({
     borderRadius: radii.xl,
   },
   limitWarning: {
-    backgroundColor: colors.redSoft,
+    backgroundColor: colors.primary,
+  },
+  limitWarningButton: {
+    backgroundColor: colors.onPrimary,
   },
   limitMessage: {
     flexDirection: "row",
