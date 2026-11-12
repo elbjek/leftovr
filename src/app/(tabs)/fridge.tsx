@@ -1297,7 +1297,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: spacing.lg,
     borderRadius: radii.lg,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.accentSoft,
   },
   safetyNote: {
     paddingHorizontal: spacing.screenX,

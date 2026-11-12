@@ -45,7 +45,7 @@ export function EatFirstShelf({ count, labels, onUpgradePress }: Props) {
             </Text>
           </View>
         </View>
-        <Button title={labels.unlockAction} variant="accent" onPress={onUpgradePress} style={styles.cta} />
+        <Button title={labels.unlockAction} onPress={onUpgradePress} style={styles.cta} />
       </Card>
     </View>
   );

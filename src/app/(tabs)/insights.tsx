@@ -238,7 +238,7 @@ export default function InsightsRoute() {
                 </View>
               ))}
             </View>
-            <Button title={t("insights.lock.action")} variant="accent" onPress={() => setShowPremium(true)} />
+            <Button title={t("insights.lock.action")} variant="accent" onPress={() => setShowPremium(true)} style={styles.lockButton} />
           </View>
         </View>
         {sheets}
@@ -588,6 +588,10 @@ const styles = StyleSheet.create({
   lockCenter: {
     flex: 1,
     justifyContent: "center",
+  },
+  // Buttons on red use pale butter (2026-11-12).
+  lockButton: {
+    backgroundColor: colors.accentSoft,
   },
   // Solid tomato like the home's goal block, a darker disc clipping the
   // corner; the Unlock button is butter so it reads on tomato.

@@ -460,11 +460,12 @@ export default function RecipesRoute() {
               </View>
             </View>
             {/* Out of free generations is the home's one real warning: solid
-                tomato with the butter Unlock button, like Insights' lock. */}
+                tomato with a pale butter button (buttons on red use accentSoft). */}
             <Button
               title={t("recipes.upgrade")}
               variant={canGenerate ? "primary" : "accent"}
               onPress={() => setShowPremium(true)}
+              style={!canGenerate && styles.onRedButton}
             />
           </View>
         ) : null}
@@ -846,6 +847,9 @@ const styles = StyleSheet.create({
   },
   limitWarning: {
     backgroundColor: colors.primary,
+  },
+  onRedButton: {
+    backgroundColor: colors.accentSoft,
   },
   limitMessage: {
     flexDirection: "row",
