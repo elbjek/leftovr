@@ -394,7 +394,7 @@ export default function RecipesRoute() {
   }
 
   return (
-    <Screen padded={false} bottomInset={false}>
+    <Screen padded={false} bottomInset={false} contentContainerStyle={styles.screen}>
       {ideasOpen && hasTonight ? (
         <IdeasResults
           title={t("recipes.ideas.title", { count: ideas.length })}
@@ -776,6 +776,11 @@ export default function RecipesRoute() {
 }
 
 const styles = StyleSheet.create({
+  // The dock sits right under the screen: no bottom padding, or the list
+  // stops short of it.
+  screen: {
+    paddingBottom: 0,
+  },
   browseAll: {
     marginHorizontal: spacing.screenX,
     minHeight: 48,

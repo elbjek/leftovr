@@ -104,6 +104,9 @@ export default function ScanRoute() {
     (notifPrefs != null && notifPrefs.permission_status !== "not_determined");
   const [permission, requestPermission] = useCameraPermissions();
   const paramChoice = getParamChoice(params.mode);
+  // Receipt, e-receipt and barcode hide the dock ((tabs)/_layout); every
+  // other step sits right on it, which already clears the home indicator.
+  const dockShown = !(params.mode === "receipt" || params.mode === "ereceipt" || params.mode === "barcode");
   const initialChoice = paramChoice ?? "receipt";
   // Receipt scanning: one free scan per user (the activation taste), premium
   // from the second (per-scan AI cost). The used_at flag is stamped by a DB
@@ -813,7 +816,7 @@ export default function ScanRoute() {
   if (mode === "camera") {
     if (!permission?.granted) {
       return (
-        <Screen>
+        <Screen bottomInset={!dockShown}>
           <View style={styles.center}>
             <ScanMethodIcon method="receipt" />
             <Text variant="h3" center>
@@ -892,7 +895,7 @@ export default function ScanRoute() {
   if (mode === "pantryCamera") {
     if (!permission?.granted) {
       return (
-        <Screen>
+        <Screen bottomInset={!dockShown}>
           <View style={styles.center}>
             <ScanMethodIcon method="pantry" />
             <Text variant="h3" center>
@@ -1000,7 +1003,7 @@ export default function ScanRoute() {
   if (mode === "barcodeCamera") {
     if (!permission?.granted) {
       return (
-        <Screen>
+        <Screen bottomInset={!dockShown}>
           <View style={styles.center}>
             <ScanMethodIcon method="barcode" />
             <Text variant="h3" center>
@@ -1075,7 +1078,7 @@ export default function ScanRoute() {
 
   if (mode === "barcodeFallback") {
     return (
-      <Screen>
+      <Screen bottomInset={!dockShown}>
         <View style={styles.center}>
           <ScanMethodIcon method="barcode" />
           <Text variant="h3" center>
@@ -1095,7 +1098,7 @@ export default function ScanRoute() {
 
   if (mode === "emptyScan") {
     return (
-      <Screen>
+      <Screen bottomInset={!dockShown}>
         <BackButton onPress={returnToChoice} style={styles.backButton} />
         <View style={styles.center}>
           <ScanMethodIcon
@@ -1125,7 +1128,7 @@ export default function ScanRoute() {
 
   if (mode === "manual") {
     return (
-      <Screen scroll contentContainerStyle={styles.content}>
+      <Screen bottomInset={!dockShown} scroll contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <BackButton onPress={returnToChoice} style={styles.backButton} />
           <ScreenHeader title={t("scan.manual.title")} subtitle={t("scan.manual.screenBody")} />
@@ -1324,7 +1327,7 @@ export default function ScanRoute() {
 
   if (mode === "processing") {
     return (
-      <Screen>
+      <Screen bottomInset={!dockShown}>
         <ReceiptReadingProgress
           step={processingStep}
           variant={choice === "pantry" ? "pantry" : "receipt"}
@@ -1367,7 +1370,7 @@ export default function ScanRoute() {
 
   if (mode === "duplicate") {
     return (
-      <Screen>
+      <Screen bottomInset={!dockShown}>
         <View style={styles.center}>
           <ReceiptToFridgeIllustration />
           <Text variant="h3" center>
@@ -1392,7 +1395,7 @@ export default function ScanRoute() {
 
   if (mode === "success") {
     return (
-      <Screen>
+      <Screen bottomInset={!dockShown}>
         <View style={styles.center}>
           <AliveIcon />
           <Text variant="micro" center style={styles.successKicker}>
@@ -1420,7 +1423,7 @@ export default function ScanRoute() {
 
   if (mode === "addSuccess") {
     return (
-      <Screen>
+      <Screen bottomInset={!dockShown}>
         <View style={styles.center}>
           <AliveIcon />
           <Text variant="h3" center>
@@ -1440,7 +1443,7 @@ export default function ScanRoute() {
 
   if (mode === "notifications") {
     return (
-      <Screen>
+      <Screen bottomInset={!dockShown}>
         <View style={styles.center}>
           <Card style={styles.notificationIcon}>
             <BellIcon />
@@ -1468,7 +1471,7 @@ export default function ScanRoute() {
   const featuredMethod = recommendedMethod ?? ADD_METHODS[0];
 
   return (
-    <Screen contentContainerStyle={styles.content}>
+    <Screen bottomInset={!dockShown} contentContainerStyle={styles.content}>
       {/* Same top as the home: logo left, household pill right. */}
       <View style={styles.headerRow}>
         <Logo size={26} />

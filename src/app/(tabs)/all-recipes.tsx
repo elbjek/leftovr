@@ -203,7 +203,7 @@ export default function AllRecipesRoute() {
   );
 
   return (
-    <Screen padded={false} bottomInset={false}>
+    <Screen padded={false} bottomInset={false} contentContainerStyle={styles.screen}>
       <FlatList
         data={filteredRecipes}
         keyExtractor={(recipe) => recipe.id}
@@ -348,6 +348,11 @@ function FilterIcon() {
 }
 
 const styles = StyleSheet.create({
+  // The dock sits right under the screen: no bottom padding, or the list
+  // stops short of it.
+  screen: {
+    paddingBottom: 0,
+  },
   headerBlock: {
     paddingTop: spacing.screenTop,
     marginBottom: spacing.md,
