@@ -1,0 +1,4 @@
+# The Vercel project (leftovr) only serves landing/. Without this the CLI
+# uploads the whole repo (ios/Pods alone is ~22k files) and hits the 15k limit.
+/*
+!/landing
