@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
-import { BottomSheet, Button, CartIcon, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
+import { BottomSheet, Button, ShoppingListIcon, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
 import type { ShareCardProps, ShareFormat } from "@/components";
 import { isPremium, useAuth, useMeasurementSystem } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage, useShoppingList } from "@/hooks";
@@ -774,7 +774,7 @@ export default function RecipeDetailRoute() {
                           hitSlop={6}
                           style={[styles.listButton]}
                         >
-                          <CartIcon size={17} />
+                          <ShoppingListIcon size={17} />
                         </Tappable>
                       )}
                     </View>

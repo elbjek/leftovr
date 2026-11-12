@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import * as QuickActions from "expo-quick-actions";
 import { RouterAction, useQuickActionRouting } from "expo-quick-actions/router";
 
-import { AddSheet, CartIcon, OpenAddSheetProvider, Tappable, Text } from "@/components";
+import { AddSheet, ShoppingListIcon, OpenAddSheetProvider, Tappable, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useShoppingList } from "@/hooks";
 import { colors, radii, spacing } from "@/theme";
@@ -43,7 +43,7 @@ export default function TabsLayout() {
   useQuickActionRouting();
   useEffect(() => {
     void QuickActions.setItems<RouterAction>([
-      { id: "shopping", title: t("shopping.title"), icon: "symbol:cart", params: { href: "/(tabs)/shopping" } },
+      { id: "shopping", title: t("shopping.title"), icon: "symbol:checklist", params: { href: "/(tabs)/shopping" } },
     ]);
   }, [t]);
 
@@ -81,17 +81,17 @@ export default function TabsLayout() {
             }}
           />
           <Tabs.Screen
-            name="shopping"
-            options={{
-              title: t("tabs.shopping"),
-              tabBarIcon: ({ color }) => <CartIcon color={String(color)} size={24} />,
-            }}
-          />
-          <Tabs.Screen
             name="insights"
             options={{
               title: t("tabs.insights"),
               tabBarIcon: ({ color }) => <InsightsIcon color={String(color)} />,
+            }}
+          />
+          <Tabs.Screen
+            name="shopping"
+            options={{
+              title: t("tabs.shopping"),
+              tabBarIcon: ({ color }) => <ShoppingListIcon color={String(color)} size={24} />,
             }}
           />
           <Tabs.Screen
@@ -199,7 +199,7 @@ function getTabIcon(name: string, color: string) {
   if (name === "fridge") return <KitchenIcon color={color} />;
   if (name === "recipes") return <RecipesIcon color={color} />;
   if (name === "insights") return <InsightsIcon color={color} />;
-  if (name === "shopping") return <CartIcon color={color} size={24} />;
+  if (name === "shopping") return <ShoppingListIcon color={color} size={24} />;
   return <SettingsIcon color={color} />;
 }
 

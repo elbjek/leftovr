@@ -18,7 +18,7 @@ export function ShoppingListCard({ title, subtitle, onPress }: Props) {
         <ListRow
           title={title}
           subtitle={subtitle}
-          leading={<CartIcon />}
+          leading={<ShoppingListIcon />}
           trailing={
             <View style={styles.go}>
               <ArrowIcon />
@@ -32,18 +32,13 @@ export function ShoppingListCard({ title, subtitle, onPress }: Props) {
   );
 }
 
-export function CartIcon({ color = colors.primary, size = 26 }: { color?: string; size?: number }) {
+// A checklist, not a cart: it is a list of what to buy, not a shop.
+export function ShoppingListIcon({ color = colors.primary, size = 26 }: { color?: string; size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M3 4h2.2l2.1 10.2a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.1L20.5 8H6.1"
-        stroke={color}
-        strokeWidth={1.9}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Circle cx={9.5} cy={19.5} r={1.4} fill={color} />
-      <Circle cx={17} cy={19.5} r={1.4} fill={color} />
+      <Path d="M3.5 6.5l1.6 1.6L8 5.2M3.5 12.5l1.6 1.6L8 11.2" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" />
+      <Circle cx={5.6} cy={18.4} r={1.7} stroke={color} strokeWidth={1.7} />
+      <Path d="M11 6.5h9.5M11 12.5h9.5M11 18.5h9.5" stroke={color} strokeWidth={1.9} strokeLinecap="round" />
     </Svg>
   );
 }
