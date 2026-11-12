@@ -675,7 +675,7 @@ export const en = {
       best: "Best match",
       view: "View recipe",
       others: "Also good",
-      more: "Give me 3 more",
+      more: "More ideas",
     },
     generatingOverlay: {
       eyebrow: "New ideas",

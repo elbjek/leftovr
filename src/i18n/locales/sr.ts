@@ -693,7 +693,7 @@ export const sr = {
       best: "Najbolji izbor",
       view: "Vidi recept",
       others: "Takođe dobro",
-      more: "Daj mi još 3",
+      more: "Još ideja",
     },
     generatingOverlay: {
       eyebrow: "Nove ideje",
