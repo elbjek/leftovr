@@ -7,6 +7,8 @@ export type ShoppingListItem = {
   name: string;
   normalized_name: string;
   food_key: string | null;
+  /** Null: the household's list. Set: that member's own list (only they see it). */
+  owner_id: string | null;
   checked_at: string | null;
   created_at: string;
 };
@@ -28,7 +30,7 @@ export async function listShoppingItems(householdId: string): Promise<ShoppingLi
   const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
   const { data, error } = await supabase
     .from("shopping_list_items")
-    .select("id, name, normalized_name, food_key, checked_at, created_at")
+    .select("id, name, normalized_name, food_key, owner_id, checked_at, created_at")
     .eq("household_id", householdId)
     .or(`checked_at.is.null,checked_at.gt.${since}`)
     .order("created_at", { ascending: true });
@@ -36,7 +38,8 @@ export async function listShoppingItems(householdId: string): Promise<ShoppingLi
   return (data ?? []) as ShoppingListItem[];
 }
 
-export async function addShoppingItem(householdId: string, name: string): Promise<void> {
+/** Adds to the household's list, or with `personal` to the user's own. */
+export async function addShoppingItem(householdId: string, name: string, personal = false): Promise<void> {
   const supabase = getSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
@@ -47,6 +50,7 @@ export async function addShoppingItem(householdId: string, name: string): Promis
     normalized_name: canonicalFoodName(trimmed),
     food_key: foodMatchKey(trimmed),
     added_by: userResult.user.id,
+    owner_id: personal ? userResult.user.id : null,
   });
   if (error) throw error;
 }
@@ -57,6 +61,16 @@ export async function setShoppingItemChecked(id: string, checked: boolean): Prom
     .from("shopping_list_items")
     .update({ checked_at: checked ? new Date().toISOString() : null })
     .eq("id", id);
+  if (error) throw error;
+}
+
+export async function setShoppingItemsChecked(ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from("shopping_list_items")
+    .update({ checked_at: new Date().toISOString() })
+    .in("id", ids);
   if (error) throw error;
 }
 

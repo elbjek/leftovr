@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RefreshControl, StyleSheet, TextInput, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, FilterChip, HouseholdPill, HouseholdSheet, ListRow, Logo, PlusIcon, Screen, ShoppingListIcon, Tappable, Text, useToast } from "@/components";
+import { BottomSheet, Button, FilterChip, HouseholdPill, HouseholdSheet, ListRow, Logo, PlusIcon, Screen, SegmentedControl, ShoppingListIcon, Tappable, Text, useToast } from "@/components";
 import { FoodGlyph } from "@/components/illustrations";
 import { useAuth } from "@/features";
 import { foodMatchKey, searchFoods } from "@/lib";
@@ -22,20 +23,26 @@ const SUGGESTED_REMINDER: Record<string, { days: number[]; hour: number }> = {
   few: { days: [1, 4], hour: 17 },
 };
 
+// Long lists show this many open items (and bought ones) until "Show more".
+const OPEN_PAGE = 15;
+const BOUGHT_PAGE = 5;
+const LIST_KEY = "shopping.list";
+type Which = "household" | "mine";
+
 // The same food under any name: catalog food, else the canonical name.
 function itemKeyOf(name: string) {
   return foodMatchKey(name) ?? canonicalFoodName(name);
 }
 
-// The household's shopping list: what to buy, what's run out ("Buy again"),
-// and when to be reminded. A dock tab; also opened from Kitchen's card, the
+// The household's shopping list and the user's own (Mine / Household): what
+// to buy, what's run out ("Buy again"), and when to be reminded. A dock tab; also opened from Kitchen's card, the
 // app icon's quick action and the reminder push.
 export default function ShoppingRoute() {
   const { t, i18n } = useTranslation();
   const { showToast } = useToast();
   const { activeHousehold, profile } = useAuth();
   const householdId = activeHousehold?.id;
-  const { items, buyAgain, dismissals, reminder, openCount, refresh, add, setChecked, remove, dismiss, setReminder } =
+  const { items, buyAgain, dismissals, reminder, refresh, add, setChecked, checkAll, remove, dismiss, setReminder } =
     useShoppingList(householdId);
   const { groups, refresh: refreshInventory } = useInventory(householdId);
 
@@ -46,6 +53,25 @@ export default function ShoppingRoute() {
   const [hour, setHour] = useState(10);
   const [householdOpen, setHouseholdOpen] = useState(false);
   const [addFocused, setAddFocused] = useState(false);
+  const [which, setWhich] = useState<Which>("household");
+  const [openShown, setOpenShown] = useState(OPEN_PAGE);
+  const [boughtShown, setBoughtShown] = useState(BOUGHT_PAGE);
+  const userId = profile?.id;
+
+  // Opens on whichever list was used last (per device).
+  useEffect(() => {
+    AsyncStorage.getItem(LIST_KEY)
+      .then((saved) => {
+        if (saved === "mine" || saved === "household") setWhich(saved);
+      })
+      .catch(() => undefined);
+  }, []);
+  function pickList(next: Which) {
+    setWhich(next);
+    setOpenShown(OPEN_PAGE);
+    setBoughtShown(BOUGHT_PAGE);
+    AsyncStorage.setItem(LIST_KEY, next).catch(() => undefined);
+  }
   const rawName = profile?.display_name?.trim() ?? "";
   const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
 
@@ -57,14 +83,16 @@ export default function ShoppingRoute() {
 
   const dayNames = t("shopping.days", { returnObjects: true }) as string[];
 
-  const open = items.filter((item) => !item.checked_at);
-  const bought = items.filter((item) => item.checked_at);
+  const allOpen = items.filter((item) => !item.checked_at);
+  const shown = items.filter((item) => (which === "mine" ? item.owner_id === userId : item.owner_id === null));
+  const open = shown.filter((item) => !item.checked_at);
+  const bought = shown.filter((item) => item.checked_at);
 
   // Used-up staples from the server (already minus dismissed ones), then
   // whatever Kitchen says is running low, minus anything already on the list
   // or dismissed since it was last added.
   const suggestions = useMemo(() => {
-    const listed = new Set(open.flatMap((item) => [item.normalized_name, item.food_key ?? item.normalized_name]));
+    const listed = new Set(allOpen.flatMap((item) => [item.normalized_name, item.food_key ?? item.normalized_name]));
     const out: { key: string; name: string; reason: string }[] = [];
     for (const item of buyAgain) {
       if (listed.has(item.item_key) || listed.has(item.normalized_name)) continue;
@@ -85,13 +113,11 @@ export default function ShoppingRoute() {
       out.push({ key, name: group.name, reason: t("shopping.runningLow") });
     }
     return out;
-  }, [buyAgain, dismissals, groups, open, t]);
+  }, [buyAgain, dismissals, groups, allOpen, t]);
 
   // Catalog foods matching what's typed, minus ones already on the list.
-  const foodHits = useMemo(() => {
-    const listed = new Set(open.map((item) => item.food_key).filter(Boolean));
-    return searchFoods(draft, i18n.language).filter((food) => !listed.has(food.id));
-  }, [draft, i18n.language, open]);
+  const listedKeys = new Set(open.map((item) => item.food_key).filter(Boolean));
+  const foodHits = searchFoods(draft, i18n.language).filter((food) => !listedKeys.has(food.id));
   // Anything typed can go on as it is ("quinoa" isn't in the catalog), so say so.
   const typed = draft.trim();
   const showTyped = typed.length > 0 && !foodHits.some((food) => food.name.toLowerCase() === typed.toLowerCase());
@@ -107,7 +133,7 @@ export default function ShoppingRoute() {
   function submit(name = draft.trim()) {
     if (!name) return;
     setDraft("");
-    void run(() => add(name));
+    void run(() => add(name, which === "mine"));
   }
 
   function openReminder() {
@@ -161,9 +187,17 @@ export default function ShoppingRoute() {
             {t("shopping.title")}
           </Text>
           <Text variant="small" muted>
-            {t("shopping.toBuy", { count: openCount })}
+            {t("shopping.toBuy", { count: open.length })}
           </Text>
         </View>
+        <SegmentedControl<Which>
+          options={[
+            { value: "household", label: t("shopping.household") },
+            { value: "mine", label: t("shopping.mine") },
+          ]}
+          value={which}
+          onChange={pickList}
+        />
       </View>
 
       {/* Kitchen's search field, with the scan button's round tomato "+". */}
@@ -231,6 +265,19 @@ export default function ShoppingRoute() {
 
       {/* Each item its own white card, like Kitchen's food rows. */}
       <View style={styles.list}>
+        {open.length > 1 ? (
+          <View style={styles.listHead}>
+            <Tappable
+              label={t("shopping.boughtAll")}
+              onPress={() => void run(() => checkAll(open.map((item) => item.id)))}
+              hitSlop={8}
+            >
+              <Text variant="label" color={colors.primary}>
+                {t("shopping.boughtAll")}
+              </Text>
+            </Tappable>
+          </View>
+        ) : null}
         {open.length === 0 ? (
           <View style={[styles.card, styles.emptyCard]}>
             <View style={styles.iconWell}>
@@ -241,10 +288,10 @@ export default function ShoppingRoute() {
             </Text>
           </View>
         ) : null}
-        {open.map((item) => (
+        {open.slice(0, openShown).map((item) => (
           <ListRow
             key={item.id}
-            style={styles.card}
+            style={[styles.card, styles.row]}
             title={item.name}
             leading={<ItemLeading name={item.name} checked={false} />}
             trailing={<RemoveButton label={t("shopping.remove", { name: item.name })} onPress={() => void run(() => remove(item.id))} />}
@@ -253,22 +300,28 @@ export default function ShoppingRoute() {
             onPress={() => void run(() => setChecked(item.id, true))}
           />
         ))}
+        {open.length > openShown ? (
+          <ShowMore label={t("shopping.showMore", { count: open.length - openShown })} onPress={() => setOpenShown((n) => n + OPEN_PAGE)} />
+        ) : null}
       </View>
 
       {bought.length > 0 ? (
         <View style={styles.list}>
           <SectionHead title={t("shopping.bought")} count={bought.length} />
-          {bought.map((item) => (
+          {bought.slice(0, boughtShown).map((item) => (
             <ListRow
               key={item.id}
               style={[styles.card, styles.boughtCard]}
               title={item.name}
-              leading={<ItemLeading name={item.name} checked />}
+              leading={<ItemLeading name={item.name} checked small />}
               chevron={false}
               label={t("shopping.untick", { name: item.name })}
               onPress={() => void run(() => setChecked(item.id, false))}
             />
           ))}
+          {bought.length > boughtShown ? (
+            <ShowMore label={t("shopping.showMore", { count: bought.length - boughtShown })} onPress={() => setBoughtShown(bought.length)} />
+          ) : null}
         </View>
       ) : null}
 
@@ -299,7 +352,7 @@ export default function ShoppingRoute() {
           {suggestions.map((s) => (
             <ListRow
               key={s.key}
-              style={styles.card}
+              style={[styles.card, styles.row]}
               title={s.name}
               subtitle={s.reason}
               leading={<FoodTile name={s.name} />}
@@ -395,26 +448,37 @@ function SectionHead({ title, count, body }: { title: string; count?: number; bo
   );
 }
 
-// Kitchen's food thumbnail: sage tile, the food's icon.
-function FoodTile({ name }: { name: string }) {
+// Kitchen's food thumbnail, smaller: sage tile, the food's icon.
+function FoodTile({ name, small }: { name: string; small?: boolean }) {
   return (
-    <View style={styles.food}>
-      <FoodGlyph name={name} size={42} />
+    <View style={[styles.food, small && styles.foodSmall]}>
+      <FoodGlyph name={name} size={small ? 22 : 30} />
     </View>
   );
 }
 
-function ItemLeading({ name, checked }: { name: string; checked: boolean }) {
+// The home's Browse all button, for long lists.
+function ShowMore({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Tappable label={label} onPress={onPress} style={[styles.showMore]}>
+      <Text variant="label" color={colors.primary}>
+        {label}
+      </Text>
+    </Tappable>
+  );
+}
+
+function ItemLeading({ name, checked, small }: { name: string; checked: boolean; small?: boolean }) {
   return (
     <View style={styles.leading}>
-      <View style={[styles.tick, checked && styles.tickOn]}>
+      <View style={[styles.tick, checked && styles.tickOn, small && styles.tickSmall]}>
         {checked ? (
-          <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+          <Svg width={small ? 11 : 14} height={small ? 11 : 14} viewBox="0 0 24 24" fill="none">
             <Path d="M5 12.5 10 17l9-10" stroke={colors.onPrimary} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
         ) : null}
       </View>
-      <FoodTile name={name} />
+      <FoodTile name={name} small={small} />
     </View>
   );
 }
@@ -506,7 +570,19 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: spacing.screenX,
-    gap: spacing.sm,
+    gap: spacing.xs,
+  },
+  listHead: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  // Compact rows (2026-11-12, Lena: four items took 60% of the screen): the
+  // Kitchen card's look, at about two-thirds the height.
+  row: {
+    minHeight: 0,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.xl,
   },
   sectionHead: {
     flexDirection: "row",
@@ -532,6 +608,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   boughtCard: {
+    minHeight: 0,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.lg,
     opacity: 0.55,
   },
   leading: {
@@ -540,9 +620,9 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   food: {
-    width: 52,
-    height: 52,
-    borderRadius: radii.lg,
+    width: 38,
+    height: 38,
+    borderRadius: radii.md,
     backgroundColor: colors.sageTint,
     alignItems: "center",
     justifyContent: "center",
@@ -563,6 +643,23 @@ const styles = StyleSheet.create({
     borderColor: colors.hairlineStrong,
     alignItems: "center",
     justifyContent: "center",
+  },
+  tickSmall: {
+    width: 20,
+    height: 20,
+  },
+  foodSmall: {
+    width: 28,
+    height: 28,
+    borderRadius: radii.xs,
+  },
+  showMore: {
+    minHeight: 44,
+    borderRadius: radii.lg,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    ...shadows.soft,
   },
   tickOn: {
     backgroundColor: colors.primary,
