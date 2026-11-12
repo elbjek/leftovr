@@ -8,6 +8,7 @@ export * from "./DinnerHero";
 export * from "./LockedCard";
 export * from "./EmptyFridge";
 export * from "./FeatureShowcase";
+export * from "./AddSheet";
 export * from "./HouseholdPill";
 export * from "./HouseholdSection";
 export * from "./HouseholdSheet";

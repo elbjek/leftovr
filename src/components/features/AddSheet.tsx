@@ -1,0 +1,96 @@
+import { useRef } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
+
+import { useAuth } from "@/features";
+import { spacing } from "../../theme";
+import { BottomSheet, Text } from "../primitives";
+import { ScanMethod, ScanMethodCard } from "./ScanMethodCard";
+
+export const ADD_METHODS: ScanMethod[] = ["receipt", "pantry", "ereceipt", "barcode", "manual"];
+
+// The way of adding food that fits how someone shops (onboarding / Settings
+// "Shopping style"); it gets the Recommended badge and goes first.
+const RECOMMENDED_BY_SHOPPING_STYLE: Record<string, ScanMethod> = {
+  weekly: "receipt",
+  few: "pantry",
+  asneed: "barcode",
+};
+
+export function recommendedAddMethod(shoppingStyle?: string | null): ScanMethod | undefined {
+  return shoppingStyle ? RECOMMENDED_BY_SHOPPING_STYLE[shoppingStyle] : undefined;
+}
+
+type Props = {
+  visible: boolean;
+  onClose: () => void;
+};
+
+// The "+" beside the household pill: Add's ways in as a sheet over the
+// current screen (2026-11-12). Picking one opens Add straight into it once
+// the sheet's Modal is gone (Add handles gates like the AI notice there).
+export function AddSheet({ visible, onClose }: Props) {
+  const { t } = useTranslation();
+  const { profile } = useAuth();
+  const picked = useRef<ScanMethod | null>(null);
+  const recommended = recommendedAddMethod(profile?.shopping_style);
+  const featured = recommended ?? ADD_METHODS[0];
+
+  function pick(method: ScanMethod) {
+    picked.current = method;
+    onClose();
+  }
+
+  return (
+    <BottomSheet
+      visible={visible}
+      onDismiss={onClose}
+      onClosed={() => {
+        const method = picked.current;
+        picked.current = null;
+        if (method) router.navigate({ pathname: "/(tabs)/scan", params: { mode: method } });
+      }}
+    >
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.copy}>
+          <Text variant="h3">{t("scan.title")}</Text>
+          <Text variant="small" muted>
+            {t("scan.body")}
+          </Text>
+        </View>
+        <ScanMethodCard
+          featured
+          method={featured}
+          body={t(`scan.${featured}.body`)}
+          recommended={featured === recommended}
+          onPress={() => pick(featured)}
+        />
+        <View style={styles.grid}>
+          {ADD_METHODS.filter((method) => method !== featured).map((method) => (
+            <ScanMethodCard key={method} method={method} body={t(`scan.${method}.body`)} onPress={() => pick(method)} />
+          ))}
+        </View>
+      </ScrollView>
+    </BottomSheet>
+  );
+}
+
+const styles = StyleSheet.create({
+  // Scrolls only on small phones, where five cards outgrow the sheet.
+  scroll: {
+    flexShrink: 1,
+  },
+  content: {
+    gap: spacing.md,
+    paddingBottom: spacing.lg,
+  },
+  copy: {
+    gap: spacing.xxs,
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.md,
+  },
+});

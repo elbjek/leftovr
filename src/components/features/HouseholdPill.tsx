@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, radii, spacing } from "../../theme";
 import { PlusIcon, Tappable, Text } from "../primitives";
+import { AddSheet } from "./AddSheet";
 
 type Props = {
   name: string;
@@ -17,9 +18,11 @@ type Props = {
 };
 
 // The household switcher at the top right of the tab screens, with the round
-// tomato "+" that opens Add (2026-11-12: Add left the dock for Settings).
+// tomato "+" that opens Add's choices as a sheet (2026-11-12: Add left the
+// dock for Settings).
 export function HouseholdPill({ name, initial, label, onPress, hideAdd }: Props) {
   const { t } = useTranslation();
+  const [addOpen, setAddOpen] = useState(false);
   return (
     <View style={styles.row}>
       <Tappable label={label} onPress={onPress} style={styles.pill}>
@@ -36,10 +39,11 @@ export function HouseholdPill({ name, initial, label, onPress, hideAdd }: Props)
         </Svg>
       </Tappable>
       {hideAdd ? null : (
-        <Tappable label={t("fridge.addItem")} onPress={() => router.push("/(tabs)/scan")} style={styles.add}>
+        <Tappable label={t("fridge.addItem")} onPress={() => setAddOpen(true)} style={styles.add}>
           <PlusIcon />
         </Tappable>
       )}
+      {hideAdd ? null : <AddSheet visible={addOpen} onClose={() => setAddOpen(false)} />}
     </View>
   );
 }

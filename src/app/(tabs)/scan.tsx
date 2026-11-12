@@ -9,7 +9,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleShe
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, Card, DateField, HouseholdPill, HouseholdSheet, Logo, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnfinishedScanCard, UnitPicker } from "@/components";
+import { ADD_METHODS, BackButton, BottomSheet, Button, Card, DateField, HouseholdPill, HouseholdSheet, Logo, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnfinishedScanCard, UnitPicker, recommendedAddMethod } from "@/components";
 import { acceptAiDisclosure, hasAcceptedAiDisclosure, isPremium as resolvePremium, loadScanDraft, saveScanDraft, ScanDraft, useAuth, useScanDraft } from "@/features";
 import { useInventory, useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
@@ -65,14 +65,6 @@ type ScanMode =
   | "notifications";
 type ScanChoice = "receipt" | "ereceipt" | "pantry" | "barcode" | "manual";
 
-const ADD_METHODS: ScanChoice[] = ["receipt", "pantry", "ereceipt", "barcode", "manual"];
-// The way of adding food that fits how someone shops (onboarding / Settings
-// "Shopping style"); it gets the Recommended badge and goes first.
-const RECOMMENDED_BY_SHOPPING_STYLE: Record<string, ScanChoice> = {
-  weekly: "receipt",
-  few: "pantry",
-  asneed: "barcode",
-};
 
 // E-receipts are a few small pages; cap the upload to bound the (paid) AI call
 // and block oversized/wrong documents before they reach storage or OpenAI.
@@ -1467,7 +1459,7 @@ export default function ScanRoute() {
     );
   }
 
-  const recommendedMethod = profile?.shopping_style ? RECOMMENDED_BY_SHOPPING_STYLE[profile.shopping_style] : undefined;
+  const recommendedMethod = recommendedAddMethod(profile?.shopping_style);
   const featuredMethod = recommendedMethod ?? ADD_METHODS[0];
 
   return (
