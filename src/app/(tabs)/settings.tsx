@@ -252,10 +252,10 @@ export default function SettingsRoute() {
     : "—";
 
   return (
-    <Screen scroll contentContainerStyle={styles.content}>
+    <Screen scroll bottomInset={false} contentContainerStyle={styles.content}>
       <View style={styles.sections}>
         {/* Not a tab any more: opened from the household pill's menu. */}
-        <View>
+        <View style={styles.head}>
           <BackButton onPress={() => (router.canGoBack() ? router.back() : router.navigate("/(tabs)/recipes"))} />
           <ScreenHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
         </View>
@@ -881,6 +881,9 @@ const styles = StyleSheet.create({
   },
   sections: {
     gap: spacing.xl,
+  },
+  head: {
+    gap: spacing.md,
   },
   cardInner: {
     gap: spacing.md,

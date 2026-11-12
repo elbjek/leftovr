@@ -217,6 +217,7 @@ export default function FridgeRoute() {
     <Screen
       scroll
       padded={false}
+      bottomInset={false}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />

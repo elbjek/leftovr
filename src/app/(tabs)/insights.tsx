@@ -201,7 +201,7 @@ export default function InsightsRoute() {
   // own figures: every number is a placeholder.
   if (!isPremium) {
     return (
-      <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
+      <Screen scroll bottomInset={false} contentContainerStyle={styles.content} refreshControl={refreshControl}>
         {header()}
         <View style={styles.preview} pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
           <PeriodSummary
@@ -254,7 +254,7 @@ export default function InsightsRoute() {
 
   if (!data) {
     return (
-      <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
+      <Screen scroll bottomInset={false} contentContainerStyle={styles.content} refreshControl={refreshControl}>
         {header()}
         <View style={styles.loading}>
           <FoodLoader />
@@ -454,7 +454,7 @@ export default function InsightsRoute() {
   );
 
   return (
-    <Screen scroll contentContainerStyle={styles.content} refreshControl={refreshControl}>
+    <Screen scroll bottomInset={false} contentContainerStyle={styles.content} refreshControl={refreshControl}>
       {header(shareSheet && !isEmpty && !(period === "week" && offset < 0) ? () => setShowShare(true) : undefined)}
 
       {summaryCard}
