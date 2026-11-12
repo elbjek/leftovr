@@ -14,6 +14,8 @@ type Props = {
   style?: StyleProp<ViewStyle>;
   /** Pull-to-refresh control; only applies when scroll is true. Enables bounce. */
   refreshControl?: React.ComponentProps<typeof ScrollView>["refreshControl"];
+  /** "handled" lets a button take the tap while the keyboard is up. */
+  keyboardShouldPersistTaps?: React.ComponentProps<typeof ScrollView>["keyboardShouldPersistTaps"];
 };
 
 export function Screen({
@@ -26,6 +28,7 @@ export function Screen({
   contentContainerStyle,
   style,
   refreshControl,
+  keyboardShouldPersistTaps,
 }: Props) {
   const contentStyle = [
     padded && styles.padded,
@@ -46,6 +49,7 @@ export function Screen({
         <ScrollView
           bounces={Boolean(refreshControl)}
           refreshControl={refreshControl}
+          keyboardShouldPersistTaps={keyboardShouldPersistTaps}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={contentStyle}
           style={styles.fill}

@@ -161,6 +161,24 @@ const OWN_PHRASES: [string, string][] = (() => {
   return [...pairs].sort((a, b) => b[0].length - a[0].length);
 })();
 
+/** Catalog foods whose English or Serbian name has a word starting with the
+ *  query, names starting with it first; named in the app's language. Aliases
+ *  are left out ("feta" shouldn't offer "White cheese"). */
+export function searchFoods(query: string, language: string, limit = 5): { id: string; name: string }[] {
+  const q = words(query).trim();
+  if (!q) return [];
+  const hits: { id: string; name: string; rank: number }[] = [];
+  for (const icon of icons.foods) {
+    const names = [words(icon.name), words(icon.sr)];
+    const rank = names.some((n) => n.startsWith(` ${q}`)) ? 0 : names.some((n) => n.includes(` ${q}`)) ? 1 : -1;
+    if (rank >= 0) hits.push({ id: icon.id, name: language.startsWith("sr") ? icon.sr : icon.name, rank });
+  }
+  return hits
+    .sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name))
+    .slice(0, limit)
+    .map(({ id, name }) => ({ id, name }));
+}
+
 /** The catalog food a name is, by the icon's own names only; null if none. */
 export function foodMatchKey(name: string | null | undefined): string | null {
   const text = words(name ?? "");

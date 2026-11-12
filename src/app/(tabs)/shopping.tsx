@@ -7,7 +7,7 @@ import Svg, { Path } from "react-native-svg";
 import { BottomSheet, Button, FilterChip, HouseholdPill, HouseholdSheet, ListRow, Logo, PlusIcon, Screen, ShoppingListIcon, Tappable, Text, useToast } from "@/components";
 import { FoodGlyph } from "@/components/illustrations";
 import { useAuth } from "@/features";
-import { foodMatchKey } from "@/lib";
+import { foodMatchKey, searchFoods } from "@/lib";
 import { useInventory, useShoppingList } from "@/hooks";
 import { canonicalFoodName, isMetricAmountRunningLow } from "@/services";
 import { colors, radii, shadows, spacing, typography } from "@/theme";
@@ -31,7 +31,7 @@ function itemKeyOf(name: string) {
 // and when to be reminded. A dock tab; also opened from Kitchen's card, the
 // app icon's quick action and the reminder push.
 export default function ShoppingRoute() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { showToast } = useToast();
   const { activeHousehold, profile } = useAuth();
   const householdId = activeHousehold?.id;
@@ -87,6 +87,12 @@ export default function ShoppingRoute() {
     return out;
   }, [buyAgain, dismissals, groups, open, t]);
 
+  // Catalog foods matching what's typed, minus ones already on the list.
+  const foodHits = useMemo(() => {
+    const listed = new Set(open.map((item) => item.food_key).filter(Boolean));
+    return searchFoods(draft, i18n.language).filter((food) => !listed.has(food.id));
+  }, [draft, i18n.language, open]);
+
   async function run(action: () => Promise<void>) {
     try {
       await action();
@@ -95,8 +101,7 @@ export default function ShoppingRoute() {
     }
   }
 
-  function submit() {
-    const name = draft.trim();
+  function submit(name = draft.trim()) {
     if (!name) return;
     setDraft("");
     void run(() => add(name));
@@ -129,6 +134,7 @@ export default function ShoppingRoute() {
       scroll
       padded={false}
       bottomInset={false}
+      keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
@@ -163,7 +169,7 @@ export default function ShoppingRoute() {
           <TextInput
             value={draft}
             onChangeText={setDraft}
-            onSubmitEditing={submit}
+            onSubmitEditing={() => submit()}
             onFocus={() => setAddFocused(true)}
             onBlur={() => setAddFocused(false)}
             placeholder={t("shopping.addPlaceholder")}
@@ -176,7 +182,7 @@ export default function ShoppingRoute() {
           />
           <Tappable
             label={t("shopping.add")}
-            onPress={submit}
+            onPress={() => submit()}
             disabled={!draft.trim()}
             style={[styles.addButton, !draft.trim() && styles.addButtonIdle]}
           >
@@ -184,6 +190,28 @@ export default function ShoppingRoute() {
           </Tappable>
         </View>
       </View>
+
+      {foodHits.length > 0 ? (
+        <View style={styles.gutter}>
+          <View style={[styles.card, styles.hits]}>
+            {foodHits.map((food) => (
+              <ListRow
+                key={food.id}
+                title={food.name}
+                leading={<FoodTile name={food.id} />}
+                trailing={
+                  <View style={styles.go}>
+                    <PlusIcon color={colors.primary} size={16} />
+                  </View>
+                }
+                chevron={false}
+                label={t("shopping.addName", { name: food.name })}
+                onPress={() => submit(food.name)}
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       {/* Each item its own white card, like Kitchen's food rows. */}
       <View style={styles.list}>
@@ -483,6 +511,9 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     flex: 1,
+  },
+  hits: {
+    paddingVertical: spacing.xs,
   },
   boughtCard: {
     opacity: 0.55,

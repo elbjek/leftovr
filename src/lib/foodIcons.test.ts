@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import icons from "../../assets/food-icons/icons.json";
-import { foodIconKey, foodMatchKey } from "./foodIcons";
+import { foodIconKey, foodMatchKey, searchFoods } from "./foodIcons";
 
 describe("foodIconKey", () => {
   it("matches the item names in use today", () => {
@@ -93,5 +93,20 @@ describe("foodMatchKey", () => {
     // "so" (salt) must not become "sa" / "se".
     expect(foodMatchKey("hleb sa semenkama")).toBe("bread");
     expect(foodMatchKey("pasta sa sirom")).not.toBe("salt");
+  });
+});
+
+describe("searchFoods", () => {
+  it("matches word starts in either language, names starting with the query first", () => {
+    const en = searchFoods("mil", "en").map((f) => f.name);
+    expect(en[0]).toBe("Milk");
+    expect(en).toContain("Plant milk");
+    expect(searchFoods("mle", "en").map((f) => f.name)).toContain("Milk");
+    expect(searchFoods("mil", "sr")[0].name).toBe("Mleko");
+  });
+
+  it("ignores aliases and empty queries", () => {
+    expect(searchFoods("feta", "en")).toEqual([]);
+    expect(searchFoods("  ", "en")).toEqual([]);
   });
 });
