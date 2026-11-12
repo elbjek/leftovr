@@ -70,7 +70,10 @@ Deno.serve(async (req) => {
     byHousehold("value_events"),
     byHousehold("receipt_scans"),
     byHousehold("household_notification_settings"),
-    byHousehold("shopping_list_items"),
+    // The household lists plus this user's own, never another member's.
+    householdIds.length
+      ? supabase.from("shopping_list_items").select("*").in("household_id", householdIds).or(`owner_id.is.null,owner_id.eq.${userId}`)
+      : Promise.resolve({ data: [] }),
     byHousehold("shopping_dismissals"),
   ]);
 

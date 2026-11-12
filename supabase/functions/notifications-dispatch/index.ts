@@ -287,16 +287,22 @@ async function runShopping(supabase: any, now: Date): Promise<number> {
     const tz = h.timezone ?? "UTC";
     if (!isShoppingReminderTime(now, tz, h.shopping_reminder_days ?? [], h.shopping_reminder_hour)) continue;
 
+    // Household items plus each member's own (owner_id): a personal item is
+    // only ever named in its owner's push.
     const { data: listed } = await supabase
       .from("shopping_list_items")
-      .select("name")
+      .select("name, owner_id")
       .eq("household_id", h.household_id)
       .is("checked_at", null)
       .order("created_at");
     const { data: again, error } = await supabase.rpc("buy_again", { p_household: h.household_id });
     if (error) console.error("buy_again failed:", error.message);
-    const names = [...(listed ?? []), ...(again ?? [])].map((r: { name: string }) => r.name);
-    if (names.length === 0) continue;
+    const namesFor = (userId: string) =>
+      [
+        ...(listed ?? []).filter((r: { owner_id: string | null }) => !r.owner_id || r.owner_id === userId),
+        ...(again ?? []),
+      ].map((r: { name: string }) => r.name);
+    if ((listed ?? []).length === 0 && (again ?? []).length === 0) continue;
 
     const { data: members } = await supabase
       .from("household_members")
@@ -314,17 +320,21 @@ async function runShopping(supabase: any, now: Date): Promise<number> {
         .eq("type", "shopping")
         .gte("sent_at", startOfDayUtcFloor(now));
       if (sentToday(rows ?? [], now, tz)) continue;
+      if (namesFor(m.user_id).length === 0) continue;
       recipients.push({ token: p.push_token, userId: m.user_id, lang: toLang((m as any).profiles?.language) });
     }
 
-    for (const [lang, group] of byLanguage(recipients)) {
-      const dead = await sendPush(group.map((r) => r.token), {
-        ...copy(lang).shopping(names.slice(0, 3), names.length - 3),
+    // One push per recipient: the names differ by personal list.
+    // ponytail: per-member sends; batch by identical name lists if households grow large.
+    for (const r of recipients) {
+      const names = namesFor(r.userId);
+      const dead = await sendPush([r.token], {
+        ...copy(r.lang).shopping(names.slice(0, 3), names.length - 3),
         data: { type: "shopping" },
       });
-      await recordSends(supabase, group.map((r) => r.userId), h.household_id, "shopping", now);
+      await recordSends(supabase, [r.userId], h.household_id, "shopping", now);
       await nullDeadTokens(supabase, dead);
-      count += group.length;
+      count += 1;
     }
   }
   return count;
