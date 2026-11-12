@@ -528,10 +528,86 @@
   .sb { display: flex; align-items: center; justify-content: space-between; padding: 15px 24px 0; }
   .sb .t { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; }
   .sb .ic { display: flex; align-items: center; gap: 6px; color: var(--text); }
-  /* ── Phone screen: a real screenshot of the app's home (Recipes tab).
-     .sb sits over the screenshot's own status bar and draws a clean 9:41. ── */
-  .phone-screen > .sb { position: relative; z-index: 5; background: var(--page); padding-bottom: 6px; }
-  .phone-shot { position: absolute; top: 0; left: 0; width: 100%; height: auto; display: block; }
+  /* ── Phone screen: the app's home (Recipes tab), drawn slot for slot.
+     Built in iPhone Pro Max points (440 wide) and zoomed to the 282px screen.
+     Source: src/app/(tabs)/recipes.tsx, WeekStrip, TryNextCard,
+     RecipeListCard, HouseholdPill, FilterChip and the dock in (tabs)/_layout.
+     Dish photos are cropped from a real screenshot (landing/screens/). ── */
+  .phone-screen > .sb { position: relative; z-index: 5; }
+  .lo { zoom: 0.641; width: 440px; flex: 1; position: relative; overflow: hidden; padding-top: 14px; color: var(--text); font-family: 'Nunito Sans', -apple-system, system-ui, sans-serif; }
+  .lo svg { display: block; flex-shrink: 0; }
+  .lo .sm { font-size: 13px; line-height: 18px; font-weight: 500; }
+  .lo .b { font-weight: 700; }
+  .lo .mi { font-size: 11px; line-height: 14px; font-weight: 800; letter-spacing: 0.66px; }
+  .lo .h3 { font-size: 19px; line-height: 24px; font-weight: 800; }
+  .lo .ti { font-size: 16px; line-height: 20px; font-weight: 800; }
+  .lo-row { display: flex; align-items: center; }
+  .lo-pad { padding: 0 24px; }
+
+  .lo-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 24px; margin-bottom: 12px; }
+  .lo-logo { font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif; font-weight: 800; font-size: 26px; letter-spacing: -1.04px; line-height: 1; display: inline-flex; align-items: baseline; position: relative; }
+  .lo-logo .r { color: var(--primary); display: inline-block; transform: rotate(9deg) translateY(0.03em); transform-origin: 50% 60%; }
+  .lo-logo svg { position: absolute; left: .5em; top: -.16em; width: .51em; height: .272em; fill: none; stroke: var(--accent); stroke-width: 2.55; stroke-linecap: round; }
+  .lo-hh { display: flex; align-items: center; gap: 8px; }
+  .lo-pill { display: flex; align-items: center; gap: 6px; padding: 4px 12px 4px 4px; border-radius: 999px; background: var(--surface-2); white-space: nowrap; }
+  .lo-av { width: 28px; height: 28px; border-radius: 999px; background: var(--surface-3); color: var(--primary); display: flex; align-items: center; justify-content: center; }
+  .lo-add { width: 36px; height: 36px; border-radius: 999px; background: var(--primary); display: flex; align-items: center; justify-content: center; }
+
+  .lo-goal { position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; min-height: 84px; padding: 12px; margin: 0 24px 12px; border-radius: 20px; background: var(--primary); color: #fff; }
+  .lo-ring { width: 60px; height: 60px; flex-shrink: 0; border-radius: 999px; background: #fff; display: flex; align-items: center; justify-content: center; position: relative; }
+  .lo-ring span { position: absolute; color: var(--text); }
+  .lo-goal-text { flex: 1; min-width: 0; }
+  .lo-goal-text div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lo-goal-text .sm { opacity: 0.85; }
+  .lo-streak { position: relative; z-index: 1; display: flex; align-items: center; gap: 4px; height: 40px; padding: 0 12px; border-radius: 999px; background: var(--accent-soft); color: var(--text); }
+  .lo-tomato { position: absolute; right: 4px; bottom: -64px; width: 104px; height: 104px; pointer-events: none; }
+  .lo-tomato i { position: absolute; top: 14px; width: 104px; height: 96px; border-radius: 999px; background: var(--primary-700); }
+  .lo-tomato svg { position: absolute; top: 0; left: 35px; }
+
+  .lo-card { background: var(--surface); border-radius: 24px; box-shadow: 0 10px 26px rgba(170, 90, 50, 0.10); }
+  .lo-hero { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 16px; margin: 0 24px; }
+  .lo-hero-top { display: flex; align-items: center; gap: 12px; padding-right: 24px; }
+  .lo-art { width: 96px; height: 96px; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; }
+  .lo-art::before { content: ""; position: absolute; width: 104px; height: 96px; border-radius: 999px; background: var(--surface-2); transform: rotate(-14deg); }
+  .lo-art img { position: relative; width: 84px; height: 84px; border-radius: 999px; object-fit: cover; background: var(--surface-2); }
+  .lo-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .lo-eb { align-self: flex-start; min-height: 30px; display: flex; align-items: center; padding: 0 12px; border-radius: 999px; background: var(--surface-2); color: var(--primary); text-transform: uppercase; white-space: nowrap; }
+  .lo-meta { display: flex; align-items: center; gap: 6px; }
+  .lo-meta .dot { width: 9px; height: 9px; border-radius: 999px; background: var(--primary); }
+  .lo-meta .mu { color: var(--muted); }
+  .lo-heart { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 999px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; }
+  .lo-why { align-self: flex-start; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; background: var(--accent-soft); }
+  .lo-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .lo-between { display: flex; align-items: baseline; justify-content: space-between; }
+  .lo-steps { color: var(--primary); }
+  .lo-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -6px; padding-right: 8px; }
+  .lo-chip { display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 12px 0 8px; border-radius: 999px; border: 1px solid var(--card-line); background: var(--page); }
+  .lo-chip img { width: 18px; height: 18px; }
+  .lo-tag { padding: 1px 6px; border-radius: 999px; background: var(--surface-2); color: var(--primary); }
+  .lo-actions { display: flex; gap: 8px; }
+  .lo-btn { flex: 1; min-height: 54px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 16px; font-size: 16px; line-height: 20px; font-weight: 700; white-space: nowrap; }
+  .lo-btn.cook { background: var(--primary); color: #fff; }
+  .lo-btn.soft { background: var(--surface-2); }
+  .lo-alt { text-align: center; padding: 12px 0; margin-bottom: 20px; color: var(--muted); }
+  .lo-alt b { color: var(--primary); font-weight: 700; }
+
+  .lo-list-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .lo-list-head .sm { color: var(--muted); }
+  .lo-filters { display: flex; gap: 8px; padding-bottom: 8px; white-space: nowrap; }
+  .lo-filter { min-height: 36px; display: flex; align-items: center; padding: 0 12px; border-radius: 999px; background: var(--surface-2); flex-shrink: 0; }
+  .lo-filter.on { background: var(--primary); color: #fff; }
+  .lo-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--accent-soft); }
+  .lo-thumb { width: 64px; height: 64px; flex-shrink: 0; border-radius: 16px; overflow: hidden; background: var(--surface-2) url(/screens/dish-black-bean-bowl.jpg) center / cover no-repeat; }
+  .lo-item .lo-copy { gap: 0; }
+  .lo-item .mi { color: var(--primary); text-transform: uppercase; }
+  .lo-item .ti { margin-top: 2px; }
+  .lo-item .sm { color: var(--muted); margin-top: 3px; }
+
+  .lo-dock { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 12px 24px 26px; border-radius: 24px 24px 0 0; background: var(--surface); box-shadow: 0 -8px 24px rgba(170, 90, 50, 0.08); }
+  .lo-tab { flex: 1; min-height: 64px; display: flex; align-items: center; justify-content: center; color: var(--text); }
+  .lo-tab span { width: 64px; height: 64px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
+  .lo-tab.on { color: var(--primary); }
+  .lo-tab.on span { background: var(--surface-2); }
 
   /* ── Section scaffolding ───────────────── */
   section { position: relative; }
@@ -1490,7 +1566,78 @@
                 <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="currentColor" opacity="0.4"/><rect x="2" y="2" width="16" height="8" rx="1.6" fill="currentColor"/><rect x="23" y="3.5" width="1.6" height="5" rx="0.8" fill="currentColor" opacity="0.4"/></svg>
               </span>
             </div>
-            <img class="phone-shot" src="/screens/home.webp" width="921" height="2000" alt="The leftovr home: today's goal, a recipe from your kitchen and more ideas." data-i18n-aria="phone.alt" decoding="async">
+            <div class="lo">
+              <div class="lo-head">
+                <span class="lo-logo">leftov<span class="r">r</span><svg viewBox="10 6.5 15 8" aria-hidden="true"><path d="M12.5 13 c0 -2.4 2 -2.4 2 -4.8"/><path d="M21.5 13 c0 -2.4 2 -2.4 2 -4.8"/></svg></span>
+                <span class="lo-hh">
+                  <span class="lo-pill"><span class="lo-av sm b">L</span><span class="sm b" data-i18n="phone.household">Lena&#39;s home</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                  <span class="lo-add"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3.5 8V5.5a2 2 0 012-2H8M16 3.5h2.5a2 2 0 012 2V8M20.5 16v2.5a2 2 0 01-2 2H16M8 20.5H5.5a2 2 0 01-2-2V16M7 12h10" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </span>
+              </div>
+
+              <div class="lo-goal">
+                <span class="lo-tomato"><i></i><svg width="34" height="20" viewBox="0 0 34 20" fill="none"><path d="M17 14C12 4 4 6 1 9c5 0 9 2 12 6M17 14c5-10 13-8 16-5-5 0-9 2-12 6M17 14V2" stroke="#5E9A64" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="lo-ring"><svg width="52" height="52"><circle cx="26" cy="26" r="22.5" stroke="#F2B640" stroke-width="7" fill="none"/></svg><span class="ti">0/3</span></span>
+                <div class="lo-goal-text">
+                  <div class="h3" data-i18n="phone.goal">Milk goes off today</div>
+                  <div class="sm" data-i18n="phone.goalDetail">0 of 3 used · 4 more to use soon</div>
+                </div>
+                <span class="lo-streak"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.7 1.2 2.8 2.3 3.2C10.6 9.4 11 6 12 3Z" stroke="#D9503A" stroke-width="1.9" stroke-linejoin="round"/></svg><span class="ti">5</span></span>
+              </div>
+
+              <div class="lo-card lo-hero">
+                <div class="lo-hero-top">
+                  <div class="lo-art"><img src="/screens/dish-tortilla-pockets.jpg" alt="" width="176" height="176" decoding="async"></div>
+                  <div class="lo-copy">
+                    <span class="lo-eb mi" data-i18n="phone.eyebrow">From your kitchen</span>
+                    <div class="h3" data-i18n="phone.dish">Pan-fried apple tortilla pockets</div>
+                    <div class="lo-meta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4v5l3 2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sm">15 min</span><span class="sm mu">·</span><span class="dot"></span><span class="sm" data-i18n="phone.level">Medium</span></div>
+                  </div>
+                </div>
+                <span class="lo-heart"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" stroke="#D9503A" stroke-width="2" stroke-linejoin="round"/></svg></span>
+                <div class="lo-why"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" stroke="#8A5A0B" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="sm" data-i18n="phone.why">Uses tortillas &amp; lemon juice before they go off.</span></div>
+                <div class="sm lo-desc" data-i18n="phone.desc">Tortilla folded around cinnamon-style sugared apples, crisped in a pan and finished with a little lemon juice.</div>
+                <div class="lo-between"><span class="ti" data-i18n="phone.youHave">From your kitchen</span><span class="sm b lo-steps" data-i18n="phone.steps">7 steps</span></div>
+                <div class="lo-chips">
+                  <span class="lo-chip"><img src="/food/tortilla.png" alt=""><span class="sm b" data-i18n="phone.chip1">Tortillas</span><span class="lo-tag mi" data-i18n="phone.soon">Use soon</span></span>
+                  <span class="lo-chip"><img src="/food/lemon.png" alt=""><span class="sm b" data-i18n="phone.chip2">Lemon juice</span><span class="lo-tag mi" data-i18n="phone.soon">Use soon</span></span>
+                  <span class="lo-chip"><img src="/food/apple.png" alt=""><span class="sm b" data-i18n="phone.chip3">Apples</span></span>
+                  <span class="lo-chip"><img src="/food/sugar.png" alt=""><span class="sm b" data-i18n="phone.chip4">Sugar</span></span>
+                </div>
+                <div class="lo-actions">
+                  <span class="lo-btn cook"><span data-i18n="phone.cook">Cook this</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                  <span class="lo-btn soft"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z" stroke="#D9503A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="phone.more">More ideas</span></span>
+                </div>
+              </div>
+              <div class="sm lo-alt"><span data-i18n="phone.notFeeling">Not feeling it?</span> <b data-i18n="phone.seeIdeas">See today&#39;s ideas</b></div>
+
+              <div class="lo-pad">
+                <div class="lo-list-head"><span class="h3" data-i18n="phone.listTitle">More for you</span><span class="sm" data-i18n="phone.listCount">56 recipes</span></div>
+                <div class="lo-filters">
+                  <span class="lo-filter on sm" data-i18n="phone.f1">All</span>
+                  <span class="lo-filter sm" data-i18n="phone.f2">Uses what&#39;s going off</span>
+                  <span class="lo-filter sm" data-i18n="phone.f3">Under 20 min</span>
+                  <span class="lo-filter sm" data-i18n="phone.f4">Saved</span>
+                </div>
+                <div class="lo-card lo-item">
+                  <span class="lo-thumb"></span>
+                  <div class="lo-copy">
+                    <span class="mi" data-i18n="phone.idea">Today&#39;s idea</span>
+                    <span class="ti" data-i18n="phone.ideaTitle">Black bean rice bowl</span>
+                    <span class="sm" data-i18n="phone.ideaMeta">20 min · 4 of 5 in your kitchen</span>
+                  </div>
+                  <span class="lo-heart" style="position:static"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" stroke="#D9503A" stroke-width="2" stroke-linejoin="round"/></svg></span>
+                </div>
+              </div>
+
+              <div class="lo-dock" aria-hidden="true">
+                <span class="lo-tab on"><span><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M7 3v18M5 3v5a2 2 0 0 0 4 0V3M17 3c-1.6 1-2.6 3-2.6 6 0 2 1.1 3 2.6 3.2V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                <span class="lo-tab"><span><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M4 5.5h16v14H4zM4 11h16M12 11v8.5M9 8h6M8.5 14.5V16M15.5 14.5V16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+                <span class="lo-tab"><span><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M5 20v-7M12 20V8M19 20v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></span>
+                <span class="lo-tab"><span><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3.5 6.5l1.6 1.6L8 5.2M3.5 12.5l1.6 1.6L8 11.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5.6" cy="18.4" r="1.7" stroke="currentColor" stroke-width="1.7"/><path d="M11 6.5h9.5M11 12.5h9.5M11 18.5h9.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span></span>
+                <span class="lo-tab"><span><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M4 8h16M4 16h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="8" r="2.6" fill="#fff" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="16" r="2.6" fill="#fff" stroke="currentColor" stroke-width="1.8"/></svg></span></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2315,7 +2462,34 @@
       "meta.desc": "leftovr turns a photo of your fridge or pantry into recipes from food you already own. Receipts and barcodes fill your kitchen too. iPhone, free to start.",
       "nav.tag": "What's for dinner?",
       "nav.aria": "leftovr, what's for dinner",
-      "phone.alt": "The leftovr home: today's goal, a recipe from your kitchen and more ideas.",
+      "phone.household": "Lena's home",
+      "phone.goal": "Milk goes off today",
+      "phone.goalDetail": "0 of 3 used · 4 more to use soon",
+      "phone.eyebrow": "From your kitchen",
+      "phone.dish": "Pan-fried apple tortilla pockets",
+      "phone.level": "Medium",
+      "phone.why": "Uses tortillas & lemon juice before they go off.",
+      "phone.desc": "Tortilla folded around cinnamon-style sugared apples, crisped in a pan and finished with a little lemon juice.",
+      "phone.youHave": "From your kitchen",
+      "phone.steps": "7 steps",
+      "phone.chip1": "Tortillas",
+      "phone.chip2": "Lemon juice",
+      "phone.chip3": "Apples",
+      "phone.chip4": "Sugar",
+      "phone.soon": "Use soon",
+      "phone.cook": "Cook this",
+      "phone.more": "More ideas",
+      "phone.notFeeling": "Not feeling it?",
+      "phone.seeIdeas": "See today's ideas",
+      "phone.listTitle": "More for you",
+      "phone.listCount": "56 recipes",
+      "phone.f1": "All",
+      "phone.f2": "Uses what's going off",
+      "phone.f3": "Under 20 min",
+      "phone.f4": "Saved",
+      "phone.idea": "Today's idea",
+      "phone.ideaTitle": "Black bean rice bowl",
+      "phone.ideaMeta": "20 min · 4 of 5 in your kitchen",
       "nav.lang": "Language",
       "nav.cta": "Get early access",
       "hero.eyebrow": "iPhone · free to start",
@@ -2567,7 +2741,34 @@
       "meta.desc": "leftovr od slike frižidera ili ostave pravi recepte od hrane koju već imaš. Kuhinju ti pune i računi i bar-kodovi. Za iPhone, besplatno za početak.",
       "nav.tag": "Šta ima za večeru?",
       "nav.aria": "leftovr, šta ima za večeru",
-      "phone.alt": "Početni ekran aplikacije leftovr: današnji cilj, recept od onoga što imaš i još ideja.",
+      "phone.household": "Lena — dom",
+      "phone.goal": "Mleko ističe danas",
+      "phone.goalDetail": "Iskorišćeno 0 od 3 · još 4 uskoro ističe",
+      "phone.eyebrow": "Iz tvoje kuhinje",
+      "phone.dish": "Tortilje sa jabukama iz tiganja",
+      "phone.level": "Srednje",
+      "phone.why": "Troši tortilje i limunov sok pre nego što se pokvare.",
+      "phone.desc": "Tortilja preklopljena oko zašećerenih jabuka sa cimetom, zapečena u tiganju i prelivena s malo limunovog soka.",
+      "phone.youHave": "Iz tvoje kuhinje",
+      "phone.steps": "7 koraka",
+      "phone.chip1": "Tortilje",
+      "phone.chip2": "Limunov sok",
+      "phone.chip3": "Jabuke",
+      "phone.chip4": "Šećer",
+      "phone.soon": "Uskoro",
+      "phone.cook": "Kuvaj ovo",
+      "phone.more": "Još ideja",
+      "phone.notFeeling": "Nešto drugo?",
+      "phone.seeIdeas": "Vidi današnje ideje",
+      "phone.listTitle": "Još za tebe",
+      "phone.listCount": "56 recepata",
+      "phone.f1": "Sve",
+      "phone.f2": "Troši ono što se kvari",
+      "phone.f3": "Do 20 min",
+      "phone.f4": "Sačuvano",
+      "phone.idea": "Današnja ideja",
+      "phone.ideaTitle": "Pirinač sa crnim pasuljem",
+      "phone.ideaMeta": "20 min · 4 od 5 u kuhinji",
       "nav.lang": "Jezik",
       "nav.cta": "Rani pristup",
       "hero.eyebrow": "iPhone · besplatno za početak",
