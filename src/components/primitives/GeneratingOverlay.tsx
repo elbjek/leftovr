@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Animated, Easing, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
 import { useReducedMotion } from "../../hooks/useReducedMotion";
-import { colors, radii, spacing } from "../../theme";
+import { colors, radii, shadows, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations/FoodGlyph";
 import { Text } from "./Text";
 
@@ -98,18 +98,21 @@ type GeneratingOverlayProps = {
   listLabel: string;
   /** Ordered pipeline steps; each lights up then completes as work proceeds. */
   steps: string[];
+  /** The screen's own top (logo, household pill), so the overlay keeps it. */
+  header?: ReactNode;
 };
 
 type StepState = "pending" | "active" | "done";
 
 /**
- * Full-screen loading state for AI recipe generation, TinyMeals-style: an
- * eyebrow and title, the step checklist in one card, then placeholder cards
- * where the ideas will land. Steps advance pending → active → done on a
+ * Full-screen loading state for AI recipe generation, in the home's style:
+ * the screen's header, one white card with the eyebrow, title and step
+ * checklist, then an h3 section of placeholder recipe cards where the ideas
+ * will land. Steps advance pending → active → done on a
  * timer (perceived progress), holding the last step until the overlay
  * unmounts. Honors the system reduce-motion setting.
  */
-export function GeneratingOverlay({ eyebrow, title, listLabel, steps }: GeneratingOverlayProps) {
+export function GeneratingOverlay({ eyebrow, title, listLabel, steps, header }: GeneratingOverlayProps) {
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
   const [activeStep, setActiveStep] = useState(0);
@@ -140,30 +143,33 @@ export function GeneratingOverlay({ eyebrow, title, listLabel, steps }: Generati
       accessibilityLabel={`${title}. ${steps[activeStep] ?? ""}`}
       accessibilityLiveRegion="polite"
     >
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]} scrollEnabled={false}>
-        <Text variant="micro" uppercase muted style={styles.eyebrow}>
-          {eyebrow}
-        </Text>
-        <Text variant="h3" style={styles.title}>
-          {title}
-        </Text>
-        <View style={styles.steps}>
-          {steps.map((label, i) => (
-            <StepRow
-              key={i}
-              label={label}
-              index={i}
-              state={i < activeStep ? "done" : i === activeStep ? "active" : "pending"}
-              reduceMotion={reduceMotion}
-            />
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.lg }]} scrollEnabled={false}>
+        {header}
+        <View style={styles.body}>
+          <View style={styles.card}>
+            <View style={styles.cardHead}>
+              <Text variant="micro" uppercase color={colors.primary}>
+                {eyebrow}
+              </Text>
+              <Text variant="h3">{title}</Text>
+            </View>
+            {steps.map((label, i) => (
+              <StepRow
+                key={i}
+                label={label}
+                index={i}
+                state={i < activeStep ? "done" : i === activeStep ? "active" : "pending"}
+                reduceMotion={reduceMotion}
+              />
+            ))}
+          </View>
+          <Text variant="h3" style={styles.listLabel}>
+            {listLabel}
+          </Text>
+          {[0, 1, 2].map((i) => (
+            <SkeletonCard key={i} index={i} reduceMotion={reduceMotion} />
           ))}
         </View>
-        <Text variant="micro" uppercase muted style={[styles.eyebrow, styles.listLabel]}>
-          {listLabel}
-        </Text>
-        {[0, 1, 2].map((i) => (
-          <SkeletonCard key={i} index={i} reduceMotion={reduceMotion} />
-        ))}
       </ScrollView>
     </Animated.View>
   );
@@ -217,7 +223,7 @@ function StepRow({
   const ringOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.45, 0] });
 
   return (
-    <Animated.View style={[styles.stepRow, index === 0 && styles.stepFirst, !reduceMotion && enterStyle]}>
+    <Animated.View style={[styles.stepRow, !reduceMotion && enterStyle]}>
       <View style={styles.indicator}>
         {state === "done" ? (
           <View style={styles.dotDone}>
@@ -236,14 +242,15 @@ function StepRow({
           <View style={styles.dotPending} />
         )}
       </View>
-      <Text variant="body" weight={state === "pending" ? undefined : "semibold"} color={state === "pending" ? colors.muted : colors.text}>
+      <Text variant={state === "pending" ? "body" : "label"} color={state === "pending" ? colors.muted : colors.text}>
         {label}
       </Text>
     </Animated.View>
   );
 }
 
-// A grey stand-in for a recipe card, breathing while the ideas are written.
+// A stand-in for the home's recipe card (thumb, badge, title, meta), breathing
+// while the ideas are written.
 function SkeletonCard({ index, reduceMotion }: { index: number; reduceMotion: boolean }) {
   const [pulse] = useState(() => new Animated.Value(0));
   useEffect(() => {
@@ -262,12 +269,9 @@ function SkeletonCard({ index, reduceMotion }: { index: number; reduceMotion: bo
     <Animated.View style={[styles.skeleton, { opacity }]}>
       <View style={styles.skeletonTile} />
       <View style={styles.skeletonCopy}>
-        <View style={[styles.skeletonLine, { width: "70%" }]} />
-        <View style={[styles.skeletonLine, styles.skeletonShort]} />
-        <View style={styles.skeletonPills}>
-          <View style={styles.skeletonPill} />
-          <View style={[styles.skeletonPill, { width: 46 }]} />
-        </View>
+        <View style={[styles.skeletonLine, styles.skeletonBadge]} />
+        <View style={[styles.skeletonLine, styles.skeletonTitle]} />
+        <View style={[styles.skeletonLine, styles.skeletonMeta]} />
       </View>
     </Animated.View>
   );
@@ -288,15 +292,26 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: colors.appBackground,
+    backgroundColor: colors.bg,
     zIndex: 50,
   },
   content: {
-    paddingHorizontal: spacing.screenX,
     paddingBottom: spacing.xxl,
   },
-  eyebrow: {
-    letterSpacing: 0.66,
+  body: {
+    paddingHorizontal: spacing.screenX,
+  },
+  // The home's card surface: white, 24pt corners, the soft lift, no outline.
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.xxl,
+    padding: spacing.lg,
+    paddingBottom: spacing.sm,
+    ...shadows.soft,
+  },
+  cardHead: {
+    gap: spacing.xxs,
+    marginBottom: spacing.sm,
   },
   listLabel: {
     marginTop: spacing.xxl,
@@ -304,13 +319,13 @@ const styles = StyleSheet.create({
   },
   skeleton: {
     flexDirection: "row",
+    alignItems: "center",
     gap: spacing.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    backgroundColor: colors.paper,
+    borderRadius: radii.xxl,
+    backgroundColor: colors.surface,
+    ...shadows.soft,
   },
   skeletonTile: {
     width: 64,
@@ -320,26 +335,23 @@ const styles = StyleSheet.create({
   },
   skeletonCopy: {
     flex: 1,
-    justifyContent: "center",
-    gap: 8,
+    gap: spacing.sm,
   },
   skeletonLine: {
-    height: 12,
-    borderRadius: radii.xs,
+    height: 10,
+    borderRadius: radii.pill,
     backgroundColor: colors.surface2,
   },
-  skeletonShort: {
-    width: "45%",
+  skeletonBadge: {
+    width: "30%",
+    height: 8,
   },
-  skeletonPills: {
-    flexDirection: "row",
-    gap: 6,
+  skeletonTitle: {
+    width: "75%",
+    height: 14,
   },
-  skeletonPill: {
-    width: 58,
-    height: 20,
-    borderRadius: radii.xs,
-    backgroundColor: colors.sageSoft,
+  skeletonMeta: {
+    width: "50%",
   },
   hero: {
     alignItems: "center",
@@ -354,27 +366,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
     opacity: 0.55,
   },
-  title: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-  },
-  steps: {
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    borderColor: colors.cardLine,
-    backgroundColor: colors.paper,
-    paddingHorizontal: spacing.lg,
-  },
   stepRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    minHeight: 56,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.hairline,
-  },
-  stepFirst: {
-    borderTopWidth: 0,
+    minHeight: 48,
   },
   indicator: {
     width: 26,
@@ -382,27 +378,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // Round like the shopping list's tick: hollow, peach with a tomato core, tomato with a check.
   dotPending: {
-    width: 11,
-    height: 11,
+    width: 22,
+    height: 22,
     borderRadius: radii.pill,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: colors.hairlineStrong,
   },
   dotActiveRing: {
     width: 22,
     height: 22,
-    borderRadius: radii.md,
-    borderWidth: 2,
-    borderColor: colors.accent,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
   },
   dotActiveCore: {
     width: 10,
     height: 10,
-    borderRadius: radii.xs,
-    backgroundColor: colors.accent,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
   },
   pulseRing: {
     position: "absolute",
@@ -410,13 +406,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: radii.md,
-    backgroundColor: colors.accentSoft,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
   },
   dotDone: {
     width: 22,
     height: 22,
-    borderRadius: radii.md,
+    borderRadius: radii.pill,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",

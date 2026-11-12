@@ -385,6 +385,23 @@ export default function RecipesRoute() {
         onPress: () => openSavedRecipe(recipe),
       }));
 
+  // Logo left, household pill right; the generating overlay shows it too.
+  const topBar = (
+    <View style={styles.header}>
+      <View style={styles.brand}>
+        <Logo size={26} />
+      </View>
+      {activeHousehold ? (
+        <HouseholdPill
+          name={activeHousehold.name}
+          initial={firstName || activeHousehold.name}
+          label={t("settings.household.openSheet", { name: activeHousehold.name })}
+          onPress={() => setHouseholdOpen(true)}
+        />
+      ) : null}
+    </View>
+  );
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -418,19 +435,7 @@ export default function RecipesRoute() {
         }
       >
         {/* TinyMeals-style top: who, today's nudge, the week, tonight's dish. */}
-        <View style={styles.header}>
-          <View style={styles.brand}>
-            <Logo size={26} />
-          </View>
-          {activeHousehold ? (
-            <HouseholdPill
-              name={activeHousehold.name}
-              initial={firstName || activeHousehold.name}
-              label={t("settings.household.openSheet", { name: activeHousehold.name })}
-              onPress={() => setHouseholdOpen(true)}
-            />
-          ) : null}
-        </View>
+        {topBar}
 
         {scanDraft ? (
           <UnfinishedScanCard
@@ -746,6 +751,7 @@ export default function RecipesRoute() {
 
       {generating ? (
         <GeneratingOverlay
+          header={topBar}
           eyebrow={t("recipes.generatingOverlay.eyebrow")}
           title={t("recipes.generatingOverlay.title")}
           listLabel={t("recipes.generatingOverlay.listLabel")}
