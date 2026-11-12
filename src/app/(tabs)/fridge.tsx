@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
@@ -18,7 +18,7 @@ import {
   toUiUrgency,
 } from "@/services";
 import { CategoryTone, Urgency, categoryColors, colors, radii, shadows, spacing, typography, urgencyColors } from "@/theme";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { FoodGlyph, Logo } from "@/components/illustrations";
 
 const CATEGORY_ORDER = [
@@ -57,6 +57,20 @@ export default function FridgeRoute() {
   const refreshShopping = shopping.refresh;
   const { showToast } = useToast();
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
+  // ?item=<group key> (the home's day sheet) opens that food's sheet once
+  // loaded; the param is then cleared so the tab doesn't reopen it.
+  const { item: itemParam } = useLocalSearchParams<{ item?: string }>();
+  const [openedItem, setOpenedItem] = useState<string | undefined>();
+  if (itemParam !== openedItem) {
+    const group = itemParam ? groups.find((g) => g.key === itemParam) : undefined;
+    if (!itemParam || group) {
+      setOpenedItem(itemParam);
+      if (group) setActionGroup(group);
+    }
+  }
+  useEffect(() => {
+    if (itemParam && itemParam === openedItem) router.setParams({ item: undefined });
+  }, [itemParam, openedItem]);
   const [view, setView] = useState<KitchenView>(null);
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);

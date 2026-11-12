@@ -19,8 +19,8 @@ type Props = {
   /** Foods to use soon, soonest first (home, today, premium only). */
   soon?: { id: string; name: string; category: string; when: string; today: boolean }[];
   labels: { cooked: string; used: string; empty: string; soon?: string };
-  /** Opens Kitchen from a use-soon food. */
-  onOpenSoon?: () => void;
+  /** Opens that food's sheet in Kitchen (by group key). */
+  onOpenSoon?: (id: string) => void;
   /** Opens a cooked recipe; recipes that no longer exist aren't tappable. */
   onOpenRecipe?: (recipeId: string) => void;
 };
@@ -117,7 +117,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, soon, lab
                   accessibilityRole={onOpenSoon ? "button" : undefined}
                   accessibilityLabel={`${food.name}, ${food.when}`}
                   disabled={!onOpenSoon}
-                  onPress={onOpenSoon}
+                  onPress={() => onOpenSoon?.(food.id)}
                   style={({ pressed }) => [styles.soon, pressed && styles.pressed]}
                 >
                   <View style={[styles.soonTile, { backgroundColor: tone.background }]}>

@@ -207,7 +207,8 @@ export default function RecipesRoute() {
   // Soonest to go off first — the same foods Kitchen's Eat first shelf lists.
   const urgentRanked = inventoryGroups
     .filter((group) => group.urgency === "urgent")
-    .map((group) => ({ group, left: Math.min(...group.lots.map((lot) => daysLeft(lot))) }))
+    // Whole days: 0 = today, 1 = tomorrow (daysLeft is fractional).
+    .map((group) => ({ group, left: Math.floor(Math.min(...group.lots.map((lot) => daysLeft(lot)))) }))
     .sort((a, b) => a.left - b.left);
   const urgentGroups = urgentRanked.map(({ group }) => group);
   const rawName = profile?.display_name?.trim() ?? "";
@@ -670,9 +671,9 @@ export default function RecipesRoute() {
             : undefined
         }
         labels={{ cooked: t("recipes.week.dayCooked"), used: t("recipes.week.dayUsed"), empty: t("recipes.week.dayEmpty"), soon: t("recipes.week.daySoon") }}
-        onOpenSoon={() => {
+        onOpenSoon={(key) => {
           closeDay();
-          router.push("/(tabs)/fridge");
+          router.push({ pathname: "/(tabs)/fridge", params: { item: key } });
         }}
         onOpenRecipe={(recipeId) => {
           const recipe = savedRecipes.find((r) => r.id === recipeId);
