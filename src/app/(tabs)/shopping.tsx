@@ -92,6 +92,9 @@ export default function ShoppingRoute() {
     const listed = new Set(open.map((item) => item.food_key).filter(Boolean));
     return searchFoods(draft, i18n.language).filter((food) => !listed.has(food.id));
   }, [draft, i18n.language, open]);
+  // Anything typed can go on as it is ("quinoa" isn't in the catalog), so say so.
+  const typed = draft.trim();
+  const showTyped = typed.length > 0 && !foodHits.some((food) => food.name.toLowerCase() === typed.toLowerCase());
 
   async function run(action: () => Promise<void>) {
     try {
@@ -191,9 +194,22 @@ export default function ShoppingRoute() {
         </View>
       </View>
 
-      {foodHits.length > 0 ? (
+      {showTyped || foodHits.length > 0 ? (
         <View style={styles.gutter}>
           <View style={[styles.card, styles.hits]}>
+            {showTyped ? (
+              <ListRow
+                title={t("shopping.addName", { name: typed })}
+                leading={<FoodTile name={typed} />}
+                trailing={
+                  <View style={styles.go}>
+                    <PlusIcon color={colors.primary} size={16} />
+                  </View>
+                }
+                chevron={false}
+                onPress={() => submit()}
+              />
+            ) : null}
             {foodHits.map((food) => (
               <ListRow
                 key={food.id}
