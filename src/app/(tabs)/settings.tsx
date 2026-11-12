@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Alert, Linking, Platform, StyleSheet, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
-import { BackButton, BottomSheet, Button, Card, ChoiceCard, Divider, HouseholdSheet, ListRow, PremiumSheet, Screen, ScreenHeader, Tappable, Text, TextField } from "@/components";
+import { BottomSheet, Button, Card, ChoiceCard, Divider, HouseholdSheet, ListRow, PremiumSheet, Screen, ScreenHeader, Tappable, Text, TextField } from "@/components";
 import { useAuth, useMeasurementSystem } from "@/features";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { deleteAccount, exportAccountData, presentCodeRedemptionSheet, registerDevice } from "@/services";
@@ -254,11 +254,7 @@ export default function SettingsRoute() {
   return (
     <Screen scroll bottomInset={false} contentContainerStyle={styles.content}>
       <View style={styles.sections}>
-        {/* Not a tab any more: opened from the household pill's menu. */}
-        <View style={styles.head}>
-          <BackButton onPress={() => (router.canGoBack() ? router.back() : router.navigate("/(tabs)/recipes"))} />
-          <ScreenHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
-        </View>
+        <ScreenHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
         {/* Profile */}
         <Tappable
@@ -881,9 +877,6 @@ const styles = StyleSheet.create({
   },
   sections: {
     gap: spacing.xl,
-  },
-  head: {
-    gap: spacing.md,
   },
   cardInner: {
     gap: spacing.md,

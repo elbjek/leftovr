@@ -1481,6 +1481,7 @@ export default function ScanRoute() {
             initial={firstName || activeHousehold.name}
             label={t("settings.household.openSheet", { name: activeHousehold.name })}
             onPress={() => setHouseholdOpen(true)}
+            hideAdd
           />
         ) : null}
       </View>

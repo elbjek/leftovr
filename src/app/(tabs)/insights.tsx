@@ -197,55 +197,49 @@ export default function InsightsRoute() {
     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
   );
 
-  // Free accounts see the summary's shape under the Unlock card, never their
-  // own figures: every number is a placeholder.
+  // Free accounts get one screen, no scrolling: the header and the Unlock
+  // card centred in the space below it (2026-11-12: the blurred summary
+  // preview made the page long for nothing).
   if (!isPremium) {
     return (
-      <Screen scroll bottomInset={false} contentContainerStyle={styles.content} refreshControl={refreshControl}>
+      <Screen bottomInset={false} contentContainerStyle={styles.lockScreen}>
         {header()}
-        <View style={styles.preview} pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-          <PeriodSummary
-            rescued={{ label: t("insights.share.looks.rescued"), value: "••" }}
-            saved={{ label: t("insights.stats.saved"), value: "••••" }}
-            dinners={{ label: t("insights.share.looks.dinners"), value: "–" }}
-            tossed={{ label: t("insights.stats.tossed"), value: "–" }}
-            streak={{ label: t("insights.share.looks.streak"), value: "–" }}
-          />
-        </View>
-        <View style={styles.lock}>
-          <View style={styles.lockMark} pointerEvents="none" />
-          <View style={styles.lockSeal}>
-            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M4.5 10h15v10.5h-15zM8.2 10V7.6a3.8 3.8 0 017.6 0V10"
-                stroke={colors.primary}
-                strokeWidth={2.2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-          </View>
-          <Text variant="h3" color={colors.onPrimary}>
-            {t("insights.lock.title")}
-          </Text>
-          <Text variant="small" color={colors.onPrimary} style={styles.lockBody}>
-            {t("insights.lock.body")}
-          </Text>
-          <View style={styles.lockPoints}>
-            {["money", "waste", "share"].map((point) => (
-              <View key={point} style={styles.lockPoint}>
-                <View style={styles.lockTick}>
-                  <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-                    <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
-                  </Svg>
+        <View style={styles.lockCenter}>
+          <View style={styles.lock}>
+            <View style={styles.lockMark} pointerEvents="none" />
+            <View style={styles.lockSeal}>
+              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M4.5 10h15v10.5h-15zM8.2 10V7.6a3.8 3.8 0 017.6 0V10"
+                  stroke={colors.primary}
+                  strokeWidth={2.2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </View>
+            <Text variant="h3" color={colors.onPrimary}>
+              {t("insights.lock.title")}
+            </Text>
+            <Text variant="small" color={colors.onPrimary} style={styles.lockBody}>
+              {t("insights.lock.body")}
+            </Text>
+            <View style={styles.lockPoints}>
+              {["money", "waste", "share"].map((point) => (
+                <View key={point} style={styles.lockPoint}>
+                  <View style={styles.lockTick}>
+                    <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                      <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.primary} strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
+                    </Svg>
+                  </View>
+                  <Text variant="small" weight="bold" color={colors.onPrimary} style={styles.lockPointText}>
+                    {t(`insights.lock.points.${point}`)}
+                  </Text>
                 </View>
-                <Text variant="small" weight="bold" color={colors.onPrimary} style={styles.lockPointText}>
-                  {t(`insights.lock.points.${point}`)}
-                </Text>
-              </View>
-            ))}
+              ))}
+            </View>
+            <Button title={t("insights.lock.action")} variant="accent" onPress={() => setShowPremium(true)} />
           </View>
-          <Button title={t("insights.lock.action")} variant="accent" onPress={() => setShowPremium(true)} />
         </View>
         {sheets}
       </Screen>
@@ -588,8 +582,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   // Free accounts see a placeholder summary faded behind the Unlock card.
-  preview: {
-    opacity: 0.35,
+  lockScreen: {
+    paddingBottom: spacing.xl,
+  },
+  lockCenter: {
+    flex: 1,
+    justifyContent: "center",
   },
   // Solid tomato like the home's goal block, a darker disc clipping the
   // corner; the Unlock button is butter so it reads on tomato.

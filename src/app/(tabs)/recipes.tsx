@@ -460,12 +460,11 @@ export default function RecipesRoute() {
               </View>
             </View>
             {/* Out of free generations is the home's one real warning: solid
-                tomato with a white button, louder than the goal card. */}
+                tomato with the butter Unlock button, like Insights' lock. */}
             <Button
               title={t("recipes.upgrade")}
-              variant={canGenerate ? "primary" : "ghost"}
+              variant={canGenerate ? "primary" : "accent"}
               onPress={() => setShowPremium(true)}
-              style={!canGenerate && styles.limitWarningButton}
             />
           </View>
         ) : null}
@@ -847,9 +846,6 @@ const styles = StyleSheet.create({
   },
   limitWarning: {
     backgroundColor: colors.primary,
-  },
-  limitWarningButton: {
-    backgroundColor: colors.onPrimary,
   },
   limitMessage: {
     flexDirection: "row",

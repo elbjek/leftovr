@@ -3,7 +3,7 @@ import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, CartIcon, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdPill, HouseholdSheet, PlusIcon, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
+import { BottomSheet, Button, CartIcon, CheckItem, DateField, CheckTheseShelf, EatFirstShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdPill, HouseholdSheet, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
 import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useShoppingList } from "@/hooks";
@@ -238,13 +238,6 @@ export default function FridgeRoute() {
                 onPress={() => setHouseholdOpen(true)}
               />
             ) : null}
-            <Tappable
-              label={t("fridge.addItem")}
-              onPress={() => router.push("/(tabs)/scan")}
-              style={[styles.addButton]}
-            >
-              <PlusIcon />
-            </Tappable>
           </View>
         </View>
         {groups.length > 0 ? (
@@ -1304,7 +1297,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: spacing.lg,
     borderRadius: radii.lg,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
   },
   safetyNote: {
     paddingHorizontal: spacing.screenX,
@@ -1329,14 +1322,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     paddingVertical: spacing.md,
     ...typography.body,
-  },
-  addButton: {
-    width: 52,
-    height: 52,
-    borderRadius: radii.pill,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
   },
   savedRowPressed: {
     opacity: 0.85,

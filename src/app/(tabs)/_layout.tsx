@@ -1,13 +1,13 @@
 import { Redirect, Tabs, useLocalSearchParams } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import Svg, { Line, Path } from "react-native-svg";
+import Svg, { Circle, Line, Path } from "react-native-svg";
 
 import { useEffect } from "react";
 import * as QuickActions from "expo-quick-actions";
 import { RouterAction, useQuickActionRouting } from "expo-quick-actions/router";
 
-import { CartIcon, ScanIcon, Tappable, Text } from "@/components";
+import { CartIcon, Tappable, Text } from "@/components";
 import { useAuth } from "@/features";
 import { useShoppingList } from "@/hooks";
 import { colors, radii, spacing } from "@/theme";
@@ -67,10 +67,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="scan"
+        name="shopping"
         options={{
-          title: t("tabs.scan"),
-          tabBarIcon: ({ color }) => <ScanIcon color={String(color)} size={26} />,
+          title: t("tabs.shopping"),
+          tabBarIcon: ({ color }) => <CartIcon color={String(color)} size={24} />,
         }}
       />
       <Tabs.Screen
@@ -81,10 +81,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="shopping"
+        name="settings"
         options={{
-          title: t("tabs.shopping"),
-          tabBarIcon: ({ color }) => <CartIcon color={String(color)} size={24} />,
+          title: t("tabs.settings"),
+          tabBarIcon: ({ color }) => <SettingsIcon color={String(color)} />,
         }}
       />
       {/* Detail and the full recipe list live inside the tab group so the
@@ -93,13 +93,13 @@ export default function TabsLayout() {
           tab and redirects away from it as soon as it is focused. */}
       <Tabs.Screen name="recipe-detail" />
       <Tabs.Screen name="all-recipes" />
-      {/* Settings opens from the household pill's menu. */}
-      <Tabs.Screen name="settings" />
+      {/* Add opens from the "+" beside the household pill (2026-11-12). */}
+      <Tabs.Screen name="scan" />
     </Tabs>
   );
 }
 
-const NON_TAB_ROUTES = new Set(["recipe-detail", "all-recipes", "settings"]);
+const NON_TAB_ROUTES = new Set(["recipe-detail", "all-recipes", "scan"]);
 
 function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
   const { t } = useTranslation();
@@ -170,17 +170,17 @@ function LeftovrTabBar({ state, emitter, navigateToTab }: TabBarProps) {
 function getTabLabel(name: string, t: ReturnType<typeof useTranslation>["t"]) {
   if (name === "fridge") return t("tabs.fridge");
   if (name === "recipes") return t("tabs.recipes");
-  if (name === "scan") return t("tabs.scan");
   if (name === "insights") return t("tabs.insights");
-  return t("tabs.shopping");
+  if (name === "shopping") return t("tabs.shopping");
+  return t("tabs.settings");
 }
 
 function getTabIcon(name: string, color: string) {
-  if (name === "scan") return <ScanIcon color={color} size={26} />;
   if (name === "fridge") return <KitchenIcon color={color} />;
   if (name === "recipes") return <RecipesIcon color={color} />;
   if (name === "insights") return <InsightsIcon color={color} />;
-  return <CartIcon color={color} size={24} />;
+  if (name === "shopping") return <CartIcon color={color} size={24} />;
+  return <SettingsIcon color={color} />;
 }
 
 function KitchenIcon({ color }: { color: string }) {
@@ -212,6 +212,17 @@ function InsightsIcon({ color }: { color: string }) {
       <Line x1={5} y1={20} x2={5} y2={13} stroke={color} strokeWidth={2} strokeLinecap="round" />
       <Line x1={12} y1={20} x2={12} y2={8} stroke={color} strokeWidth={2} strokeLinecap="round" />
       <Line x1={19} y1={20} x2={19} y2={11} stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function SettingsIcon({ color }: { color: string }) {
+  return (
+    <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+      <Line x1={4} y1={8} x2={20} y2={8} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Circle cx={15} cy={8} r={2.6} fill={colors.onPrimary} stroke={color} strokeWidth={1.8} />
+      <Line x1={4} y1={16} x2={20} y2={16} stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Circle cx={9} cy={16} r={2.6} fill={colors.onPrimary} stroke={color} strokeWidth={1.8} />
     </Svg>
   );
 }
