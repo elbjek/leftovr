@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase";
+import { capitalize } from "@/lib/text";
 import type { FoodHistoryRow, KitchenRaw } from "@/services/kitchenInsights";
 import type { InventoryCategory } from "@/services/inventoryRules";
 
@@ -370,7 +371,8 @@ export async function getDayActivity(
 
   const usedList: DayActivity["used"] = [];
   for (const row of (used.data ?? []) as { normalized_name: string; category: string }[]) {
-    if (!usedList.some((u) => u.name === row.normalized_name)) usedList.push({ name: row.normalized_name, category: row.category });
+    const name = capitalize(row.normalized_name);
+    if (!usedList.some((u) => u.name === name)) usedList.push({ name, category: row.category });
   }
 
   // Same rule as the weekly totals: only the household's current currency counts.

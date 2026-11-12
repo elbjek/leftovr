@@ -1,5 +1,6 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import { foodMatchKey } from "@/lib/foodIcons";
+import { capitalize } from "@/lib/text";
 import { canonicalFoodName } from "@/services/inventoryRules";
 
 export type ShoppingListItem = {
@@ -35,7 +36,7 @@ export async function listShoppingItems(householdId: string): Promise<ShoppingLi
     .or(`checked_at.is.null,checked_at.gt.${since}`)
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as ShoppingListItem[];
+  return ((data ?? []) as ShoppingListItem[]).map((item) => ({ ...item, name: capitalize(item.name) }));
 }
 
 /** Adds to the household's list, or with `personal` to the user's own. */
@@ -43,7 +44,7 @@ export async function addShoppingItem(householdId: string, name: string, persona
   const supabase = getSupabaseClient();
   const { data: userResult, error: userError } = await supabase.auth.getUser();
   if (userError) throw userError;
-  const trimmed = name.trim().replace(/\s+/g, " ").slice(0, 80);
+  const trimmed = capitalize(name.trim().replace(/\s+/g, " ").slice(0, 80));
   const { error } = await supabase.from("shopping_list_items").insert({
     household_id: householdId,
     name: trimmed,

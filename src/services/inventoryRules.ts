@@ -1,5 +1,6 @@
 import { i18n } from "@/i18n";
 import { asCountedPack } from "@/lib/units";
+import { capitalize } from "@/lib/text";
 import { formatAmount, MeasurementSystem } from "./units";
 
 export const INVENTORY_CATEGORIES = [
@@ -382,7 +383,7 @@ export function groupInventoryLots(
 
     const group: InventoryGroup = {
       key,
-      name: lot.name,
+      name: capitalize(lot.name),
       normalizedName: lot.normalized_name,
       brandName: lot.brand_name,
       category: lot.category,
