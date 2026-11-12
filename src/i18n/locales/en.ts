@@ -631,7 +631,7 @@ export const en = {
       inKitchen_other: "{{count}} items in your kitchen",
       scanCta: "Scan groceries",
       notFeelingIt: "Not feeling it?",
-      haveAll: "you have everything",
+      haveAll: "You have everything",
       haveSome: "{{have}} of {{total}} in kitchen",
     },
     scanCta: "Scan",

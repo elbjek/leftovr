@@ -646,7 +646,7 @@ export const sr = {
       inKitchen_other: "{{count}} stavki u kuhinji",
       scanCta: "Skeniraj namirnice",
       notFeelingIt: "Nešto drugo?",
-      haveAll: "imaš sve",
+      haveAll: "Imaš sve",
       haveSome: "{{have}} od {{total}} u kuhinji",
     },
     scanCta: "Skeniraj",

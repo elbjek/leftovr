@@ -659,7 +659,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
     justifyContent: "center",
-    backgroundColor: colors.sageTint,
+    // Peach, like the home's "Use soon" tag: tomato on sage clashed.
+    backgroundColor: colors.surface2,
   },
   view: {
     minHeight: 52,
