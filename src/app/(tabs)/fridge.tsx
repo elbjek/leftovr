@@ -3,7 +3,7 @@ import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, ShoppingListIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, FoodListCard, GeneratingLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
+import { BottomSheet, Button, ShoppingListIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, FoodListCard, FoodLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
 import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useShoppingList } from "@/hooks";
@@ -53,6 +53,10 @@ export default function FridgeRoute() {
     removeGroups,
     refresh,
   } = useInventory(activeHousehold?.id);
+  // Only the first load shows the loader. Every tab focus refetches; those
+  // keep the kitchen on screen instead of flashing a loader into it.
+  const [loadedOnce, setLoadedOnce] = useState(false);
+  if (!loading && !loadedOnce) setLoadedOnce(true);
   const shopping = useShoppingList(activeHousehold?.id);
   const refreshShopping = shopping.refresh;
   const { showToast } = useToast();
@@ -291,7 +295,11 @@ export default function FridgeRoute() {
         </View>
       ) : null}
 
-      {showResults ? (
+      {!loadedOnce ? (
+        <View style={styles.centerState}>
+          <FoodLoader />
+        </View>
+      ) : showResults ? (
         <>
           <View style={styles.resultsHead}>
             <Tappable
@@ -397,16 +405,7 @@ export default function FridgeRoute() {
           ) : null}
 
 
-          {loading ? (
-            <View style={styles.centerState}>
-              <GeneratingLoader size={110} />
-              <Text variant="small" muted>
-                {t("common.loading")}
-              </Text>
-            </View>
-          ) : null}
-
-          {!loading && error ? (
+          {error ? (
             <View style={styles.centerState}>
               <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
                 {error}
@@ -414,7 +413,7 @@ export default function FridgeRoute() {
             </View>
           ) : null}
 
-          {!loading && !error && groups.length === 0 ? <EmptyFridge /> : null}
+          {!error && groups.length === 0 ? <EmptyFridge /> : null}
 
           {/* The kitchen itself, the screen's main block: one white tile per
               category, four across, each opening its list. */}
