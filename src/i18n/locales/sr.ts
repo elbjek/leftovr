@@ -597,6 +597,7 @@ export const sr = {
       streak_few: "{{count}} dana zaredom",
       streak_other: "{{count}} dana zaredom",
       goalStart: "Iskoristi 1 namirnicu i započni niz",
+      goalOne: "Iskoristi 1 namirnicu danas",
       goalKeep_one: "Iskoristi 1 namirnicu da sačuvaš niz od {{count}} dan",
       goalKeep_few: "Iskoristi 1 namirnicu da sačuvaš niz od {{count}} dana",
       goalKeep_other: "Iskoristi 1 namirnicu da sačuvaš niz od {{count}} dana",

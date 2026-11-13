@@ -5,7 +5,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { BottomSheet, Button, Card, ChoiceCard, Divider, HouseholdPill, HouseholdSheet, ListRow, Logo, PremiumSheet, Screen, ScreenHeader, Tappable, Text, TextField } from "@/components";
-import { useAuth, useMeasurementSystem } from "@/features";
+import { isPremium, useAuth, useMeasurementSystem } from "@/features";
 import { useHousehold, useInventory, useNotifications } from "@/hooks";
 import { deleteAccount, exportAccountData, presentCodeRedemptionSheet, registerDevice } from "@/services";
 import { isSupportedLanguage, supportedLanguages, SupportedLanguage } from "@/i18n";
@@ -392,13 +392,16 @@ export default function SettingsRoute() {
               onToggle={onToggleWith(toggleSmartSuggestions)}
             />
 
-            <ToggleRow
-              title={t("notifications.streakReminders")}
-              body={t("notifications.streakRemindersBody")}
-              value={notifPrefs?.streak_reminders_enabled ?? true}
-              disabled={!notifMaster}
-              onToggle={onToggleWith(toggleStreakReminders)}
-            />
+            {/* Streaks are premium (2026-11-13); the push is gated server-side too. */}
+            {isPremium(profile, activeHousehold) ? (
+              <ToggleRow
+                title={t("notifications.streakReminders")}
+                body={t("notifications.streakRemindersBody")}
+                value={notifPrefs?.streak_reminders_enabled ?? true}
+                disabled={!notifMaster}
+                onToggle={onToggleWith(toggleStreakReminders)}
+              />
+            ) : null}
 
             <ToggleRow
               title={t("notifications.shoppingReminders")}

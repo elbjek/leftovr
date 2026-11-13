@@ -547,7 +547,8 @@ export default function RecipeDetailRoute() {
     title,
     items: done.items.map((name) => ({ name })),
     more: (count) => t("insights.share.receipt.more", { count }),
-    totals: done.streak ? [{ label: t("insights.share.receipt.streak"), value: String(done.streak.streak) }] : [],
+    // Streaks are premium (2026-11-13): free receipts carry no streak line.
+    totals: done.streak && isPremium(profile, activeHousehold) ? [{ label: t("insights.share.receipt.streak"), value: String(done.streak.streak) }] : [],
     hero: rewardMoney
       ? { label: rewardMoney.label, value: formatMoney(rewardMoney.value, rewardMoney.currency) }
       : { label: t("insights.share.receipt.rescued"), value: String(done.items.length) },
@@ -907,7 +908,7 @@ export default function RecipeDetailRoute() {
               title={t("recipes.reward.title", { count: reward?.items.length ?? 0 })}
               items={reward?.items ?? []}
               goal={rewardGoal}
-              streak={reward?.streak ? { value: reward.streak.streak, label: t("recipes.reward.streak", { count: reward.streak.streak }) } : null}
+              streak={reward?.streak && isPremium(profile, activeHousehold) ? { value: reward.streak.streak, label: t("recipes.reward.streak", { count: reward.streak.streak }) } : null}
               money={rewardMoney}
               doneLabel={t("recipes.reward.done")}
               shareLabel={t("recipes.reward.share")}

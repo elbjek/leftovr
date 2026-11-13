@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
   results.topup = await runTopUp(supabase, now);
   results.reengagement = await runReengagement(supabase, now);
 
-  // --- Evening streak reminder (free, own opt-out) ---
+  // --- Evening streak reminder (premium, own opt-out) ---
   results.streak = await runStreak(supabase, now);
 
   // --- Shopping list reminder (free, household schedule, own opt-out) ---
@@ -213,12 +213,13 @@ async function runEatFirst(supabase: any, now: Date): Promise<number> {
 }
 
 // Evening "streak at risk" push: the 19:00 hour of the household's day, only
-// when nothing has been used up today and the streak is ≥2. Free for
-// everyone, its own opt-out, one per user per day, outside the suggestion cap.
+// when nothing has been used up today and the streak is ≥2. Premium-only
+// (streaks are, since 2026-11-13), its own opt-out, one per user per day,
+// outside the suggestion cap.
 async function runStreak(supabase: any, now: Date): Promise<number> {
   const { data: prefs } = await supabase
     .from("notification_preferences")
-    .select("user_id, push_token, profiles!inner(active_household_id, language)")
+    .select("user_id, push_token, profiles!inner(active_household_id, tier, language)")
     .eq("streak_reminders_enabled", true)
     .eq("notifications_enabled", true)
     .not("push_token", "is", null);
@@ -230,9 +231,11 @@ async function runStreak(supabase: any, now: Date): Promise<number> {
 
     const { data: hs } = await supabase
       .from("household_notification_settings")
-      .select("timezone")
+      .select("timezone, households(plan_tier)")
       .eq("household_id", householdId)
       .maybeSingle();
+    const householdPremium = (hs as any)?.households?.plan_tier === "household_premium";
+    if (!householdPremium && !isPremiumTier((p as any).profiles?.tier)) continue;
     const tz = hs?.timezone ?? "UTC";
     if (!isStreakReminderHour(now, tz)) continue;
 

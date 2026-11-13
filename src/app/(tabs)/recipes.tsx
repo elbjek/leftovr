@@ -93,7 +93,9 @@ export default function RecipesRoute() {
   const { openDay, showDay, closeDay } = useDaySheet(activeHousehold?.id, profile?.id);
 
   const { streak, today: usedToday, refresh: refreshStreak } = useStreak(activeHousehold?.id);
-  const { milestone, dismiss: dismissMilestone } = useStreakMilestone(activeHousehold?.id, streak);
+  // Streaks are premium (2026-11-13): free accounts see no streak anywhere,
+  // though it is still tracked, so upgrading shows the real count.
+  const { milestone, dismiss: dismissMilestone } = useStreakMilestone(activeHousehold?.id, isPremium ? streak : 0);
 
   // Free users can hide "Free generation used" for good (per account, this
   // device); upgrade is still offered when they try to generate. Null = not
@@ -285,9 +287,11 @@ export default function RecipesRoute() {
         ? t(usedToday > 0 ? "recipes.week.goalRescueMore" : "recipes.week.goalRescue", { count: goalTotal - usedToday })
         : usedToday > 0
           ? t("recipes.week.goalMore", { count: goalTotal - usedToday })
-          : streak > 0
-            ? t("recipes.week.goalKeep", { count: streak })
-            : t("recipes.week.goalStart");
+          : !isPremium
+            ? t("recipes.week.goalOne")
+            : streak > 0
+              ? t("recipes.week.goalKeep", { count: streak })
+              : t("recipes.week.goalStart");
   // Premium names the food that goes off first (the eat-first list is
   // premium on Kitchen too); free keeps the nudge above.
   const firstFood = isPremium && usedToday < goalTotal ? urgentRanked[0] : undefined;
@@ -309,8 +313,9 @@ export default function RecipesRoute() {
     : goalTitle;
   // The detail ties the goal to the streak: one item keeps it, whatever T is.
   // With nothing at risk the headline already says so.
-  const streakNote =
-    usedToday > 0
+  const streakNote = !isPremium
+    ? null
+    : usedToday > 0
       ? t("recipes.week.goalStreakKept")
       : urgentGroups.length > 0
         ? t(streak > 0 ? "recipes.week.goalStreakKeeps" : "recipes.week.goalStreakStarts")
@@ -546,7 +551,7 @@ export default function RecipesRoute() {
             goal={{ done: usedToday, total: goalTotal }}
             headline={goalHeadline}
             detail={goalDetail}
-            streak={{ count: streak, label: t("recipes.week.streak", { count: streak }) }}
+            streak={isPremium ? { count: streak, label: t("recipes.week.streak", { count: streak }) } : undefined}
             onPress={() => showDay(new Date())}
             soft={!isPremium}
           />

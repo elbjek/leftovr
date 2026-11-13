@@ -11,8 +11,8 @@ type Props = {
   headline: string;
   /** "2 of 3 used · 3 more to use soon". */
   detail: string;
-  /** Streak length (0 shows a grey flame), with a spoken label. */
-  streak: { count: number; label: string };
+  /** Streak length (0 shows a grey flame), with a spoken label. Premium only: omitted, no pill. */
+  streak?: { count: number; label: string };
   /** Opens what happened today. */
   onPress: () => void;
   /** Free plan: pale red, so only upgrade prompts are solid tomato. */
@@ -25,11 +25,11 @@ type Props = {
 // as a butter-yellow flame pill. Small on purpose: the recipe below is the
 // home's main thing.
 export function WeekStrip({ goal, headline, detail, streak, onPress, soft = false }: Props) {
-  const active = streak.count > 0;
+  const active = (streak?.count ?? 0) > 0;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${headline}. ${detail}. ${streak.label}`}
+      accessibilityLabel={[headline, detail, streak?.label].filter(Boolean).join(". ")}
       onPress={onPress}
       style={({ pressed }) => [styles.card, soft && styles.cardSoft, pressed && styles.pressed]}
     >
@@ -37,7 +37,7 @@ export function WeekStrip({ goal, headline, detail, streak, onPress, soft = fals
       <View style={[styles.ringTile, soft && styles.ringTileSoft]}>
         <GoalRing done={goal.done} total={goal.total} size={52} stroke={7} track={colors.accent} color={colors.text} />
       </View>
-      <View style={styles.text}>
+      <View style={[styles.text, !streak && styles.textClear]}>
         <Text variant="h3" color={soft ? colors.primary : colors.onPrimary} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
           {headline}
         </Text>
@@ -45,12 +45,14 @@ export function WeekStrip({ goal, headline, detail, streak, onPress, soft = fals
           {detail}
         </Text>
       </View>
-      <View style={styles.streak}>
-        <FlameIcon size={18} color={active ? colors.primary : colors.muted2} />
-        <Text variant="title" color={active ? colors.text : colors.muted} style={styles.num}>
-          {streak.count}
-        </Text>
-      </View>
+      {streak ? (
+        <View style={styles.streak}>
+          <FlameIcon size={18} color={active ? colors.primary : colors.muted2} />
+          <Text variant="title" color={active ? colors.text : colors.muted} style={styles.num}>
+            {streak.count}
+          </Text>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -155,6 +157,11 @@ const styles = StyleSheet.create({
   text: {
     flex: 1,
     minWidth: 0,
+  },
+  // No streak pill (free): the text stops where the pill would start, so
+  // it stays clear of the tomato's leaf (39–73pt from the right edge).
+  textClear: {
+    marginRight: spacing.huge * 2,
   },
   detail: {
     opacity: 0.85,
