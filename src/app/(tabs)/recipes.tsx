@@ -265,7 +265,7 @@ export default function RecipesRoute() {
     usedToday >= goalTotal
       ? t("recipes.week.goalDoneShort")
       : urgentGroups.length > 0
-        ? t("recipes.week.goalRescue", { count: goalTotal - usedToday })
+        ? t(usedToday > 0 ? "recipes.week.goalRescueMore" : "recipes.week.goalRescue", { count: goalTotal - usedToday })
         : usedToday > 0
           ? t("recipes.week.goalMore", { count: goalTotal - usedToday })
           : streak > 0
@@ -274,19 +274,33 @@ export default function RecipesRoute() {
   // Premium names the food that goes off first (the eat-first list is
   // premium on Kitchen too); free keeps the nudge above.
   const firstFood = isPremium && usedToday < goalTotal ? urgentRanked[0] : undefined;
-  // Capitalised: foods are stored lowercase and "{name} goes off today" leads with one.
+  // Only what's true: past its date (in the grace window) says check, not
+  // "goes off today" for three days running. Capitalised: foods are stored lowercase.
   const goalHeadline = firstFood
     ? capitalize(
         t(
-          firstFood.left <= 0 ? "recipes.week.goalFoodToday" : firstFood.left === 1 ? "recipes.week.goalFoodTomorrow" : "recipes.week.goalFoodFirst",
+          firstFood.left < 0
+            ? "recipes.week.goalFoodPast"
+            : firstFood.left === 0
+              ? "recipes.week.goalFoodToday"
+              : firstFood.left === 1
+                ? "recipes.week.goalFoodTomorrow"
+                : "recipes.week.goalFoodFirst",
           { name: firstFood.group.name },
         ),
       )
     : goalTitle;
-  const othersSoon = urgentRanked.length - (firstFood ? 1 : 0);
+  // The detail ties the goal to the streak: one item keeps it, whatever T is.
+  // With nothing at risk the headline already says so.
+  const streakNote =
+    usedToday > 0
+      ? t("recipes.week.goalStreakKept")
+      : urgentGroups.length > 0
+        ? t(streak > 0 ? "recipes.week.goalStreakKeeps" : "recipes.week.goalStreakStarts")
+        : null;
   const goalDetail = [
     t("recipes.week.goalProgress", { done: Math.min(usedToday, goalTotal), total: goalTotal }),
-    othersSoon > 0 ? t(firstFood ? "recipes.week.moreSoon" : "recipes.week.toUseSoon", { count: othersSoon }) : null,
+    streakNote,
   ]
     .filter(Boolean)
     .join(" · ");
