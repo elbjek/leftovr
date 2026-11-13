@@ -426,8 +426,9 @@ Deno.serve(async (req) => {
 
 // Free users' one lifetime generation is stamped here, server-side, only once
 // a generation succeeds — not by the client saving a session (it could skip
-// that). The conditional update is atomic: when parallel requests both pass the
-// gate, only the first to finish claims it; the rest get 402 and no recipes.
+// that). Parallel free requests can't both get this far: the
+// recipe_generation_attempts_free_gate trigger allows one in flight per free
+// account. The conditional update stays atomic as a backstop.
 // Premium always passes. (The recipe_sessions trigger still stamps too; it is a
 // no-op once this has run.)
 async function claimFreeGeneration(
@@ -601,10 +602,14 @@ async function acquireGenerationAttempt(input: GenerateRecipesRequest, authHeade
       })
       .eq("id", existing.id)
       .eq("status", existing.status);
-    const { data: claimed } = await (existing.attempt_count == null
+    const { data: claimed, error: claimError } = await (existing.attempt_count == null
       ? claim.is("attempt_count", null)
       : claim.eq("attempt_count", existing.attempt_count)
     ).select("id");
+    // The database's free-generation gate (free_generation_one_in_flight migration).
+    if (claimError?.message === "usage_cap_reached") {
+      return { response: Response.json({ error: "recipe_generation_rate_limited" }, { status: 429 }) };
+    }
     if (!claimed?.length) {
       return { response: Response.json({ source: "processing" }, { status: 202 }) };
     }
