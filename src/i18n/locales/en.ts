@@ -691,6 +691,7 @@ export const en = {
     freeGenerationLeft: "1 free recipe generation available",
     freeGenerationUsed: "Free generation used",
     freeGenerationUsedBody: "Premium unlocks unlimited recipe generation.",
+    freeGenerationHide: "Hide",
     monthlyLimit: "You've reached this month's recipe limit. It resets at the start of next month.",
     rateLimited: "Daily recipe limit reached. It resets tomorrow.",
     generationFailed: "Couldn't make recipes right now. Your free recipe is still yours — try again in a bit.",

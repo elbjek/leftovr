@@ -3,9 +3,10 @@ import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { router, useFocusEffect, useNavigation } from "expo-router";
 import type { BottomTabNavigationProp } from "expo-router/js-tabs";
 import { useTranslation } from "react-i18next";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, HouseholdSheet, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { foodIconKey, formatMoney } from "@/lib";
@@ -93,6 +94,22 @@ export default function RecipesRoute() {
 
   const { streak, today: usedToday, refresh: refreshStreak } = useStreak(activeHousehold?.id);
   const { milestone, dismiss: dismissMilestone } = useStreakMilestone(activeHousehold?.id, streak);
+
+  // Free users can hide "Free generation used" for good (per account, this
+  // device); upgrade is still offered when they try to generate. Null = not
+  // read yet, kept hidden so it doesn't flash.
+  const usedHiddenKey = `free-gen-used-hidden:${profile?.id}`;
+  const [usedHidden, setUsedHidden] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!profile?.id) return;
+    AsyncStorage.getItem(usedHiddenKey)
+      .then((value) => setUsedHidden(value === "1"))
+      .catch(() => setUsedHidden(false));
+  }, [profile?.id, usedHiddenKey]);
+  const hideUsedBanner = () => {
+    setUsedHidden(true);
+    AsyncStorage.setItem(usedHiddenKey, "1").catch(() => {});
+  };
 
   // Tapping Recipes in the dock always lands on the home, out of the ideas view.
   const navigation = useNavigation<BottomTabNavigationProp<Record<string, undefined>>>();
@@ -488,7 +505,7 @@ export default function RecipesRoute() {
           />
         ) : null}
 
-        {!isPremium ? (
+        {!isPremium && (canGenerate || usedHidden === false) ? (
           <View style={[styles.limitBanner, !canGenerate && styles.limitWarning]}>
             <View style={styles.limitMessage}>
               {!canGenerate ? (
@@ -505,6 +522,13 @@ export default function RecipesRoute() {
                   {t(canGenerate ? "recipes.freePlan" : "recipes.freeGenerationUsedBody")}
                 </Text>
               </View>
+              {!canGenerate ? (
+                <IconButton label={t("recipes.freeGenerationHide")} transparent size={32} onPress={hideUsedBanner} style={styles.limitClose}>
+                  <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+                    <Path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke={colors.onPrimary} strokeWidth={1.8} strokeLinecap="round" />
+                  </Svg>
+                </IconButton>
+              ) : null}
             </View>
             {/* Out of free generations is the home's one real warning: solid
                 tomato with a pale butter button (buttons on red use accentSoft). */}
@@ -910,6 +934,11 @@ const styles = StyleSheet.create({
   },
   limitSub: {
     marginTop: spacing.xxs,
+  },
+  // Pulls the X into the banner's corner padding, level with the title.
+  limitClose: {
+    marginTop: -spacing.xs,
+    marginRight: -spacing.sm,
   },
   sectionBlock: {
     paddingHorizontal: spacing.screenX,

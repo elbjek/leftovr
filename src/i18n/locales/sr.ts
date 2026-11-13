@@ -708,6 +708,7 @@ export const sr = {
     freeGenerationLeft: "1 besplatno generisanje recepata dostupno",
     freeGenerationUsed: "Besplatno generisanje iskorišćeno",
     freeGenerationUsedBody: "Premium otključava neograničeno generisanje recepata.",
+    freeGenerationHide: "Sakrij",
     monthlyLimit: "Dostigli ste mesečni limit recepata. Obnavlja se početkom sledećeg meseca.",
     rateLimited: "Dostignut je dnevni limit recepata. Obnavlja se sutra.",
     generationFailed: "Trenutno ne možemo da napravimo recepte. Vaš besplatni recept je sačuvan — pokušajte ponovo malo kasnije.",
