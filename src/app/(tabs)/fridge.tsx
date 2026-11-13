@@ -230,6 +230,15 @@ export default function FridgeRoute() {
     }
   }, [refresh, refreshInsights]);
 
+  // Same as the home's first load: the loader alone, centred on the page.
+  if (!loadedOnce) {
+    return (
+      <View style={styles.center}>
+        <FoodLoader />
+      </View>
+    );
+  }
+
   return (
     <Screen
       scroll
@@ -295,11 +304,7 @@ export default function FridgeRoute() {
         </View>
       ) : null}
 
-      {!loadedOnce ? (
-        <View style={styles.centerState}>
-          <FoodLoader />
-        </View>
-      ) : showResults ? (
+      {showResults ? (
         <>
           <View style={styles.resultsHead}>
             <Tappable
@@ -1476,6 +1481,12 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     backgroundColor: colors.surface2,
     justifyContent: "center",
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.bg,
   },
   centerState: {
     paddingHorizontal: spacing.screenX,
