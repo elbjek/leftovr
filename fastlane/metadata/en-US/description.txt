@@ -17,16 +17,20 @@ Ask for ideas and you get recipes built from your actual ingredients, leaning on
 COOK AND IT UPDATES ITSELF
 Mark a meal cooked and the ingredients come out of your kitchen automatically. No second pass, no manual subtraction.
 
-SHARE A KITCHEN
+SHARE A KITCHEN (HOUSEHOLD PREMIUM)
 Invite the people you live with. One inventory, one list of what to eat first, everyone in sync. Up to three people per household.
 
-SEE WHAT IT SAVED
+SEE WHAT IT SAVED (PREMIUM)
 Insights adds up what you used in time, what you cooked, and what you kept out of the bin.
 
 IN YOUR POCKET, NOT IN YOUR WAY
 Gentle reminders when something needs eating, not alarms. Warm, plain language. No calorie counting, no guilt, no lectures about waste.
 
 English and Serbian throughout.
+
+FREE AND PREMIUM
+Free: add food by hand or by barcode, keep your kitchen and shopping list, mark meals cooked, and try one receipt or shelf scan and one batch of recipe ideas.
+leftovr Premium adds unlimited scans and recipe ideas, the Eat-first shelf, a daily dinner suggestion and Insights. Household Premium adds sharing with up to three people. Both come as monthly or yearly auto-renewing subscriptions, with prices shown in the app before you buy. Payment is charged to your Apple Account; the subscription renews automatically unless cancelled at least 24 hours before the end of the period. Manage or cancel anytime in your App Store account settings.
 
 A NOTE ON PHOTOS AND AI
 Receipt and shelf photos are sent to Anthropic to be read, then deleted immediately — they are never stored and never used to train anything. Recipes are written from the names of what is in your kitchen. leftovr asks you once, before the first photo, and the privacy notice spells all of it out.
