@@ -15,6 +15,7 @@
       "distribution": "internal"
     },
     "production": {
+      "node": "26.5.0",
       "autoIncrement": true,
       "environment": "production"
     }
