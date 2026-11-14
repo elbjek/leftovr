@@ -14,7 +14,7 @@ import {
   OnboardingPersonalization,
   updateProfileField,
 } from "@/repositories";
-import { colors, radii, spacing } from "@/theme";
+import { colors, radii, shadows, spacing } from "@/theme";
 
 type StepKey = "name" | "people" | "shopping" | "currency" | "invite";
 type Choice = {
@@ -48,7 +48,7 @@ const SEAT_FOODS = ["tomato", "avocado", "carrot", "eggs"];
 const CURRENCY_CHOICES: Choice[] = [
   { label: "USD", subtitle: "$ · US dollar", value: "USD" },
   { label: "EUR", subtitle: "€ · Euro", value: "EUR" },
-  { label: "RSD", subtitle: "дин · Serbian dinar", value: "RSD" },
+  { label: "RSD", subtitle: "din · Serbian dinar", value: "RSD" },
   { label: "GBP", subtitle: "£ · British pound", value: "GBP" },
 ];
 
@@ -457,17 +457,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: spacing.md,
   },
-  // Same card and selected state as the paywall's plan cards.
+  // The app's card: lifted by the soft shadow, no outline. Selected tints it.
   optionCard: {
     padding: spacing.lg,
-    backgroundColor: colors.white,
-    borderWidth: 2,
-    borderColor: colors.cardLine,
+    backgroundColor: colors.surface,
     borderRadius: radii.lg,
+    ...shadows.soft,
   },
   optionCardSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary50,
+    backgroundColor: colors.primary100,
   },
   gridCard: {
     // Two per row: just under half, flexGrow takes up the gap.
@@ -527,7 +525,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     borderWidth: 2,
-    borderColor: colors.white,
+    borderColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
   },
