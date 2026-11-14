@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
 import { useTranslation } from "react-i18next";
 import { getLocales } from "expo-localization";
 
@@ -15,7 +14,7 @@ import {
   OnboardingPersonalization,
   updateProfileField,
 } from "@/repositories";
-import { colors, radii, shadows, spacing } from "@/theme";
+import { colors, radii, spacing } from "@/theme";
 
 type StepKey = "name" | "people" | "shopping" | "currency" | "invite";
 type Choice = {
@@ -28,14 +27,10 @@ const steps: StepKey[] = ["name", "people", "shopping", "currency", "invite"];
 const requiredStepCount = 4;
 // Also picks the recommended way to add food (`recommendedAddMethod`).
 const SHOPPING_STYLES = ["weekly", "few", "asneed"] as const;
-// Four tiles; each saves its `servings` (Settings still edits 1–6 exactly).
-// `max` buckets a saved value back onto its tile: 3 lights "3–4", 5 lights "5+".
-const PEOPLE_OPTIONS = [
-  { key: "one", servings: 1, max: 1, seats: ["tomato"] },
-  { key: "two", servings: 2, max: 2, seats: ["tomato", "avocado"] },
-  { key: "family", servings: 4, max: 4, seats: ["tomato", "avocado", "carrot", "eggs"] },
-  { key: "big", servings: 6, max: Infinity, seats: ["tomato", "avocado", "carrot", "eggs"] },
-] as const;
+// Matches the Settings servings picker; 6 stands for "6 or more".
+const PEOPLE_OPTIONS = [1, 2, 3, 4, 5, 6];
+// One food "seat" per person on each card; "6 or more" shows four and a "+".
+const SEAT_FOODS = ["tomato", "avocado", "carrot", "eggs", "broccoli"];
 
 const CURRENCY_CHOICES: Choice[] = [
   { label: "USD", subtitle: "$ · US dollar", value: "USD" },
@@ -230,45 +225,40 @@ export default function OnboardingRoute() {
 
         {step === "people" ? (
           <View style={styles.peopleGrid}>
-            {PEOPLE_OPTIONS.map((option) => {
-              const selected = option === PEOPLE_OPTIONS.find((o) => people <= o.max);
-              const title = t(`onboarding.personalization.people.tiles.${option.key}`);
-              const servings = t("onboarding.personalization.people.servings", { count: option.servings });
+            {PEOPLE_OPTIONS.map((count) => {
+              const isMax = count === PEOPLE_OPTIONS[PEOPLE_OPTIONS.length - 1];
+              const label =
+                count === 1
+                  ? t("onboarding.personalization.people.justMe")
+                  : isMax
+                    ? t("onboarding.personalization.people.orMore", { count })
+                    : t("onboarding.personalization.people.count", { count });
+              const selected = people === count;
               return (
                 <Tappable
-                  key={option.key}
-                  onPress={() => setPeople(option.servings)}
+                  key={count}
+                  onPress={() => setPeople(count)}
                   feedback="scale"
+                  role="radio"
                   selected={selected}
-                  label={`${title}. ${servings}`}
+                  label={label}
                   hitSlop={0}
-                  style={[styles.peopleTile, selected && styles.peopleTileSelected]}
+                  style={[styles.peopleCard, selected && styles.peopleCardSelected]}
                 >
+                  <View style={[styles.radio, selected && styles.radioOn]} />
                   <View style={styles.seats}>
-                    {option.seats.map((name, i) => (
+                    {SEAT_FOODS.slice(0, isMax ? 4 : count).map((name, i) => (
                       <View key={name} style={[styles.seat, i > 0 && styles.seatOverlap]}>
-                        <FoodGlyph name={name} size={20} />
+                        <FoodGlyph name={name} size={16} />
                       </View>
                     ))}
-                    {option.key === "big" ? (
-                      <View style={[styles.seat, styles.seatOverlap, styles.seatMore]}>
+                    {isMax ? (
+                      <View style={[styles.seat, styles.seatOverlap]}>
                         <Text variant="small" weight="bold">+</Text>
                       </View>
                     ) : null}
                   </View>
-                  <View style={styles.peopleCopy}>
-                    <Text variant="h3">{title}</Text>
-                    <Text variant="small" muted>
-                      {servings}
-                    </Text>
-                  </View>
-                  {selected ? (
-                    <View style={styles.peopleCheck}>
-                      <Svg width={12} height={12} viewBox="0 0 24 24">
-                        <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.onPrimary} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                      </Svg>
-                    </View>
-                  ) : null}
+                  <Text variant="title">{label}</Text>
                 </Tappable>
               );
             })}
@@ -425,53 +415,52 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.md,
   },
-  peopleTile: {
-    // Two per row: half the row minus half the gap.
-    width: "48%",
+  // Same card and selected state as the paywall's plan cards.
+  peopleCard: {
+    // Two per row: just under half, flexGrow takes up the gap.
+    width: "46%",
     flexGrow: 1,
-    minHeight: 148,
-    justifyContent: "space-between",
+    gap: spacing.md,
     padding: spacing.lg,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
+    borderWidth: 2,
+    borderColor: colors.cardLine,
     borderRadius: radii.lg,
-    ...shadows.soft,
   },
-  peopleTileSelected: {
-    backgroundColor: colors.sageTint,
+  peopleCardSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary50,
+  },
+  radio: {
+    position: "absolute",
+    top: spacing.md,
+    right: spacing.md,
+    width: 18,
+    height: 18,
+    borderRadius: radii.pill,
+    borderWidth: 2,
+    borderColor: colors.muted2,
+  },
+  radioOn: {
+    borderWidth: 5,
+    borderColor: colors.primary,
   },
   seats: {
     flexDirection: "row",
   },
   seat: {
-    width: 36,
-    height: 36,
+    // 5 seats fit beside the radio on a 375pt-wide phone.
+    width: 28,
+    height: 28,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     borderWidth: 2,
-    borderColor: colors.surface,
+    borderColor: colors.white,
     alignItems: "center",
     justifyContent: "center",
   },
   seatOverlap: {
     marginLeft: -10,
-  },
-  seatMore: {
-    backgroundColor: colors.surface3,
-  },
-  peopleCopy: {
-    gap: spacing.xxs,
-    marginTop: spacing.lg,
-  },
-  peopleCheck: {
-    position: "absolute",
-    top: spacing.md,
-    right: spacing.md,
-    width: 22,
-    height: 22,
-    borderRadius: radii.pill,
-    backgroundColor: colors.sage,
-    alignItems: "center",
-    justifyContent: "center",
   },
   footer: {
     gap: spacing.sm,

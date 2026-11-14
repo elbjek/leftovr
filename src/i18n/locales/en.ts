@@ -229,14 +229,10 @@ export const en = {
         eyebrow: "Your table",
         title: "How many people do you cook for?",
         body: "Recipes are sized for this many. You can change it any time in Settings.",
-        tiles: {
-          one: "Just me",
-          two: "Two of us",
-          family: "A family",
-          big: "A big household",
-        },
-        servings_one: "{{count}} serving",
-        servings_other: "{{count}} servings",
+        justMe: "Just me",
+        count_one: "{{count}} person",
+        count_other: "{{count}} people",
+        orMore: "{{count}} or more",
       },
       shopping: {
         eyebrow: "Your shopping",
