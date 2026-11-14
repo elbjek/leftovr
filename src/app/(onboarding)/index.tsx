@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { getLocales } from "expo-localization";
 
-import { BackButton, Button, ChoiceCard, FoodGlyph, Screen, Tappable, Text, TextField } from "@/components";
+import { BackButton, Button, FoodGlyph, Screen, Tappable, Text, TextField } from "@/components";
 import { consumePendingInviteCode, useAuth } from "@/features";
 import {
   acceptHouseholdInvite,
@@ -27,6 +27,12 @@ const steps: StepKey[] = ["name", "people", "shopping", "currency", "invite"];
 const requiredStepCount = 4;
 // Also picks the recommended way to add food (`recommendedAddMethod`).
 const SHOPPING_STYLES = ["weekly", "few", "asneed"] as const;
+// The size of the haul, drawn as overlapping food "seats" like the people step.
+const SHOPPING_FOODS: Record<(typeof SHOPPING_STYLES)[number], string[]> = {
+  weekly: ["bread", "milk", "eggs"],
+  few: ["tomato", "bread"],
+  asneed: ["milk"],
+};
 // Household-size buckets; each saves its `servings` (Settings still edits
 // 1–6 exactly). `max` maps a saved value onto its card: 3 lights the family
 // card, 5 the big household, without changing the value until a tap.
@@ -245,7 +251,7 @@ export default function OnboardingRoute() {
                   selected={selected}
                   label={`${label}. ${range}`}
                   hitSlop={0}
-                  style={[styles.peopleCard, selected && styles.peopleCardSelected]}
+                  style={[styles.optionCard, styles.gridCard, selected && styles.optionCardSelected]}
                 >
                   <View style={[styles.radio, selected && styles.radioOn]} />
                   <View style={styles.seats}>
@@ -273,23 +279,73 @@ export default function OnboardingRoute() {
         ) : null}
 
         {step === "shopping" ? (
-          <ChoiceList
-            choices={SHOPPING_STYLES.map((value) => ({
-              value,
-              label: t(`settings.shoppingStyleChoices.${value}`),
-              subtitle: t(`onboarding.personalization.shopping.hint.${value}`),
-            }))}
-            selected={shoppingStyle}
-            onSelect={(choice) => setShoppingStyle(choice.value)}
-          />
+          <View style={styles.optionList}>
+            {SHOPPING_STYLES.map((value) => {
+              const label = t(`settings.shoppingStyleChoices.${value}`);
+              const hint = t(`onboarding.personalization.shopping.hint.${value}`);
+              const selected = shoppingStyle === value;
+              return (
+                <Tappable
+                  key={value}
+                  onPress={() => setShoppingStyle(value)}
+                  feedback="scale"
+                  role="radio"
+                  selected={selected}
+                  label={`${label}. ${hint}`}
+                  hitSlop={0}
+                  style={[styles.optionCard, styles.optionRow, selected && styles.optionCardSelected]}
+                >
+                  <View style={[styles.seats, styles.shoppingSeats]}>
+                    {SHOPPING_FOODS[value].map((name, i) => (
+                      <View key={name} style={[styles.seat, i > 0 && styles.seatOverlap]}>
+                        <FoodGlyph name={name} size={16} />
+                      </View>
+                    ))}
+                  </View>
+                  <View style={styles.optionRowCopy}>
+                    <Text variant="title">{label}</Text>
+                    <Text variant="small" muted>
+                      {hint}
+                    </Text>
+                  </View>
+                  <View style={[styles.radio, styles.radioInline, selected && styles.radioOn]} />
+                </Tappable>
+              );
+            })}
+          </View>
         ) : null}
 
         {step === "currency" ? (
-          <ChoiceList
-            choices={CURRENCY_CHOICES}
-            selected={currency}
-            onSelect={(choice) => setCurrency(choice.value)}
-          />
+          <View style={styles.peopleGrid}>
+            {CURRENCY_CHOICES.map((choice) => {
+              // "$ · US dollar": the symbol goes in the well, the name under the code.
+              const [symbol, name] = (choice.subtitle ?? "").split(" · ");
+              const selected = currency === choice.value;
+              return (
+                <Tappable
+                  key={choice.value}
+                  onPress={() => setCurrency(choice.value)}
+                  feedback="scale"
+                  role="radio"
+                  selected={selected}
+                  label={`${choice.label}. ${name}`}
+                  hitSlop={0}
+                  style={[styles.optionCard, styles.gridCard, selected && styles.optionCardSelected]}
+                >
+                  <View style={[styles.radio, selected && styles.radioOn]} />
+                  <View style={styles.symbolWell}>
+                    <Text variant="label">{symbol}</Text>
+                  </View>
+                  <View style={styles.peopleCopy}>
+                    <Text variant="title">{choice.label}</Text>
+                    <Text variant="small" muted>
+                      {name}
+                    </Text>
+                  </View>
+                </Tappable>
+              );
+            })}
+          </View>
         ) : null}
 
         {step === "invite" ? (
@@ -349,30 +405,6 @@ export default function OnboardingRoute() {
   );
 }
 
-function ChoiceList({
-  choices,
-  selected,
-  onSelect,
-}: {
-  choices: Choice[];
-  selected: string;
-  onSelect: (choice: Choice) => void;
-}) {
-  return (
-    <View style={styles.choices}>
-      {choices.map((choice) => (
-        <ChoiceCard
-          key={choice.value}
-          title={choice.label}
-          subtitle={choice.subtitle}
-          selected={selected === choice.value}
-          onPress={() => onSelect(choice)}
-        />
-      ))}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screenPad: {
     flexGrow: 1,
@@ -413,32 +445,59 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: colors.primary,
   },
-  choices: {
-    flexGrow: 1,
-    gap: spacing.md,
-  },
+  // flexGrow keeps Continue at the bottom of the screen, as on the other steps.
   peopleGrid: {
+    flexGrow: 1,
     flexDirection: "row",
     flexWrap: "wrap",
+    alignContent: "flex-start",
+    gap: spacing.md,
+  },
+  optionList: {
+    flexGrow: 1,
     gap: spacing.md,
   },
   // Same card and selected state as the paywall's plan cards.
-  peopleCard: {
-    // Two per row: just under half, flexGrow takes up the gap.
-    width: "46%",
-    flexGrow: 1,
-    minHeight: 132,
-    justifyContent: "space-between",
-    gap: spacing.md,
+  optionCard: {
     padding: spacing.lg,
     backgroundColor: colors.white,
     borderWidth: 2,
     borderColor: colors.cardLine,
     borderRadius: radii.lg,
   },
-  peopleCardSelected: {
+  optionCardSelected: {
     borderColor: colors.primary,
     backgroundColor: colors.primary50,
+  },
+  gridCard: {
+    // Two per row: just under half, flexGrow takes up the gap.
+    width: "46%",
+    flexGrow: 1,
+    minHeight: 132,
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  optionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  optionRowCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: spacing.xxs,
+  },
+  // Fits the widest stack (three seats), so the labels line up.
+  shoppingSeats: {
+    width: 64,
+  },
+  symbolWell: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    alignItems: "center",
+    justifyContent: "center",
   },
   radio: {
     position: "absolute",
@@ -449,6 +508,11 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
     borderWidth: 2,
     borderColor: colors.muted2,
+  },
+  radioInline: {
+    position: "relative",
+    top: 0,
+    right: 0,
   },
   radioOn: {
     borderWidth: 5,
