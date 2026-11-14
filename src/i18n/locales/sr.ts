@@ -229,11 +229,18 @@ export const sr = {
         eyebrow: "Tvoj sto",
         title: "Za koliko ljudi kuvaš?",
         body: "Recepti će biti za toliko porcija. Možeš to da promeniš u Podešavanjima.",
-        justMe: "Samo ja",
-        count_one: "{{count}} osoba",
-        count_few: "{{count}} osobe",
-        count_other: "{{count}} osoba",
-        orMore: "{{count}} ili više",
+        options: {
+          one: "Samo ja",
+          two: "Nas dvoje",
+          family: "Porodica",
+          big: "Veliko domaćinstvo",
+        },
+        ranges: {
+          one: "1 osoba",
+          two: "2 osobe",
+          family: "3–4 osobe",
+          big: "5 ili više",
+        },
       },
       shopping: {
         eyebrow: "Tvoja kupovina",

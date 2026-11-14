@@ -27,10 +27,17 @@ const steps: StepKey[] = ["name", "people", "shopping", "currency", "invite"];
 const requiredStepCount = 4;
 // Also picks the recommended way to add food (`recommendedAddMethod`).
 const SHOPPING_STYLES = ["weekly", "few", "asneed"] as const;
-// Matches the Settings servings picker; 6 stands for "6 or more".
-const PEOPLE_OPTIONS = [1, 2, 3, 4, 5, 6];
-// One food "seat" per person on each card; "6 or more" shows four and a "+".
-const SEAT_FOODS = ["tomato", "avocado", "carrot", "eggs", "broccoli"];
+// Household-size buckets; each saves its `servings` (Settings still edits
+// 1–6 exactly). `max` maps a saved value onto its card: 3 lights the family
+// card, 5 the big household, without changing the value until a tap.
+const PEOPLE_OPTIONS = [
+  { key: "one", servings: 1, max: 1, seats: 1 },
+  { key: "two", servings: 2, max: 2, seats: 2 },
+  { key: "family", servings: 4, max: 4, seats: 4 },
+  { key: "big", servings: 6, max: Infinity, seats: 4 },
+] as const;
+// One food "seat" per person; the big household adds a "+".
+const SEAT_FOODS = ["tomato", "avocado", "carrot", "eggs"];
 
 const CURRENCY_CHOICES: Choice[] = [
   { label: "USD", subtitle: "$ · US dollar", value: "USD" },
@@ -225,40 +232,40 @@ export default function OnboardingRoute() {
 
         {step === "people" ? (
           <View style={styles.peopleGrid}>
-            {PEOPLE_OPTIONS.map((count) => {
-              const isMax = count === PEOPLE_OPTIONS[PEOPLE_OPTIONS.length - 1];
-              const label =
-                count === 1
-                  ? t("onboarding.personalization.people.justMe")
-                  : isMax
-                    ? t("onboarding.personalization.people.orMore", { count })
-                    : t("onboarding.personalization.people.count", { count });
-              const selected = people === count;
+            {PEOPLE_OPTIONS.map((option) => {
+              const label = t(`onboarding.personalization.people.options.${option.key}`);
+              const range = t(`onboarding.personalization.people.ranges.${option.key}`);
+              const selected = option === PEOPLE_OPTIONS.find((o) => people <= o.max);
               return (
                 <Tappable
-                  key={count}
-                  onPress={() => setPeople(count)}
+                  key={option.key}
+                  onPress={() => setPeople(option.servings)}
                   feedback="scale"
                   role="radio"
                   selected={selected}
-                  label={label}
+                  label={`${label}. ${range}`}
                   hitSlop={0}
                   style={[styles.peopleCard, selected && styles.peopleCardSelected]}
                 >
                   <View style={[styles.radio, selected && styles.radioOn]} />
                   <View style={styles.seats}>
-                    {SEAT_FOODS.slice(0, isMax ? 4 : count).map((name, i) => (
+                    {SEAT_FOODS.slice(0, option.seats).map((name, i) => (
                       <View key={name} style={[styles.seat, i > 0 && styles.seatOverlap]}>
                         <FoodGlyph name={name} size={16} />
                       </View>
                     ))}
-                    {isMax ? (
+                    {option.key === "big" ? (
                       <View style={[styles.seat, styles.seatOverlap]}>
                         <Text variant="small" weight="bold">+</Text>
                       </View>
                     ) : null}
                   </View>
-                  <Text variant="title">{label}</Text>
+                  <View style={styles.peopleCopy}>
+                    <Text variant="title">{label}</Text>
+                    <Text variant="small" muted>
+                      {range}
+                    </Text>
+                  </View>
                 </Tappable>
               );
             })}
@@ -420,6 +427,8 @@ const styles = StyleSheet.create({
     // Two per row: just under half, flexGrow takes up the gap.
     width: "46%",
     flexGrow: 1,
+    minHeight: 132,
+    justifyContent: "space-between",
     gap: spacing.md,
     padding: spacing.lg,
     backgroundColor: colors.white,
@@ -449,7 +458,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   seat: {
-    // 5 seats fit beside the radio on a 375pt-wide phone.
     width: 28,
     height: 28,
     borderRadius: radii.pill,
@@ -461,6 +469,9 @@ const styles = StyleSheet.create({
   },
   seatOverlap: {
     marginLeft: -10,
+  },
+  peopleCopy: {
+    gap: spacing.xxs,
   },
   footer: {
     gap: spacing.sm,
