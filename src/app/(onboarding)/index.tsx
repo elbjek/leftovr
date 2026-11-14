@@ -1,10 +1,11 @@
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { useTranslation } from "react-i18next";
 import { getLocales } from "expo-localization";
 
-import { BackButton, Button, ChoiceCard, Screen, Text, TextField } from "@/components";
+import { BackButton, Button, ChoiceCard, FoodGlyph, Screen, Tappable, Text, TextField } from "@/components";
 import { consumePendingInviteCode, useAuth } from "@/features";
 import {
   acceptHouseholdInvite,
@@ -14,7 +15,7 @@ import {
   OnboardingPersonalization,
   updateProfileField,
 } from "@/repositories";
-import { colors, radii, spacing } from "@/theme";
+import { colors, radii, shadows, spacing } from "@/theme";
 
 type StepKey = "name" | "people" | "shopping" | "currency" | "invite";
 type Choice = {
@@ -27,8 +28,14 @@ const steps: StepKey[] = ["name", "people", "shopping", "currency", "invite"];
 const requiredStepCount = 4;
 // Also picks the recommended way to add food (`recommendedAddMethod`).
 const SHOPPING_STYLES = ["weekly", "few", "asneed"] as const;
-// Matches the Settings servings picker; 6 stands for "6 or more".
-const PEOPLE_OPTIONS = [1, 2, 3, 4, 5, 6];
+// Four tiles; each saves its `servings` (Settings still edits 1–6 exactly).
+// `max` buckets a saved value back onto its tile: 3 lights "3–4", 5 lights "5+".
+const PEOPLE_OPTIONS = [
+  { key: "one", servings: 1, max: 1, seats: ["tomato"] },
+  { key: "two", servings: 2, max: 2, seats: ["tomato", "avocado"] },
+  { key: "family", servings: 4, max: 4, seats: ["tomato", "avocado", "carrot", "eggs"] },
+  { key: "big", servings: 6, max: Infinity, seats: ["tomato", "avocado", "carrot", "eggs"] },
+] as const;
 
 const CURRENCY_CHOICES: Choice[] = [
   { label: "USD", subtitle: "$ · US dollar", value: "USD" },
@@ -222,19 +229,50 @@ export default function OnboardingRoute() {
         ) : null}
 
         {step === "people" ? (
-          <ChoiceList
-            choices={PEOPLE_OPTIONS.map((count) => ({
-              value: String(count),
-              label:
-                count === 1
-                  ? t("onboarding.personalization.people.justMe")
-                  : count === PEOPLE_OPTIONS[PEOPLE_OPTIONS.length - 1]
-                    ? t("onboarding.personalization.people.orMore", { count })
-                    : t("onboarding.personalization.people.count", { count }),
-            }))}
-            selected={String(people)}
-            onSelect={(choice) => setPeople(Number(choice.value))}
-          />
+          <View style={styles.peopleGrid}>
+            {PEOPLE_OPTIONS.map((option) => {
+              const selected = option === PEOPLE_OPTIONS.find((o) => people <= o.max);
+              const title = t(`onboarding.personalization.people.tiles.${option.key}`);
+              const servings = t("onboarding.personalization.people.servings", { count: option.servings });
+              return (
+                <Tappable
+                  key={option.key}
+                  onPress={() => setPeople(option.servings)}
+                  feedback="scale"
+                  selected={selected}
+                  label={`${title}. ${servings}`}
+                  hitSlop={0}
+                  style={[styles.peopleTile, selected && styles.peopleTileSelected]}
+                >
+                  <View style={styles.seats}>
+                    {option.seats.map((name, i) => (
+                      <View key={name} style={[styles.seat, i > 0 && styles.seatOverlap]}>
+                        <FoodGlyph name={name} size={20} />
+                      </View>
+                    ))}
+                    {option.key === "big" ? (
+                      <View style={[styles.seat, styles.seatOverlap, styles.seatMore]}>
+                        <Text variant="small" weight="bold">+</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <View style={styles.peopleCopy}>
+                    <Text variant="h3">{title}</Text>
+                    <Text variant="small" muted>
+                      {servings}
+                    </Text>
+                  </View>
+                  {selected ? (
+                    <View style={styles.peopleCheck}>
+                      <Svg width={12} height={12} viewBox="0 0 24 24">
+                        <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.onPrimary} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                      </Svg>
+                    </View>
+                  ) : null}
+                </Tappable>
+              );
+            })}
+          </View>
         ) : null}
 
         {step === "shopping" ? (
@@ -381,6 +419,59 @@ const styles = StyleSheet.create({
   choices: {
     flexGrow: 1,
     gap: spacing.md,
+  },
+  peopleGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.md,
+  },
+  peopleTile: {
+    // Two per row: half the row minus half the gap.
+    width: "48%",
+    flexGrow: 1,
+    minHeight: 148,
+    justifyContent: "space-between",
+    padding: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    ...shadows.soft,
+  },
+  peopleTileSelected: {
+    backgroundColor: colors.sageTint,
+  },
+  seats: {
+    flexDirection: "row",
+  },
+  seat: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    borderWidth: 2,
+    borderColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  seatOverlap: {
+    marginLeft: -10,
+  },
+  seatMore: {
+    backgroundColor: colors.surface3,
+  },
+  peopleCopy: {
+    gap: spacing.xxs,
+    marginTop: spacing.lg,
+  },
+  peopleCheck: {
+    position: "absolute",
+    top: spacing.md,
+    right: spacing.md,
+    width: 22,
+    height: 22,
+    borderRadius: radii.pill,
+    backgroundColor: colors.sage,
+    alignItems: "center",
+    justifyContent: "center",
   },
   footer: {
     gap: spacing.sm,
