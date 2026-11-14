@@ -12,14 +12,12 @@ type Props = {
   initial: string;
   label: string;
   onPress: () => void;
-  /** The Add screen hides its own way in. */
-  hideAdd?: boolean;
 };
 
 // The household switcher at the top right of the tab screens, with the round
 // tomato scan button (a viewfinder) that opens Add's choices as a sheet (2026-11-12: Add left the
 // dock for Settings).
-export function HouseholdPill({ name, initial, label, onPress, hideAdd }: Props) {
+export function HouseholdPill({ name, initial, label, onPress }: Props) {
   const { t } = useTranslation();
   const openAdd = useOpenAddSheet();
   return (
@@ -37,11 +35,9 @@ export function HouseholdPill({ name, initial, label, onPress, hideAdd }: Props)
           <Path d="M6 9l6 6 6-6" fill="none" stroke={colors.text} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
       </Tappable>
-      {hideAdd ? null : (
-        <Tappable label={t("fridge.addItem")} onPress={openAdd} style={styles.add}>
-          <ScanFrameIcon />
-        </Tappable>
-      )}
+      <Tappable label={t("fridge.addItem")} onPress={openAdd} style={styles.add}>
+        <ScanFrameIcon />
+      </Tappable>
     </View>
   );
 }

@@ -8,7 +8,7 @@ import { spacing } from "../../theme";
 import { BottomSheet, Text } from "../primitives";
 import { ScanMethod, ScanMethodCard } from "./ScanMethodCard";
 
-export const ADD_METHODS: ScanMethod[] = ["receipt", "pantry", "ereceipt", "barcode", "manual"];
+const ADD_METHODS: ScanMethod[] = ["receipt", "pantry", "ereceipt", "barcode", "manual"];
 
 // The way of adding food that fits how someone shops (onboarding / Settings
 // "Shopping style"); it gets the Recommended badge and goes first.
@@ -18,7 +18,7 @@ const RECOMMENDED_BY_SHOPPING_STYLE: Record<string, ScanMethod> = {
   asneed: "barcode",
 };
 
-export function recommendedAddMethod(shoppingStyle?: string | null): ScanMethod | undefined {
+function recommendedAddMethod(shoppingStyle?: string | null): ScanMethod | undefined {
   return shoppingStyle ? RECOMMENDED_BY_SHOPPING_STYLE[shoppingStyle] : undefined;
 }
 
@@ -46,7 +46,8 @@ export function AddSheet({ visible, onClose }: Props) {
 
   function pick(method: ScanMethod) {
     onClose();
-    router.navigate({ pathname: "/(tabs)/scan", params: { mode: method } });
+    // `at` makes every pick a new param, so the same method reopens too.
+    router.navigate({ pathname: "/(tabs)/scan", params: { mode: method, at: String(Date.now()) } });
   }
 
   return (

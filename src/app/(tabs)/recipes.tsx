@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { foodIconKey, formatMoney } from "@/lib";
@@ -33,6 +33,7 @@ function capitalize(name: string) {
 
 export default function RecipesRoute() {
   const { t } = useTranslation();
+  const openAddSheet = useOpenAddSheet();
   const [autoGenerate, setAutoGenerate] = useState(false);
   const { profile, activeHousehold, refresh } = useAuth();
   const { lots: inventory, groups: inventoryGroups, loading: inventoryLoading } = useInventory(activeHousehold?.id);
@@ -612,7 +613,7 @@ export default function RecipesRoute() {
               ctaLabel={fridgeEmpty ? t("recipes.home.scanCta") : t("recipes.generateCta")}
               ctaIcon={fridgeEmpty ? <ScanIcon color={colors.onPrimary} size={20} /> : undefined}
               loading={generating}
-              onPress={fridgeEmpty ? () => router.push("/(tabs)/scan") : openCookPrompt}
+              onPress={fridgeEmpty ? openAddSheet : openCookPrompt}
             />
           )}
         </View>

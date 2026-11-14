@@ -3,15 +3,15 @@ import * as DocumentPicker from "expo-document-picker";
 import { Image } from "expo-image";
 import * as FileSystem from "expo-file-system/legacy";
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useIsFocused, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Line, Path, Rect } from "react-native-svg";
 
-import { ADD_METHODS, BackButton, BottomSheet, Button, Card, DateField, HouseholdPill, HouseholdSheet, Logo, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodCard, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnfinishedScanCard, UnitPicker, recommendedAddMethod } from "@/components";
+import { BackButton, BottomSheet, Button, Card, DateField, PremiumSheet, ProcessingStep, ReceiptConfirmList, ReceiptReadingProgress, ReceiptToFridgeIllustration, ScanMethodIcon, Screen, ScreenHeader, Tappable, Text, TextField, UnitPicker, useOpenAddSheet, useToast } from "@/components";
 import { acceptAiDisclosure, hasAcceptedAiDisclosure, isPremium as resolvePremium, loadScanDraft, saveScanDraft, ScanDraft, useAuth, useScanDraft } from "@/features";
-import { useInventory, useNotifications } from "@/hooks";
+import { useNotifications } from "@/hooks";
 import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import {
   addInventoryItem,
@@ -80,14 +80,12 @@ const RECEIPT_ZOOM = 0.1;
 
 export default function ScanRoute() {
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ mode?: string }>();
+  const params = useLocalSearchParams<{ mode?: string; at?: string }>();
+  const openAddSheet = useOpenAddSheet();
+  const { showToast } = useToast();
+  const focused = useIsFocused();
   const { profile, activeHousehold, refresh } = useAuth();
   const { preferences: notifPrefs } = useNotifications(activeHousehold?.id);
-  const { lots: inventory } = useInventory(activeHousehold?.id);
-  const [householdOpen, setHouseholdOpen] = useState(false);
-  // Household pill initial: first name when usable (not blank, not an email).
-  const rawName = profile?.display_name?.trim() ?? "";
-  const firstName = rawName && !rawName.includes("@") ? rawName.split(/\s+/)[0] : "";
   // The post-scan notification prompt is a one-time ask. Skip it once the user
   // has answered (granted or denied), here or in a prior session.
   const [notifHandled, setNotifHandled] = useState(false);
@@ -106,24 +104,9 @@ export default function ScanRoute() {
   // OpenFoodFacts lookup) and manual entry are free for everyone.
   const canScanReceipt =
     resolvePremium(profile, activeHousehold) || !profile?.free_receipt_scan_used_at;
-  // Deep-linking with a mode param (from fridge) opens the action
-  // directly instead of bouncing through the choice screen. A gated receipt
-  // scan falls back to the choice screen (Premium sheet shown on mount).
-  const initialMode: ScanMode =
-    paramChoice === "manual"
-      ? "manual"
-      : paramChoice === "barcode"
-        ? "barcodeCamera"
-        : paramChoice === "receipt"
-          ? canScanReceipt
-            ? "camera"
-            : "choice"
-          : paramChoice === "pantry"
-            ? canScanReceipt
-              ? "pantryCamera"
-              : "choice"
-            : "choice";
-  const [mode, setMode] = useState<ScanMode>(initialMode);
+  // Starts idle; the param effect below opens the method the Add sheet picked
+  // (AI notice, Premium gate and camera permission included).
+  const [mode, setMode] = useState<ScanMode>("choice");
   const [choice, setChoice] = useState<ScanChoice>(initialChoice);
   const [duplicate, setDuplicate] = useState<ReceiptDuplicate | null>(null);
   const [result, setResult] = useState<ReceiptScanResult | null>(null);
@@ -144,11 +127,12 @@ export default function ScanRoute() {
   const [offSearching, setOffSearching] = useState(false);
   const [draftProduct, setDraftProduct] = useState<BarcodeProduct | null>(null);
   const [lastAddedName, setLastAddedName] = useState("");
-  // Open straight onto the Premium sheet if the initial deep-link is a gated scan.
-  const [scanPremiumVisible, setScanPremiumVisible] = useState(
-    (paramChoice === "receipt" || paramChoice === "pantry") && !canScanReceipt,
-  );
+  const [scanPremiumVisible, setScanPremiumVisible] = useState(false);
   const [barcodeLocked, setBarcodeLocked] = useState(false);
+  const premiumBoughtRef = useRef(false);
+  useEffect(() => {
+    if (scanPremiumVisible) premiumBoughtRef.current = false;
+  }, [scanPremiumVisible]);
   // Shown once per install, before the first flow that sends a photo or PDF to
   // the AI (guideline 5.1.2(i)).
   const [aiDisclosureVisible, setAiDisclosureVisible] = useState(false);
@@ -172,15 +156,16 @@ export default function ScanRoute() {
     }, 50);
   }, []);
   useEffect(() => () => clearTimeout(focusTimer.current), []);
-  // Seeded with the initial param so the auto-open effect below does not re-run
-  // for the deep-link already handled by initialMode (avoids a double permission prompt).
-  const consumedModeRef = useRef<string | null>(params.mode ?? null);
+  // The param last opened, keyed with the sheet's `at` stamp so picking the
+  // same method again reopens it.
+  const paramKey = `${params.mode}:${params.at}`;
+  const consumedModeRef = useRef<string | null>(null);
   const receiptCameraRef = useRef<CameraView>(null);
   // Scan row created by the normalize-receipt edge function; confirm completes it.
   const [pendingScanId, setPendingScanId] = useState<string | null>(null);
   // The review list outlives the app being closed: saved on every edit,
   // offered again here and on the home until confirmed or discarded.
-  const { draft: scanDraft, discard: discardScanDraft } = useScanDraft(activeHousehold?.id);
+  const { discard: discardScanDraft } = useScanDraft(activeHousehold?.id);
 
   const resumeScanDraft = useCallback((draft: ScanDraft) => {
     setChoice(draft.kind);
@@ -193,13 +178,25 @@ export default function ScanRoute() {
   }, []);
 
   // The home's "Review" lands here with mode=resume.
+  // The param flips only once the draft is in, so Add doesn't close meanwhile.
   useEffect(() => {
     if (params.mode !== "resume" || !activeHousehold?.id) return;
-    router.setParams({ mode: "choice" });
     void loadScanDraft(activeHousehold.id).then((draft) => {
       if (draft) resumeScanDraft(draft);
+      router.setParams({ mode: "choice" });
     });
   }, [activeHousehold?.id, params.mode, resumeScanDraft]);
+
+  // Add has no screen of its own between methods: with nothing running (a
+  // method cancelled or failed, or a link with no method) it goes back and
+  // opens the Add sheet there (2026-11-14).
+  useEffect(() => {
+    if (!focused || mode !== "choice" || aiDisclosureVisible || scanPremiumVisible) return;
+    if (getParamChoice(params.mode) || params.mode === "resume") return;
+    if (router.canGoBack()) router.back();
+    else router.replace("/(tabs)/recipes");
+    openAddSheet();
+  }, [aiDisclosureVisible, focused, mode, openAddSheet, params.mode, scanPremiumVisible]);
 
   const saveReviewDraft = useCallback(
     (items: ReceiptConfirmItem[]) => {
@@ -266,6 +263,16 @@ export default function ScanRoute() {
   }, [sheetItemName, manualCategory]);
   const expiryValue = manualExpiry ?? defaultExpiry;
 
+  // Ends the method: the effect above closes Add and reopens the sheet; an
+  // error rides along as a toast.
+  const backToAddSheet = useCallback((message?: string) => {
+    consumedModeRef.current = "choice";
+    router.setParams({ mode: "choice" });
+    setError(null);
+    setMode("choice");
+    if (message) showToast(message);
+  }, [showToast]);
+
   const importEReceipt = useCallback(async () => {
     const householdId = activeHousehold?.id;
     if (!householdId) return;
@@ -277,20 +284,18 @@ export default function ScanRoute() {
         copyToCacheDirectory: true,
       });
     } catch {
-      setMode("choice");
-      setError(t("auth.genericError"));
+      backToAddSheet(t("auth.genericError"));
       return;
     }
 
     const asset = picked.canceled ? null : picked.assets[0];
     if (!asset) {
-      setMode("choice");
+      backToAddSheet();
       return;
     }
 
     if (asset.size != null && asset.size > MAX_ERECEIPT_PDF_BYTES) {
-      setMode("choice");
-      setError(t("scan.ereceipt.tooLarge"));
+      backToAddSheet(t("scan.ereceipt.tooLarge"));
       return;
     }
 
@@ -333,19 +338,16 @@ export default function ScanRoute() {
       }
       const code = await readEdgeErrorCode(scanError);
       if (code === "receipt_scan_monthly_limit") {
-        setError(t("scan.monthlyLimit"));
-        setMode("choice");
+        backToAddSheet(t("scan.monthlyLimit"));
         return;
       }
       if (code === "receipt_scan_rate_limited") {
-        setError(t("scan.rateLimited"));
-        setMode("choice");
+        backToAddSheet(t("scan.rateLimited"));
         return;
       }
-      setError(errorMessage(scanError, t("auth.genericError"), t("common.offline")));
-      setMode("choice");
+      backToAddSheet(errorMessage(scanError, t("auth.genericError"), t("common.offline")));
     }
-  }, [activeHousehold?.id, t]);
+  }, [activeHousehold?.id, backToAddSheet, t]);
 
   const openSelectedChoice = useCallback(async (
     nextChoice = choice,
@@ -387,10 +389,7 @@ export default function ScanRoute() {
     if ((nextChoice === "receipt" || nextChoice === "pantry" || nextChoice === "barcode") && !permission?.granted) {
       const nextPermission = await requestPermission();
       if (!nextPermission.granted) {
-        consumedModeRef.current = "choice";
-        router.setParams({ mode: "choice" });
-        setMode("choice");
-        setError(t("scan.cameraDenied"));
+        backToAddSheet(t("scan.cameraDenied"));
         return;
       }
     }
@@ -402,7 +401,7 @@ export default function ScanRoute() {
     }
 
     setMode(nextChoice === "barcode" ? "barcodeCamera" : "camera");
-  }, [canScanReceipt, choice, importEReceipt, permission?.granted, requestPermission, t]);
+  }, [backToAddSheet, canScanReceipt, choice, importEReceipt, permission?.granted, requestPermission, t]);
 
   const acceptDisclosure = useCallback(async () => {
     await acceptAiDisclosure();
@@ -411,22 +410,19 @@ export default function ScanRoute() {
   }, [choice, openSelectedChoice]);
 
   useEffect(() => {
-    const paramMode = params.mode;
-    const nextChoice = getParamChoice(paramMode);
-    if (!paramMode || consumedModeRef.current === paramMode) return;
+    const nextChoice = getParamChoice(params.mode);
+    if (!params.mode || consumedModeRef.current === paramKey) return;
     if (!nextChoice) return;
 
-    consumedModeRef.current = paramMode;
+    consumedModeRef.current = paramKey;
     const timeout = setTimeout(() => {
       void openSelectedChoice(nextChoice);
     }, 0);
 
     return () => clearTimeout(timeout);
-  }, [openSelectedChoice, params.mode]);
+  }, [openSelectedChoice, paramKey, params.mode]);
 
   function returnToChoice() {
-    consumedModeRef.current = "choice";
-    router.setParams({ mode: "choice" });
     // Leaving a review (Cancel) drops its saved copy too.
     if (pendingScanId) discardScanDraft();
     setConfirmItems([]);
@@ -435,8 +431,7 @@ export default function ScanRoute() {
     setDuplicate(null);
     setPendingScanId(null);
     setPantryPhotos([]);
-    setError(null);
-    setMode("choice");
+    backToAddSheet();
   }
 
   async function completeFirstFillIfNeeded() {
@@ -1459,75 +1454,16 @@ export default function ScanRoute() {
     );
   }
 
-  const recommendedMethod = recommendedAddMethod(profile?.shopping_style);
-  const featuredMethod = recommendedMethod ?? ADD_METHODS[0];
-
+  // "choice": no method running. Add closes back to the sheet (effect above)
+  // unless the AI notice or the paywall is up, which sit here meanwhile.
   return (
     <Screen bottomInset={!dockShown} contentContainerStyle={styles.content}>
-      {/* Same top as the home: logo left, household pill right. */}
-      <View style={styles.headerRow}>
-        <Logo size={26} />
-        {activeHousehold ? (
-          <HouseholdPill
-            name={activeHousehold.name}
-            initial={firstName || activeHousehold.name}
-            label={t("settings.household.openSheet", { name: activeHousehold.name })}
-            onPress={() => setHouseholdOpen(true)}
-            hideAdd
-          />
-        ) : null}
-      </View>
-
-      <View style={styles.header}>
-        {!activeHousehold?.first_fill_completed_at ? (
-          <BackButton
-            onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/recipes"))}
-            style={styles.backButton}
-          />
-        ) : null}
-        <ScreenHeader title={t("scan.title")} subtitle={t("scan.body")} />
-      </View>
-
-      {scanDraft ? (
-        <UnfinishedScanCard
-          count={scanDraft.items.length}
-          onReview={() => resumeScanDraft(scanDraft)}
-          onDiscard={discardScanDraft}
-        />
-      ) : null}
-
-      {/* The recommended way (receipt by default) leads as a tomato banner;
-          the rest sit under it two to a row. */}
-      <View style={styles.choices}>
-        <ScanMethodCard
-          featured
-          method={featuredMethod}
-          body={t(`scan.${featuredMethod}.body`)}
-          recommended={featuredMethod === recommendedMethod}
-          soft={!resolvePremium(profile, activeHousehold)}
-          onPress={() => openSelectedChoice(featuredMethod)}
-        />
-        <View style={styles.choiceGrid}>
-          {ADD_METHODS.filter((method) => method !== featuredMethod).map((method) => (
-            <ScanMethodCard
-              key={method}
-              method={method}
-              body={t(`scan.${method}.body`)}
-              onPress={() => openSelectedChoice(method)}
-            />
-          ))}
-        </View>
-      </View>
-
-      {error ? (
-        <Text variant="small" color={colors.redInk} center accessibilityLiveRegion="polite">
-          {error}
-        </Text>
-      ) : null}
-
       <BottomSheet
         visible={aiDisclosureVisible}
-        onDismiss={() => setAiDisclosureVisible(false)}
+        onDismiss={() => {
+          setAiDisclosureVisible(false);
+          backToAddSheet();
+        }}
       >
         <View style={styles.disclosureCard}>
           <Text variant="h3">{t("scan.aiDisclosure.title")}</Text>
@@ -1541,7 +1477,10 @@ export default function ScanRoute() {
           <Button
             title={t("scan.aiDisclosure.decline")}
             variant="ghost"
-            onPress={() => setAiDisclosureVisible(false)}
+            onPress={() => {
+              setAiDisclosureVisible(false);
+              backToAddSheet();
+            }}
           />
         </View>
       </BottomSheet>
@@ -1549,16 +1488,15 @@ export default function ScanRoute() {
       <PremiumSheet
         visible={scanPremiumVisible}
         onPurchased={async () => {
+          premiumBoughtRef.current = true;
           await refresh();
           void openSelectedChoice(choice, { skipGate: true });
         }}
-        onDismiss={() => setScanPremiumVisible(false)}
-      />
-
-      <HouseholdSheet
-        visible={householdOpen}
-        onClose={() => setHouseholdOpen(false)}
-        itemCount={inventory.length}
+        onDismiss={() => {
+          setScanPremiumVisible(false);
+          // Bought: the method is opening. Not bought: back to the sheet.
+          if (!premiumBoughtRef.current) backToAddSheet();
+        }}
       />
     </Screen>
   );
@@ -1621,25 +1559,9 @@ const styles = StyleSheet.create({
   header: {
     gap: spacing.sm,
   },
-  // Same header row and pill as the home's (recipes.tsx).
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.md,
-  },
   backButton: {
     alignSelf: "flex-start",
     marginBottom: spacing.xs,
-  },
-  choices: {
-    flexGrow: 1,
-    gap: spacing.md,
-  },
-  choiceGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.md,
   },
   cameraWrap: {
     flex: 1,

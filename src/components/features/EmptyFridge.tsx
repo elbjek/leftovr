@@ -1,10 +1,10 @@
-import { router } from "expo-router";
 import { StyleSheet, View, ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { colors, radii, spacing } from "../../theme";
 import { ReceiptToFridgeIllustration } from "../illustrations";
 import { Button, ScanIcon, Text } from "../primitives";
+import { useOpenAddSheet } from "./AddSheet";
 
 type Props = {
   /** Copy overrides; default to the fridge empty-state strings. */
@@ -20,6 +20,7 @@ type Props = {
  */
 export function EmptyFridge({ title, body, ctaLabel, style }: Props) {
   const { t } = useTranslation();
+  const openAdd = useOpenAddSheet();
 
   return (
     <View style={[styles.wrap, style]}>
@@ -37,7 +38,7 @@ export function EmptyFridge({ title, body, ctaLabel, style }: Props) {
       <Button
         title={ctaLabel ?? t("fridge.emptyCta")}
         iconLeft={<ScanIcon color={colors.onPrimary} size={20} />}
-        onPress={() => router.push("/(tabs)/scan")}
+        onPress={openAdd}
         style={styles.cta}
       />
     </View>
