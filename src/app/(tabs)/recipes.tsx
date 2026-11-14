@@ -478,7 +478,6 @@ export default function RecipesRoute() {
           header={topBar}
           title={t("recipes.ideas.title", { count: ideas.length })}
           subtitle={t("recipes.ideas.subtitle")}
-          backLabel={t("recipes.ideas.back")}
           onBack={() => setIdeasOpen(false)}
           bestLabel={t("recipes.ideas.best")}
           viewLabel={t("recipes.ideas.view")}

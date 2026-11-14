@@ -3,7 +3,7 @@ import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BottomSheet, Button, ShoppingListIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, FoodListCard, FoodLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
+import { BackButton, BottomSheet, Button, ShoppingListIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, FoodListCard, FoodLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
 import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useShoppingList } from "@/hooks";
@@ -307,16 +307,7 @@ export default function FridgeRoute() {
       {showResults ? (
         <>
           <View style={styles.resultsHead}>
-            <Tappable
-              label={t("common.back")}
-              onPress={closeResults}
-              hitSlop={6}
-              style={[styles.backButton]}
-            >
-              <Svg width={8} height={14} viewBox="0 0 9 16" fill="none">
-                <Path d="M8 1 2 8l6 7" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Tappable>
+            <BackButton onPress={closeResults} />
             <View style={styles.resultsCopy}>
               <Text variant="h3" numberOfLines={1}>
                 {resultsTitle}
@@ -1388,15 +1379,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     paddingHorizontal: spacing.screenX,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.xl,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
-    alignItems: "center",
-    justifyContent: "center",
   },
   resultsCopy: {
     flex: 1,

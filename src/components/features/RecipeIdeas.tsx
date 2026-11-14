@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, fonts, radii, shadows, spacing } from "../../theme";
-import { Text } from "../primitives";
+import { BackButton, Text } from "../primitives";
 import { FoodGlyph } from "../illustrations";
 import { RecipeCover } from "./RecipeCover";
 
@@ -240,7 +240,6 @@ export function IdeasResults({
   header,
   title,
   subtitle,
-  backLabel,
   onBack,
   bestLabel,
   viewLabel,
@@ -255,7 +254,6 @@ export function IdeasResults({
   header?: ReactNode;
   title: string;
   subtitle?: string;
-  backLabel: string;
   onBack: () => void;
   bestLabel: string;
   viewLabel: string;
@@ -273,17 +271,7 @@ export function IdeasResults({
       {header}
       <View style={styles.resultsBody}>
         <View style={styles.resultsHead}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={backLabel}
-            onPress={onBack}
-            hitSlop={6}
-            style={({ pressed }) => [styles.back, pressed && styles.pressed]}
-          >
-            <Svg width={8} height={14} viewBox="0 0 9 16" fill="none">
-              <Path d="M8 1 2 8l6 7" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </Pressable>
+          <BackButton onPress={onBack} />
           <View style={styles.copy}>
             <Text variant="h3" accessibilityRole="header" numberOfLines={1}>
               {title}
@@ -604,16 +592,6 @@ const styles = StyleSheet.create({
   resultsBody: {
     paddingHorizontal: spacing.screenX,
     gap: spacing.lg,
-  },
-
-  // Kitchen's results back button.
-  back: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface2,
-    alignItems: "center",
-    justifyContent: "center",
   },
 
   resultsHead: {

@@ -11,10 +11,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Path } from "react-native-svg";
 import { useTranslation } from "react-i18next";
 
-import { AuthButtons, Button, ShowcaseSlide, ShowcaseStage, showcaseThemes, Tappable, Text } from "@/components";
+import { AuthButtons, BackButton, Button, ShowcaseSlide, ShowcaseStage, showcaseThemes, Tappable, Text } from "@/components";
 import { useOnboardingSignIn } from "@/features/onboardingSignIn";
 import { colors, radii, spacing } from "@/theme";
 
@@ -192,19 +191,7 @@ export default function HookCarouselRoute() {
       ) : (
         <View style={[styles.footer, { bottom: insets.bottom + spacing.xxl }]}>
           {current > 0 ? (
-            <Tappable
-              label={t("common.back")}
-              onPress={() => goTo(current - 1)}
-              hitSlop={0}
-              style={[
-                styles.back,
-                { backgroundColor: theme.chip },
-              ]}
-            >
-              <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
-                <Path d="M9 3L5 7l4 4" stroke={theme.ink} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Tappable>
+            <BackButton onPress={() => goTo(current - 1)} style={styles.back} />
           ) : null}
           <Button
             title={current === 0 ? t("onboarding.hook.start") : t("onboarding.hook.next")}
@@ -280,12 +267,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.md,
   },
+  // Next is 56 tall; Back matches it.
   back: {
     width: 56,
     height: 56,
-    borderRadius: radii.xxl,
-    alignItems: "center",
-    justifyContent: "center",
   },
   next: {
     flex: 1,

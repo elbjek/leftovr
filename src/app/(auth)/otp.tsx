@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, GeneratingLoader, Screen, Text, TextField } from "@/components";
+import { BackButton, Button, GeneratingLoader, Screen, Text, TextField } from "@/components";
 import { useAuth } from "@/features";
 import { useFirstRunOnboardingGate } from "@/features/onboardingGate";
 import { colors, spacing } from "@/theme";
@@ -86,6 +86,7 @@ export default function OtpRoute() {
 
   return (
     <Screen scroll>
+      <BackButton onPress={() => router.replace(isSignUp ? "/(auth)/sign-up" : "/(auth)/sign-in")} />
       <View style={styles.wrap}>
         <View style={styles.copy}>
           <Text variant="h3">{title}</Text>
@@ -128,12 +129,6 @@ export default function OtpRoute() {
             <Button title={t("auth.otp.resend")} variant="text" loading={loading} onPress={handleSend} />
           ) : null}
         </View>
-
-        <Button
-          title={t("auth.backToChoices")}
-          variant="text"
-          onPress={() => router.replace(isSignUp ? "/(auth)/sign-up" : "/(auth)/sign-in")}
-        />
       </View>
     </Screen>
   );

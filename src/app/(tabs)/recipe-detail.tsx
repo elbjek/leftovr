@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
-import { BottomSheet, Button, ShoppingListIcon, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
+import { BackButton, BottomSheet, Button, ShoppingListIcon, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
 import type { ShareCardProps, ShareFormat } from "@/components";
 import { isPremium, useAuth, useMeasurementSystem } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage, useShoppingList } from "@/hooks";
@@ -15,7 +15,7 @@ import { addAmounts, canonicalFoodName, formatAmount, ingredientCoverage, recipe
 import { getCookSavings, syncStreak } from "@/repositories/insightsRepository";
 import { addInventoryItem, recordCookedEventAndDepleteInventory } from "@/repositories/inventoryRepository";
 import { reportRecipe, toggleRecipeFavorite, updateRecipeDetail } from "@/repositories/recipeRepository";
-import { colors, radii, spacing } from "@/theme";
+import { colors, radii, shadows, spacing } from "@/theme";
 
 // The cover band, and how far the content sheet rides up over it.
 const HERO_HEIGHT = 260;
@@ -842,8 +842,7 @@ export default function RecipeDetailRoute() {
       </View>
       </Animated.ScrollView>
 
-      <Tappable
-        label={t("recipes.detail.backLabel")}
+      <BackButton
         // Return to the list the recipe was opened from — inside the tab
         // group, router.back() can land on whichever tab was visited before.
         // Tab screens stay mounted, so All recipes keeps its search and scroll.
@@ -852,12 +851,8 @@ export default function RecipeDetailRoute() {
             params.returnTo === "all-recipes" ? "/(tabs)/all-recipes" : params.returnTo === "insights" ? "/(tabs)/insights" : "/(tabs)/recipes",
           )
         }
-        style={[styles.roundButton, { top: insets.top + spacing.sm, left: spacing.xl }]}
-      >
-        <Svg width={15} height={15} viewBox="0 0 14 14">
-          <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        </Svg>
-      </Tappable>
+        style={[styles.floating, { top: insets.top + spacing.sm, left: spacing.xl }]}
+      />
       {recipeId ? (
         <Tappable
           label={favorite ? t("recipes.detail.savedCta") : t("recipes.detail.saveCta")}
@@ -1230,17 +1225,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  floating: {
+    position: "absolute",
+    zIndex: 20,
+  },
+  // The save heart, matching BackButton across the cover.
   roundButton: {
     position: "absolute",
     zIndex: 20,
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: radii.pill,
     backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.hairlineStrong,
     alignItems: "center",
     justifyContent: "center",
+    ...shadows.soft,
   },
   // The content rides up over the cover as a sheet of paper.
   body: {

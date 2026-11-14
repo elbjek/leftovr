@@ -4,7 +4,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BottomSheet, Button, FilterChip, SavedRecipeRow, Screen, Tappable, Text } from "@/components";
+import { BackButton, BottomSheet, Button, FilterChip, SavedRecipeRow, Screen, Tappable, Text } from "@/components";
 import { isPremium as resolvePremium, openSavedRecipe, useAuth } from "@/features";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
 import { formatCategory, parseRecipeIngredients } from "@/services/recipeService";
@@ -114,13 +114,7 @@ export default function AllRecipesRoute() {
     <View style={styles.headerBlock}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Tappable
-            label={t("recipes.detail.backLabel")}
-            onPress={() => router.replace("/(tabs)/recipes")}
-            style={[styles.filterButton]}
-          >
-            <BackIcon />
-          </Tappable>
+          <BackButton onPress={() => router.replace("/(tabs)/recipes")} />
           <Text variant="h3" style={styles.title}>{t("recipes.all.title")}</Text>
           <Tappable
             label={t("recipes.filterSheet.title")}
@@ -314,14 +308,6 @@ function ActiveFilterToken({ label, onRemove }: { label: string; onRemove: () =>
   );
 }
 
-function BackIcon() {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 14 14">
-      <Path d="M9 2L3 7L9 12" stroke={colors.primary} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
 function CloseIcon({ color }: { color: string }) {
   return (
     <Svg width={12} height={12} viewBox="0 0 12 12">
@@ -381,11 +367,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: spacing.xs,
   },
+  // Matches BackButton on the other end of the header row.
   filterButton: {
-    width: 42,
-    height: 42,
-    borderRadius: radii.xl,
+    width: 44,
+    height: 44,
+    borderRadius: radii.pill,
     backgroundColor: colors.surface,
+    ...shadows.soft,
     alignItems: "center",
     justifyContent: "center",
   },
