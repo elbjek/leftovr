@@ -112,6 +112,19 @@ export function FoodListCard({
                       peach both hid pale foods (white cheese on cream). */}
                   <View style={styles.food}>
                     <FoodGlyph name={item.name} category={item.category} size={50} />
+                    {/* Who added it, in the members list's avatar; the
+                        subtitle says the name for screen readers. */}
+                    {item.addedBy ? (
+                      <View
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                        style={styles.addedBy}
+                      >
+                        <Text variant="micro" color={colors.onPrimary}>
+                          {item.addedBy.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    ) : null}
                   </View>
                 </View>
               }
@@ -171,6 +184,19 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: radii.lg,
     backgroundColor: colors.sageTint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  addedBy: {
+    position: "absolute",
+    right: -4,
+    bottom: -4,
+    width: 24,
+    height: 24,
+    borderRadius: radii.pill,
+    borderWidth: 2,
+    borderColor: colors.surface,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },

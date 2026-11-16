@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Alert, AppState, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
@@ -38,7 +38,7 @@ const CATEGORY_ORDER = [
 type Category = (typeof CATEGORY_ORDER)[number];
 // TinyMeals-style browsing: null = the overview (today, running low, category
 // tiles); otherwise a results list for everything, running low or a category.
-type KitchenView = null | "all" | "low" | "soon" | Category;
+type KitchenView = null | "all" | "low" | "soon" | "new" | Category;
 
 export default function FridgeRoute() {
   const { t } = useTranslation();
@@ -63,7 +63,7 @@ export default function FridgeRoute() {
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   // ?item=<group key> (the home's day sheet) opens that food's sheet once
   // loaded; the param is then cleared so the tab doesn't reopen it.
-  const { item: itemParam } = useLocalSearchParams<{ item?: string }>();
+  const { item: itemParam, new: newParam } = useLocalSearchParams<{ item?: string; new?: string }>();
   const [openedItem, setOpenedItem] = useState<string | undefined>();
   if (itemParam !== openedItem) {
     const group = itemParam ? groups.find((g) => g.key === itemParam) : undefined;
@@ -76,6 +76,17 @@ export default function FridgeRoute() {
     if (itemParam && itemParam === openedItem) router.setParams({ item: undefined });
   }, [itemParam, openedItem]);
   const [view, setView] = useState<KitchenView>(null);
+  // ?new=<ms> (a "Kitchen updated" push): refetch, then list what housemates
+  // added since then, newest first. Runs even when the Kitchen is already open.
+  const [newSince, setNewSince] = useState(0);
+  useEffect(() => {
+    if (!newParam) return;
+    router.setParams({ new: undefined });
+    void refresh().then(() => {
+      setNewSince(Number(newParam));
+      setView("new");
+    });
+  }, [newParam, refresh]);
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const query = search.trim().toLowerCase();
@@ -124,6 +135,10 @@ export default function FridgeRoute() {
       return false;
     }
   };
+  const addedByHousemateSince = (group: InventoryGroup) =>
+    group.lots.some((lot) => lot.added_by !== profile?.id && Date.parse(lot.added_at) >= newSince);
+  // Nothing new left (already used up): back to the overview.
+  if (view === "new" && !activeGroups.some(addedByHousemateSince)) setView(null);
   const inView = (group: InventoryGroup) =>
     view === null || view === "all"
       ? true
@@ -131,9 +146,12 @@ export default function FridgeRoute() {
         ? isMetricAmountRunningLow(group)
         : view === "soon"
           ? isUseSoon(group)
-          : group.category === view;
+          : view === "new"
+            ? addedByHousemateSince(group)
+            : group.category === view;
   const matches = activeGroups.filter((group) => inView(group) && (!query || group.name.toLowerCase().includes(query)));
-  const resultGroups = view === "soon" ? sortBySoonest(matches) : matches;
+  const resultGroups =
+    view === "soon" ? sortBySoonest(matches) : view === "new" ? sortByNewest(matches) : matches;
   // Searching or opening a list swaps the overview for results.
   const showResults = view !== null || Boolean(query);
   const isPremium = resolvePremium(profile, activeHousehold);
@@ -183,6 +201,8 @@ export default function FridgeRoute() {
         ? t("fridge.shelves.runningLow")
         : view === "soon"
           ? t("fridge.shelves.useSoon")
+          : view === "new"
+          ? t("fridge.newTitle")
           : view
           ? (t(`scan.categories.${view}` as never) as string)
           : t("fridge.results", { query: search.trim() });
@@ -211,9 +231,14 @@ export default function FridgeRoute() {
       void refresh();
       void refreshInsights();
       void refreshShopping().catch(() => undefined);
+      // Back from the background onto the Kitchen: a housemate may have added food.
+      const sub = AppState.addEventListener("change", (state) => {
+        if (state === "active") void refresh();
+      });
       // Leaving the tab drops back to the overview, so the Kitchen never
       // reopens on a category the user left behind.
       return () => {
+        sub.remove();
         setView(null);
         setSearch("");
       };
@@ -1162,6 +1187,11 @@ function isUseSoon(group: InventoryGroup) {
 
 function sortBySoonest(groups: InventoryGroup[]) {
   return [...groups].sort((a, b) => groupDaysLeft(a) - groupDaysLeft(b));
+}
+
+// Lots come newest first from the query, so lots[0] is the latest add.
+function sortByNewest(groups: InventoryGroup[]) {
+  return [...groups].sort((a, b) => Date.parse(b.lots[0].added_at) - Date.parse(a.lots[0].added_at));
 }
 
 // Soonest-running-out lot in the group (explicit date or estimate).

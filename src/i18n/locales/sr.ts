@@ -281,6 +281,7 @@ export const sr = {
     title: "Hej, evo šta imaš.",
     titleWithName: "{{name}}, evo šta imaš.",
     homeTitle: "Tvoja kuhinja",
+    newTitle: "Novo u kuhinji",
     allItems: "Sve namirnice",
     body: "Grupisano po policama, sa grubim količinama bez tačnih datuma.",
     search: "Pretraži kuhinju",

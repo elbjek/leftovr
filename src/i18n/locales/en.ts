@@ -281,6 +281,7 @@ export const en = {
     title: "Hey, here's what you have.",
     titleWithName: "{{name}}, here's what you have.",
     homeTitle: "Your kitchen",
+    newTitle: "New in your kitchen",
     allItems: "Everything",
     body: "Grouped by shelf, with rough quantities and no date math homework.",
     search: "Search your kitchen",

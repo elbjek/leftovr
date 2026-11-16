@@ -24,6 +24,14 @@ const ROUTE_BY_TYPE: Record<string, Href> = {
 function routeFor(response: Notifications.NotificationResponse | null): Href | null {
   const data = response?.notification.request.content.data as { type?: string } | undefined;
   const type = data?.type;
+  if (type === "member_activity" && response) {
+    // "Kitchen updated": the Kitchen refetches and lists what housemates added
+    // since the push (10 min of slack for the adder's device clock).
+    // iOS reports the date in seconds, Android in milliseconds.
+    const { date } = response.notification;
+    const sentMs = date < 1e12 ? date * 1000 : date;
+    return { pathname: "/(tabs)/fridge", params: { new: String(Math.round(sentMs - 10 * 60_000)) } };
+  }
   return type ? ROUTE_BY_TYPE[type] ?? null : null;
 }
 
