@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
@@ -7,7 +7,7 @@ import { DEFAULT_UNIT, normalizeUnit } from "@/lib";
 import { applySuggestion, INVENTORY_CATEGORIES, PartialState, ReceiptConfirmItem, ScanSuggestion } from "@/services";
 import { CategoryTone, categoryColors, colors, fonts, radii, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { BottomSheet, Button, Card, DateField, FilterChip, Text, TextField, UnitPicker } from "../primitives";
+import { BottomSheet, Button, Card, DateField, FilterChip, Text, TextField, UnitPicker, FitScrollView } from "../primitives";
 
 type Props = {
   items: ReceiptConfirmItem[];
@@ -124,7 +124,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, onC
       <View style={styles.toolbar}>
         <Button title={t("common.cancel")} variant="text" onPress={onCancel} />
       </View>
-      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+      <FitScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {quickLookRows.length > 0 ? (
           <Text variant="h3" style={styles.quickLookTitle}>
             {t("scan.confirm.quickLookTitle", { count: quickLookRows.length })}
@@ -257,7 +257,7 @@ export function ReceiptConfirmList({ items, confirming, onConfirm, onCancel, onC
           </Card>
           );
         })}
-      </ScrollView>
+      </FitScrollView>
 
 
       <BottomSheet visible={categoryRow != null} onDismiss={() => setCategoryRowId(null)}>

@@ -102,19 +102,23 @@ export default function InsightsRoute() {
   // Month / Year as plain text tabs (the active one underlined) with share on
   // the right, then the period's name with arrows that walk back to earlier
   // ones (and forward again, up to now).
+  // Fixed above the scroll area (Screen `header`), like every tab's logo row.
+  const logoRow = (
+    <View style={[styles.header, styles.fixedTop]}>
+      <Logo size={26} />
+      {activeHousehold ? (
+        <HouseholdPill
+          name={activeHousehold.name}
+          initial={firstName || activeHousehold.name}
+          label={t("settings.household.openSheet", { name: activeHousehold.name })}
+          onPress={() => setHouseholdOpen(true)}
+        />
+      ) : null}
+    </View>
+  );
+
   const header = (onShare?: () => void) => (
     <View style={styles.top}>
-      <View style={styles.header}>
-        <Logo size={26} />
-        {activeHousehold ? (
-          <HouseholdPill
-            name={activeHousehold.name}
-            initial={firstName || activeHousehold.name}
-            label={t("settings.household.openSheet", { name: activeHousehold.name })}
-            onPress={() => setHouseholdOpen(true)}
-          />
-        ) : null}
-      </View>
       {isPremium ? (
         <>
           <View style={styles.header}>
@@ -202,7 +206,7 @@ export default function InsightsRoute() {
   // preview made the page long for nothing).
   if (!isPremium) {
     return (
-      <Screen bottomInset={false} contentContainerStyle={styles.lockScreen}>
+      <Screen header={logoRow} bottomInset={false} contentContainerStyle={styles.lockScreen}>
         {header()}
         <View style={styles.lockCenter}>
           <LockedCard
@@ -220,7 +224,7 @@ export default function InsightsRoute() {
 
   if (!data) {
     return (
-      <Screen scroll bottomInset={false} contentContainerStyle={styles.content} refreshControl={refreshControl}>
+      <Screen header={logoRow} scroll bottomInset={false} contentContainerStyle={styles.content} refreshControl={refreshControl}>
         {header()}
         <View style={styles.loading}>
           <FoodLoader />
@@ -420,7 +424,7 @@ export default function InsightsRoute() {
   );
 
   return (
-    <Screen scroll bottomInset={false} contentContainerStyle={styles.content} refreshControl={refreshControl}>
+    <Screen header={logoRow} scroll bottomInset={false} contentContainerStyle={styles.content} refreshControl={refreshControl}>
       {header(shareSheet && !isEmpty && !(period === "week" && offset < 0) ? () => setShowShare(true) : undefined)}
 
       {summaryCard}
@@ -498,6 +502,10 @@ const styles = StyleSheet.create({
   top: {
     gap: spacing.sm,
     zIndex: 10,
+  },
+  fixedTop: {
+    paddingHorizontal: spacing.screenX,
+    paddingTop: spacing.screenTop,
   },
   // Same header as the home (recipes.tsx): logo left, pill right.
   header: {

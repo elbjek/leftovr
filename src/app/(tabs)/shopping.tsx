@@ -165,13 +165,9 @@ export default function ShoppingRoute() {
       bottomInset={false}
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
-      }
-    >
-      {/* Same top as the other tabs: logo, household pill and scan. */}
-      <View style={styles.head}>
-        <View style={styles.headRow}>
+      // Same top as the other tabs: logo, household pill and scan, fixed above the scroll.
+      header={
+        <View style={[styles.headRow, styles.fixedTop]}>
           <Logo size={26} />
           {activeHousehold ? (
             <HouseholdPill
@@ -182,6 +178,12 @@ export default function ShoppingRoute() {
             />
           ) : null}
         </View>
+      }
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+      }
+    >
+      <View style={styles.head}>
         <View>
           <Text variant="h3" accessibilityRole="header" numberOfLines={1}>
             {t("shopping.title")}
@@ -534,6 +536,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
+  },
+  fixedTop: {
+    paddingHorizontal: spacing.screenX,
+    paddingTop: spacing.screenTop,
   },
   addField: {
     flexDirection: "row",

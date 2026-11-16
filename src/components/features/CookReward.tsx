@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { AccessibilityInfo, ActionSheetIOS, Alert, Animated, Easing, Platform, ScrollView, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, ActionSheetIOS, Alert, Animated, Easing, Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
 import { formatMoney } from "../../lib/money";
 import { colors, radii, shadows, spacing, typography } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { Button, Text } from "../primitives";
+import { Button, Text, FitScrollView } from "../primitives";
 import type { ShareFormat } from "./ShareCard";
 import { FlameIcon } from "./WeekStrip";
 
@@ -135,7 +135,7 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
 
   return (
     <Animated.View style={[styles.screen, { opacity: pop, paddingTop: insets.top, paddingBottom: insets.bottom + spacing.lg }]}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <FitScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.foods} accessible={false} importantForAccessibility="no-hide-descendants">
           <Sparks style={styles.sparksLeft} />
           {bubbles.map((bubble, index) => {
@@ -208,7 +208,7 @@ export function CookReward({ visible, eyebrow, title, items, money, goal, streak
             ) : null}
           </Animated.View>
         ) : null}
-      </ScrollView>
+      </FitScrollView>
 
       <View style={styles.actions}>
         <Button title={doneLabel} onPress={onDone} style={styles.button} />

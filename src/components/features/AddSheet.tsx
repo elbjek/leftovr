@@ -1,11 +1,11 @@
 import { createContext, useContext } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { isPremium, useAuth } from "@/features";
 import { spacing } from "../../theme";
-import { BottomSheet, Text } from "../primitives";
+import { BottomSheet, Text, FitScrollView } from "../primitives";
 import { ScanMethod, ScanMethodCard } from "./ScanMethodCard";
 
 const ADD_METHODS: ScanMethod[] = ["receipt", "pantry", "ereceipt", "barcode", "manual"];
@@ -52,7 +52,7 @@ export function AddSheet({ visible, onClose }: Props) {
 
   return (
     <BottomSheet inline visible={visible} onDismiss={onClose} style={styles.sheet}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <FitScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.copy}>
           <Text variant="h3">{t("scan.title")}</Text>
           <Text variant="small" muted>
@@ -72,7 +72,7 @@ export function AddSheet({ visible, onClose }: Props) {
             <ScanMethodCard key={method} method={method} body={t(`scan.${method}.body`)} onPress={() => pick(method)} />
           ))}
         </View>
-      </ScrollView>
+      </FitScrollView>
     </BottomSheet>
   );
 }

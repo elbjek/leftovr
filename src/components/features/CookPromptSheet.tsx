@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { FoodGlyph } from "../illustrations";
-import { BottomSheet, Button, IconButton, Tappable, Text } from "../primitives";
+import { BottomSheet, Button, FitScrollView, IconButton, Tappable, Text } from "../primitives";
 import { colors, radii, shadows, spacing } from "../../theme";
 import { CookingMode } from "@/repositories/recipeRepository";
 import { BasePreference, estimateServings, type InventoryLot } from "@/services";
@@ -168,7 +168,7 @@ export function CookPromptSheet({
         </IconButton>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <FitScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {showCookingFor ? (
           <Section label={labels.cookingFor ?? ""}>
             <View style={styles.grid}>
@@ -283,7 +283,7 @@ export function CookPromptSheet({
             {labels.eatFirstNote}
           </Text>
         </Section>
-      </ScrollView>
+      </FitScrollView>
 
       <View style={styles.cta}>
         <Button

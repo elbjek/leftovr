@@ -1,9 +1,9 @@
 import { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, fonts, radii, shadows, spacing } from "../../theme";
-import { BackButton, Text } from "../primitives";
+import { BackButton, Text, FitScrollView } from "../primitives";
 import { FoodGlyph } from "../illustrations";
 import { RecipeCover } from "./RecipeCover";
 
@@ -267,7 +267,7 @@ export function IdeasResults({
 }) {
   const [best, ...others] = ideas;
   return (
-    <ScrollView contentContainerStyle={styles.results} showsVerticalScrollIndicator={false}>
+    <FitScrollView contentContainerStyle={styles.results} showsVerticalScrollIndicator={false}>
       {header}
       <View style={styles.resultsBody}>
         <View style={styles.resultsHead}>
@@ -327,7 +327,7 @@ export function IdeasResults({
           </Text>
         </Pressable>
       </View>
-    </ScrollView>
+    </FitScrollView>
   );
 }
 

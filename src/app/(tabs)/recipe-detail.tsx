@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Animated, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 import { Image } from "expo-image";
 
-import { BackButton, BottomSheet, Button, ShoppingListIcon, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
+import { BackButton, BottomSheet, FitScrollView, Button, ShoppingListIcon, CookReward, FoodGlyph, IngredientIcons, ShareCardExport, Tappable, Text, TextField, useToast } from "@/components";
 import type { ShareCardProps, ShareFormat } from "@/components";
 import { isPremium, useAuth, useMeasurementSystem } from "@/features";
 import { deviceTimeZone, notifyInventoryChanged, useInventory, useShareImage, useShoppingList } from "@/hooks";
@@ -933,7 +933,7 @@ export default function RecipeDetailRoute() {
             <Text variant="h3" style={styles.cookedTitle}>{t("recipes.cooked.title")}</Text>
             <Text variant="body" muted style={styles.cookedBody}>{t("recipes.cooked.body")}</Text>
 
-            <ScrollView
+            <FitScrollView
               style={styles.cookedListScroll}
               contentContainerStyle={styles.cookedList}
               showsVerticalScrollIndicator={false}
@@ -1031,7 +1031,7 @@ export default function RecipeDetailRoute() {
                   + {t("recipes.cooked.addExtra")}
                 </Text>
               </Tappable>
-            </ScrollView>
+            </FitScrollView>
 
             <Button
               title={t("recipes.cooked.confirm", { count: removedCount })}
@@ -1093,7 +1093,7 @@ export default function RecipeDetailRoute() {
                 ? t("recipes.cooked.swapAddTitle")
                 : t("recipes.cooked.swapTitle", { item: cookedItems[swapIndex]?.name ?? "" })}
             </Text>
-            <ScrollView style={styles.swapList}>
+            <FitScrollView style={styles.swapList}>
               {inventoryGroups.map((group) => (
                 <Tappable
                   key={group.key}
@@ -1104,7 +1104,7 @@ export default function RecipeDetailRoute() {
                   <Text variant="small" muted>{group.meta}</Text>
                 </Tappable>
               ))}
-            </ScrollView>
+            </FitScrollView>
             <Button
               title={t("common.cancel")}
               variant="text"

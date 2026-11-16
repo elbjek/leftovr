@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
 import { normalizeUnit, UNIT_OPTIONS, UnitOption } from "@/lib";
 import { colors, radii, spacing } from "../../theme";
 import { BottomSheet } from "./BottomSheet";
+import { FitScrollView } from "./FitScrollView";
 import { Text } from "./Text";
 
 type Props = {
@@ -48,7 +49,7 @@ export function UnitPicker({ label, value, onChange, containerStyle, boxStyle }:
         <Text variant="h3" style={styles.sheetTitle}>
           {t("units.selectTitle")}
         </Text>
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <FitScrollView showsVerticalScrollIndicator={false}>
           {UNIT_OPTIONS.map((unit) => {
             const active = unit === selected;
             return (
@@ -70,7 +71,7 @@ export function UnitPicker({ label, value, onChange, containerStyle, boxStyle }:
               </Pressable>
             );
           })}
-        </ScrollView>
+        </FitScrollView>
       </BottomSheet>
     </View>
   );

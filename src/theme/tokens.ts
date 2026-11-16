@@ -144,7 +144,10 @@ export const spacing = {
   // this is just breathing room below it.
   screenTop: 16,
   screenBottom: 32,
-  tabBarClearance: 118,
+  // Room above the dock at the foot of a tab screen. The dock sits below the
+  // screen in the tab layout, not over it, so this is breathing room only
+  // (it was 118, which made pages that fit scroll; 2026-11-16).
+  tabBarClearance: 16,
 } as const;
 
 export const radii = {

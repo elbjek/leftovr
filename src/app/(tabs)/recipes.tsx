@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, GetStartedCard, HouseholdPill, HowItWorks, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
+import { Button, CookFilters, FitScrollView, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, GetStartedCard, HouseholdPill, HowItWorks, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { foodIconKey, formatMoney } from "@/lib";
@@ -39,7 +39,7 @@ export default function RecipesRoute() {
   const openAddSheet = useOpenAddSheet();
   const [autoGenerate, setAutoGenerate] = useState(false);
   const { profile, activeHousehold, refresh } = useAuth();
-  const { lots: inventory, groups: inventoryGroups, loading: inventoryLoading } = useInventory(activeHousehold?.id);
+  const { lots: inventory, groups: inventoryGroups, loading: inventoryLoading, refresh: refreshInventory } = useInventory(activeHousehold?.id);
   const { draft: scanDraft, discard: discardScanDraft } = useScanDraft(activeHousehold?.id);
   const baseOptions = useMemo(() => availableBaseOptions(inventory), [inventory]);
   const { members, combinedAvoidances } = useHousehold(activeHousehold?.id);
@@ -116,11 +116,6 @@ export default function RecipesRoute() {
     setUsedHidden(true);
     AsyncStorage.setItem(usedHiddenKey, "1").catch(() => {});
   };
-  // Whether the home's content fits its scroll view (it fills it via
-  // flexGrow, so "fits" means no taller than the view).
-  const [pageHeight, setPageHeight] = useState(0);
-  const [contentHeight, setContentHeight] = useState(0);
-  const pageFits = pageHeight > 0 && contentHeight <= pageHeight + 1;
   // "Get started" can be hidden the same way (per account, this device).
   const startHiddenKey = `get-started-hidden:${profile?.id}`;
   const [startHidden, setStartHidden] = useState<boolean | null>(null);
@@ -149,11 +144,13 @@ export default function RecipesRoute() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refreshRecipes(), refresh()]);
+      // Everything the home shows: recipes, the kitchen's foods (the dinner
+      // card, Get started), the week strip and the account.
+      await Promise.all([refreshRecipes(), refreshInventory(), refreshStreak(), refresh()]);
     } finally {
       setRefreshing(false);
     }
-  }, [refreshRecipes, refresh]);
+  }, [refreshRecipes, refreshInventory, refreshStreak, refresh]);
 
   const openCookPrompt = useCallback(() => {
     if (!canGenerate) {
@@ -540,23 +537,18 @@ export default function RecipesRoute() {
           onMore={handleShowOthers}
         />
       ) : (
-      <ScrollView
+      <>
+      {/* Fixed: pull-to-refresh opens under the logo row, not above it. */}
+      <View style={styles.fixedTop}>{topBar}</View>
+      <FitScrollView
         style={styles.listScroll}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        // A page that fits (a new account's) doesn't move at all: on iOS the
-        // refresh control lets any scroll view be pulled, so scrolling is off
-        // until the content is taller than the screen.
-        scrollEnabled={!pageFits}
-        onLayout={(event) => setPageHeight(event.nativeEvent.layout.height)}
-        onContentSizeChange={(_, height) => setContentHeight(height)}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
-        {/* TinyMeals-style top: who, today's nudge, the week, tonight's dish. */}
-        {topBar}
-
+        {/* TinyMeals-style top (logo row fixed above): today's nudge, the week, tonight's dish. */}
         {scanDraft ? (
           <UnfinishedScanCard
             count={scanDraft.items.length}
@@ -768,7 +760,8 @@ export default function RecipesRoute() {
             </Tappable>
           </View>
         ) : null}
-      </ScrollView>
+      </FitScrollView>
+      </>
       )}
 
       <DaySheet
@@ -986,8 +979,10 @@ const styles = StyleSheet.create({
   // account's page past the fold).
   listContent: {
     flexGrow: 1,
-    paddingTop: spacing.lg,
     paddingBottom: spacing.lg,
+  },
+  fixedTop: {
+    paddingTop: spacing.lg,
   },
   unfinishedScan: {
     marginHorizontal: spacing.screenX,

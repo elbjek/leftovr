@@ -1,8 +1,8 @@
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { CategoryTone, categoryColors, colors, fonts, radii, shadows, spacing } from "../../theme";
 import { FoodGlyph } from "../illustrations";
-import { BottomSheet, FoodLoader, Text } from "../primitives";
+import { BottomSheet, FoodLoader, Text, FitScrollView } from "../primitives";
 import { RecipeGlyph } from "./RecipeGlyph";
 
 type Props = {
@@ -32,7 +32,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, soon, lab
   const empty = activity != null && activity.cooked.length === 0 && activity.used.length === 0;
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <FitScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text variant="h3">
           {title}
         </Text>
@@ -134,7 +134,7 @@ export function DaySheet({ visible, onDismiss, title, activity, saved, soon, lab
             })}
           </View>
         ) : null}
-      </ScrollView>
+      </FitScrollView>
     </BottomSheet>
   );
 }

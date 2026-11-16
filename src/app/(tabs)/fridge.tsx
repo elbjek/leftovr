@@ -3,7 +3,7 @@ import { Alert, AppState, RefreshControl, ScrollView, StyleSheet, TextInput, Vie
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, ShoppingListIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, FoodListCard, FoodLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
+import { BackButton, BottomSheet, FitScrollView, Button, ShoppingListIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, FoodListCard, FoodLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
 import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useShoppingList } from "@/hooks";
@@ -270,13 +270,9 @@ export default function FridgeRoute() {
       padded={false}
       bottomInset={false}
       contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
-      }
-    >
-      {/* Same top as the home: logo, household pill, and here the "+". */}
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
+      // Same top as the home: logo and household pill, fixed above the scroll.
+      header={
+        <View style={[styles.header, styles.headerRow, styles.fixedTop]}>
           <View style={styles.brand}>
             <Logo size={26} />
           </View>
@@ -291,12 +287,18 @@ export default function FridgeRoute() {
             ) : null}
           </View>
         </View>
-        {groups.length > 0 ? (
-          <Text variant="small" muted style={styles.summary}>
+      }
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+      }
+    >
+      {groups.length > 0 ? (
+        <View style={styles.header}>
+          <Text variant="small" muted>
             {summary}
           </Text>
-        ) : null}
-      </View>
+        </View>
+      ) : null}
 
       {groups.length > 0 ? (
         <View style={styles.searchWrap}>
@@ -819,7 +821,7 @@ function CheckTheseSheet({
             {labels.subtitle}
           </Text>
         </View>
-        <ScrollView style={styles.fullShelfScroll} contentContainerStyle={styles.checkSheetList}>
+        <FitScrollView style={styles.fullShelfScroll} contentContainerStyle={styles.checkSheetList}>
           {sections.map((section) => {
             const allSelected = section.items.every((item) => selected.has(item.id));
             return (
@@ -874,7 +876,7 @@ function CheckTheseSheet({
               </View>
             );
           })}
-        </ScrollView>
+        </FitScrollView>
         {/* Always two buttons: Cancel and a disabled Toss until something is
             picked, then Still good and Toss for the picked items. */}
         <View style={styles.checkActionBar}>
@@ -1373,6 +1375,9 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.screenX,
   },
+  fixedTop: {
+    paddingTop: spacing.screenTop,
+  },
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1389,9 +1394,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  summary: {
-    marginTop: spacing.md,
   },
   searchWrap: {
     paddingHorizontal: spacing.screenX,

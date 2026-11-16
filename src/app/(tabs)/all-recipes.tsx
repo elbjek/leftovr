@@ -4,7 +4,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { BackButton, BottomSheet, Button, FilterChip, SavedRecipeRow, Screen, Tappable, Text } from "@/components";
+import { BackButton, BottomSheet, FitScrollView, Button, FilterChip, SavedRecipeRow, Screen, Tappable, Text } from "@/components";
 import { isPremium as resolvePremium, openSavedRecipe, useAuth } from "@/features";
 import { useHousehold, useInventory, useRecipes } from "@/hooks";
 import { formatCategory, parseRecipeIngredients } from "@/services/recipeService";
@@ -199,6 +199,8 @@ export default function AllRecipesRoute() {
   return (
     <Screen padded={false} bottomInset={false} contentContainerStyle={styles.screen}>
       <FlatList
+        // Holds still when the list fits, pull down only (FitScrollView).
+        renderScrollComponent={(props) => <FitScrollView {...props} />}
         data={filteredRecipes}
         keyExtractor={(recipe) => recipe.id}
         ListHeaderComponent={header}

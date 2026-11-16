@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { canShareHousehold, useAuth } from "@/features";
 import { useHousehold } from "@/hooks/useHousehold";
 import { renameHousehold } from "@/repositories/householdRepository";
 import { spacing } from "../../theme";
-import { BottomSheet, Text, TextField } from "../primitives";
+import { BottomSheet, Text, TextField, FitScrollView } from "../primitives";
 import { HouseholdSection } from "./HouseholdSection";
 import { PremiumSheet } from "./PremiumSheet";
 
@@ -76,7 +76,7 @@ export function HouseholdSheet({ visible, onClose, itemCount, initialJoinCode }:
           setShowPremium(true);
         }}
       >
-        <ScrollView
+        <FitScrollView
           style={styles.scroll}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
@@ -125,7 +125,7 @@ export function HouseholdSheet({ visible, onClose, itemCount, initialJoinCode }:
             }}
             initialJoinCode={initialJoinCode}
           />
-        </ScrollView>
+        </FitScrollView>
       </BottomSheet>
       <PremiumSheet
         visible={showPremium}
