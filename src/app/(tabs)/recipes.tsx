@@ -680,8 +680,9 @@ export default function RecipesRoute() {
         ) : null}
 
         {startHidden === false && startTasks.some((task) => !task.done) ? (
-          <View style={styles.startBlock}>
+          <View style={[styles.startBlock, listRecipes.length === 0 && styles.startFill]}>
             <GetStartedCard
+              fill={listRecipes.length === 0}
               title={t("recipes.start.title")}
               progress={t("recipes.start.progress", {
                 done: startTasks.filter((task) => task.done).length,
@@ -961,7 +962,12 @@ const styles = StyleSheet.create({
   },
   startBlock: {
     paddingHorizontal: spacing.screenX,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  // A new account's page reaches the dock: the last card takes what's left.
+  startFill: {
+    flexGrow: 1,
+    marginBottom: 0,
   },
   listScroll: {
     flex: 1,
@@ -970,6 +976,7 @@ const styles = StyleSheet.create({
   // breathing room is needed at the foot (it was 118pt, which pushed a new
   // account's page past the fold).
   listContent: {
+    flexGrow: 1,
     paddingTop: spacing.lg,
     paddingBottom: spacing.lg,
   },

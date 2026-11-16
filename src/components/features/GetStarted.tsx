@@ -26,7 +26,7 @@ export function HowItWorks({ steps }: { steps: Step[] }) {
               </Text>
             </View>
             <Animated.View style={{ transform: [{ translateY: hops[i] }] }}>
-              <FoodGlyph name={step.food} size={26} />
+              <FoodGlyph name={step.food} size={30} />
             </Animated.View>
           </View>
           <Text variant="small" weight="bold" center>
@@ -46,18 +46,20 @@ type Props = {
   hideLabel: string;
   onHide: () => void;
   tasks: Task[];
+  /** Grow to the space left (the last thing on a short page), rows spread out. */
+  fill?: boolean;
 };
 
 /**
  * The new account's first steps: a tomato progress bar, a food on a peach
  * well per step, the next one tinted. Done steps tick off.
  */
-export function GetStartedCard({ title, progress, hideLabel, onHide, tasks }: Props) {
+export function GetStartedCard({ title, progress, hideLabel, onHide, tasks, fill = false }: Props) {
   const done = tasks.filter((task) => task.done).length;
   const next = tasks.findIndex((task) => !task.done);
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, fill && styles.cardFill]}>
       <View style={styles.head}>
         <Text variant="title">{title}</Text>
         <View style={styles.headRight}>
@@ -76,46 +78,48 @@ export function GetStartedCard({ title, progress, hideLabel, onHide, tasks }: Pr
         <View style={[styles.fill, { width: `${(done / tasks.length) * 100}%` }]} />
       </View>
 
-      {tasks.map((task, i) => {
-        const isNext = i === next;
-        return (
-          <Tappable
-            key={task.label}
-            onPress={task.done ? undefined : task.onPress}
-            disabled={task.done}
-            role="checkbox"
-            state={{ checked: task.done }}
-            label={task.label}
-            style={[styles.row, isNext && styles.rowNext]}
-          >
-            <View style={styles.well}>
-              <FoodGlyph name={task.food} size={20} />
-              {task.done ? (
-                <View style={styles.tick}>
-                  <Svg width={9} height={9} viewBox="0 0 24 24">
-                    <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.onPrimary} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                  </Svg>
-                </View>
-              ) : null}
-            </View>
-            <Text variant="label" muted={task.done} style={styles.rowLabel}>
-              {task.label}
-            </Text>
-            {task.done ? null : (
-              <Svg width={16} height={16} viewBox="0 0 24 24" accessible={false}>
-                <Path
-                  d="M9 6l6 6-6 6"
-                  fill="none"
-                  stroke={isNext ? colors.primary : colors.muted2}
-                  strokeWidth={2.4}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </Svg>
-            )}
-          </Tappable>
-        );
-      })}
+      <View style={[fill && styles.rowsFill]}>
+        {tasks.map((task, i) => {
+          const isNext = i === next;
+          return (
+            <Tappable
+              key={task.label}
+              onPress={task.done ? undefined : task.onPress}
+              disabled={task.done}
+              role="checkbox"
+              state={{ checked: task.done }}
+              label={task.label}
+              style={[styles.row, isNext && styles.rowNext]}
+            >
+              <View style={styles.well}>
+                <FoodGlyph name={task.food} size={22} />
+                {task.done ? (
+                  <View style={styles.tick}>
+                    <Svg width={9} height={9} viewBox="0 0 24 24">
+                      <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.onPrimary} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                    </Svg>
+                  </View>
+                ) : null}
+              </View>
+              <Text variant="label" muted={task.done} style={styles.rowLabel}>
+                {task.label}
+              </Text>
+              {task.done ? null : (
+                <Svg width={16} height={16} viewBox="0 0 24 24" accessible={false}>
+                  <Path
+                    d="M9 6l6 6-6 6"
+                    fill="none"
+                    stroke={isNext ? colors.primary : colors.muted2}
+                    strokeWidth={2.4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              )}
+            </Tappable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -127,14 +131,15 @@ const styles = StyleSheet.create({
   },
   howCard: {
     flex: 1,
-    gap: spacing.xs,
+    gap: spacing.sm,
     padding: spacing.sm,
+    paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
     ...shadows.soft,
   },
   howTile: {
-    height: 44,
+    height: 64,
     borderRadius: radii.md,
     backgroundColor: colors.surface2,
     alignItems: "center",
@@ -142,10 +147,10 @@ const styles = StyleSheet.create({
   },
   howNumber: {
     position: "absolute",
-    top: spacing.xxs,
-    left: spacing.xxs,
-    width: 18,
-    height: 18,
+    top: spacing.xs,
+    left: spacing.xs,
+    width: 20,
+    height: 20,
     borderRadius: radii.pill,
     backgroundColor: colors.primary,
     alignItems: "center",
@@ -157,6 +162,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radii.xl,
     ...shadows.soft,
+  },
+  cardFill: {
+    flexGrow: 1,
+  },
+  rowsFill: {
+    flexGrow: 1,
+    justifyContent: "space-evenly",
   },
   head: {
     flexDirection: "row",
@@ -174,8 +186,8 @@ const styles = StyleSheet.create({
   },
   track: {
     height: 6,
-    marginTop: spacing.xxs,
-    marginBottom: spacing.xs,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     overflow: "hidden",
@@ -190,7 +202,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    paddingVertical: spacing.xxs,
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm,
     marginHorizontal: -spacing.sm,
     borderRadius: radii.md,
@@ -199,8 +211,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary50,
   },
   well: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     alignItems: "center",
