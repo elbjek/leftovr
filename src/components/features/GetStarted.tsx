@@ -1,19 +1,34 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Animated, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 import { colors, radii, shadows, spacing } from "../../theme";
+import { FoodGlyph } from "../illustrations";
 import { IconButton, Tappable, Text } from "../primitives";
+import { useHop } from "./FoodShelf";
 
-type Step = { label: string; icon: React.ReactNode };
+type Step = { label: string; food: string };
 
-/** Three peach-circled steps in a row: what the app does, before any food is in. */
+/**
+ * Three numbered steps, each a food hopping on a peach tile: the dinner card's
+ * shelf carried down the page, before any food is in.
+ */
 export function HowItWorks({ steps }: { steps: Step[] }) {
+  const hops = useHop(steps.length);
   return (
     <View style={styles.howRow}>
-      {steps.map((step) => (
-        <View key={step.label} style={styles.howCard}>
-          <View style={styles.howIcon}>{step.icon}</View>
+      {steps.map((step, i) => (
+        <View key={step.label} style={styles.howCard} accessible accessibilityLabel={`${i + 1}. ${step.label}`}>
+          <View style={styles.howTile}>
+            <View style={styles.howNumber}>
+              <Text variant="micro" color={colors.onPrimary}>
+                {i + 1}
+              </Text>
+            </View>
+            <Animated.View style={{ transform: [{ translateY: hops[i] }] }}>
+              <FoodGlyph name={step.food} size={30} />
+            </Animated.View>
+          </View>
           <Text variant="small" weight="bold" center>
             {step.label}
           </Text>
@@ -23,7 +38,7 @@ export function HowItWorks({ steps }: { steps: Step[] }) {
   );
 }
 
-type Task = { label: string; done: boolean; onPress: () => void };
+type Task = { label: string; food: string; done: boolean; onPress: () => void };
 
 type Props = {
   title: string;
@@ -33,8 +48,14 @@ type Props = {
   tasks: Task[];
 };
 
-/** The new account's first steps; done ones tick off, open ones are tappable. */
+/**
+ * The new account's first steps: a tomato progress bar, a food on a peach
+ * well per step, the next one tinted. Done steps tick off.
+ */
 export function GetStartedCard({ title, progress, hideLabel, onHide, tasks }: Props) {
+  const done = tasks.filter((task) => task.done).length;
+  const next = tasks.findIndex((task) => !task.done);
+
   return (
     <View style={styles.card}>
       <View style={styles.head}>
@@ -50,33 +71,51 @@ export function GetStartedCard({ title, progress, hideLabel, onHide, tasks }: Pr
           </IconButton>
         </View>
       </View>
-      {tasks.map((task) => (
-        <Tappable
-          key={task.label}
-          onPress={task.done ? undefined : task.onPress}
-          disabled={task.done}
-          role="checkbox"
-          state={{ checked: task.done }}
-          label={task.label}
-          style={styles.row}
-        >
-          <View style={[styles.check, task.done && styles.checkDone]}>
-            {task.done ? (
-              <Svg width={12} height={12} viewBox="0 0 24 24">
-                <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.onPrimary} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+
+      <View style={styles.track}>
+        <View style={[styles.fill, { width: `${(done / tasks.length) * 100}%` }]} />
+      </View>
+
+      {tasks.map((task, i) => {
+        const isNext = i === next;
+        return (
+          <Tappable
+            key={task.label}
+            onPress={task.done ? undefined : task.onPress}
+            disabled={task.done}
+            role="checkbox"
+            state={{ checked: task.done }}
+            label={task.label}
+            style={[styles.row, isNext && styles.rowNext]}
+          >
+            <View style={styles.well}>
+              <FoodGlyph name={task.food} size={22} />
+              {task.done ? (
+                <View style={styles.tick}>
+                  <Svg width={9} height={9} viewBox="0 0 24 24">
+                    <Path d="M5 12.5l4.5 4.5L19 7.5" stroke={colors.onPrimary} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                  </Svg>
+                </View>
+              ) : null}
+            </View>
+            <Text variant="label" muted={task.done} style={styles.rowLabel}>
+              {task.label}
+            </Text>
+            {task.done ? null : (
+              <Svg width={16} height={16} viewBox="0 0 24 24" accessible={false}>
+                <Path
+                  d="M9 6l6 6-6 6"
+                  fill="none"
+                  stroke={isNext ? colors.primary : colors.muted2}
+                  strokeWidth={2.4}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </Svg>
-            ) : null}
-          </View>
-          <Text variant="label" muted={task.done} style={styles.rowLabel}>
-            {task.label}
-          </Text>
-          {task.done ? null : (
-            <Svg width={16} height={16} viewBox="0 0 24 24" accessible={false}>
-              <Path d="M9 6l6 6-6 6" fill="none" stroke={colors.muted2} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          )}
-        </Tappable>
-      ))}
+            )}
+          </Tappable>
+        );
+      })}
     </View>
   );
 }
@@ -88,19 +127,28 @@ const styles = StyleSheet.create({
   },
   howCard: {
     flex: 1,
-    alignItems: "center",
-    gap: spacing.xs,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xs,
+    gap: spacing.sm,
+    padding: spacing.sm,
+    paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
     ...shadows.soft,
   },
-  howIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.pill,
+  howTile: {
+    height: 64,
+    borderRadius: radii.md,
     backgroundColor: colors.surface2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  howNumber: {
+    position: "absolute",
+    top: spacing.xs,
+    left: spacing.xs,
+    width: 20,
+    height: 20,
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -115,7 +163,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: spacing.xs,
   },
   headRight: {
     flexDirection: "row",
@@ -126,24 +173,52 @@ const styles = StyleSheet.create({
   hide: {
     marginRight: -spacing.sm,
   },
+  track: {
+    height: 6,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+    borderRadius: radii.pill,
+    backgroundColor: colors.surface2,
+    overflow: "hidden",
+  },
+  fill: {
+    height: "100%",
+    borderRadius: radii.pill,
+    backgroundColor: colors.primary,
+  },
+  // The tint runs to the card's edges; the row's own padding keeps the text in line.
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    marginHorizontal: -spacing.sm,
+    borderRadius: radii.md,
   },
-  check: {
-    width: 22,
-    height: 22,
+  rowNext: {
+    backgroundColor: colors.primary50,
+  },
+  well: {
+    width: 40,
+    height: 40,
     borderRadius: radii.pill,
-    borderWidth: 2,
-    borderColor: colors.muted2,
+    backgroundColor: colors.surface2,
     alignItems: "center",
     justifyContent: "center",
   },
-  checkDone: {
-    borderColor: colors.primary,
+  tick: {
+    position: "absolute",
+    right: -2,
+    bottom: -2,
+    width: 18,
+    height: 18,
+    borderRadius: radii.pill,
+    borderWidth: 2,
+    borderColor: colors.surface,
     backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
   },
   rowLabel: {
     flex: 1,

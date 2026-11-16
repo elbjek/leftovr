@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodGlyph, FoodLoader, GeneratingOverlay, GetStartedCard, HouseholdPill, HowItWorks, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, GetStartedCard, HouseholdPill, HowItWorks, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { foodIconKey, formatMoney } from "@/lib";
@@ -474,16 +474,19 @@ export default function RecipesRoute() {
   const startTasks = [
     {
       label: t("recipes.start.addFood"),
+      food: "carrot",
       done: Boolean(activeHousehold?.first_fill_completed_at) || !fridgeEmpty,
       onPress: openAddSheet,
     },
     {
       label: t("recipes.start.firstIdea"),
+      food: "spaghetti",
       done: Boolean(profile?.free_recipe_generation_used_at) || savedRecipes.length > 0 || hasSuggestions,
       onPress: fridgeEmpty ? openAddSheet : openCookPrompt,
     },
     {
       label: t("recipes.start.cook"),
+      food: "chicken",
       done: cookedRecipes.length > 0,
       onPress: dish ? dish.open : fridgeEmpty ? openAddSheet : openCookPrompt,
     },
@@ -536,6 +539,8 @@ export default function RecipesRoute() {
         style={styles.listScroll}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        // Short pages (a new account's) sit still instead of rubber-banding.
+        alwaysBounceVertical={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
@@ -666,9 +671,9 @@ export default function RecipesRoute() {
           <View style={styles.startBlock}>
             <HowItWorks
               steps={[
-                { label: t("recipes.start.how.add"), icon: <ScanIcon color={colors.primary} size={20} /> },
-                { label: t("recipes.start.how.ideas"), icon: <FoodGlyph name="spaghetti" size={22} /> },
-                { label: t("recipes.start.how.waste"), icon: <FoodGlyph name="lettuce" size={22} /> },
+                { label: t("recipes.start.how.add"), food: "category_vegetables" },
+                { label: t("recipes.start.how.ideas"), food: "pasta" },
+                { label: t("recipes.start.how.waste"), food: "lettuce" },
               ]}
             />
           </View>

@@ -18,10 +18,10 @@ type Props = {
 };
 
 /**
- * A peach shelf of foods hopping one after another (the paywall hero, also
- * the home's dinner card). Still when the device asks for reduced motion.
+ * One hop each for `count` foods, in turn on a shared 2.4s loop (the shelf's
+ * rhythm, reused by the home's first-run cards). Still under reduced motion.
  */
-export function FoodShelf({ foods, height = 144, tag, children }: Props) {
+export function useHop(count: number) {
   const reduce = useReducedMotion();
   const [beat] = useState(() => new Animated.Value(0));
 
@@ -34,23 +34,32 @@ export function FoodShelf({ foods, height = 144, tag, children }: Props) {
     return () => loop.stop();
   }, [beat, reduce]);
 
+  return Array.from({ length: count }, (_, i) => {
+    const start = 0.05 + i * 0.12;
+    return beat.interpolate({
+      inputRange: [0, start, start + 0.06, start + 0.12, 1],
+      outputRange: [0, 0, -HOP, 0, 0],
+    });
+  });
+}
+
+/**
+ * A peach shelf of foods hopping one after another (the paywall hero, also
+ * the home's dinner card). Still when the device asks for reduced motion.
+ */
+export function FoodShelf({ foods, height = 144, tag, children }: Props) {
+  const hops = useHop(foods.length);
+
   return (
     <View style={[styles.shelfWell, { height }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {children}
       <View style={styles.foods}>
-        {foods.map((food, i) => {
-          const start = 0.05 + i * 0.12;
-          const translateY = beat.interpolate({
-            inputRange: [0, start, start + 0.06, start + 0.12, 1],
-            outputRange: [0, 0, -HOP, 0, 0],
-          });
-          return (
-            <Animated.View key={`${food.name}-${i}`} style={[styles.food, { transform: [{ translateY }] }]}>
-              {tag?.index === i ? <View style={styles.tag}>{tag.node}</View> : null}
-              <FoodGlyph name={food.name} category={food.category} size={40} />
-            </Animated.View>
-          );
-        })}
+        {foods.map((food, i) => (
+          <Animated.View key={`${food.name}-${i}`} style={[styles.food, { transform: [{ translateY: hops[i] }] }]}>
+            {tag?.index === i ? <View style={styles.tag}>{tag.node}</View> : null}
+            <FoodGlyph name={food.name} category={food.category} size={40} />
+          </Animated.View>
+        ))}
       </View>
       <View style={styles.shelf} />
     </View>
