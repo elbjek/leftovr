@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Linking, Platform, StyleSheet, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 
 import { BottomSheet, Button, Card, ChoiceCard, Divider, HouseholdPill, HouseholdSheet, ListRow, Logo, PremiumSheet, Screen, ScreenHeader, Tappable, Text, TextField } from "@/components";
@@ -28,7 +28,7 @@ const SUPPORT_EMAIL = "support@twobricklabs.com";
 
 export default function SettingsRoute() {
   const { t, i18n } = useTranslation();
-  const { joinCode } = useLocalSearchParams<{ joinCode?: string }>();
+  const { joinCode, household: householdParam } = useLocalSearchParams<{ joinCode?: string; household?: string }>();
   const { profile, activeHousehold, session, signOut, refresh } = useAuth();
   const { system, setMeasurementSystem } = useMeasurementSystem();
   const currentLanguage = isSupportedLanguage(i18n.language) ? i18n.language : "en";
@@ -58,6 +58,16 @@ export default function SettingsRoute() {
     setPrevJoinCode(joinCode);
     if (joinCode) setHouseholdOpen(true);
   }
+  // ?household=1 (a "Kitchen changed" push): open the household sheet, then
+  // clear the param so the next push can open it again.
+  const [prevHouseholdParam, setPrevHouseholdParam] = useState<string | undefined>();
+  if (householdParam !== prevHouseholdParam) {
+    setPrevHouseholdParam(householdParam);
+    if (householdParam) setHouseholdOpen(true);
+  }
+  useEffect(() => {
+    if (householdParam) router.setParams({ household: undefined });
+  }, [householdParam]);
   const [localAvoidances, setLocalAvoidances] = useState<string[]>(profile?.avoidances ?? []);
 
   const household = useHousehold(activeHousehold?.id);

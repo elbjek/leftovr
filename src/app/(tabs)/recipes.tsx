@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Svg, { Path } from "react-native-svg";
 
 import { Button, CookFilters, DevHousematePushButton, FitScrollView, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, GetStartedCard, HouseholdPill, HowItWorks, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
-import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
+import { isPremium as resolvePremium, openRecipeDetail, listenForGenerateRequest, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { foodIconKey, formatMoney } from "@/lib";
 import { CookingMode, RecipeRow } from "@/repositories/recipeRepository";
@@ -192,7 +192,11 @@ export default function RecipesRoute() {
   // handleGenerate (free users hit the premium sheet).
   useFocusEffect(
     useCallback(() => {
-      if (takeGenerateOnArrival()) setAutoGenerate(true);
+      const take = () => {
+        if (takeGenerateOnArrival()) setAutoGenerate(true);
+      };
+      take();
+      return listenForGenerateRequest(take);
     }, []),
   );
   useEffect(() => {

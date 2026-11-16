@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, RefreshControl, StyleSheet, View } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
@@ -51,6 +51,21 @@ export default function InsightsRoute() {
   const [period, setPeriod] = useState<Period>("month");
   // 0 = the running week / month / year, -1 = the one before it, and so on.
   const [offset, setOffset] = useState(0);
+  // ?week=<ms> (the Sunday recap push): that week, not This month — the week
+  // before when the push is opened after it ended.
+  const { week: weekParam } = useLocalSearchParams<{ week?: string }>();
+  const [prevWeekParam, setPrevWeekParam] = useState<string | undefined>();
+  if (weekParam !== prevWeekParam) {
+    setPrevWeekParam(weekParam);
+    if (weekParam) {
+      const weeks = (periodWindow("week").start.getTime() - periodWindow("week", new Date(Number(weekParam))).start.getTime()) / (7 * 86_400_000);
+      setPeriod("week");
+      setOffset(-Math.max(0, Math.round(weeks)));
+    }
+  }
+  useEffect(() => {
+    if (weekParam) router.setParams({ week: undefined });
+  }, [weekParam]);
   const [showShare, setShowShare] = useState(false);
   const [householdOpen, setHouseholdOpen] = useState(false);
   const { lots: inventory } = useInventory(activeHousehold?.id);

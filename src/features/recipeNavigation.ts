@@ -6,9 +6,22 @@ import type { RecipeRow } from "@/repositories/recipeRepository";
 // in memory, not a route param, so a link can't start a paid generation.
 let generateOnArrival = false;
 
+// Set while Recipes is focused: pushing to the tab you're on fires no focus
+// event (a daily push tapped while the home is open), so it hears it here.
+let onGenerateRequest: (() => void) | null = null;
+
 export function openRecipesAndGenerate() {
   generateOnArrival = true;
   router.push("/(tabs)/recipes");
+  onGenerateRequest?.();
+}
+
+/** Recipes listens while focused; returns the unsubscribe. */
+export function listenForGenerateRequest(listener: () => void) {
+  onGenerateRequest = listener;
+  return () => {
+    if (onGenerateRequest === listener) onGenerateRequest = null;
+  };
 }
 
 /** True once per openRecipesAndGenerate call. */

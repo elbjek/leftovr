@@ -72,10 +72,11 @@ export default function FridgeRoute() {
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   // ?item=<group key> (the home's day sheet) opens that food's sheet once
   // loaded; the param is then cleared so the tab doesn't reopen it.
-  const { item: itemParam, new: newParam, demo: demoParam } = useLocalSearchParams<{
+  const { item: itemParam, new: newParam, demo: demoParam, view: viewParam } = useLocalSearchParams<{
     item?: string;
     new?: string;
     demo?: string;
+    view?: string;
   }>();
   const [openedItem, setOpenedItem] = useState<string | undefined>();
   if (itemParam !== openedItem) {
@@ -101,6 +102,16 @@ export default function FridgeRoute() {
       setView("new");
     });
   }, [newParam, demoParam, refresh]);
+  // ?view=soon (an "Eat these first" push): open the Use soon list, then
+  // clear the param so the next push can open it again.
+  const [prevViewParam, setPrevViewParam] = useState<string | undefined>();
+  if (viewParam !== prevViewParam) {
+    setPrevViewParam(viewParam);
+    if (viewParam === "soon") setView("soon");
+  }
+  useEffect(() => {
+    if (viewParam) router.setParams({ view: undefined });
+  }, [viewParam]);
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const query = search.trim().toLowerCase();

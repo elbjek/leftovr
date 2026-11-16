@@ -191,6 +191,22 @@ export async function listCookedEventRows(householdId: string) {
   return (data ?? []) as CookedEventRow[];
 }
 
+// The recipe a housemate cooked most recently since `sinceIso` (a "Dinner's
+// handled" push), or null when that cook had no saved recipe.
+export async function findHousemateCookedRecipeId(householdId: string, userId: string, sinceIso: string) {
+  const { data, error } = await getSupabaseClient()
+    .from("cooked_events")
+    .select("recipe_id")
+    .eq("household_id", householdId)
+    .neq("cooked_by", userId)
+    .gte("created_at", sinceIso)
+    .not("recipe_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  return (data?.[0]?.recipe_id as string | undefined) ?? null;
+}
+
 // One recipe as a RecipeRow ready to open: the row, the caller's favorite flag
 // and how often the household has cooked it (what useRecipes adds to a row).
 export async function getRecipeRow(recipeId: string): Promise<RecipeRow | null> {
