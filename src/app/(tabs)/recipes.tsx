@@ -116,6 +116,11 @@ export default function RecipesRoute() {
     setUsedHidden(true);
     AsyncStorage.setItem(usedHiddenKey, "1").catch(() => {});
   };
+  // Whether the home's content fits its scroll view (it fills it via
+  // flexGrow, so "fits" means no taller than the view).
+  const [pageHeight, setPageHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const pageFits = pageHeight > 0 && contentHeight <= pageHeight + 1;
   // "Get started" can be hidden the same way (per account, this device).
   const startHiddenKey = `get-started-hidden:${profile?.id}`;
   const [startHidden, setStartHidden] = useState<boolean | null>(null);
@@ -539,8 +544,12 @@ export default function RecipesRoute() {
         style={styles.listScroll}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        // Short pages (a new account's) sit still instead of rubber-banding.
-        alwaysBounceVertical={false}
+        // A page that fits (a new account's) doesn't move at all: on iOS the
+        // refresh control lets any scroll view be pulled, so scrolling is off
+        // until the content is taller than the screen.
+        scrollEnabled={!pageFits}
+        onLayout={(event) => setPageHeight(event.nativeEvent.layout.height)}
+        onContentSizeChange={(_, height) => setContentHeight(height)}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
