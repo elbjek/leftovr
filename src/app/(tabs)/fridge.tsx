@@ -4,13 +4,16 @@ import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
 import { BackButton, BottomSheet, FitScrollView, Button, ShoppingListIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, FoodListCard, FoodLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
-import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth } from "@/features";
+import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth, useMeasurementSystem } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useShoppingList } from "@/hooks";
 import {
   daysLeft,
   PartialState,
   getCatalogFood,
+  groupInventoryLots,
+  InventoryCategory,
+  InventoryLot,
   hasExplicitExpiredLot,
   InventoryGroup,
   isMetricAmountRunningLow,
@@ -53,10 +56,12 @@ export default function FridgeRoute() {
     removeGroups,
     refresh,
   } = useInventory(activeHousehold?.id);
-  // Dev walkthrough (DevHousematePushButton's fake push): your 3 newest foods
-  // play the pretend housemate's adds until you leave the tab.
+  // Dev walkthrough (DevHousematePushButton's fake push): 3 pretend foods from
+  // the pretend housemate sit on top of your kitchen until you leave the tab.
+  // Client-side only; their sheets' actions fail (no such rows).
   const [demoAdder, setDemoAdder] = useState<{ name: string; at: string } | null>(null);
-  const groups = demoAdder ? asDemoAdds(loadedGroups, demoAdder) : loadedGroups;
+  const { system } = useMeasurementSystem();
+  const groups = demoAdder ? [...groupInventoryLots(demoLots(demoAdder), system), ...loadedGroups] : loadedGroups;
   // Only the first load shows the loader. Every tab focus refetches; those
   // keep the kitchen on screen instead of flashing a loader into it.
   const [loadedOnce, setLoadedOnce] = useState(false);
@@ -1201,14 +1206,35 @@ function sortBySoonest(groups: InventoryGroup[]) {
   return [...groups].sort((a, b) => groupDaysLeft(a) - groupDaysLeft(b));
 }
 
-// Dev only: the 3 newest foods' latest lot re-labelled as a pretend housemate's.
-function asDemoAdds(groups: InventoryGroup[], adder: { name: string; at: string }) {
-  const picked = new Set(sortByNewest(groups.filter((group) => group.urgency !== "expired")).slice(0, 3).map((group) => group.key));
-  return groups.map((group) =>
-    picked.has(group.key)
-      ? { ...group, lots: [{ ...group.lots[0], added_by: "demo", added_by_name: adder.name, added_at: adder.at }, ...group.lots.slice(1)] }
-      : group,
-  );
+// Dev only: 3 pretend foods "added" by the pretend housemate just now.
+function demoLots(adder: { name: string; at: string }): InventoryLot[] {
+  const foods: [string, InventoryCategory, number, string][] = [
+    ["Milk", "dairy_eggs", 1, "item"],
+    ["Eggs", "dairy_eggs", 10, "pcs"],
+    ["Tomatoes", "vegetables", 4, "pcs"],
+  ];
+  return foods.map(([name, category, quantity, unit]) => ({
+    id: `demo-${name}`,
+    name,
+    normalized_name: name.toLowerCase(),
+    brand_name: null,
+    category,
+    quantity,
+    unit,
+    net_amount: null,
+    net_unit: null,
+    partial_state: "full",
+    shelf_life_range: null,
+    expires_at: null,
+    source: "manual",
+    added_at: adder.at,
+    removed_at: null,
+    added_by: "demo",
+    added_by_name: adder.name,
+    purchase_price: null,
+    purchase_amount: null,
+    purchase_currency: null,
+  }));
 }
 
 // Lots come newest first from the query, so lots[0] is the latest add.
