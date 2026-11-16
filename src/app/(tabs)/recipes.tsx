@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, FitScrollView, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, GetStartedCard, HouseholdPill, HowItWorks, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
+import { Button, CookFilters, DevHousematePushButton, FitScrollView, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, GetStartedCard, HouseholdPill, HowItWorks, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { foodIconKey, formatMoney } from "@/lib";
@@ -929,6 +929,7 @@ export default function RecipesRoute() {
         freezeNote={milestone != null && milestone % 7 === 0 ? t("recipes.milestone.freeze") : undefined}
         doneLabel={t("recipes.milestone.done")}
       />
+      <DevHousematePushButton />
     </Screen>
   );
 }

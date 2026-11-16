@@ -45,7 +45,7 @@ export default function FridgeRoute() {
   const { profile, activeHousehold, refresh: refreshAuth } = useAuth();
   const {
     loading,
-    groups,
+    groups: loadedGroups,
     error,
     updateFirstLot,
     markGroupsStillGood,
@@ -53,6 +53,10 @@ export default function FridgeRoute() {
     removeGroups,
     refresh,
   } = useInventory(activeHousehold?.id);
+  // Dev walkthrough (DevHousematePushButton's fake push): your 3 newest foods
+  // play the pretend housemate's adds until you leave the tab.
+  const [demoAdder, setDemoAdder] = useState<{ name: string; at: string } | null>(null);
+  const groups = demoAdder ? asDemoAdds(loadedGroups, demoAdder) : loadedGroups;
   // Only the first load shows the loader. Every tab focus refetches; those
   // keep the kitchen on screen instead of flashing a loader into it.
   const [loadedOnce, setLoadedOnce] = useState(false);
@@ -63,7 +67,11 @@ export default function FridgeRoute() {
   const [actionGroup, setActionGroup] = useState<InventoryGroup | null>(null);
   // ?item=<group key> (the home's day sheet) opens that food's sheet once
   // loaded; the param is then cleared so the tab doesn't reopen it.
-  const { item: itemParam, new: newParam } = useLocalSearchParams<{ item?: string; new?: string }>();
+  const { item: itemParam, new: newParam, demo: demoParam } = useLocalSearchParams<{
+    item?: string;
+    new?: string;
+    demo?: string;
+  }>();
   const [openedItem, setOpenedItem] = useState<string | undefined>();
   if (itemParam !== openedItem) {
     const group = itemParam ? groups.find((g) => g.key === itemParam) : undefined;
@@ -81,12 +89,13 @@ export default function FridgeRoute() {
   const [newSince, setNewSince] = useState(0);
   useEffect(() => {
     if (!newParam) return;
-    router.setParams({ new: undefined });
+    router.setParams({ new: undefined, demo: undefined });
     void refresh().then(() => {
       setNewSince(Number(newParam));
+      setDemoAdder(demoParam ? { name: demoParam, at: new Date().toISOString() } : null);
       setView("new");
     });
-  }, [newParam, refresh]);
+  }, [newParam, demoParam, refresh]);
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const query = search.trim().toLowerCase();
@@ -218,7 +227,7 @@ export default function FridgeRoute() {
     setSearch("");
   };
   const { members } = useHousehold(activeHousehold?.id);
-  const showAddedBy = members.length > 1;
+  const showAddedBy = members.length > 1 || Boolean(demoAdder);
   const statusLabels: Record<Urgency, string> = {
     urgent: t("fridge.status.urgent"),
     useSoon: t("fridge.status.soon"),
@@ -239,6 +248,7 @@ export default function FridgeRoute() {
       // reopens on a category the user left behind.
       return () => {
         sub.remove();
+        setDemoAdder(null);
         setView(null);
         setSearch("");
       };
@@ -1189,6 +1199,16 @@ function isUseSoon(group: InventoryGroup) {
 
 function sortBySoonest(groups: InventoryGroup[]) {
   return [...groups].sort((a, b) => groupDaysLeft(a) - groupDaysLeft(b));
+}
+
+// Dev only: the 3 newest foods' latest lot re-labelled as a pretend housemate's.
+function asDemoAdds(groups: InventoryGroup[], adder: { name: string; at: string }) {
+  const picked = new Set(sortByNewest(groups.filter((group) => group.urgency !== "expired")).slice(0, 3).map((group) => group.key));
+  return groups.map((group) =>
+    picked.has(group.key)
+      ? { ...group, lots: [{ ...group.lots[0], added_by: "demo", added_by_name: adder.name, added_at: adder.at }, ...group.lots.slice(1)] }
+      : group,
+  );
 }
 
 // Lots come newest first from the query, so lots[0] is the latest add.

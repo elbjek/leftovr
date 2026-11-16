@@ -33,3 +33,4 @@ export * from "./WeekStrip";
 export * from "./WinsList";
 export * from "./FoodShelf";
 export * from "./GetStarted";
+export * from "./DevHousematePushButton";

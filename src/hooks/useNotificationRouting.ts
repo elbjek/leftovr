@@ -30,7 +30,11 @@ function routeFor(response: Notifications.NotificationResponse | null): Href | n
     // iOS reports the date in seconds, Android in milliseconds.
     const { date } = response.notification;
     const sentMs = date < 1e12 ? date * 1000 : date;
-    return { pathname: "/(tabs)/fridge", params: { new: String(Math.round(sentMs - 10 * 60_000)) } };
+    const params: Record<string, string> = { new: String(Math.round(sentMs - 10 * 60_000)) };
+    // DevHousematePushButton's fake push names a pretend housemate.
+    const demo = (data as { demo?: unknown }).demo;
+    if (typeof demo === "string") params.demo = demo;
+    return { pathname: "/(tabs)/fridge", params };
   }
   return type ? ROUTE_BY_TYPE[type] ?? null : null;
 }
