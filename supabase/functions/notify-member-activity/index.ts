@@ -61,6 +61,29 @@ Deno.serve(async (req) => {
     .from("profiles").select("display_name").eq("id", actor_id).single();
   const name = actor?.display_name ?? "Someone";
 
+  // The removed person hears about it too (the others get "X was removed"
+  // below); they're already in their own new kitchen by now.
+  if (kind === "removed") {
+    const [{ data: kitchen }, { data: prefs }, { data: profile }] = await Promise.all([
+      supabase.from("households").select("name").eq("id", household_id).single(),
+      supabase.from("notification_preferences")
+        .select("push_token, notifications_enabled, member_activity_enabled").eq("user_id", actor_id).maybeSingle(),
+      supabase.from("profiles").select("language, active_household_id").eq("id", actor_id).single(),
+    ]);
+    if (prefs?.push_token && prefs.notifications_enabled && prefs.member_activity_enabled) {
+      await supabase.from("notification_sends").insert({
+        user_id: actor_id, household_id, actor_id, type: "member_change", sent_at: now.toISOString(),
+      });
+      const dead = await sendPush([prefs.push_token], {
+        ...copy(toLang(profile?.language)).removedYou(kitchen?.name ?? "the kitchen"),
+        data: { type: "member_change", household_id: profile?.active_household_id ?? household_id },
+      });
+      for (const token of dead) {
+        await supabase.from("notification_preferences").update({ push_token: null }).eq("push_token", token);
+      }
+    }
+  }
+
   // Other members with a token + not muted.
   const { data: members } = await supabase
     .from("household_members")

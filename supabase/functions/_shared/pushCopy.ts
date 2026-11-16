@@ -32,6 +32,8 @@ type Copy = {
   memberActivity: (name: string, count: number) => { title: string; body: string };
   memberCooked: (name: string, dish: string | null) => { title: string; body: string };
   memberChange: (name: string, kind: "joined" | "left" | "removed") => { title: string; body: string };
+  /** To the person who was removed; `kitchen` is the kitchen's name. */
+  removedYou: (kitchen: string) => { title: string; body: string };
   shopping: (names: string[], extra: number) => { title: string; body: string };
 };
 
@@ -83,6 +85,10 @@ const en: Copy = {
       : kind === "removed"
         ? `${name} was removed from your kitchen.`
         : `${name} left your kitchen.`,
+  }),
+  removedYou: (kitchen) => ({
+    title: "Your kitchen changed",
+    body: `You were removed from ${kitchen}. You have your own kitchen now.`,
   }),
   shopping: (names, extra) => ({
     title: "Shopping today?",
@@ -141,6 +147,10 @@ const sr: Copy = {
       : kind === "removed"
         ? `${name} je uklonjen/a iz tvoje kuhinje.`
         : `${name} je napustio/la tvoju kuhinju.`,
+  }),
+  removedYou: (kitchen) => ({
+    title: "Promena u kuhinji",
+    body: `Uklonjen/a si iz kuhinje „${kitchen}”. Sada imaš svoju kuhinju.`,
   }),
   shopping: (names, extra) => ({
     title: "Ideš u kupovinu?",
