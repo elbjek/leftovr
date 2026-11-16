@@ -1452,15 +1452,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  // Back at the top-left with the title under it, like scan's and the
+  // invite screen's back buttons.
   resultsHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
+    alignItems: "flex-start",
+    gap: spacing.sm,
     paddingHorizontal: spacing.screenX,
   },
   resultsCopy: {
-    flex: 1,
-    minWidth: 0,
+    alignSelf: "stretch",
+    marginTop: spacing.xs,
   },
   soon: {
     gap: spacing.xs,
