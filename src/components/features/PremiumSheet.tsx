@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Animated, Easing, Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { PurchasesOffering } from "react-native-purchases";
 
@@ -8,7 +8,7 @@ import { findPackage, getCurrentOffering, PRODUCT_IDS, purchasePackage, restoreP
 import { colors, radii, spacing } from "../../theme";
 import { BottomSheet, Button, SegmentedControl, Text } from "../primitives";
 import { FoodGlyph } from "../illustrations";
-import { useReducedMotion } from "../../hooks/useReducedMotion";
+import { FoodShelf } from "./FoodShelf";
 import { formatPerMonth, savePercent } from "./perMonth";
 import { legalUrl } from "@/lib/legalUrl";
 
@@ -321,56 +321,28 @@ const CARD_WIDTH = 164;
 const CARD_GAP = 10;
 const INDIVIDUAL_FOODS = ["spinach", "eggs", "tomato", "white_cheese", "bell_pepper"];
 const HOUSEHOLD_FOODS = ["chicken", "potato", "carrot", "milk", "bread"];
-const HOP = 10;
 
-/**
- * A peach shelf of foods hopping one after another, one of them tagged
- * "today" — the Eat-first idea in a glance. Still when the device asks for
- * reduced motion.
- */
 function ShelfHero({ foods, todayIndex }: { foods: string[]; todayIndex: number }) {
   const { t } = useTranslation();
-  const reduce = useReducedMotion();
-  const [beat] = useState(() => new Animated.Value(0));
-
-  useEffect(() => {
-    if (reduce) return;
-    const loop = Animated.loop(
-      Animated.timing(beat, { toValue: 1, duration: 2400, easing: Easing.linear, useNativeDriver: true }),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [beat, reduce]);
-
   return (
-    <View style={styles.hero} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <View style={styles.heroPill}>
-        <Text variant="micro" color={colors.accentInk}>
-          ★ {t("premium.title")}
-        </Text>
-      </View>
-      <View style={styles.shelfFoods}>
-        {foods.map((food, i) => {
-          const start = 0.05 + i * 0.12;
-          const translateY = beat.interpolate({
-            inputRange: [0, start, start + 0.06, start + 0.12, 1],
-            outputRange: [0, 0, -HOP, 0, 0],
-          });
-          return (
-            <Animated.View key={food} style={[styles.shelfFood, { transform: [{ translateY }] }]}>
-              {i === todayIndex ? (
-                <View style={styles.todayTag}>
-                  <Text variant="micro" color={colors.onPrimary}>
-                    {t("premium.today")}
-                  </Text>
-                </View>
-              ) : null}
-              <FoodGlyph name={food} size={40} />
-            </Animated.View>
-          );
-        })}
-      </View>
-      <View style={styles.shelf} />
+    <View style={styles.hero}>
+      <FoodShelf
+        foods={foods.map((name) => ({ name }))}
+        tag={{
+          index: todayIndex,
+          node: (
+            <Text variant="micro" color={colors.onPrimary}>
+              {t("premium.today")}
+            </Text>
+          ),
+        }}
+      >
+        <View style={styles.heroPill}>
+          <Text variant="micro" color={colors.accentInk}>
+            ★ {t("premium.title")}
+          </Text>
+        </View>
+      </FoodShelf>
     </View>
   );
 }
@@ -432,10 +404,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxl,
   },
   hero: {
-    height: 144,
-    backgroundColor: colors.surface2,
-    borderRadius: radii.xl,
-    overflow: "hidden",
     marginBottom: spacing.lg,
   },
   heroPill: {
@@ -446,35 +414,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxs,
     backgroundColor: colors.accentSoft,
     borderRadius: radii.pill,
-  },
-  shelfFoods: {
-    position: "absolute",
-    left: spacing.lg,
-    right: spacing.lg,
-    bottom: 28,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  shelfFood: {
-    alignItems: "center",
-  },
-  todayTag: {
-    position: "absolute",
-    top: -18,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 1,
-    backgroundColor: colors.primary,
-    borderRadius: radii.pill,
-    zIndex: 1,
-  },
-  shelf: {
-    position: "absolute",
-    left: spacing.lg,
-    right: spacing.lg,
-    bottom: 22,
-    height: 4,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surface3,
   },
   headline: {
     marginBottom: spacing.xxs,

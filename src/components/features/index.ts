@@ -31,3 +31,5 @@ export * from "./UnfinishedScanCard";
 export * from "./StreakMilestone";
 export * from "./WeekStrip";
 export * from "./WinsList";
+export * from "./FoodShelf";
+export * from "./GetStarted";

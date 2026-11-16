@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Svg, { Path } from "react-native-svg";
 
-import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodLoader, GeneratingOverlay, HouseholdPill, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
+import { Button, CookFilters, CookPromptSheet, DaySheet, DinnerHero, FilterChip, FoodGlyph, FoodLoader, GeneratingOverlay, GetStartedCard, HouseholdPill, HowItWorks, useOpenAddSheet, HouseholdSheet, IconButton, IdeasResults, Logo, PremiumSheet, RecipeListCard, ScanIcon, Screen, StreakMilestone, Tappable, Text, TryNextCard, UnfinishedScanCard, WeekStrip } from "@/components";
 import { isPremium as resolvePremium, openRecipeDetail, openSavedRecipe, takeGenerateOnArrival, useAuth, useScanDraft } from "@/features";
 import { useDaySheet, useHousehold, useInventory, useRecipes, useStreak, useStreakMilestone } from "@/hooks";
 import { foodIconKey, formatMoney } from "@/lib";
@@ -30,6 +30,9 @@ const LIST_LIMIT = 6;
 function capitalize(name: string) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
+
+// The dinner card's shelf before (or beyond) the kitchen's own foods.
+const HERO_FOODS = [{ name: "carrot" }, { name: "eggs" }, { name: "milk" }, { name: "bread" }, { name: "apple" }];
 
 export default function RecipesRoute() {
   const { t } = useTranslation();
@@ -112,6 +115,19 @@ export default function RecipesRoute() {
   const hideUsedBanner = () => {
     setUsedHidden(true);
     AsyncStorage.setItem(usedHiddenKey, "1").catch(() => {});
+  };
+  // "Get started" can be hidden the same way (per account, this device).
+  const startHiddenKey = `get-started-hidden:${profile?.id}`;
+  const [startHidden, setStartHidden] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!profile?.id) return;
+    AsyncStorage.getItem(startHiddenKey)
+      .then((value) => setStartHidden(value === "1"))
+      .catch(() => setStartHidden(false));
+  }, [profile?.id, startHiddenKey]);
+  const hideStart = () => {
+    setStartHidden(true);
+    AsyncStorage.setItem(startHiddenKey, "1").catch(() => {});
   };
 
   // Tapping Recipes in the dock always lands on the home, out of the ideas view.
@@ -447,6 +463,32 @@ export default function RecipesRoute() {
     .slice(0, 8);
 
   // Logo left, household pill right; the generating overlay shows it too.
+  // The dinner card's shelf: the kitchen's own foods (soonest to go first),
+  // topped up with staples so it always has five.
+  const ownFoods = [...urgentGroups, ...inventoryGroups.filter((group) => !urgentGroups.includes(group))]
+    .slice(0, HERO_FOODS.length)
+    .map((group) => ({ name: group.name, category: toUiCategory(group.category) }));
+  const heroFoods = [...ownFoods, ...HERO_FOODS.slice(ownFoods.length)];
+  // Before the first food is in: what the app does, under the dinner card.
+  const firstRun = !activeHousehold?.first_fill_completed_at && fridgeEmpty;
+  const startTasks = [
+    {
+      label: t("recipes.start.addFood"),
+      done: Boolean(activeHousehold?.first_fill_completed_at) || !fridgeEmpty,
+      onPress: openAddSheet,
+    },
+    {
+      label: t("recipes.start.firstIdea"),
+      done: Boolean(profile?.free_recipe_generation_used_at) || savedRecipes.length > 0 || hasSuggestions,
+      onPress: fridgeEmpty ? openAddSheet : openCookPrompt,
+    },
+    {
+      label: t("recipes.start.cook"),
+      done: cookedRecipes.length > 0,
+      onPress: dish ? dish.open : fridgeEmpty ? openAddSheet : openCookPrompt,
+    },
+  ];
+
   const topBar = (
     <View style={styles.header}>
       <View style={styles.brand}>
@@ -510,52 +552,53 @@ export default function RecipesRoute() {
           />
         ) : null}
 
-        {!isPremium && (canGenerate || usedHidden === false) ? (
-          <View style={[styles.limitBanner, !canGenerate && styles.limitWarning]}>
+        {/* The free idea still to use is a pill on the dinner card, not a
+            banner; only "used" is a banner, with the upgrade. */}
+        {!isPremium && !canGenerate && usedHidden === false ? (
+          <View style={styles.limitBanner}>
             <View style={styles.limitMessage}>
-              {!canGenerate ? (
-                <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false}>
-                  <Path d="M12 3 22 21H2L12 3Z" fill="none" stroke={colors.onPrimary} strokeWidth={1.8} strokeLinejoin="round" />
-                  <Path d="M12 9v5m0 3v.1" stroke={colors.onPrimary} strokeWidth={2} strokeLinecap="round" />
-                </Svg>
-              ) : null}
+              <Svg width={24} height={24} viewBox="0 0 24 24" accessible={false}>
+                <Path d="M12 3 22 21H2L12 3Z" fill="none" stroke={colors.onPrimary} strokeWidth={1.8} strokeLinejoin="round" />
+                <Path d="M12 9v5m0 3v.1" stroke={colors.onPrimary} strokeWidth={2} strokeLinecap="round" />
+              </Svg>
               <View style={styles.limitCopy}>
-                <Text variant="title" color={canGenerate ? colors.text : colors.onPrimary}>
-                  {t(canGenerate ? "recipes.freeGenerationLeft" : "recipes.freeGenerationUsed")}
+                <Text variant="title" color={colors.onPrimary}>
+                  {t("recipes.freeGenerationUsed")}
                 </Text>
-                <Text variant="small" color={canGenerate ? colors.muted : colors.onPrimary} style={styles.limitSub}>
-                  {t(canGenerate ? "recipes.freePlan" : "recipes.freeGenerationUsedBody")}
+                <Text variant="small" color={colors.onPrimary} style={styles.limitSub}>
+                  {t("recipes.freeGenerationUsedBody")}
                 </Text>
               </View>
-              {!canGenerate ? (
-                <IconButton label={t("recipes.freeGenerationHide")} transparent size={32} onPress={hideUsedBanner} style={styles.limitClose}>
-                  <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-                    <Path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke={colors.onPrimary} strokeWidth={1.8} strokeLinecap="round" />
-                  </Svg>
-                </IconButton>
-              ) : null}
+              <IconButton label={t("recipes.freeGenerationHide")} transparent size={32} onPress={hideUsedBanner} style={styles.limitClose}>
+                <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+                  <Path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke={colors.onPrimary} strokeWidth={1.8} strokeLinecap="round" />
+                </Svg>
+              </IconButton>
             </View>
             {/* Out of free generations is the home's one real warning: solid
                 tomato with a pale butter button (buttons on red use accentSoft). */}
             <Button
               title={t("recipes.upgrade")}
-              variant={canGenerate ? "primary" : "accent"}
+              variant="accent"
               onPress={() => setShowPremium(true)}
-              style={!canGenerate && styles.onRedButton}
+              style={styles.onRedButton}
             />
           </View>
         ) : null}
 
-        <View style={styles.weekWrap}>
-          <WeekStrip
-            goal={{ done: usedToday, total: goalTotal }}
-            headline={goalHeadline}
-            detail={goalDetail}
-            streak={isPremium ? { count: streak, label: t("recipes.week.streak", { count: streak }) } : undefined}
-            onPress={() => showDay(new Date())}
-            soft={!isPremium}
-          />
-        </View>
+        {/* The week has nothing to show until the first food is in. */}
+        {activeHousehold?.first_fill_completed_at ? (
+          <View style={styles.weekWrap}>
+            <WeekStrip
+              goal={{ done: usedToday, total: goalTotal }}
+              headline={goalHeadline}
+              detail={goalDetail}
+              streak={isPremium ? { count: streak, label: t("recipes.week.streak", { count: streak }) } : undefined}
+              onPress={() => showDay(new Date())}
+              soft={!isPremium}
+            />
+          </View>
+        ) : null}
 
         {/* Recipes are the home: tonight's dish as TinyMeals' "Try next" when
             there is one, the question when there isn't. */}
@@ -611,11 +654,40 @@ export default function RecipesRoute() {
               }
               ctaLabel={fridgeEmpty ? t("recipes.home.scanCta") : t("recipes.generateCta")}
               ctaIcon={fridgeEmpty ? <ScanIcon color={colors.onPrimary} size={20} /> : undefined}
+              shelf={heroFoods}
+              pill={!isPremium && canGenerate ? t("recipes.home.freeIdea") : undefined}
               loading={generating}
               onPress={fridgeEmpty ? openAddSheet : openCookPrompt}
             />
           )}
         </View>
+
+        {firstRun ? (
+          <View style={styles.startBlock}>
+            <HowItWorks
+              steps={[
+                { label: t("recipes.start.how.add"), icon: <ScanIcon color={colors.primary} size={20} /> },
+                { label: t("recipes.start.how.ideas"), icon: <FoodGlyph name="spaghetti" size={22} /> },
+                { label: t("recipes.start.how.waste"), icon: <FoodGlyph name="lettuce" size={22} /> },
+              ]}
+            />
+          </View>
+        ) : null}
+
+        {startHidden === false && startTasks.some((task) => !task.done) ? (
+          <View style={styles.startBlock}>
+            <GetStartedCard
+              title={t("recipes.start.title")}
+              progress={t("recipes.start.progress", {
+                done: startTasks.filter((task) => task.done).length,
+                total: startTasks.length,
+              })}
+              hideLabel={t("recipes.start.hide")}
+              onHide={hideStart}
+              tasks={startTasks}
+            />
+          </View>
+        ) : null}
 
         {recipeError ? (
           <View style={styles.errorBanner}>
@@ -882,6 +954,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.screenX,
     marginBottom: spacing.xl,
   },
+  startBlock: {
+    paddingHorizontal: spacing.screenX,
+    marginBottom: spacing.lg,
+  },
   listScroll: {
     flex: 1,
   },
@@ -911,7 +987,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
-    backgroundColor: colors.surface2,
+    backgroundColor: colors.primary,
     borderRadius: radii.xl,
     gap: spacing.md,
   },
@@ -922,9 +998,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md + 2,
     backgroundColor: colors.redSoft,
     borderRadius: radii.xl,
-  },
-  limitWarning: {
-    backgroundColor: colors.primary,
   },
   onRedButton: {
     backgroundColor: colors.accentSoft,

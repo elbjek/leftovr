@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 
 import { colors, fonts, radii, shadows, spacing } from "../../theme";
 import { Text } from "../primitives";
+import { FoodShelf } from "./FoodShelf";
 
 type Props = {
   eyebrow: string;
@@ -16,15 +17,24 @@ type Props = {
   ctaIcon?: React.ReactNode;
   loading?: boolean;
   onPress: () => void;
+  /** Foods hopping on a peach shelf across the top of the card. */
+  shelf?: { name: string; category?: string | null }[];
+  /** Butter pill under the body ("Your first recipe idea is free"). */
+  pill?: string;
   /** Quiet link under the CTA, with an optional lead-in ("Not feeling it?"). */
   secondary?: { prefix?: string; label: string; onPress: () => void };
 };
 
 // The app's home moment: one card that answers what's for dinner — a dish
 // when there is one, the question when there isn't — with one action.
-export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIcon, loading = false, onPress, secondary }: Props) {
+export function DinnerHero({ eyebrow, title, body, meta, media, shelf, pill, ctaLabel, ctaIcon, loading = false, onPress, secondary }: Props) {
   return (
     <View style={styles.card}>
+      {shelf ? (
+        <View style={styles.shelf}>
+          <FoodShelf foods={shelf} height={112} />
+        </View>
+      ) : null}
       <View style={styles.top}>
         <View style={styles.copy}>
           <Text variant="micro" uppercase color={colors.primary} style={styles.eyebrow}>
@@ -42,6 +52,13 @@ export function DinnerHero({ eyebrow, title, body, meta, media, ctaLabel, ctaIco
             <Text variant="micro" muted style={styles.meta}>
               {meta}
             </Text>
+          ) : null}
+          {pill ? (
+            <View style={styles.pill}>
+              <Text variant="micro" color={colors.accentInk}>
+                {pill}
+              </Text>
+            </View>
           ) : null}
         </View>
         {media ? <View style={styles.media}>{media}</View> : null}
@@ -95,6 +112,18 @@ const styles = StyleSheet.create({
     borderRadius: radii.xxl,
     ...shadows.soft,
     padding: spacing.lg,
+  },
+  // Inset by the card's padding, like the paywall's shelf in its sheet.
+  shelf: {
+    marginBottom: spacing.lg,
+  },
+  pill: {
+    alignSelf: "flex-start",
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xxs,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radii.pill,
   },
   top: {
     flexDirection: "row",
