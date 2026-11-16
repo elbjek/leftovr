@@ -32,7 +32,7 @@ export function DinnerHero({ eyebrow, title, body, meta, media, shelf, pill, cta
     <View style={styles.card}>
       {shelf ? (
         <View style={styles.shelf}>
-          <FoodShelf foods={shelf} height={112} />
+          <FoodShelf foods={shelf} height={68} size={28} once />
         </View>
       ) : null}
       <View style={styles.top}>
@@ -115,11 +115,11 @@ const styles = StyleSheet.create({
   },
   // Inset by the card's padding, like the paywall's shelf in its sheet.
   shelf: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   pill: {
     alignSelf: "flex-start",
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xxs,
     backgroundColor: colors.accentSoft,

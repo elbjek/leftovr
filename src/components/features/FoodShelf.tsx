@@ -11,6 +11,10 @@ type Props = {
   /** Food names or icon ids; a category picks the icon when the name has none. */
   foods: { name: string; category?: string | null }[];
   height?: number;
+  /** Icon size; the shelf line sits proportionally lower for smaller foods. */
+  size?: number;
+  /** Hop through once instead of looping (the home; the paywall loops). */
+  once?: boolean;
   /** A label hung over one food (the paywall's "today"). */
   tag?: { index: number; node: ReactNode };
   /** Drawn over the shelf, e.g. a pill in the corner. */
@@ -18,21 +22,21 @@ type Props = {
 };
 
 /**
- * One hop each for `count` foods, in turn on a shared 2.4s loop (the shelf's
- * rhythm, reused by the home's first-run cards). Still under reduced motion.
+ * One hop each for `count` foods, in turn on a shared 2.4s beat (the shelf's
+ * rhythm, reused by the home's first-run cards): looping, or a single pass
+ * with `once`. Still under reduced motion.
  */
-export function useHop(count: number) {
+export function useHop(count: number, once = false) {
   const reduce = useReducedMotion();
   const [beat] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (reduce) return;
-    const loop = Animated.loop(
-      Animated.timing(beat, { toValue: 1, duration: 2400, easing: Easing.linear, useNativeDriver: true }),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [beat, reduce]);
+    const pass = Animated.timing(beat, { toValue: 1, duration: 2400, easing: Easing.linear, useNativeDriver: true });
+    const anim = once ? pass : Animated.loop(pass);
+    anim.start();
+    return () => anim.stop();
+  }, [beat, once, reduce]);
 
   return Array.from({ length: count }, (_, i) => {
     const start = 0.05 + i * 0.12;
@@ -47,21 +51,23 @@ export function useHop(count: number) {
  * A peach shelf of foods hopping one after another (the paywall hero, also
  * the home's dinner card). Still when the device asks for reduced motion.
  */
-export function FoodShelf({ foods, height = 144, tag, children }: Props) {
-  const hops = useHop(foods.length);
+export function FoodShelf({ foods, height = 144, size = 40, once = false, tag, children }: Props) {
+  const hops = useHop(foods.length, once);
+  // 22 / 28 at the paywall's 40pt foods.
+  const shelfBottom = Math.round(size * 0.55);
 
   return (
     <View style={[styles.shelfWell, { height }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {children}
-      <View style={styles.foods}>
+      <View style={[styles.foods, { bottom: shelfBottom + 6 }]}>
         {foods.map((food, i) => (
           <Animated.View key={`${food.name}-${i}`} style={[styles.food, { transform: [{ translateY: hops[i] }] }]}>
             {tag?.index === i ? <View style={styles.tag}>{tag.node}</View> : null}
-            <FoodGlyph name={food.name} category={food.category} size={40} />
+            <FoodGlyph name={food.name} category={food.category} size={size} />
           </Animated.View>
         ))}
       </View>
-      <View style={styles.shelf} />
+      <View style={[styles.shelf, { bottom: shelfBottom }]} />
     </View>
   );
 }
@@ -76,7 +82,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: spacing.lg,
     right: spacing.lg,
-    bottom: 28,
     flexDirection: "row",
     justifyContent: "space-between",
   },
@@ -96,7 +101,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: spacing.lg,
     right: spacing.lg,
-    bottom: 22,
     height: 4,
     borderRadius: radii.pill,
     backgroundColor: colors.surface3,

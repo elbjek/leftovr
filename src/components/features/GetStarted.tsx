@@ -14,7 +14,7 @@ type Step = { label: string; food: string };
  * shelf carried down the page, before any food is in.
  */
 export function HowItWorks({ steps }: { steps: Step[] }) {
-  const hops = useHop(steps.length);
+  const hops = useHop(steps.length, true);
   return (
     <View style={styles.howRow}>
       {steps.map((step, i) => (
@@ -26,7 +26,7 @@ export function HowItWorks({ steps }: { steps: Step[] }) {
               </Text>
             </View>
             <Animated.View style={{ transform: [{ translateY: hops[i] }] }}>
-              <FoodGlyph name={step.food} size={30} />
+              <FoodGlyph name={step.food} size={26} />
             </Animated.View>
           </View>
           <Text variant="small" weight="bold" center>
@@ -89,7 +89,7 @@ export function GetStartedCard({ title, progress, hideLabel, onHide, tasks }: Pr
             style={[styles.row, isNext && styles.rowNext]}
           >
             <View style={styles.well}>
-              <FoodGlyph name={task.food} size={22} />
+              <FoodGlyph name={task.food} size={20} />
               {task.done ? (
                 <View style={styles.tick}>
                   <Svg width={9} height={9} viewBox="0 0 24 24">
@@ -127,15 +127,14 @@ const styles = StyleSheet.create({
   },
   howCard: {
     flex: 1,
-    gap: spacing.sm,
+    gap: spacing.xs,
     padding: spacing.sm,
-    paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
     ...shadows.soft,
   },
   howTile: {
-    height: 64,
+    height: 44,
     borderRadius: radii.md,
     backgroundColor: colors.surface2,
     alignItems: "center",
@@ -143,10 +142,10 @@ const styles = StyleSheet.create({
   },
   howNumber: {
     position: "absolute",
-    top: spacing.xs,
-    left: spacing.xs,
-    width: 20,
-    height: 20,
+    top: spacing.xxs,
+    left: spacing.xxs,
+    width: 18,
+    height: 18,
     borderRadius: radii.pill,
     backgroundColor: colors.primary,
     alignItems: "center",
@@ -175,8 +174,8 @@ const styles = StyleSheet.create({
   },
   track: {
     height: 6,
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
+    marginTop: spacing.xxs,
+    marginBottom: spacing.xs,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     overflow: "hidden",
@@ -191,7 +190,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xxs,
     paddingHorizontal: spacing.sm,
     marginHorizontal: -spacing.sm,
     borderRadius: radii.md,
@@ -200,8 +199,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary50,
   },
   well: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     borderRadius: radii.pill,
     backgroundColor: colors.surface2,
     alignItems: "center",

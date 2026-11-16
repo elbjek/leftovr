@@ -961,14 +961,17 @@ const styles = StyleSheet.create({
   },
   startBlock: {
     paddingHorizontal: spacing.screenX,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   listScroll: {
     flex: 1,
   },
+  // The dock sits below the screen in the layout, not over it, so only
+  // breathing room is needed at the foot (it was 118pt, which pushed a new
+  // account's page past the fold).
   listContent: {
     paddingTop: spacing.lg,
-    paddingBottom: spacing.tabBarClearance,
+    paddingBottom: spacing.lg,
   },
   unfinishedScan: {
     marginHorizontal: spacing.screenX,
