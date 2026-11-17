@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, Easing, Image, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { useTranslation } from "react-i18next";
+import type { InventoryCategory } from "@/services";
 import { colors, fonts, radii, shadows, spacing, Urgency, urgencyColors } from "../../theme";
 import { Logo } from "../illustrations";
 import { Text } from "../primitives";
-import { FoodCard } from "./FoodCard";
-import { KitchenPulse } from "./KitchenPulse";
+import { CheckTheseShelf } from "./CheckTheseShelf";
+import { KitchenTile } from "./KitchenTile";
+import { UseSoonCard } from "./UseSoonCard";
 import { TryNextCard } from "./RecipeIdeas";
 import { ScanMethod, ScanMethodIcon } from "./ScanMethodCard";
 
@@ -262,69 +264,74 @@ function AddScene({ demo, active }: SceneProps<AddDemo>) {
 }
 
 type KitchenDemo = {
-  items: { name: string; category: string; meta: string; bestBy: string; urgency: Urgency }[];
-  check: { name: string; meta: string; keep: string; toss: string };
-  pulse: { fresh: number; soon: number; urgent: number };
-  pulseLabels: { today: string; soon: string; fresh: string; total: string };
+  /** Use soon row: localized food names; when = "today" | "tomorrow" | days. */
+  soon: { name: string; category: string; urgency: Urgency; when: "today" | "tomorrow" | number }[];
+  /** Foods waiting in Check these. */
+  checkCount: number;
+  tiles: { category: InventoryCategory; count: number; soon: number }[];
 };
 
+/**
+ * The Kitchen as it is today (2026-11-17): the Use soon row, the Check these
+ * card and the "Your kitchen" tiles, from the Kitchen's own components and
+ * labels. The old inline still good / toss card and the freshness bar are
+ * gone from the app, so they are gone from here too.
+ */
 function KitchenScene({ demo, active }: SceneProps<KitchenDemo>) {
-  const { pulseLabels } = demo;
+  const { t } = useTranslation();
+  const bestBy = (when: KitchenDemo["soon"][number]["when"]) =>
+    when === "today"
+      ? t("fridge.bestBy.today")
+      : when === "tomorrow"
+        ? t("fridge.bestBy.tomorrow")
+        : t("fridge.bestBy.inDays", { count: when });
+  const tileCount = demo.tiles.reduce((sum, tile) => sum + tile.count, 0);
+  const soonCount = demo.tiles.reduce((sum, tile) => sum + tile.soon, 0);
+
   return (
     <View style={[styles.stage, styles.stageGap]}>
-      <View style={styles.row3}>
-        {demo.items.map((item, index) => (
-          <Reveal key={item.name} active={active} delay={50 + index * 100} style={styles.flex1}>
-            <FoodCard
-              name={item.name}
-              category={item.category}
-              meta={item.meta}
-              bestBy={item.bestBy}
-              urgency={item.urgency}
-              style={styles.fullWidth}
-            />
-          </Reveal>
-        ))}
-      </View>
-      <Reveal active={active} delay={450}>
-        <View style={[styles.card, styles.cardGap]}>
-          <View style={styles.rowGap}>
-            <View style={styles.unknownTile}>
-              <Text variant="label" muted>
-                ?
-              </Text>
-            </View>
-            <View style={styles.flex1}>
-              <Text variant="h3">{demo.check.name}</Text>
-              <Text variant="small" muted>
-                {demo.check.meta}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.row2}>
-            <View style={[styles.choice, { backgroundColor: colors.sageTint }]}>
-              <Text variant="label" color={colors.primary}>
-                {demo.check.keep}
-              </Text>
-            </View>
-            <View style={[styles.choice, { backgroundColor: colors.redSoft }]}>
-              <Text variant="label" color={colors.redInk}>
-                {demo.check.toss}
-              </Text>
-            </View>
-          </View>
+      <Reveal active={active} delay={50}>
+        <View style={styles.kitchenHead}>
+          <Text variant="h3">{t("fridge.shelves.useSoon")}</Text>
+          <Text variant="label" color={colors.primary}>
+            {t("fridge.shelves.seeAllCount", { count: soonCount })}
+          </Text>
+        </View>
+        {/* The app's row scrolls sideways; here it just runs off the edge. */}
+        <View style={styles.soonRow}>
+          {demo.soon.map((item) => (
+            <UseSoonCard key={item.name} name={item.name} category={item.category} urgency={item.urgency} meta={bestBy(item.when)} />
+          ))}
         </View>
       </Reveal>
-      <Reveal active={active} delay={700}>
-        <KitchenPulse
-          {...demo.pulse}
-          labels={{
-            today: pulseLabels.today,
-            soon: pulseLabels.soon,
-            fresh: pulseLabels.fresh,
-            total: (count) => pulseLabels.total.replace("{{count}}", String(count)),
-          }}
+      <Reveal active={active} delay={300} style={styles.bleedX}>
+        <CheckTheseShelf
+          count={demo.checkCount}
+          labels={{ kicker: t("fridge.checkThese.title"), subtitle: t("fridge.checkThese.subtitle") }}
+          onPress={() => undefined}
         />
+      </Reveal>
+      <Reveal active={active} delay={550}>
+        <View style={styles.kitchenHead}>
+          <Text variant="h3">{t("fridge.tiles.title")}</Text>
+          <Text variant="label" color={colors.primary}>
+            {t("fridge.shelves.seeAllCount", { count: tileCount })}
+          </Text>
+        </View>
+        <View style={styles.kitchenTiles}>
+          {demo.tiles.map((tile) => (
+            <KitchenTile
+              key={tile.category}
+              category={tile.category}
+              label={t(`scan.categories.${tile.category}` as never) as string}
+              detail={
+                tile.soon > 0
+                  ? t("fridge.tiles.itemsSoon", { count: tile.count, soon: tile.soon })
+                  : t("fridge.kitchenPulse.total", { count: tile.count })
+              }
+            />
+          ))}
+        </View>
       </Reveal>
     </View>
   );
@@ -613,11 +620,30 @@ const styles = StyleSheet.create({
   stageGap: {
     gap: spacing.lg,
   },
+  // Kitchen slide: the section heads and rows as on the Kitchen.
+  kitchenHead: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    marginBottom: spacing.sm,
+  },
+  soonRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginRight: -spacing.xxl,
+    overflow: "hidden",
+  },
+  kitchenTiles: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  // CheckTheseShelf carries the screen gutter itself; the stage already has one.
+  bleedX: {
+    marginHorizontal: -spacing.screenX,
+  },
   flex1: {
     flex: 1,
-  },
-  fullWidth: {
-    width: "100%",
   },
   center: {
     alignItems: "center",
@@ -742,14 +768,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   // kitchen
-  unknownTile: {
-    width: 40,
-    height: 40,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   choice: {
     flex: 1,
     height: 40,

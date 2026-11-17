@@ -120,16 +120,20 @@ export const sr = {
           key: "kitchen",
           eyebrow: "Kuhinja",
           title: "Vidi šta *prvo da pojedeš.*",
-          body: "Namirnice su poređane po tome koliko brzo ističu. Sve čemu je prošao rok dobija brzu proveru: još je dobro ili baci.",
+          body: "Ono što treba uskoro iskoristiti je na vrhu, ostalo po kategorijama. Sve čemu je prošao rok čeka u „Proveri ovo”: zadrži ili baci.",
           demo: {
-            items: [
-              { name: "Piletina", category: "meat", meta: "600 g", bestBy: "Iskoristi danas", urgency: "urgent" },
-              { name: "Spanać", category: "vegetables", meta: "200 g", bestBy: "Još 2 dana", urgency: "useSoon" },
-              { name: "Jogurt", category: "dairy", meta: "500 g", bestBy: "Još 5 dana", urgency: "safe" },
+            soon: [
+              { name: "Piletina", category: "meat", urgency: "urgent", when: "today" },
+              { name: "Spanać", category: "vegetables", urgency: "urgent", when: "tomorrow" },
+              { name: "Jogurt", category: "dairy", urgency: "useSoon", when: 3 },
             ],
-            check: { name: "Mleko", meta: "Rok prošao pre 2 dana", keep: "Još je dobro", toss: "Baci" },
-            pulse: { fresh: 14, soon: 5, urgent: 3 },
-            pulseLabels: { today: "Danas", soon: "Uskoro", fresh: "Sveže", total: "{{count}} namirnica" },
+            checkCount: 2,
+            tiles: [
+              { category: "meat", count: 3, soon: 1 },
+              { category: "vegetables", count: 6, soon: 2 },
+              { category: "dairy_eggs", count: 4, soon: 1 },
+              { category: "pantry", count: 9, soon: 0 },
+            ],
           },
         },
         {

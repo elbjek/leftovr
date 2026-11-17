@@ -13,12 +13,12 @@ Structure:
 
 - `primitives/`: generic UI blocks such as `Screen`, `Text`, `Button`, `Card`, `BottomSheet`, `ChoiceCard`, and `SegmentedControl`.
 - `illustrations/`: reusable native SVG illustrations and glyphs.
-- `features/`: Leftovr-specific composed components such as `FoodCard`, `ShelfRow`, `LockedCard`, `PremiumSheet`, `RecipeCard`, review cards, and retention cards.
+- `features/`: Leftovr-specific composed components such as `FoodListCard`, `ShelfRow`, `LockedCard`, `PremiumSheet`, `RecipeCard`, review cards, and retention cards.
 
 Example:
 
 ```tsx
-import { Button, FoodCard, Screen, Text } from "../src/components";
+import { Button, FoodListCard, Screen, Text } from "../src/components";
 import { colors, spacing } from "../src/theme";
 ```
 

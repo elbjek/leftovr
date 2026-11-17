@@ -120,16 +120,20 @@ export const en = {
           key: "kitchen",
           eyebrow: "Kitchen",
           title: "See what to *eat first.*",
-          body: "Your food is sorted by how soon it goes off. Anything past its date gets a quick check: still good, or toss.",
+          body: "What to use soon sits up top, the rest by category. Anything past its date waits in Check these: keep it or toss it.",
           demo: {
-            items: [
-              { name: "Chicken", category: "meat", meta: "600 g", bestBy: "Use today", urgency: "urgent" },
-              { name: "Spinach", category: "vegetables", meta: "200 g", bestBy: "2 days left", urgency: "useSoon" },
-              { name: "Yogurt", category: "dairy", meta: "500 g", bestBy: "5 days left", urgency: "safe" },
+            soon: [
+              { name: "Chicken", category: "meat", urgency: "urgent", when: "today" },
+              { name: "Spinach", category: "vegetables", urgency: "urgent", when: "tomorrow" },
+              { name: "Yogurt", category: "dairy", urgency: "useSoon", when: 3 },
             ],
-            check: { name: "Milk", meta: "2 days past its date", keep: "Still good", toss: "Toss" },
-            pulse: { fresh: 14, soon: 5, urgent: 3 },
-            pulseLabels: { today: "Today", soon: "Soon", fresh: "Fresh", total: "{{count}} items" },
+            checkCount: 2,
+            tiles: [
+              { category: "meat", count: 3, soon: 1 },
+              { category: "vegetables", count: 6, soon: 2 },
+              { category: "dairy_eggs", count: 4, soon: 1 },
+              { category: "pantry", count: 9, soon: 0 },
+            ],
           },
         },
         {

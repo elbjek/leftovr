@@ -3,7 +3,7 @@ import { Alert, AppState, RefreshControl, ScrollView, StyleSheet, TextInput, Vie
 import { useTranslation } from "react-i18next";
 import Svg, { Path } from "react-native-svg";
 
-import { BackButton, BottomSheet, FitScrollView, Button, ShoppingListIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, FoodListCard, FoodLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
+import { BackButton, BottomSheet, FitScrollView, Button, ShoppingListIcon, CheckItem, DateField, CheckTheseShelf, EmptyFridge, KitchenTile, UseSoonCard, FoodListCard, FoodLoader, HouseholdPill, HouseholdSheet, LockedCard, PremiumSheet, Screen, SegmentedControl, ShoppingListCard, Tappable, Text, TextField, UnitPicker, useToast } from "@/components";
 import { isPremium as resolvePremium, openRecipesAndGenerate, useAuth, useMeasurementSystem } from "@/features";
 import { normalizeUnit } from "@/lib";
 import { useHousehold, useInsights, useInventory, useShoppingList } from "@/hooks";
@@ -20,7 +20,7 @@ import {
   toUiCategory,
   toUiUrgency,
 } from "@/services";
-import { CategoryTone, Urgency, categoryColors, colors, radii, shadows, spacing, typography, urgencyColors } from "@/theme";
+import { CategoryTone, Urgency, categoryColors, colors, radii, shadows, spacing, typography } from "@/theme";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { FoodGlyph, Logo } from "@/components/illustrations";
 
@@ -479,25 +479,15 @@ export default function FridgeRoute() {
                 </Tappable>
               </View>
               <View style={styles.tiles}>
-                {categoryTiles.map((tile) => {
-                  const tone = categoryColors[toUiCategory(tile.category) as CategoryTone] ?? categoryColors.other;
-                  return (
-                    <Tappable
-                      key={tile.category}
-                      label={`${tile.label}, ${tile.detail}`}
-                      onPress={() => setView(tile.category)}
-                      style={[styles.tile]}
-                    >
-                      <FoodGlyph name="" category={tile.category} color={tone.mark} size={52} />
-                      <Text variant="small" numberOfLines={1} weight="bold" center>
-                        {tile.label}
-                      </Text>
-                      <Text variant="micro" muted numberOfLines={1} center>
-                        {tile.detail}
-                      </Text>
-                    </Tappable>
-                  );
-                })}
+                {categoryTiles.map((tile) => (
+                  <KitchenTile
+                    key={tile.category}
+                    category={tile.category}
+                    label={tile.label}
+                    detail={tile.detail}
+                    onPress={() => setView(tile.category)}
+                  />
+                ))}
               </View>
             </View>
           ) : null}
@@ -675,28 +665,14 @@ function UseSoonStrip({
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.soonRow}>
         {items.map((item) => (
-          <Tappable
+          <UseSoonCard
             key={item.id}
-            label={`${item.name}, ${item.meta}`}
+            name={item.name}
+            category={item.category}
+            urgency={item.urgency}
+            meta={item.meta}
             onPress={() => onItemPress(item.id)}
-            hitSlop={0}
-            style={[styles.soonCard]}
-          >
-            <View style={styles.soonFood}>
-              <FoodGlyph name={item.name} category={item.category} size={34} />
-            </View>
-            <View style={styles.soonCopy}>
-              <Text variant="label" numberOfLines={1}>
-                {item.name}
-              </Text>
-              <View style={styles.soonMeta}>
-                <View style={[styles.soonDot, { backgroundColor: urgencyColors[item.urgency] }]} />
-                <Text variant="small" muted numberOfLines={1}>
-                  {item.meta}
-                </Text>
-              </View>
-            </View>
-          </Tappable>
+          />
         ))}
       </ScrollView>
     </View>
@@ -1490,38 +1466,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xs,
     paddingBottom: spacing.lg,
   },
-  soonCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    padding: spacing.sm,
-    paddingRight: spacing.lg,
-    borderRadius: radii.xl,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
-  },
-  soonFood: {
-    width: 44,
-    height: 44,
-    borderRadius: radii.md,
-    backgroundColor: colors.sageTint,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  soonCopy: {
-    maxWidth: 148,
-    gap: 2,
-  },
-  soonMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  soonDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
   tilesSection: {
     marginHorizontal: spacing.screenX,
     gap: spacing.sm,
@@ -1535,17 +1479,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.sm,
-  },
-  tile: {
-    // Four per row: a quarter of the row minus the gaps.
-    width: "23.4%",
-    alignItems: "center",
-    gap: 2,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xxs,
-    borderRadius: radii.xl,
-    backgroundColor: colors.surface,
-    ...shadows.soft,
   },
   refreshButton: {
     minHeight: 38,
