@@ -31,6 +31,7 @@ export function TryNextCard({
   secondaryLabel,
   onSecondary,
   coverPath,
+  coverSource,
 }: {
   eyebrow: string;
   title: string;
@@ -51,6 +52,8 @@ export function TryNextCard({
   secondaryLabel?: string;
   onSecondary?: () => void;
   coverPath?: string | null;
+  /** A bundled cover photo (require()) instead of a stored one (the feature tour). */
+  coverSource?: number;
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
@@ -62,7 +65,7 @@ export function TryNextCard({
         <View style={styles.heroArt}>
           <View style={styles.heroBlob} />
           <View style={styles.heroDish}>
-            <RecipeCover path={coverPath} glyphSize={52} />
+            <RecipeCover path={coverPath} source={coverSource} glyphSize={52} />
           </View>
         </View>
         <View style={styles.heroCopy}>

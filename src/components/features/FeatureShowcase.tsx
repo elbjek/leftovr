@@ -374,6 +374,9 @@ function RecipesScene({ demo, active }: SceneProps<RecipesDemo>) {
           ctaLabel={t("recipes.home.cookThis")}
           secondaryLabel={t("recipes.home.moreIdeas")}
           onSecondary={noop}
+          // The app's own cover for this dish (recipe-covers bucket, made by
+          // the recipe-cover function), bundled so the tour works offline.
+          coverSource={require("../../../assets/images/tour-recipe-skillet.jpg")}
         />
       </Reveal>
     </View>

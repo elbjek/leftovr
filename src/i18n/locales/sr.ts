@@ -143,10 +143,10 @@ export const sr = {
           body: "AI pravi obroke od tvojih namirnica, počevši od onih kojima rok najpre ističe. Ne sviđaju ti se? Traži druge.",
           demo: {
             time: "25 min",
-            title: "Kremasti orzo sa piletinom i spanaćem",
+            title: "Piletina sa pečurkama i pirinčem iz tiganja",
             ingredients: [
               { name: "Pileći bataci", urgency: "urgent" },
-              { name: "Spanać", urgency: "urgent" },
+              { name: "Pečurke", urgency: "urgent" },
             ],
           },
         },

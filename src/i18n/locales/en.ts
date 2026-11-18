@@ -143,10 +143,10 @@ export const en = {
           body: "AI builds meals around what you have, starting with what's due soonest. Don't like them? Ask for others.",
           demo: {
             time: "25 min",
-            title: "Creamy chicken & spinach orzo",
+            title: "Chicken & mushroom rice skillet",
             ingredients: [
               { name: "Chicken thighs", urgency: "urgent" },
-              { name: "Spinach", urgency: "urgent" },
+              { name: "Mushrooms", urgency: "urgent" },
             ],
           },
         },
