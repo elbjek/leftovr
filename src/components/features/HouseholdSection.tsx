@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { colors, radii, spacing } from "../../theme";
 import { Button, Text, TextField } from "../primitives";
 import { HouseholdInvite, HouseholdMember, InviteLookup } from "@/repositories/householdRepository";
+import { MANAGE_SUBSCRIPTIONS_URL } from "@/services";
 
 type Props = {
   householdName: string;
@@ -29,9 +30,6 @@ type Props = {
   initialJoinCode?: string;
 };
 
-// Apple never lets an app cancel a user's subscription — they must do it in the
-// App Store. Deep-link straight to the manage-subscriptions screen.
-const MANAGE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
 
 // Native confirm dialog resolved as a promise so handleJoin can await the
 // user's choice before committing the (irreversible) household switch. "Manage

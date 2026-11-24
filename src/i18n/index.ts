@@ -38,6 +38,10 @@ if (!i18nInstance.isInitialized) {
     parseMissingKeyHandler: (key) => `[[${key}]]`,
     interpolation: {
       escapeValue: false,
+      // Store name for subscription copy ("cancel in your {{store}} settings").
+      // EXPO_OS is inlined at build time; reading it keeps react-native out of
+      // this module (tests import it under Node).
+      defaultVariables: { store: process.env.EXPO_OS === "android" ? "Google Play" : "App Store" },
     },
   });
 

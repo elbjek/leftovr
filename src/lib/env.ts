@@ -5,9 +5,11 @@ export const env = {
   // signInWithIdToken; iosClientId is needed for the native iOS sign-in flow.
   googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  // RevenueCat public SDK key (iOS). Public/client-safe. Drives the IAP paywall;
-  // when unset, the purchase flow no-ops (e.g. web export / Expo Go).
+  // RevenueCat public SDK keys (appl_… iOS, goog_… Android). Public/client-safe.
+  // Drive the IAP paywall; when the platform's key is unset, the purchase flow
+  // no-ops (e.g. web export / Expo Go).
   revenueCatIosKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY,
+  revenueCatAndroidKey: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY,
   // Sentry DSN (public by design). Unset = crash reporting off.
   sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
 } as const;

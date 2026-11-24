@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import type { PurchasesOffering } from "react-native-purchases";
 
 import { isPremium, useAuth } from "@/features";
-import { findPackage, getCurrentOffering, PRODUCT_IDS, purchasePackage, restorePurchases } from "@/services";
+import {
+  findPackage,
+  getCurrentOffering,
+  MANAGE_SUBSCRIPTIONS_URL,
+  PRODUCT_IDS,
+  purchasePackage,
+  restorePurchases,
+} from "@/services";
 import { colors, radii, spacing } from "../../theme";
 import { BottomSheet, Button, SegmentedControl, Text } from "../primitives";
 import { FoodGlyph } from "../illustrations";
@@ -12,12 +19,10 @@ import { FoodShelf } from "./FoodShelf";
 import { formatPerMonth, savePercent } from "./perMonth";
 import { legalUrl } from "@/lib/legalUrl";
 
-// iOS deep link to the system Manage Subscriptions screen.
-const MANAGE_SUBSCRIPTIONS_URL = "https://apps.apple.com/account/subscriptions";
-// Apple's standard EULA (Licensed Application EULA). Used as the paywall Terms
-// of Use link because the App Store listing adopts the standard EULA rather
-// than a custom License Agreement.
-const TERMS_URL = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+// Apple's standard EULA (Licensed Application EULA). Used as the iOS paywall
+// Terms of Use link because the App Store listing adopts the standard EULA
+// rather than a custom License Agreement. Android links our own terms.
+const APPLE_EULA_URL = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 
 type PremiumPlan = "individual" | "household";
 type BillingPeriod = "monthly" | "yearly";
@@ -302,7 +307,9 @@ export function PremiumSheet({ visible, plan, onPurchased, onDismiss }: Props) {
           ) : (
             <LegalLink label={t("premium.restore")} onPress={handleRestore} disabled={busy} />
           )}
-          <LegalLink label={t("premium.termsOfUse")} onPress={() => Linking.openURL(TERMS_URL)} />
+          <LegalLink label={t("premium.termsOfUse")} onPress={() =>
+              Linking.openURL(Platform.OS === "ios" ? APPLE_EULA_URL : legalUrl("terms", i18n.language))
+            } />
           <LegalLink
             label={t("premium.privacyPolicy")}
             onPress={() => Linking.openURL(legalUrl("privacy", i18n.language))}

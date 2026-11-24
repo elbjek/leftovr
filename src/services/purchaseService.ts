@@ -3,7 +3,8 @@ import type { PurchasesOffering, PurchasesPackage } from "react-native-purchases
 
 import { env } from "@/lib/env";
 
-// Product identifiers as configured in App Store Connect / RevenueCat. The
+// Product identifiers as configured in App Store Connect / Google Play /
+// RevenueCat (Play subscriptions use the same ids). The
 // paywall picks the pair matching the chosen plan; the tier each grants is
 // resolved server-side by the RevenueCat webhook, never trusted from the client.
 export const PRODUCT_IDS = {
@@ -13,24 +14,32 @@ export const PRODUCT_IDS = {
   household: { monthly: "monthly_household", yearly: "yearly_household_v2" },
 } as const;
 
+// Where the user cancels or changes a subscription: the store's own screen.
+export const MANAGE_SUBSCRIPTIONS_URL =
+  Platform.OS === "android"
+    ? "https://play.google.com/store/account/subscriptions?package=app.leftovr.mobile"
+    : "https://apps.apple.com/account/subscriptions";
+
+const apiKey = Platform.select({ ios: env.revenueCatIosKey, android: env.revenueCatAndroidKey });
+
 let configured = false;
 
 // react-native-purchases is a native module — absent in Expo Go and web export.
 // Lazily require it so importing this file never crashes those targets; it is
-// only touched on iOS when the key is present.
+// only touched on iOS/Android when that platform's key is present.
 function getPurchases() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   return require("react-native-purchases").default;
 }
 
 function isAvailable() {
-  return Platform.OS === "ios" && Boolean(env.revenueCatIosKey);
+  return Boolean(apiKey);
 }
 
 /** Configure the SDK once at app start. Safe to call when unavailable (no-op). */
 export function configurePurchases(): void {
   if (!isAvailable() || configured) return;
-  getPurchases().configure({ apiKey: env.revenueCatIosKey });
+  getPurchases().configure({ apiKey });
   configured = true;
 }
 
@@ -54,12 +63,17 @@ export async function getCurrentOffering(): Promise<PurchasesOffering | null> {
   return offerings.current ?? null;
 }
 
-/** Find a package in the offering by its underlying store product identifier. */
+/** Find a package in the offering by its underlying store product identifier.
+ *  Google Play reports subscriptions as `<productId>:<basePlanId>`. */
 export function findPackage(
   offering: PurchasesOffering | null,
   productId: string,
 ): PurchasesPackage | null {
-  return offering?.availablePackages.find((p) => p.product.identifier === productId) ?? null;
+  return (
+    offering?.availablePackages.find(
+      (p) => p.product.identifier === productId || p.product.identifier.startsWith(`${productId}:`),
+    ) ?? null
+  );
 }
 
 /** Returns true on a completed purchase, false when the user cancels. */
@@ -87,7 +101,7 @@ export async function restorePurchases(): Promise<void> {
  *  no completion callback; entitlement lands via the RevenueCat webhook and
  *  shows up on the next profile refresh. */
 export async function presentCodeRedemptionSheet(): Promise<void> {
-  if (!isAvailable()) return;
+  if (Platform.OS !== "ios" || !isAvailable()) return;
   configurePurchases();
   await getPurchases().presentCodeRedemptionSheet();
 }

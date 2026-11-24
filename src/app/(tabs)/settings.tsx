@@ -545,11 +545,14 @@ export default function SettingsRoute() {
                 setShowPremium(true);
               }}
             />
-            <Button
-              title={t("premium.redeemCode")}
-              variant="ghost"
-              onPress={() => void presentCodeRedemptionSheet()}
-            />
+            {/* Offer codes are an App Store feature; Play codes redeem in the Play Store. */}
+            {Platform.OS === "ios" ? (
+              <Button
+                title={t("premium.redeemCode")}
+                variant="ghost"
+                onPress={() => void presentCodeRedemptionSheet()}
+              />
+            ) : null}
           </View>
         </Card>
 
