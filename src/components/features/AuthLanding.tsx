@@ -1,5 +1,5 @@
 import React from "react";
-import { Linking, Pressable, StyleSheet, View } from "react-native";
+import { Linking, Platform, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import Svg, { Path, Rect } from "react-native-svg";
 
@@ -103,14 +103,17 @@ export function AuthButtons({
 }) {
   return (
     <View style={styles.buttons}>
-      <AuthButton
-        label={appleLabel}
-        backgroundColor={colors.black}
-        color={colors.white}
-        icon={<AppleIcon />}
-        onPress={onApple}
-        disabled={disabled}
-      />
+      {/* Sign in with Apple is native on iOS only (expo-apple-authentication). */}
+      {Platform.OS === "ios" ? (
+        <AuthButton
+          label={appleLabel}
+          backgroundColor={colors.black}
+          color={colors.white}
+          icon={<AppleIcon />}
+          onPress={onApple}
+          disabled={disabled}
+        />
+      ) : null}
       <AuthButton
         label={googleLabel}
         backgroundColor={colors.surface}

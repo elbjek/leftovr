@@ -19,8 +19,9 @@ import { colors, radii, spacing } from "@/theme";
 
 // Room the floating footer (56pt buttons) takes over each slide's copy.
 const FOOTER_SPACE = 56 + spacing.huge + spacing.xxl;
-// The last slide's sign-in block: three 56pt buttons, the invite link and an error line.
-const AUTH_SPACE = 56 * 3 + 12 * 2 + 40 + 20 + spacing.lg;
+// The last slide's sign-in block: 56pt buttons (Apple only on iOS), the invite link and an error line.
+const AUTH_BUTTONS = Platform.OS === "ios" ? 3 : 2;
+const AUTH_SPACE = 56 * AUTH_BUTTONS + 12 * (AUTH_BUTTONS - 1) + 40 + 20 + spacing.lg;
 
 export default function HookCarouselRoute() {
   const { t } = useTranslation();
