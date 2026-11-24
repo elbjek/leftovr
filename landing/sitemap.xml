@@ -247,6 +247,12 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://leftovr.co/delete-account/</loc>
+    <lastmod>2026-11-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://leftovr.co/refund/</loc>
     <lastmod>2026-06-19</lastmod>
     <changefreq>yearly</changefreq>
