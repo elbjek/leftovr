@@ -104,8 +104,8 @@
         "CAMERA"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#234B34"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#D9503A"
       },
       "predictiveBackGestureEnabled": false
     },
